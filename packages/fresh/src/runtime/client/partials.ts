@@ -6,7 +6,7 @@ import {
   matchesUrl,
   PartialMode,
   UrlMatchKind,
-} from "../shared_internal.tsx";
+} from "../shared_internal.ts";
 import {
   ACTIVE_PARTIALS,
   copyOldChildren,

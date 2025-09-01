@@ -5,7 +5,7 @@
   "exports": {
     ".": "./src/mod.ts",
     "./runtime": "./src/runtime/shared.ts",
-    "./runtime-client": "./src/runtime/client/mod.tsx",
+    "./runtime-client": "./src/runtime/client/mod.ts",
     "./dev": "./src/dev/mod.ts",
     "./compat": "./src/compat.ts",
     "./internal": "./src/internals.ts",

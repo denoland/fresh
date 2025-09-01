@@ -4,7 +4,7 @@ import {
   CLIENT_NAV_ATTR,
   type InternalPreactOptions,
   OptionsType,
-} from "../shared_internal.tsx";
+} from "../shared_internal.ts";
 import { BUILD_ID } from "@fresh/build-id";
 import { renderToString } from "preact-render-to-string";
 import { useEffect } from "preact/hooks";
