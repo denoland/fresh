@@ -43,6 +43,7 @@
     "@std/collections": "jsr:@std/collections@^1.1.2",
     "@std/http": "jsr:@std/http@^1.0.15",
     "@std/uuid": "jsr:@std/uuid@^1.0.7",
+    "@types/node": "npm:@types/node@^24.3.0",
     "docsearch": "https://esm.sh/@docsearch/js@3.5.2?target=es2020",
     "esbuild": "npm:esbuild@0.25.7",
     "esbuild-wasm": "npm:esbuild-wasm@0.25.7",
