@@ -26,6 +26,7 @@
   "publish": {
     "include": [
       "src/**",
+      "tests/**",
       "deno.json",
       "README.md",
       "LICENSE",
