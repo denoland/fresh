@@ -14,6 +14,7 @@ import { clientSnapshot } from "./plugins/client_snapshot.ts";
 import { serverSnapshot } from "./plugins/server_snapshot.ts";
 import { patches } from "./plugins/patches.ts";
 import process from "node:process";
+import { specToName, UniqueNamer } from "@fresh/core/internal-dev";
 
 export function fresh(config?: FreshViteConfig): Plugin[] {
   const fConfig: ResolvedFreshViteConfig = {
@@ -22,6 +23,8 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
     islandsDir: config?.islandsDir ?? "islands",
     routeDir: config?.routeDir ?? "routes",
     ignore: config?.ignore ?? [],
+    islandSpecifiers: new Map(),
+    namer: new UniqueNamer(),
   };
 
   const plugins: Plugin[] = [
@@ -103,9 +106,15 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
           },
         };
       },
-      configResolved(config) {
-        fConfig.islandsDir = pathWithRoot(fConfig.islandsDir, config.root);
-        fConfig.routeDir = pathWithRoot(fConfig.routeDir, config.root);
+      configResolved(vConfig) {
+        fConfig.islandsDir = pathWithRoot(fConfig.islandsDir, vConfig.root);
+        fConfig.routeDir = pathWithRoot(fConfig.routeDir, vConfig.root);
+
+        config?.islandSpecifiers?.map((spec) => {
+          const specName = specToName(spec);
+          const name = fConfig.namer.getUniqueName(specName);
+          fConfig.islandSpecifiers.set(spec, name);
+        });
       },
     },
     serverEntryPlugin(fConfig),

@@ -31,6 +31,11 @@ export function clientSnapshot(options: ResolvedFreshViteConfig): Plugin {
         },
       };
     },
+    configResolved() {
+      options.islandSpecifiers.forEach((_name, spec) => {
+        islands.add(spec);
+      });
+    },
     async buildStart() {
       const result = await crawlFsItem({
         islandDir: options.islandsDir,
