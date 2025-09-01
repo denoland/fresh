@@ -297,7 +297,7 @@ export class Builder<State = any> {
 
     const runtimePath = dev
       ? "../runtime/client/dev.ts"
-      : "../runtime/client/mod.tsx";
+      : "../runtime/client/mod.ts";
 
     const entryPoints: Record<string, string> = {
       "fresh-runtime": new URL(runtimePath, import.meta.url).href,
