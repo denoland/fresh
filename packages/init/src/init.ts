@@ -6,6 +6,7 @@ import * as semver from "@std/semver";
 // Keep these as is, as we replace these version in our release script
 const FRESH_VERSION = "2.0.0-beta.3";
 const FRESH_TAILWIND_VERSION = "0.0.1-alpha.9";
+const FRESH_VITE_PLUGIN = "0.9.7";
 const PREACT_VERSION = "10.27.1";
 const PREACT_SIGNALS_VERSION = "2.3.1";
 const TAILWINDCSS_VERSION = "4.1.10";
@@ -532,11 +533,12 @@ if (Deno.args.includes("build")) {
 } else {
   await builder.listen(() => import("./main.ts"));
 }`;
+
   if (!useVite) {
     await writeFile("dev.ts", DEV_TS);
   }
 
-  const freshVersion = await getFreshVersion();
+  const freshVersion = await getLatestVersion("@fresh/core", FRESH_VERSION);
 
   const denoJson = {
     nodeModulesDir: "auto",
@@ -585,7 +587,13 @@ if (Deno.args.includes("build")) {
     denoJson.tasks.dev = "vite";
     denoJson.tasks.build = "vite build";
 
-    denoJson.imports["@fresh/plugin-vite"] = "jsr:@fresh/plugin-vite@^0.9.5";
+    const vitePluginVersion = await getLatestVersion(
+      "@fresh/plugin-vite",
+      FRESH_VITE_PLUGIN,
+    );
+
+    denoJson.imports["@fresh/plugin-vite"] =
+      `jsr:@fresh/plugin-vite@^${vitePluginVersion}`;
     denoJson.imports["vite"] = "npm:vite@^7.1.3";
 
     if (useTailwind) {
@@ -817,14 +825,17 @@ interface JsrMeta {
   versions: Record<string, unknown>;
 }
 
-async function getFreshVersion(): Promise<string> {
+async function getLatestVersion(
+  pkg: string,
+  fallback: string,
+): Promise<string> {
   // deno-lint-ignore no-explicit-any
   if ((globalThis as any).INIT_TEST) {
-    return FRESH_VERSION;
+    return fallback;
   }
 
   try {
-    const res = await fetch("https://jsr.io/@fresh/core/meta.json");
+    const res = await fetch(`https://jsr.io/${pkg}/meta.json`);
     const json = (await res.json()) as JsrMeta;
 
     if (json.latest !== null) {
@@ -843,8 +854,8 @@ async function getFreshVersion(): Promise<string> {
     return versions.at(-1)!;
   } catch {
     console.log(
-      `Could not fetch latest Fresh version. Falling back to: ${FRESH_VERSION}`,
+      `Could not fetch latest ${pkg} version. Falling back to: ${fallback}`,
     );
-    return FRESH_VERSION;
+    return fallback;
   }
 }
