@@ -111,13 +111,25 @@ class DefaultRenderer extends Marked.Renderer {
   override heading({ tokens, depth }: Marked.Tokens.Heading): string {
     this.#assert(tokens.length > 0, "Markdown heading tokens unexpected value");
 
-    const content = tokens[0];
-    this.#assert(
-      content.type === "text" || content.type === "codespan",
-      "Markdown heading tokens unexpected value",
-    );
+    let content = "";
+    for (let i = 0; i < tokens.length; i++) {
+      const token = tokens[i];
+      switch (token.type) {
+        case "text":
+          content += token.text;
+          continue;
+        case "codespan":
+          content += token.text.replaceAll(/[<>]/g, "");
+          continue;
+        default:
+          this.#assert(
+            false,
+            "Markdown heading tokens unexpected value",
+          );
+      }
+    }
 
-    let slugInput = content.text;
+    let slugInput = content;
 
     // Rewrites e.g. `.get()` to `get`
     if (/^\..*\(\)$/.test(slugInput)) {

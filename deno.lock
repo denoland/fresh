@@ -96,6 +96,7 @@
     "npm:ts-morph@26": "26.0.0",
     "npm:vite-plugin-inspect@^11.3.2": "11.3.3_vite@7.1.3__@types+node@24.3.0__picomatch@4.0.3_@types+node@24.3.0",
     "npm:vite@*": "7.1.3_@types+node@24.3.0_picomatch@4.0.3",
+    "npm:vite@7.1.3": "7.1.3_@types+node@24.3.0_picomatch@4.0.3",
     "npm:vite@^7.1.3": "7.1.3_@types+node@24.3.0_picomatch@4.0.3"
   },
   "jsr": {
