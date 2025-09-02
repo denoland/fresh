@@ -9,7 +9,7 @@ work as expected.
 ## Update Fresh
 
 The easiest way to resolve most issues is to ensure that you're on the
-[latest version](https://jsr.io/@fresh/core/versions) of Fresh. We continiously
+[latest version](https://jsr.io/@fresh/core/versions) of Fresh. We continuously
 work on Fresh and there is a good chance that the issue you're running into has
 already been resolved in the latest version of Fresh.
 
