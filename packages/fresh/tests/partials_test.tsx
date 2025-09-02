@@ -197,7 +197,6 @@ Deno.test({
 
 // See https://github.com/denoland/fresh/issues/2254
 Deno.test({
-  only: true,
   name: "partials - should not be able to override __FRSH_STATE",
   fn: async () => {
     const app = testApp()
