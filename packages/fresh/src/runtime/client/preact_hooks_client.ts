@@ -13,8 +13,6 @@ import { HeadContext } from "../head.ts";
 // deno-lint-ignore no-explicit-any
 const options: InternalPreactOptions = preactOptions as any;
 
-const PATCHED = new WeakSet<VNode>();
-
 function WrappedHead(
   // deno-lint-ignore no-explicit-any
   { originalType, props, key }: { originalType: string; props: any; key: any },
@@ -40,7 +38,7 @@ function WrappedHead(
 
     if (matched === null && props.id) {
       matched = document.head.querySelector(
-        `#${props.name}`,
+        `#${props.id}`,
       ) as HTMLElement ??
         null;
     }
@@ -68,11 +66,9 @@ function WrappedHead(
 
   if (enabled) {
     return null;
-  } else {
-    const inner = h(originalType, props);
-    PATCHED.add(inner);
-    return inner;
   }
+
+  return h(originalType, { ...props, _freshPatched: true });
 }
 
 const oldVNodeHook = options.vnode;
@@ -86,7 +82,8 @@ options.vnode = (vnode) => {
       if (typeof value === "boolean") {
         vnode.props[CLIENT_NAV_ATTR] = String(value);
       }
-    } else if (!PATCHED.has(vnode)) {
+      // deno-lint-ignore no-explicit-any
+    } else if (!(vnode.props as any)._freshPatched) {
       switch (originalType) {
         case "title":
         case "meta":
@@ -99,6 +96,9 @@ options.vnode = (vnode) => {
           // deno-lint-ignore no-explicit-any
           const v = vnode as VNode<any>;
           const props = vnode.props;
+          // deno-lint-ignore no-explicit-any
+          delete (props as any)._freshPatched;
+
           const key = vnode.key;
           v.type = WrappedHead;
           v.props = {
