@@ -69,3 +69,11 @@ Deno.test("env vars - inline const _ = Deno.env.get()", () => {
     expected: `const deno = "test";`,
   });
 });
+
+Deno.test("env vars - inline import.meta.env.FRESH_PUBLIC_FOO", () => {
+  using _ = usingEnv("FRESH_PUBLIC_FOO", "test");
+  runTest({
+    input: `() => import.meta.env.FRESH_PUBLIC_FOO;`,
+    expected: `() => "test";`,
+  });
+});
