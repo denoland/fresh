@@ -41,6 +41,18 @@ export function inlineEnvVarsPlugin(mode: string) {
             const name = path.node.property.name;
             replace(path, name);
           }
+
+          // Check: import.meta.env.*
+          if (
+            t.isIdentifier(path.node.property) &&
+            t.isMemberExpression(path.node.object) &&
+            t.isIdentifier(path.node.object.property) &&
+            path.node.object.property.name === "env" &&
+            t.isMetaProperty(path.node.object.object)
+          ) {
+            const name = path.node.property.name;
+            replace(path, name);
+          }
         },
         CallExpression(path) {
           // Check: Deno.env.get("<string>")
