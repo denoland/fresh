@@ -435,7 +435,6 @@ export const define = createDefine<State>();`;
   await writeFile("utils.ts", UTILS_TS);
 
   const ROUTES_HOME = `import { useSignal } from "@preact/signals";
-import { Head } from "fresh/runtime";
 import { define } from "../utils.ts";
 import Counter from "../islands/Counter.tsx";
 
@@ -446,9 +445,6 @@ export default define.page(function Home(ctx) {
 
   return (
     <div class="px-4 py-8 mx-auto fresh-gradient min-h-screen">
-      <Head>
-        <title>Fresh counter: {count}</title>
-      </Head>
       <div class="max-w-screen-md mx-auto flex flex-col items-center justify-center">
         <img
           class="my-6"
@@ -503,6 +499,7 @@ export const handler = define.handlers({
 
   const ISLANDS_COUNTER_TSX = `import type { Signal } from "@preact/signals";
 import { Button } from "../components/Button.tsx";
+import { Head } from "fresh/runtime";
 
 interface CounterProps {
   count: Signal<number>;
@@ -511,6 +508,9 @@ interface CounterProps {
 export default function Counter(props: CounterProps) {
   return (
     <div class="flex gap-8 py-6">
+      <Head>
+        <title>Fresh counter: {props.count}</title>
+      </Head>
       <Button id="decrement" onClick={() => props.count.value -= 1}>-1</Button>
       <p class="text-3xl tabular-nums">{props.count}</p>
       <Button id="increment" onClick={() => props.count.value += 1}>+1</Button>
