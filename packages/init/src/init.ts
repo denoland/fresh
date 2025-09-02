@@ -339,7 +339,11 @@ ${GRADIENT_CSS}`;
 
   if (useVite) {
     await writeFile("assets/styles.css", cssStyles);
-    await writeFile("client.ts", `import "./assets/styles.css";`);
+    await writeFile(
+      "client.ts",
+      `// Import CSS files here for hot module reloading to work.
+import "./assets/styles.css";`,
+    );
   } else {
     await writeFile("static/styles.css", cssStyles);
   }
