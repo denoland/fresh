@@ -234,6 +234,49 @@ re-use existing objects internally as a minor performance optimization.
 | `ctx.basePath`         | `ctx.config.basePath`      |
 | `ctx.remoteAddr`       | `ctx.info.remoteAddr`      |
 
+### `ctx.render()`
+
+The meaning of `ctx.render()` has changed. In Fresh 1.x this was used to pass
+data from a handler to a component. In Fresh 2.x this function has been
+generalized to render JSX.
+
+Fresh 1.x:
+
+```ts
+export const handlers = {
+  async GET(req, ctx) {
+    const data = await Query();
+    await ctx.render({ value: data });
+  },
+};
+
+export default function Page({ data }) {
+  // ...
+}
+```
+
+Fresh 2:
+
+```ts
+export const handlers = {
+  async GET(ctx) {
+    const data = await Query();
+    return { data: { value: data } };
+  },
+};
+
+export default function Page({ data }) {
+  // ...
+}
+```
+
+To render JSX in general, use the `ctx.render()` function:
+
+```tsx
+const app = new App()
+  .get("/", () => ctx.render(<h1>hello</h1>));
+```
+
 ## `createHandler`
 
 The `createHandler` function was often used to launch Fresh for tests. This can
