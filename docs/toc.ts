@@ -55,6 +55,7 @@ const toc: RawTableOfContents = {
           ["environment-variables", "Environment Variables", "link:canary"],
           ["head", "Modifying <head>", "link:canary"],
           ["vite", "Vite Plugin Options", "link:canary"],
+          ["troubleshooting", "Troubleshooting", "link:canary"],
           ["builder", "Builder (Legacy)", "link:canary"],
         ],
       },
