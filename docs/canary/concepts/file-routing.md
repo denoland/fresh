@@ -6,21 +6,9 @@ description: |
 Use the `.fsRoutes()` helper on the [`App`](/docs/canary/concepts/app) instance
 to specify where file based routes should be inserted. It adds routes based on
 the structure in the `routes/` folder in your project (or any other folder you
-have set in `dev.ts`). When you add a new file there, it will register a new
-route automatically.
-
-```ts main.ts
-import { Builder } from "fresh/dev";
-
-// Optionally set a custom route dir (will be `<root>/routes` by default)
-const builder = new Builder({ routeDir: "path/to/routes" });
-
-if (Deno.args.includes("build")) {
-  await builder.build();
-} else {
-  await builder.listen(() => import("./main.ts"));
-}
-```
+have specified when instantiating the
+[`fresh()` vite plugin](/docs/canary/advanced/vite). in `vite.config.ts`). When
+you add a new file there, it will register a new route automatically.
 
 ```ts main.ts
 import { App, staticFiles } from "fresh";
@@ -40,7 +28,7 @@ Example project structure:
 <project root>
 ├── deno.json
 ├── main.ts
-├── dev.ts
+├── vite.config.ts
 └── routes
     ├── (marketing)  # Route group, used to group related routes
     │   ├── _layout.tsx  # Apply layout to all routes in this directory

@@ -18,6 +18,8 @@ project folder should look like this:
 
 ```txt-files Project structure
 <project root>
+├── components/         # Store other components here. Can be named differently
+│   └── Button.tsx
 ├── islands/            # Components that need JS to run client-side
 │   └── Counter.tsx
 ├── routes/             # File system based routes
@@ -27,10 +29,11 @@ project folder should look like this:
 │   └── index.tsx       # Renders /
 ├── static/             # Contains static assets like css, logos, etc
 │   └── ...       
-│   
-├── deno.json  # Contains dependencies, tasks, etc
-├── dev.ts     # Run this during development
-└── main.ts    # Run this for production
+│
+├── client.ts       # Client entry file that's loaded on every page.
+├── main.ts         # The server entry file of your app
+├── deno.json       # Contains dependencies, tasks, etc
+└── vite.config.ts  # Vite configuration file
 ```
 
 Run the `dev` task to launch your app in development mode:

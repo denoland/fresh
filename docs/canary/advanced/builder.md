@@ -3,8 +3,12 @@ description: |
   The Builder class is used to generate optimized assets for production.
 ---
 
-The `Builder` class in Fresh is where you'll do everything related to builds.
-You'll typically find it being created inside your project's `dev.ts` file.
+> [warn]: The `Builder` class was used during the alpha phase of Fresh 2 before
+> the Fresh vite plugin was released. You can skip this page if you're using
+> vite.
+
+The `Builder` class is used to generate production assets of your app. You'll
+typically find it being created inside your project's `dev.ts` file.
 
 ```ts dev.ts
 import { Builder } from "fresh/dev";
@@ -91,3 +95,36 @@ builder.onTransformStaticFile({
 
 > [info]: Only static files in `static/` or the value you set `staticDir` to
 > will be processed. The builder won't process anything else.
+
+## Testing
+
+Testing applications with the `Builder` class involves creating a build snapshot
+and assigning that to each app instance.
+
+```ts my-app.test.ts
+// Best to do this once instead of for every test case for
+// performance reasons.
+const builder = new Builder();
+const applySnapshot = await builder.build({ snapshot: "memory" });
+
+function testApp() {
+  const app = new App()
+    .get("/", () => new Response("hello"))
+    .fsRoutes();
+
+  // Applies build snapshot to this app instance.
+  applySnapshot(app);
+  return app;
+}
+
+Deno.test("My Test", async () => {
+  const handler = testApp().handler();
+
+  const response = await handler(new Request("http://localhost"));
+  const text = await response.text();
+
+  if (text !== "hello") {
+    throw new Error("fail");
+  }
+});
+```
