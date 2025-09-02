@@ -42,11 +42,6 @@ export default define.page((ctx) => {
 For more complex scenarios, or to set page metadata from islands, Fresh ships
 with the `<Head>`-component.
 
-> [info]: The `<Head>` component is not dynamic by default. It will not
-> automatically update the document title or other head elements on the client
-> side when component state changes. The head elements are set during server
-> rendering or initial page load.
-
 ```tsx routes/about.tsx
 import { Head } from "fresh/runtime";
 
