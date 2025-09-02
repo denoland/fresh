@@ -8,7 +8,7 @@ import {
 import { BUILD_ID } from "@fresh/build-id";
 import { renderToString } from "preact-render-to-string";
 import { useContext, useEffect } from "preact/hooks";
-import { HeadContext } from "../head.tsx";
+import { HeadContext } from "../head.ts";
 
 // deno-lint-ignore no-explicit-any
 const options: InternalPreactOptions = preactOptions as any;
