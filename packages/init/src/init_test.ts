@@ -80,7 +80,7 @@ Deno.test("init - new project", async () => {
   using _promptStub = stubPrompt("fresh-init");
   using _confirmStub = stubConfirm();
 
-  await initProject(tmp.dir, [], {});
+  await initProject(tmp.dir, [], { builder: true });
 });
 
 Deno.test("init - create project dir", async () => {
@@ -88,7 +88,7 @@ Deno.test("init - create project dir", async () => {
   const dir = tmp.dir;
   using _promptStub = stubPrompt("fresh-init");
   using _confirmStub = stubConfirm();
-  await initProject(dir, [], {});
+  await initProject(dir, [], { builder: true });
 
   const root = path.join(dir, "fresh-init");
   await expectProjectFile(root, "deno.json");
@@ -105,7 +105,7 @@ Deno.test("init - with tailwind", async () => {
   using _confirmStub = stubConfirm({
     [CONFIRM_TAILWIND_MESSAGE]: true,
   });
-  await initProject(dir, [], {});
+  await initProject(dir, [], { builder: true });
 
   const css = await readProjectFile(dir, "static/styles.css");
   expect(css).toMatch(/@import "tailwindcss"/);
@@ -123,7 +123,7 @@ Deno.test("init - with vscode", async () => {
   using _confirmStub = stubConfirm({
     [CONFIRM_VSCODE_MESSAGE]: true,
   });
-  await initProject(dir, [], {});
+  await initProject(dir, [], { builder: true });
 
   await expectProjectFile(dir, ".vscode/settings.json");
   await expectProjectFile(dir, ".vscode/extensions.json");
@@ -139,7 +139,7 @@ Deno.test({
     const dir = tmp.dir;
     using _promptStub = stubPrompt(".");
     using _confirmStub = stubConfirm();
-    await initProject(dir, [], {});
+    await initProject(dir, [], { builder: true });
     await expectProjectFile(dir, "main.ts");
     await expectProjectFile(dir, "dev.ts");
 
@@ -165,7 +165,7 @@ Deno.test(
       [CONFIRM_TAILWIND_MESSAGE]: true,
     });
 
-    await initProject(dir, [], {});
+    await initProject(dir, [], { builder: true });
     await expectProjectFile(dir, "main.ts");
     await expectProjectFile(dir, "dev.ts");
 
@@ -191,7 +191,7 @@ Deno.test({
     const dir = tmp.dir;
     using _promptStub = stubPrompt(".");
     using _confirmStub = stubConfirm();
-    await initProject(dir, [], {});
+    await initProject(dir, [], { builder: true });
     await expectProjectFile(dir, "main.ts");
     await expectProjectFile(dir, "dev.ts");
 
@@ -214,7 +214,7 @@ Deno.test("init - can start built project", async () => {
   const dir = tmp.dir;
   using _promptStub = stubPrompt(".");
   using _confirmStub = stubConfirm();
-  await initProject(dir, [], {});
+  await initProject(dir, [], { builder: true });
   await expectProjectFile(dir, "main.ts");
   await expectProjectFile(dir, "dev.ts");
 
@@ -246,7 +246,7 @@ Deno.test("init - errors on missing build cache in prod", async () => {
   const dir = tmp.dir;
   using _promptStub = stubPrompt(".");
   using _confirmStub = stubConfirm();
-  await initProject(dir, [], {});
+  await initProject(dir, [], { builder: true });
   await expectProjectFile(dir, "main.ts");
   await expectProjectFile(dir, "dev.ts");
 
@@ -272,7 +272,7 @@ Deno.test.ignore("init - vite dev server", async () => {
   const dir = tmp.dir;
   using _promptStub = stubPrompt(".");
   using _confirmStub = stubConfirm();
-  await initProject(dir, [], { vite: true });
+  await initProject(dir, [], {});
 
   await expectProjectFile(dir, "vite.config.ts");
   await expectNotProjectFile(dir, "dev.ts");
@@ -297,7 +297,7 @@ Deno.test.ignore("init - vite build", async () => {
   const dir = tmp.dir;
   using _promptStub = stubPrompt(".");
   using _confirmStub = stubConfirm();
-  await initProject(dir, [], { vite: true });
+  await initProject(dir, [], {});
 
   await expectProjectFile(dir, "vite.config.ts");
 

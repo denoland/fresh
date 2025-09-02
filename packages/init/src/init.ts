@@ -51,7 +51,7 @@ OPTIONS:
     --tailwind   Use Tailwind for styling
     --vscode     Setup project for VS Code
     --docker     Setup Project to use Docker
-    --vite       Setup as a vite project
+    --builder    Setup with builder instead of vite
 `;
 
 export const CONFIRM_EMPTY_MESSAGE =
@@ -72,7 +72,7 @@ export async function initProject(
     force?: boolean | null;
     tailwind?: boolean | null;
     vscode?: boolean | null;
-    vite?: boolean | null;
+    builder?: boolean | null;
   } = {},
 ): Promise<void> {
   console.log();
@@ -115,14 +115,7 @@ export async function initProject(
     }
   }
 
-  let useVite = flags.vite || false;
-  if (flags.vite == null) {
-    if (
-      confirm(CONFIRM_VITE_MESSAGE)
-    ) {
-      useVite = true;
-    }
-  }
+  const useVite = !flags.builder;
 
   const useDocker = flags.docker;
   let useTailwind = flags.tailwind || false;
