@@ -13,6 +13,10 @@ import { buildIdPlugin } from "./plugins/build_id.ts";
 import { clientSnapshot } from "./plugins/client_snapshot.ts";
 import { serverSnapshot } from "./plugins/server_snapshot.ts";
 import { patches } from "./plugins/patches.ts";
+import process from "node:process";
+import { specToName, UniqueNamer } from "@fresh/core/internal-dev";
+import { checkImports } from "./plugins/verify_imports.ts";
+import { isBuiltin } from "node:module";
 
 export function fresh(config?: FreshViteConfig): Plugin[] {
   const fConfig: ResolvedFreshViteConfig = {
@@ -21,9 +25,25 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
     islandsDir: config?.islandsDir ?? "islands",
     routeDir: config?.routeDir ?? "routes",
     ignore: config?.ignore ?? [],
+    islandSpecifiers: new Map(),
+    namer: new UniqueNamer(),
+    checkImports: config?.checkImports ?? [],
   };
 
-  return [
+  fConfig.checkImports.push((id, env) => {
+    if (env === "client") {
+      if (isBuiltin(id)) {
+        return {
+          type: "error",
+          message: "Node built-in modules cannot be imported in the browser.",
+          description:
+            "This is an error in your application code or in one of its dependencies.",
+        };
+      }
+    }
+  });
+
+  const plugins: Plugin[] = [
     {
       name: "fresh",
       config(config, env) {
@@ -102,9 +122,15 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
           },
         };
       },
-      configResolved(config) {
-        fConfig.islandsDir = pathWithRoot(fConfig.islandsDir, config.root);
-        fConfig.routeDir = pathWithRoot(fConfig.routeDir, config.root);
+      configResolved(vConfig) {
+        fConfig.islandsDir = pathWithRoot(fConfig.islandsDir, vConfig.root);
+        fConfig.routeDir = pathWithRoot(fConfig.routeDir, vConfig.root);
+
+        config?.islandSpecifiers?.map((spec) => {
+          const specName = specToName(spec);
+          const name = fConfig.namer.getUniqueName(specName);
+          fConfig.islandSpecifiers.set(spec, name);
+        });
       },
     },
     serverEntryPlugin(fConfig),
@@ -123,6 +149,12 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
         "topLevelAwait",
       ],
     }),
-    deno(),
+    checkImports({ checks: fConfig.checkImports }),
   ];
+
+  if (typeof process.versions.deno === "string") {
+    plugins.push(deno());
+  }
+
+  return plugins;
 }

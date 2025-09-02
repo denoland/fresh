@@ -18,10 +18,10 @@ The quickest way to get started is to enable partials for every page in
 `routes/_app.tsx` by making the following changes.
 
 ```diff routes/_app.tsx
-  import { PageProps } from "$fresh/server.ts";
-+ import { Partial } from "$fresh/runtime.ts";
+  import { define } from "../utils.ts";
++ import { Partial } from "fresh/runtime";
 
-  export default function App({ Component }: PageProps) {
+  export default define.page(function App({ Component }) {
     return (
       <html>
         <head>
@@ -37,7 +37,7 @@ The quickest way to get started is to enable partials for every page in
         </body>
       </html>
     );
-  }
+  });
 ```
 
 By adding the `f-client-nav` attribute, we enable partials for every element
@@ -81,7 +81,9 @@ documentation (marked green here).
 The code for such a page (excluding styling) might look like this:
 
 ```tsx routes/docs/[id].tsx
-export default defineRoute(async (req, ctx) => {
+import { define } from "../../utils.ts";
+
+export default define.page(async (ctx) => {
   const content = await loadContent(ctx.params.id);
 
   return (
@@ -102,8 +104,8 @@ An optimal route that only renders the content instead of the outer layout with
 the sidebar might look like this respectively.
 
 ```tsx routes/partials/docs/[id].tsx
-import { defineRoute, RouteConfig } from "$fresh/server.ts";
-import { Partial } from "$fresh/runtime.ts";
+import { define } from "../utils.ts";
+import { Partial } from "fresh/runtime";
 
 // We only want to render the content, so disable
 // the `_app.tsx` template as well as any potentially
@@ -113,7 +115,7 @@ export const config: RouteConfig = {
   skipInheritedLayouts: true,
 };
 
-export default defineRoute(async (req, ctx) => {
+export default define.page(async (ctx) => {
   const content = await loadContent(ctx.params.id);
 
   // Only render the new content

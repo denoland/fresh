@@ -4,6 +4,7 @@ const REDIRECTS: Record<string, string> = {
   "/docs/getting-started/fetching-data":
     "/docs/getting-started/custom-handlers",
   "/docs/canary/examples/modifying-the-head": "/docs/canary/advanced/head",
+  "/docs/canary/concepts/builder": "/docs/canary/advanced/builder",
 };
 
 export async function handler<T>(ctx: Context<T>) {

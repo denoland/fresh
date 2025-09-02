@@ -289,3 +289,42 @@ Deno.test({
   sanitizeResources: false,
   sanitizeOps: false,
 });
+
+Deno.test({
+  name: "vite dev - remote island",
+  fn: async () => {
+    const fixture = path.join(FIXTURE_DIR, "remote_island");
+    await launchDevServer(fixture, async (address) => {
+      await withBrowser(async (page) => {
+        await page.goto(`${address}`, {
+          waitUntil: "networkidle2",
+        });
+
+        await page.locator(".remote-island").wait();
+        await page.locator(".increment").click();
+        await waitForText(page, ".result", "Count: 1");
+      });
+    });
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
+  name: "vite dev - error on 'node:process' import",
+  fn: async () => {
+    const fixture = path.join(FIXTURE_DIR, "node_builtin");
+
+    await launchDevServer(fixture, async (address) => {
+      let res = await fetch(`${address}`);
+      await res.body?.cancel();
+
+      res = await fetch(`${address}/@id/fresh-island::NodeIsland`);
+      await res.body?.cancel();
+
+      expect(res.status).toEqual(500);
+    });
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});

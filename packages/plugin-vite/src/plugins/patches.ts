@@ -6,6 +6,7 @@ import babelReact from "@babel/preset-react";
 import { inlineEnvVarsPlugin } from "./patches/inline_env_vars.ts";
 import { removePolyfills } from "./patches/remove_polyfills.ts";
 import { JS_REG, JSX_REG } from "../utils.ts";
+import { denoGlobal } from "./patches/deno_global.ts";
 
 export function patches(): Plugin {
   let isDev = false;
@@ -30,18 +31,24 @@ export function patches(): Plugin {
         }]);
       }
 
+      const plugins: babel.PluginItem[] = [
+        cjsPlugin,
+        removePolyfills,
+        jsxComments,
+        inlineEnvVarsPlugin(
+          isDev ? "development" : "production",
+        ),
+      ];
+
+      if (!options?.ssr) {
+        plugins.push(denoGlobal);
+      }
+
       const res = babel.transformSync(code, {
         filename: id,
         babelrc: false,
         compact: true,
-        plugins: [
-          cjsPlugin,
-          removePolyfills,
-          jsxComments,
-          inlineEnvVarsPlugin(
-            isDev ? "development" : "production",
-          ),
-        ],
+        plugins,
         presets,
       });
 

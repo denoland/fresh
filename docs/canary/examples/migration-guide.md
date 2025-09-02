@@ -32,7 +32,7 @@ anymore either.
 ```diff Project structure
   <project root>
   ├── routes/
-  ├── dev.ts
+- ├── dev.ts
 - ├── fresh.gen.ts
 - ├── fresh.config.ts
   └── main.ts
@@ -43,36 +43,42 @@ development is separate from production code. This split makes deployments much
 smaller, quicker to upload and allows them to boot up much quicker in
 production.
 
-### Updating `dev.ts`
+### Replacing `dev.ts` with `vite.config.ts`
 
-Development related configuration can be passed to the `Builder` class instance
-in `dev.ts`. This file is also where you typically set up development-only
-plugins like [tailwindcss](https://tailwindcss.com/).
+Delete `dev.ts` and create a `vite.config.ts` file instead. Pass your custom
+Fresh configuration to the [fresh vite plugin](/docs/canary/advanced/vite).
 
-The full `dev.ts` file for newly generated Fresh 2 projects looks like this:
+```ts vite.config.ts
+import { defineConfig } from "vite";
+import { fresh } from "@fresh/plugin-vite";
+import tailwindcss from "@tailwindcss/vite";
 
-```ts dev.ts
-import { Builder } from "fresh/dev";
-import { tailwind } from "@fresh/plugin-tailwind";
-
-// Pass development only configuration here
-const builder = new Builder({ target: "safari12" });
-
-// Example: Enabling the tailwind plugin for Fresh
-tailwind(builder);
-
-// Create optimized assets for the browser when
-// running `deno run -A dev.ts build`
-if (Deno.args.includes("build")) {
-  await builder.build();
-} else {
-  // ...otherwise start the development server
-  await builder.listen(() => import("./main.ts"));
-}
+export default defineConfig({
+  plugins: [
+    fresh(),
+    tailwindcss(),
+  ],
+});
 ```
 
-> [info]: Fresh 1.x used Tailwind CSS v3. To keep using v3 use the
-> `@fresh/plugin-tailwind-v3` instead.
+### Add a `client.ts` file
+
+The `client.ts` file is the main entry file for client-side code. Since vite
+requires everything to be part of the internal module graph to get hot module
+reloading to work, this is also the place where you import CSS assets.
+
+```diff Project structure
+  <project root>
+  ├── routes/
++ ├── client.ts
+  ├── vite.config.ts
+  └── main.ts
+```
+
+```ts client.ts
+// Import CSS files here for hot module reloading to work.
+import "./assets/styles.css";
+```
 
 ### Updating `main.ts`
 
@@ -139,9 +145,11 @@ accordingly.
 ```diff deno.json
   {
     "tasks":
-      "dev": "deno run -A dev.ts",
-      "build": "deno run -A dev.ts build",
+-     "dev": "deno run -A dev.ts",
+-     "build": "deno run -A dev.ts build",
 -     "preview": "deno run -A main.ts"
++     "dev": "vite",
++     "build": "vite build",
 +     "preview": "deno serve -A _fresh/server.js"
    }
   }
@@ -229,33 +237,8 @@ re-use existing objects internally as a minor performance optimization.
 ## `createHandler`
 
 The `createHandler` function was often used to launch Fresh for tests. This can
-be now done via the [`Builder`](/docs/canary/concepts/builder).
-
-```ts main.test.ts
-// Best to do this once instead of for every test case for
-// performance reasons.
-const builder = new Builder();
-const applySnapshot = await builder.build({ snapshot: "memory" });
-
-function testApp() {
-  const app = new App()
-    .get("/", () => new Response("hello"));
-  // Applies build snapshot to this app instance.
-  applySnapshot(app);
-  return app;
-}
-
-Deno.test("My Test", async () => {
-  const handler = testApp().handler();
-
-  const response = await handler(new Request("http://localhost"));
-  const text = await response.text();
-
-  if (text !== "hello") {
-    throw new Error("fail");
-  }
-});
-```
+be now done via vite's `createBuilder` function. See the
+[testing page](/docs/canary/testing) for more information.
 
 ## Getting help
 

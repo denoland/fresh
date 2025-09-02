@@ -1,7 +1,7 @@
 import { globToRegExp, isGlob } from "@std/path";
 import type { FsAdapter } from "../fs.ts";
 import { BUILD_ID } from "@fresh/build-id";
-import { assetInternal } from "../runtime/shared_internal.tsx";
+import { assetInternal } from "../runtime/shared_internal.ts";
 
 export type TransformMode = "development" | "production";
 

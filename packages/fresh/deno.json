@@ -1,11 +1,11 @@
 {
   "name": "@fresh/core",
-  "version": "2.0.0-beta.1",
+  "version": "2.0.0-beta.3",
   "license": "MIT",
   "exports": {
     ".": "./src/mod.ts",
     "./runtime": "./src/runtime/shared.ts",
-    "./runtime-client": "./src/runtime/client/mod.tsx",
+    "./runtime-client": "./src/runtime/client/mod.ts",
     "./dev": "./src/dev/mod.ts",
     "./compat": "./src/compat.ts",
     "./internal": "./src/internals.ts",

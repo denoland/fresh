@@ -28,8 +28,6 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
   let isDev = false;
   let server: ViteDevServer | undefined;
 
-  const namer = new UniqueNamer();
-
   let clientOutDir = "";
   let root = "";
   let publicDir = "";
@@ -54,6 +52,12 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
         config.environments.client.build.outDir,
         config.root,
       );
+
+      options.islandSpecifiers.forEach((name, spec) => {
+        islands.set(spec, { name, chunk: null });
+        islandSpecByName.set(name, spec);
+        // islandsByFile.add(spec);
+      });
     },
     configureServer(viteServer) {
       server = viteServer;
@@ -124,7 +128,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
       for (let i = 0; i < result.islands.length; i++) {
         const spec = result.islands[i];
         const specName = specToName(spec);
-        const name = namer.getUniqueName(specName);
+        const name = options.namer.getUniqueName(specName);
 
         islands.set(spec, { name, chunk: null });
         islandSpecByName.set(name, spec);
@@ -163,6 +167,19 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
             path.join(clientOutDir, ".vite", "manifest.json"),
           ),
         ) as Manifest;
+        const resolvedIslandSpecs = new Map<string, string>();
+
+        for (const spec of options.islandSpecifiers.keys()) {
+          const resolved = await this.resolve(spec);
+
+          if (resolved === null) continue;
+
+          const id = resolved.id.startsWith("\0")
+            ? resolved.id.slice(1)
+            : resolved.id;
+
+          resolvedIslandSpecs.set(id, spec);
+        }
 
         const clientEntryName = "client-entry";
 
@@ -199,7 +216,21 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
           if (chunk.name === "client-snapshot") {
             for (const id of chunk.dynamicImports ?? []) {
               const mod = manifest[id];
-              const serverPath = path.join(root, mod.src ?? id);
+
+              let serverPath = path.join(root, mod.src ?? id);
+              const idx = mod.src?.indexOf("deno::") ?? -1;
+
+              if (idx > -1 && mod.src) {
+                const src = mod.src
+                  .slice(idx)
+                  .replace(
+                    /(https?):\/([^/])/,
+                    (_m, protocol, rest) => {
+                      return `${protocol}://${rest}`;
+                    },
+                  );
+                serverPath = resolvedIslandSpecs.get(src)!;
+              }
 
               let spec = pathToSpec(clientOutDir, mod.file);
 

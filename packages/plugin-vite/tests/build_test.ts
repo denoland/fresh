@@ -350,3 +350,65 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "vite build - remote island",
+  fn: async () => {
+    const fixture = path.join(FIXTURE_DIR, "remote_island");
+    await using res = await buildVite(fixture);
+
+    await launchProd(
+      { cwd: res.tmp },
+      async (address) => {
+        await withBrowser(async (page) => {
+          await page.goto(`${address}`, {
+            waitUntil: "networkidle2",
+          });
+
+          await page.locator(".remote-island").wait();
+          await page.locator(".increment").click();
+          await waitForText(page, ".result", "Count: 1");
+        });
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite build - error on 'node:process' import",
+  fn: async () => {
+    const fixture = path.join(FIXTURE_DIR, "node_builtin");
+
+    await expect(buildVite(fixture)).rejects.toThrow(
+      "Node built-in modules cannot be imported in the browser",
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite build - throw when using Deno.* global inside an island",
+  fn: async () => {
+    const fixture = path.join(FIXTURE_DIR, "deno_global_island");
+
+    await expect(buildVite(fixture)).rejects.toThrow(
+      "The Deno.* global cannot be used in the browser",
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite build - don't throw when using Deno.* global in ssr",
+  fn: async () => {
+    const fixture = path.join(FIXTURE_DIR, "deno_global_ssr");
+
+    await buildVite(fixture);
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});

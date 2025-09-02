@@ -4,8 +4,9 @@ import * as path from "@std/path";
 import * as semver from "@std/semver";
 
 // Keep these as is, as we replace these version in our release script
-const FRESH_VERSION = "2.0.0-beta.1";
+const FRESH_VERSION = "2.0.0-beta.3";
 const FRESH_TAILWIND_VERSION = "0.0.1-alpha.9";
+const FRESH_VITE_PLUGIN = "0.9.7";
 const PREACT_VERSION = "10.27.1";
 const PREACT_SIGNALS_VERSION = "2.3.1";
 const TAILWINDCSS_VERSION = "4.1.10";
@@ -50,6 +51,7 @@ OPTIONS:
     --tailwind   Use Tailwind for styling
     --vscode     Setup project for VS Code
     --docker     Setup Project to use Docker
+    --vite       Setup as a vite project
 `;
 
 export const CONFIRM_EMPTY_MESSAGE =
@@ -58,6 +60,9 @@ export const CONFIRM_TAILWIND_MESSAGE = `Set up ${
   colors.cyan("Tailwind CSS")
 } for styling?`;
 export const CONFIRM_VSCODE_MESSAGE = `Do you use ${colors.cyan("VS Code")}?`;
+export const CONFIRM_VITE_MESSAGE = `Set up ${
+  colors.cyan("Vite")
+} for build tooling?`;
 
 export async function initProject(
   cwd = Deno.cwd(),
@@ -110,7 +115,14 @@ export async function initProject(
     }
   }
 
-  const useVite = flags.vite ?? false;
+  let useVite = flags.vite || false;
+  if (flags.vite == null) {
+    if (
+      confirm(CONFIRM_VITE_MESSAGE)
+    ) {
+      useVite = true;
+    }
+  }
 
   const useDocker = flags.docker;
   let useTailwind = flags.tailwind || false;
@@ -327,7 +339,11 @@ ${GRADIENT_CSS}`;
 
   if (useVite) {
     await writeFile("assets/styles.css", cssStyles);
-    await writeFile("client.ts", `import "./assets/styles.css";`);
+    await writeFile(
+      "client.ts",
+      `// Import CSS files here for hot module reloading to work.
+import "./assets/styles.css";`,
+    );
   } else {
     await writeFile("static/styles.css", cssStyles);
   }
@@ -521,11 +537,12 @@ if (Deno.args.includes("build")) {
 } else {
   await builder.listen(() => import("./main.ts"));
 }`;
+
   if (!useVite) {
     await writeFile("dev.ts", DEV_TS);
   }
 
-  const freshVersion = await getFreshVersion();
+  const freshVersion = await getLatestVersion("@fresh/core", FRESH_VERSION);
 
   const denoJson = {
     nodeModulesDir: "auto",
@@ -574,7 +591,13 @@ if (Deno.args.includes("build")) {
     denoJson.tasks.dev = "vite";
     denoJson.tasks.build = "vite build";
 
-    denoJson.imports["@fresh/plugin-vite"] = "jsr:@fresh/plugin-vite@^0.9.5";
+    const vitePluginVersion = await getLatestVersion(
+      "@fresh/plugin-vite",
+      FRESH_VITE_PLUGIN,
+    );
+
+    denoJson.imports["@fresh/plugin-vite"] =
+      `jsr:@fresh/plugin-vite@^${vitePluginVersion}`;
     denoJson.imports["vite"] = "npm:vite@^7.1.3";
 
     if (useTailwind) {
@@ -806,14 +829,17 @@ interface JsrMeta {
   versions: Record<string, unknown>;
 }
 
-async function getFreshVersion(): Promise<string> {
+async function getLatestVersion(
+  pkg: string,
+  fallback: string,
+): Promise<string> {
   // deno-lint-ignore no-explicit-any
   if ((globalThis as any).INIT_TEST) {
-    return FRESH_VERSION;
+    return fallback;
   }
 
   try {
-    const res = await fetch("https://jsr.io/@fresh/core/meta.json");
+    const res = await fetch(`https://jsr.io/${pkg}/meta.json`);
     const json = (await res.json()) as JsrMeta;
 
     if (json.latest !== null) {
@@ -832,8 +858,8 @@ async function getFreshVersion(): Promise<string> {
     return versions.at(-1)!;
   } catch {
     console.log(
-      `Could not fetch latest Fresh version. Falling back to: ${FRESH_VERSION}`,
+      `Could not fetch latest ${pkg} version. Falling back to: ${fallback}`,
     );
-    return FRESH_VERSION;
+    return fallback;
   }
 }

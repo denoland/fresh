@@ -22,7 +22,7 @@ import {
   OptionsType,
   PartialMode,
   setActiveUrl,
-} from "../shared_internal.tsx";
+} from "../shared_internal.ts";
 import type { BuildCache } from "../../build_cache.ts";
 import { BUILD_ID } from "@fresh/build-id";
 import {
@@ -31,9 +31,9 @@ import {
 } from "../../constants.ts";
 import { escape as escapeHtml } from "@std/html";
 import { HttpError } from "../../error.ts";
-import { getCodeFrame } from "../../dev/middlewares/error_overlay/code_frame.tsx";
+import { getCodeFrame } from "../../dev/middlewares/error_overlay/code_frame.ts";
 import { escapeScript } from "../../utils.ts";
-import { HeadContext } from "../head.tsx";
+import { HeadContext } from "../head.ts";
 import { useContext } from "preact/hooks";
 
 interface InternalPreactOptions extends PreactOptions {
@@ -529,20 +529,20 @@ export function FreshScripts() {
   // Remaining slots must be rendered before creating the Fresh runtime
   // script, so that we have the full list of islands rendered
   return (
-    <>
-      {slots.map((slot) => {
+    h(
+      Fragment,
+      null,
+      slots.map((slot) => {
         if (slot === null) return null;
         return (
-          <template
-            key={slot.id}
-            id={`frsh-${slot.id}-${slot.name}`}
-          >
-            {slot.vnode}
-          </template>
+          h("template", {
+            key: slot.id,
+            id: `frsh-${slot.id}-${slot.name}`,
+          }, slot.vnode)
         );
-      })}
-      <FreshRuntimeScript />
-    </>
+      }),
+      h(FreshRuntimeScript, null),
+    )
   );
 }
 
@@ -578,14 +578,13 @@ function FreshRuntimeScript() {
     };
 
     return (
-      <script
-        id={`__FRSH_STATE_${partialId}`}
-        type="application/json"
-        // deno-lint-ignore react-no-danger
-        dangerouslySetInnerHTML={{
+      h("script", {
+        id: `__FRSH_STATE_${partialId}`,
+        type: "application/json",
+        dangerouslySetInnerHTML: {
           __html: escapeScript(JSON.stringify(json), { json: true }),
-        }}
-      />
+        },
+      })
     );
   } else {
     const islandImports = islandArr.map((island) => {
@@ -617,17 +616,16 @@ function FreshRuntimeScript() {
       `import { boot } from "${basePath}${runtimeUrl}";${islandImports}boot(${islandObj},${serializedProps});`;
 
     return (
-      <>
-        <script
-          type="module"
-          nonce={nonce}
-          // deno-lint-ignore react-no-danger
-          dangerouslySetInnerHTML={{
-            __html: scriptContent,
-          }}
-        />
-        {buildCache.features.errorOverlay ? <ShowErrorOverlay /> : null}
-      </>
+      h(
+        Fragment,
+        null,
+        h("script", {
+          type: "module",
+          nonce,
+          dangerouslySetInnerHTML: { __html: scriptContent },
+        }),
+        buildCache.features.errorOverlay ? h(ShowErrorOverlay, null) : null,
+      )
     );
   }
 }
@@ -666,10 +664,11 @@ export function ShowErrorOverlay() {
   }
 
   return (
-    <iframe
-      id="fresh-error-overlay"
-      src={`${basePath}${DEV_ERROR_OVERLAY_URL}?${searchParams.toString()}`}
-      style="unset: all; position: fixed; top: 0; left: 0; z-index: 99999; width: 100%; height: 100%; border: none;"
-    />
+    h("iframe", {
+      id: "fresh-error-overlay",
+      src: `${basePath}${DEV_ERROR_OVERLAY_URL}?${searchParams.toString()}`,
+      style:
+        "unset: all; position: fixed; top: 0; left: 0; z-index: 99999; width: 100%; height: 100%; border: none;",
+    })
   );
 }

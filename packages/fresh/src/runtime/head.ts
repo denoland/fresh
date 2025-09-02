@@ -1,4 +1,4 @@
-import { type ComponentChildren, createContext } from "preact";
+import { type ComponentChildren, createContext, h } from "preact";
 
 export const HeadContext = createContext(false);
 
@@ -7,5 +7,5 @@ export interface HeadProps {
 }
 
 export function Head(props: HeadProps): ComponentChildren {
-  return <HeadContext value>{props.children}</HeadContext>;
+  return h(HeadContext, { value: true }, props.children);
 }
