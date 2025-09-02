@@ -112,23 +112,21 @@ Deno.test("MyLayout - renders heading and content", async () => {
 many app instances in our test suite.
 
 ```ts my-app.test.ts
+import { createBuilder } from "vite";
 // Best to do this once instead of for every test case for
 // performance reasons.
-const builder = new Builder();
-const applySnapshot = await builder.build({ snapshot: "memory" });
+const builder = await createBuilder({
+  root: "./path/to/app",
+  build: {
+    emptyOutDir: true,
+  },
+});
+await builder.build();
 
-function testApp() {
-  const app = new App()
-    .get("/", () => new Response("hello"))
-    .fsRoutes();
-
-  // Applies build snapshot to this app instance.
-  applySnapshot(app);
-  return app;
-}
+const { app } = await import("./path/to/app/_fresh/server.js");
 
 Deno.test("My Test", async () => {
-  const handler = testApp().handler();
+  const handler = app.handler();
 
   const response = await handler(new Request("http://localhost"));
   const text = await response.text();

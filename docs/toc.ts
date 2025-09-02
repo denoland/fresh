@@ -39,7 +39,6 @@ const toc: RawTableOfContents = {
           ["islands", "Islands", "link:canary"],
           ["static-files", "Static files", "link:canary"],
 
-          ["builder", "Builder", "link:canary"],
           ["file-routing", "File routing", "link:canary"],
         ],
       },
@@ -55,6 +54,8 @@ const toc: RawTableOfContents = {
           ["define", "Define Helpers", "link:canary"],
           ["environment-variables", "Environment Variables", "link:canary"],
           ["head", "Modifying <head>", "link:canary"],
+          ["vite", "Vite Plugin Options", "link:canary"],
+          ["builder", "Builder (Legacy)", "link:canary"],
         ],
       },
       deployment: {
@@ -64,6 +65,7 @@ const toc: RawTableOfContents = {
           ["deno-deploy", "Deno Deploy", "link:canary"],
           ["deno-compile", "deno compile", "link:canary"],
           ["docker", "Docker", "link:canary"],
+          ["cloudflare-workers", "Cloudflare Workers", "link:canary"],
         ],
       },
       testing: {
@@ -77,7 +79,6 @@ const toc: RawTableOfContents = {
           ["cors", "cors", "link:canary"],
           ["csrf", "csrf", "link:canary"],
           ["trailing-slashes", "trailingSlashes", "link:canary"],
-          ["tailwindcss", "tailwindcss", "link:canary"],
         ],
       },
       examples: {

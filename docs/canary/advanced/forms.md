@@ -20,9 +20,9 @@ This example demonstrates how to handle `application/x-www-form-urlencoded`
 `<form>` submissions:
 
 ```tsx routes/subscribe.tsx
-import { Handlers } from "$fresh/server.ts";
+import { define } from "../utils.ts";
 
-export const handler: Handlers = {
+export const handlers = define.handlers({
   async GET(req, ctx) {
     return await ctx.render();
   },
@@ -40,9 +40,9 @@ export const handler: Handlers = {
       headers,
     });
   },
-};
+});
 
-export default function Subscribe() {
+export default define.page<typeof handlers>(function Subscribe() {
   return (
     <>
       <form method="post">
@@ -51,7 +51,7 @@ export default function Subscribe() {
       </form>
     </>
   );
-}
+});
 ```
 
 When the user submits the form, Deno will retrieve the `email` value using the
@@ -65,26 +65,18 @@ that this time, we have to explicitly declare the form's encoding to be
 `multipart/form-data`.
 
 ```tsx routes/subscribe.tsx
-import { Handlers, type PageProps } from "$fresh/server.ts";
+import { define } from "../utils.ts";
 
-interface Props {
-  message: string | null;
-}
-
-export const handler: Handlers<Props> = {
+export const handler = define.handlers({
   async GET(req, ctx) {
-    return await ctx.render({
-      message: null,
-    });
+    return { data: { message: null } };
   },
   async POST(req, ctx) {
     const form = await req.formData();
     const file = form.get("my-file") as File;
 
     if (!file) {
-      return ctx.render({
-        message: `Please try again`,
-      });
+      return { data: { message: "Please try again" } };
     }
 
     const name = file.name;
@@ -92,13 +84,11 @@ export const handler: Handlers<Props> = {
 
     console.log(contents);
 
-    return ctx.render({
-      message: `${name} uploaded!`,
-    });
+    return { data: { message: `${name} uploaded!` } };
   },
-};
+});
 
-export default function Upload(props: PageProps<Props>) {
+export default define.page<typeof handlers>(function Upload(props) {
   const { message } = props.data;
   return (
     <>
@@ -109,7 +99,7 @@ export default function Upload(props: PageProps<Props>) {
       {message ? <p>{message}</p> : null}
     </>
   );
-}
+});
 ```
 
 ## A note of caution

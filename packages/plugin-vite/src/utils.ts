@@ -36,11 +36,23 @@ export interface ClientSnapshot {
 }
 
 export interface FreshViteConfig {
+  /** Path to main server entry file. Default: main.ts */
   serverEntry?: string;
+  /** Path to main client entry file. Default: client.ts */
   clientEntry?: string;
+  /** Path to islands directory. Default: ./islands */
   islandsDir?: string;
+  /** Path to routes directory. Default: ./routes */
   routeDir?: string;
+  /**
+   * Ignore file paths matching any of the provided regexes when
+   * crawling the islands and routes directories.
+   */
   ignore?: RegExp[];
+  /**
+   * Treat these specifiers as island files. This is used to declare
+   * islands from remote packages.
+   */
   islandSpecifiers?: string[];
   checkImports?: ImportCheck[];
 }

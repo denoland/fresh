@@ -16,15 +16,6 @@ const app = new App()
   .use(staticFiles());
 ```
 
-The path to the static file directory can be customized on the
-[`Builder` class](/docs/canary/concepts/builder) inside your `dev.ts` file.
-
-```ts dev.ts
-import { Builder } from "fresh/dev";
-
-const builder = new Builder({ staticDir: "path/to/staticDir" });
-```
-
 ## Caching headers
 
 By default, Fresh adds caching headers for the `src` and `srcset` attributes on
