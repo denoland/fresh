@@ -4,9 +4,13 @@ import { ASSET_CACHE_BUST_KEY } from "fresh/internal";
 import { createRequest, sendResponse } from "@mjackson/node-fetch-server";
 
 export function devServer(): Plugin[] {
+  let publicDir = "";
   return [
     {
       name: "fresh:dev_server",
+      configResolved(config) {
+        publicDir = config.publicDir;
+      },
       configureServer(server) {
         const IGNORE_URLS = /^\/(@(vite|fs|id)|\.vite)\//;
 
@@ -29,17 +33,23 @@ export function devServer(): Plugin[] {
             server.environments.client.moduleGraph.urlToModuleMap.has(
               url.pathname,
             ) ||
+            server.environments.ssr.moduleGraph.urlToModuleMap.has(
+              url.pathname,
+            ) ||
             url.pathname === "/.well-known/appspecific/com.chrome.devtools.json"
           ) {
             return next();
           }
 
           // Check if it's a static file first
-          if (url.pathname !== "/") {
-            const ext = path.extname(url.pathname);
-            if (ext !== "") {
+          const staticFilePath = path.join(publicDir, url.pathname.slice(1));
+          try {
+            const stat = await Deno.stat(staticFilePath);
+            if (stat.isFile) {
               return next();
             }
+          } catch {
+            // Ignore
           }
 
           const mod = await server.ssrLoadModule("fresh:server_entry");

@@ -175,8 +175,16 @@ Deno.test({
 Deno.test({
   name: "vite dev - serves imported assets",
   fn: async () => {
-    await launchDevServer(tmp.dir, async (address) => {
-      const res = await fetch(`${address}/assets/deno-logo.png`);
+    await launchDevServer(DEMO_DIR, async (address) => {
+      // Vite has an internal allowlist that is refreshed when
+      // pathnames are requested. It will discover valid static
+      // files imported in JS once it encounters them. Therefore
+      // we must request the URL that ultimately imports the
+      // asset first for it to work.
+      let res = await fetch(`${address}/tests/assets`);
+      await res.body?.cancel();
+
+      res = await fetch(`${address}/assets/deno-logo.png`);
       expect(res.status).toEqual(200);
       expect(res.headers.get("Content-Type")).toEqual("image/png");
     });
@@ -323,6 +331,20 @@ Deno.test({
       await res.body?.cancel();
 
       expect(res.status).toEqual(500);
+    });
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+// issue: https://github.com/denoland/fresh/issues/3322
+Deno.test({
+  name: "vite dev - allow routes looking like static paths",
+  fn: async () => {
+    await launchDevServer(tmp.dir, async (address) => {
+      const res = await fetch(`${address}/tests/api/@marvinh@infosec.exchange`);
+      const text = await res.text();
+      expect(text).toEqual("ok");
     });
   },
   sanitizeOps: false,
