@@ -1,4 +1,6 @@
-import type { PluginObj, types } from "@babel/core";
+import type { PluginObj, PluginPass, types } from "@babel/core";
+
+const APPLY_PG_QUIRKS = "applyPgQuirks";
 
 export function codeEvalPlugin(
   env: "ssr" | "client",
@@ -11,8 +13,8 @@ export function codeEvalPlugin(
       name: "fresh-remove-polyfills",
       visitor: {
         IfStatement: {
-          enter(path) {
-            const res = evaluateExpr(t, env, mode, path.node.test);
+          enter(path, state) {
+            const res = evaluateExpr(t, env, mode, path.node.test, state);
             // Could not evaluate
             if (res === null) return;
             if (res) {
@@ -32,6 +34,32 @@ export function codeEvalPlugin(
             }
           },
         },
+        CallExpression: {
+          enter(path) {
+            if (
+              t.isMemberExpression(path.node.callee) &&
+              t.isIdentifier(path.node.callee.object) &&
+              t.isIdentifier(path.node.callee.property) &&
+              path.node.callee.object.name === "Object" &&
+              path.node.callee.property.name === "defineProperty" &&
+              path.node.arguments.length >= 2
+            ) {
+              const args = path.node.arguments;
+
+              if (
+                t.isIdentifier(args[0]) && args[0].name === "exports" ||
+                t.isMemberExpression(args[0]) &&
+                  t.isIdentifier(args[0].object) &&
+                  t.isIdentifier(args[0].property) &&
+                  args[0].object.name === "module" &&
+                  args[0].property.name === "exports" &&
+                  t.isStringLiteral(args[1]) && args[1].value === "native"
+              ) {
+                path.remove();
+              }
+            }
+          },
+        },
       },
     };
   };
@@ -42,13 +70,14 @@ function evaluateExpr(
   env: "client" | "ssr",
   mode: string,
   node: types.Node,
+  state: PluginPass,
 ): boolean | null {
   if (t.isLogicalExpression(node)) {
-    const left = evaluateExpr(t, env, mode, node.left);
+    const left = evaluateExpr(t, env, mode, node.left, state);
     if (left === null) return null;
     if (left && node.operator === "||") return true;
 
-    const right = evaluateExpr(t, env, mode, node.right);
+    const right = evaluateExpr(t, env, mode, node.right, state);
     if (right === null) return null;
 
     switch (node.operator) {
@@ -78,6 +107,26 @@ function evaluateExpr(
         return env === "ssr";
       }
     } else if (
+      // Workaround for npm:pg
+      // Check: typeof process.env.NODE_PG_FORCE_NATIVE !== "undefined"
+      t.isUnaryExpression(node.left) &&
+      t.isMemberExpression(node.left.argument) &&
+      t.isMemberExpression(node.left.argument.object) &&
+      t.isIdentifier(node.left.argument.object.object) &&
+      node.left.argument.object.object.name === "process" &&
+      t.isIdentifier(node.left.argument.object.property) &&
+      node.left.argument.object.property.name === "env" &&
+      t.isIdentifier(node.left.argument.property) &&
+      node.left.argument.property.name === "NODE_PG_FORCE_NATIVE" &&
+      t.isStringLiteral(node.right)
+    ) {
+      state.set(APPLY_PG_QUIRKS, true);
+      const left = typeof Deno.env.get("NODE_PG_FORCE_NATIVE");
+      const right = node.right.value;
+
+      const result = applyBinExpr(left, right, node);
+      if (result !== null) return result;
+    } else if (
       // Check: process.env.NODE_ENV == "production"
       // Check: process.env.NODE_ENV === "production"
       // Check: process.env.NODE_ENV != "production"
@@ -98,36 +147,8 @@ function evaluateExpr(
     ) {
       const value = node.right.value;
 
-      switch (node.operator) {
-        case "==":
-          return mode == value;
-        case "===":
-          return mode === value;
-        case "!=":
-          return mode != value;
-        case "!==":
-          return mode !== value;
-        case "+":
-        case "-":
-        case "/":
-        case "%":
-        case "*":
-        case "**":
-        case "&":
-        case "|":
-        case ">>":
-        case ">>>":
-        case "<<":
-        case "^":
-        case "in":
-        case "instanceof":
-        case ">":
-        case "<":
-        case ">=":
-        case "<=":
-        case "|>":
-          break;
-      }
+      const result = applyBinExpr(mode, value, node);
+      if (result !== null) return result;
     } else if (
       // Check: process.foo === "bar"
       env === "ssr" && t.isMemberExpression(node.left) &&
@@ -144,8 +165,48 @@ function evaluateExpr(
     node.object.name === "process" && t.isIdentifier(node.property)
   ) {
     return PROCESS_PROPERTIES.has(node.property.name);
+  } else if (t.isIdentifier(node) && node.name === "useLegacyCrypto") {
+    return false;
   }
 
+  return null;
+}
+
+function applyBinExpr(
+  left: unknown,
+  right: unknown,
+  node: types.BinaryExpression,
+): boolean | null {
+  switch (node.operator) {
+    case "==":
+      return left == right;
+    case "===":
+      return left === right;
+    case "!=":
+      return left != right;
+    case "!==":
+      return left !== right;
+    case "+":
+    case "-":
+    case "/":
+    case "%":
+    case "*":
+    case "**":
+    case "&":
+    case "|":
+    case ">>":
+    case ">>>":
+    case "<<":
+    case "^":
+    case "in":
+    case "instanceof":
+    case ">":
+    case "<":
+    case ">=":
+    case "<=":
+    case "|>":
+      break;
+  }
   return null;
 }
 

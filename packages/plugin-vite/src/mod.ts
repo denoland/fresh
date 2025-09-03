@@ -17,6 +17,7 @@ import process from "node:process";
 import { specToName, UniqueNamer } from "@fresh/core/internal-dev";
 import { checkImports } from "./plugins/verify_imports.ts";
 import { isBuiltin } from "node:module";
+import { polyfillPlugin } from "./plugins/polyfills.ts";
 
 export function fresh(config?: FreshViteConfig): Plugin[] {
   const fConfig: ResolvedFreshViteConfig = {
@@ -135,6 +136,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
     },
     serverEntryPlugin(fConfig),
     patches(),
+    polyfillPlugin(),
     ...serverSnapshot(fConfig),
     clientEntryPlugin(fConfig),
     clientSnapshot(fConfig),

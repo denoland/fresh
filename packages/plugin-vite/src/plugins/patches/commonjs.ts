@@ -1,4 +1,6 @@
-import type { PluginObj, types } from "@babel/core";
+import type { PluginObj, PluginPass, types } from "@babel/core";
+
+const HAS_MODULE_EXPORTS = "has_module_exports";
 
 export function cjsPlugin(
   { types: t }: { types: typeof types },
@@ -37,6 +39,7 @@ export function cjsPlugin(
 
           const exported = state.get(EXPORTED);
           const exportedNs = state.get(EXPORTED_NAMESPACES);
+          const hasModuleExports = state.get(HAS_MODULE_EXPORTS);
 
           const mappedNs: string[] = [];
 
@@ -53,7 +56,7 @@ export function cjsPlugin(
             );
           }
 
-          if (exported.size > 0 || exportedNs.size > 0) {
+          if (exported.size > 0 || exportedNs.size > 0 || hasModuleExports) {
             path.unshiftContainer(
               "body",
               t.expressionStatement(
@@ -146,7 +149,7 @@ export function cjsPlugin(
             );
           }
 
-          if (exportNamed.size > 0 || exportedNs.size > 0) {
+          if (exportNamed.size > 0 || exportedNs.size > 0 || hasModuleExports) {
             const id = path.scope.generateUidIdentifier("__default");
 
             path.pushContainer(
@@ -164,6 +167,19 @@ export function cjsPlugin(
                   ),
                 ),
               ]),
+            );
+            path.pushContainer(
+              "body",
+              t.expressionStatement(
+                t.assignmentExpression(
+                  "=",
+                  t.memberExpression(
+                    t.cloneNode(id, true),
+                    t.identifier("default"),
+                  ),
+                  t.cloneNode(id, true),
+                ),
+              ),
             );
 
             for (const [local, exported] of exportNamed.entries()) {
@@ -208,7 +224,7 @@ export function cjsPlugin(
       CallExpression(path, state) {
         const exported = state.get(EXPORTED);
 
-        if (isObjEsModuleFlag(t, path.node)) {
+        if (isObjEsModuleFlag(t, state, path.node)) {
           state.set(HAS_ES_MODULE, true);
           path.remove();
           return;
@@ -270,19 +286,45 @@ export function cjsPlugin(
         exit(path, state) {
           if (
             t.isIdentifier(path.node.object) &&
-            path.node.object.name === "exports" &&
             t.isIdentifier(path.node.property)
           ) {
-            const name = t.cloneNode(path.node.property);
+            if (
+              path.node.object.name === "exports"
+            ) {
+              const name = t.cloneNode(path.node.property);
 
-            if (name.name === "__esModule") return;
+              if (name.name === "__esModule") return;
 
-            state.get(EXPORTED).add(name.name);
+              state.get(EXPORTED).add(name.name);
+            } else if (
+              path.node.object.name === "module" &&
+              path.node.property.name === "exports"
+            ) {
+              state.set(HAS_MODULE_EXPORTS, true);
+            }
           }
         },
       },
       ExpressionStatement: {
         enter(path, state) {
+          // Check: Object.defineProperty(module.exports) "__esModule" ...)
+          // Check: Object.defineProperty(exports) "__esModule" ...)
+          if (
+            t.isCallExpression(path.node.expression) &&
+            t.isMemberExpression(path.node.expression.callee) &&
+            t.isIdentifier(path.node.expression.callee.object) &&
+            t.isIdentifier(path.node.expression.callee.property) &&
+            path.node.expression.callee.object.name === "Object" &&
+            path.node.expression.callee.property.name === "defineProperty" &&
+            path.node.expression.arguments.length >= 2 &&
+            t.isStringLiteral(path.node.expression.arguments[1]) &&
+            path.node.expression.arguments[1].value === "__esModule"
+          ) {
+            state.set(HAS_ES_MODULE, true);
+            path.remove();
+            return;
+          }
+
           if (
             t.isCallExpression(path.node.expression) &&
             t.isIdentifier(path.node.expression.callee) &&
@@ -313,7 +355,10 @@ export function cjsPlugin(
           } else if (
             t.isAssignmentExpression(path.node.expression) &&
             t.isMemberExpression(path.node.expression.left) &&
-            isModuleExports(t, path.node.expression.left) &&
+            t.isIdentifier(path.node.expression.left.object) &&
+            path.node.expression.left.object.name === "module" &&
+            t.isIdentifier(path.node.expression.left.property) &&
+            path.node.expression.left.property.name === "exports" &&
             t.isCallExpression(path.node.expression.right) &&
             t.isIdentifier(path.node.expression.right.callee) &&
             path.node.expression.right.callee.name === "require" &&
@@ -417,11 +462,11 @@ export function cjsPlugin(
           if (expr.isAssignmentExpression()) {
             const left = expr.get("left");
 
-            if (isEsModuleFlag(t, expr.node)) {
+            if (isEsModuleFlag(t, state, expr.node)) {
               state.set(HAS_ES_MODULE, true);
               path.remove();
             } else if (left.isMemberExpression()) {
-              if (isModuleExports(t, left.node)) {
+              if (isModuleExports(t, state, left.node)) {
                 exported.add("default");
 
                 if (t.isObjectExpression(expr.node.right)) {
@@ -440,13 +485,13 @@ export function cjsPlugin(
                   }
                 }
               } else {
-                const named = getExportsAssignName(t, left.node);
+                const named = getExportsAssignName(t, state, left.node);
                 if (named === null) return;
                 exported.add(named);
               }
             }
           } else if (expr.isCallExpression()) {
-            if (isObjEsModuleFlag(t, expr.node)) {
+            if (isObjEsModuleFlag(t, state, expr.node)) {
               state.set(HAS_ES_MODULE, true);
               path.remove();
             }
@@ -483,16 +528,38 @@ export function cjsPlugin(
       AssignmentExpression(path, state) {
         const exported = state.get(EXPORTED);
         const aliased = state.get(ALIASED);
-        if (aliased === undefined) return;
+
+        if (aliased !== undefined) {
+          if (
+            path.node.operator === "=" &&
+            t.isMemberExpression(path.node.left) &&
+            t.isIdentifier(path.node.left.object) &&
+            path.node.left.object.name === aliased &&
+            t.isIdentifier(path.node.left.property)
+          ) {
+            const name = path.node.left.property.name;
+            exported.add(name);
+          }
+        }
 
         if (
-          path.node.operator === "=" && t.isMemberExpression(path.node.left) &&
+          t.isMemberExpression(path.node.left) &&
           t.isIdentifier(path.node.left.object) &&
-          path.node.left.object.name === aliased &&
-          t.isIdentifier(path.node.left.property)
+          path.node.left.object.name === "exports" &&
+          t.isMemberExpression(path.node.right) &&
+          t.isIdentifier(path.node.right.object) &&
+          t.isIdentifier(path.node.right.property) &&
+          path.node.right.property.name === "default"
         ) {
-          const name = path.node.left.property.name;
-          exported.add(name);
+          path.replaceWith(t.assignmentExpression(
+            path.node.operator,
+            t.cloneNode(path.node.left, true),
+            t.logicalExpression(
+              "??",
+              t.cloneNode(path.node.right, true),
+              t.identifier(path.node.right.object.name),
+            ),
+          ));
         }
       },
     },
@@ -501,19 +568,27 @@ export function cjsPlugin(
 
 function isModuleExports(
   t: typeof types,
+  state: PluginPass,
   node: types.MemberExpression,
 ): boolean {
-  return t.isIdentifier(node.object) && node.object.name === "module" &&
+  const result = t.isIdentifier(node.object) && node.object.name === "module" &&
     t.isIdentifier(node.property) && node.property.name === "exports";
+
+  if (result) {
+    state.set(HAS_MODULE_EXPORTS, true);
+  }
+
+  return result;
 }
 
 function getExportsAssignName(
   t: typeof types,
+  state: PluginPass,
   node: types.MemberExpression,
 ): string | null {
   if (
     (t.isMemberExpression(node.object) &&
-        isModuleExports(t, node.object) ||
+        isModuleExports(t, state, node.object) ||
       t.isIdentifier(node.object) && node.object.name === "exports") &&
     t.isIdentifier(node.property)
   ) {
@@ -528,13 +603,14 @@ function getExportsAssignName(
  */
 function isEsModuleFlag(
   t: typeof types,
+  state: PluginPass,
   node: types.AssignmentExpression,
 ): boolean {
   if (!t.isMemberExpression(node.left)) return false;
 
   const { left, right } = node;
   return (t.isMemberExpression(left.object) &&
-      isModuleExports(t, left.object) ||
+      isModuleExports(t, state, left.object) ||
     t.isIdentifier(left.object) && left.object.name === "exports") &&
     t.isIdentifier(left.property) && left.property.name === "__esModule" &&
     t.isBooleanLiteral(right);
@@ -545,6 +621,7 @@ function isEsModuleFlag(
  */
 function isObjEsModuleFlag(
   t: typeof types,
+  state: PluginPass,
   node: types.CallExpression,
 ): boolean {
   return t.isMemberExpression(node.callee) &&
@@ -554,7 +631,7 @@ function isObjEsModuleFlag(
     node.callee.property.name === "defineProperty" &&
     node.arguments.length === 3 &&
     (t.isMemberExpression(node.arguments[0]) &&
-        isModuleExports(t, node.arguments[0]) ||
+        isModuleExports(t, state, node.arguments[0]) ||
       t.isIdentifier(node.arguments[0]) &&
         node.arguments[0].name === "exports") &&
     t.isStringLiteral(node.arguments[1]) &&

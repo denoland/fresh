@@ -104,3 +104,35 @@ Deno.test("code eval - npm:debug", () => {
     expected: `module.exports = require('./node.js');`,
   });
 });
+
+Deno.test("code eval - npm:pg", () => {
+  runTest({
+    env: "ssr",
+    mode: "development",
+    input: `if (typeof process.env.NODE_PG_FORCE_NATIVE !== "undefined") {
+	module.exports = require('./native.js');
+} else {
+	module.exports = require('./normal.js');
+}`,
+    expected: `module.exports = require('./normal.js');`,
+  });
+});
+
+Deno.test("code eval - npm:pg #2", () => {
+  runTest({
+    env: "ssr",
+    mode: "development",
+    input:
+      `const useLegacyCrypto = parseInt(process.versions && process.versions.node && process.versions.node.split('.')[0]) < 15
+if (useLegacyCrypto) {
+  // We are on an old version of Node.js that requires legacy crypto utilities.
+  module.exports = require('./utils-legacy')
+} else {
+  module.exports = require('./utils-webcrypto')
+}
+`,
+    expected:
+      `const useLegacyCrypto = parseInt(process.versions && process.versions.node && process.versions.node.split('.')[0]) < 15;
+module.exports = require('./utils-webcrypto');`,
+  });
+});

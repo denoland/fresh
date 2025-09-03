@@ -24,7 +24,8 @@ Object.defineProperty(module, "exports", {
   }
 });`;
 
-const DEFAULT_EXPORT = `const _default = exports.default ?? exports;`;
+const DEFAULT_EXPORT = `const _default = exports.default ?? exports;
+_default.default = _default;`;
 const DEFAULT_EXPORT_END = `export default _default;`;
 
 Deno.test("commonjs - module.exports default", () => {
@@ -491,6 +492,65 @@ export { _foo as foo, _bar as bar };
 ${DEFAULT_EXPORT}
 _default.foo = _foo;
 _default.bar = _bar;
+${DEFAULT_EXPORT_END}`,
+  });
+});
+
+// issue: https://github.com/denoland/fresh/issues/3323
+Deno.test("commonjs - npm:pg assign", () => {
+  runTest({
+    input:
+      `const NativeQuery = (module.exports = function (config, values, callback) {})`,
+    expected: `${INIT}
+const NativeQuery = module.exports = function (config, values, callback) {};
+${DEFAULT_EXPORT}
+${DEFAULT_EXPORT_END}`,
+  });
+});
+
+Deno.test("commonjs - npm:ioredis", () => {
+  runTest({
+    input: `Object.defineProperty(exports, "__esModule", { value: true });
+function foo() {}
+exports.foo = foo;
+exports.default = foo;
+`,
+    expected: `${INIT}
+function foo() {}
+exports.foo = foo;
+exports.default = foo;
+var _foo = exports.foo;
+export { _foo as foo };
+${DEFAULT_EXPORT}
+_default.foo = _foo;
+${DEFAULT_EXPORT_END}`,
+  });
+});
+
+Deno.test("commonjs - npm:ioredis #2", () => {
+  runTest({
+    input: `Object.defineProperty(exports, "__esModule", { value: true });
+const debug_1 = require("./debug");
+exports.Debug = debug_1.default;
+`,
+    expected: `${INIT}
+import * as _mod from "./debug";
+const debug_1 = _mod.default ?? _mod;
+exports.Debug = debug_1.default ?? debug_1;
+var _Debug = exports.Debug;
+export { _Debug as Debug };
+${DEFAULT_EXPORT}
+_default.Debug = _Debug;
+${DEFAULT_EXPORT_END}`,
+  });
+});
+
+Deno.test.only("commonjs - npm:ioredis #3", () => {
+  runTest({
+    input: `module.exports = require('./common')(exports);;
+`,
+    expected: `${INIT}
+${DEFAULT_EXPORT}
 ${DEFAULT_EXPORT_END}`,
   });
 });
