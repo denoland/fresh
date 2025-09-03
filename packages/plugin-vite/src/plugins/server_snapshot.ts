@@ -111,202 +111,214 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
         viteServer.ws.send("fresh:reload");
       });
     },
-    resolveId(id) {
-      if (id === modName) {
-        return `\0${modName}`;
-      }
+    resolveId: {
+      filter: {
+        id: /fresh:server-snapshot/,
+      },
+      handler(id) {
+        if (id === modName) {
+          return `\0${modName}`;
+        }
+      },
     },
-    async load(id) {
-      if (id !== `\0${modName}`) return;
+    load: {
+      filter: {
+        id: `\0${modName}`,
+      },
 
-      const result = await crawlFsItem({
-        islandDir: options.islandsDir,
-        routeDir: options.routeDir,
-        ignore: options.ignore,
-      });
-
-      for (let i = 0; i < result.islands.length; i++) {
-        const spec = result.islands[i];
-        const specName = specToName(spec);
-        const name = options.namer.getUniqueName(specName);
-
-        islands.set(spec, { name, chunk: null });
-        islandSpecByName.set(name, spec);
-        islandsByFile.add(spec);
-      }
-
-      const staticFiles: PendingStaticFile[] = [];
-      let islandMods: IslandModChunk[] = [];
-      let clientEntry = "/@id/fresh:client-entry";
-      let buildId = "";
-      const entryAssets: string[] = [];
-
-      if (isDev && server !== undefined) {
-        for (const id of islands.keys()) {
-          const mod = server.environments.client.moduleGraph.getModuleById(
-            id,
-          );
-          if (mod !== undefined) {
-            const def = islands.get(id);
-            if (def !== undefined) def.chunk = mod.url;
-          }
-        }
-
-        islandMods = Array.from(islands.entries()).map(([id, def]) => {
-          return {
-            name: def.name,
-            server: id,
-            browser: def.chunk ?? `/@id/fresh-island::${def.name}`,
-            css: [],
-          };
+      async handler() {
+        const result = await crawlFsItem({
+          islandDir: options.islandsDir,
+          routeDir: options.routeDir,
+          ignore: options.ignore,
         });
-      } else {
-        buildId = await getBuildId(false);
-        const manifest = JSON.parse(
-          await Deno.readTextFile(
-            path.join(clientOutDir, ".vite", "manifest.json"),
-          ),
-        ) as Manifest;
-        const resolvedIslandSpecs = new Map<string, string>();
 
-        for (const spec of options.islandSpecifiers.keys()) {
-          const resolved = await this.resolve(spec);
+        for (let i = 0; i < result.islands.length; i++) {
+          const spec = result.islands[i];
+          const specName = specToName(spec);
+          const name = options.namer.getUniqueName(specName);
 
-          if (resolved === null) continue;
-
-          const id = resolved.id.startsWith("\0")
-            ? resolved.id.slice(1)
-            : resolved.id;
-
-          resolvedIslandSpecs.set(id, spec);
+          islands.set(spec, { name, chunk: null });
+          islandSpecByName.set(name, spec);
+          islandsByFile.add(spec);
         }
 
-        const clientEntryName = "client-entry";
+        const staticFiles: PendingStaticFile[] = [];
+        let islandMods: IslandModChunk[] = [];
+        let clientEntry = "/@id/fresh:client-entry";
+        let buildId = "";
+        const entryAssets: string[] = [];
 
-        for (const chunk of Object.values(manifest)) {
-          if (chunk.name === clientEntryName) {
-            clientEntry = pathToSpec(clientOutDir, chunk.file);
+        if (isDev && server !== undefined) {
+          for (const id of islands.keys()) {
+            const mod = server.environments.client.moduleGraph.getModuleById(
+              id,
+            );
+            if (mod !== undefined) {
+              const def = islands.get(id);
+              if (def !== undefined) def.chunk = mod.url;
+            }
           }
 
-          staticFiles.push({
-            filePath: path.join(clientOutDir, chunk.file),
-            pathname: chunk.file,
-            hash: null,
+          islandMods = Array.from(islands.entries()).map(([id, def]) => {
+            return {
+              name: def.name,
+              server: id,
+              browser: def.chunk ?? `/@id/fresh-island::${def.name}`,
+              css: [],
+            };
           });
+        } else {
+          buildId = await getBuildId(false);
+          const manifest = JSON.parse(
+            await Deno.readTextFile(
+              path.join(clientOutDir, ".vite", "manifest.json"),
+            ),
+          ) as Manifest;
+          const resolvedIslandSpecs = new Map<string, string>();
 
-          if (chunk.css !== undefined) {
-            for (let i = 0; i < chunk.css.length; i++) {
-              const id = chunk.css[i];
+          for (const spec of options.islandSpecifiers.keys()) {
+            const resolved = await this.resolve(spec);
 
-              const pathname = `/${id}`;
+            if (resolved === null) continue;
 
-              staticFiles.push({
-                filePath: path.join(clientOutDir, id),
-                hash: null,
-                pathname,
-              });
+            const id = resolved.id.startsWith("\0")
+              ? resolved.id.slice(1)
+              : resolved.id;
 
-              if (chunk.name === clientEntryName) {
-                entryAssets.push(pathname);
-              }
-            }
+            resolvedIslandSpecs.set(id, spec);
           }
 
-          const namer = new UniqueNamer();
-          if (chunk.name === "client-snapshot") {
-            for (const id of chunk.dynamicImports ?? []) {
-              const mod = manifest[id];
+          const clientEntryName = "client-entry";
 
-              let serverPath = path.join(root, mod.src ?? id);
-              const idx = mod.src?.indexOf("deno::") ?? -1;
-
-              if (idx > -1 && mod.src) {
-                const src = mod.src
-                  .slice(idx)
-                  .replace(
-                    /(https?):\/([^/])/,
-                    (_m, protocol, rest) => {
-                      return `${protocol}://${rest}`;
-                    },
-                  );
-                serverPath = resolvedIslandSpecs.get(src)!;
-              }
-
-              let spec = pathToSpec(clientOutDir, mod.file);
-
-              if (spec.startsWith("./")) {
-                spec = spec.slice(1);
-              }
-
-              const chunkCss = mod.css?.map((id) => `/${id}`) ?? [];
-
-              const name = namer.getUniqueName(specToName(id));
-              islandMods.push({
-                name,
-                browser: spec,
-                server: serverPath,
-                css: chunkCss,
-              });
+          for (const chunk of Object.values(manifest)) {
+            if (chunk.name === clientEntryName) {
+              clientEntry = pathToSpec(clientOutDir, chunk.file);
             }
-          }
-        }
-
-        if (await fsAdapter.isDirectory(publicDir)) {
-          const entries = await fsAdapter.walk(
-            publicDir,
-            {
-              followSymlinks: false,
-              includeDirs: false,
-              includeFiles: true,
-              skip: options.ignore,
-            },
-          );
-
-          for await (const entry of entries) {
-            const relative = path.relative(publicDir, entry.path);
-            const filePath = path.join(clientOutDir, relative);
-
-            try {
-              await Deno.mkdir(path.dirname(filePath), { recursive: true });
-            } catch (err) {
-              if (!(err instanceof Deno.errors.AlreadyExists)) {
-                throw err;
-              }
-            }
-            await Deno.copyFile(entry.path, filePath);
 
             staticFiles.push({
-              filePath,
+              filePath: path.join(clientOutDir, chunk.file),
+              pathname: chunk.file,
               hash: null,
-              pathname: relative,
             });
+
+            if (chunk.css !== undefined) {
+              for (let i = 0; i < chunk.css.length; i++) {
+                const id = chunk.css[i];
+
+                const pathname = `/${id}`;
+
+                staticFiles.push({
+                  filePath: path.join(clientOutDir, id),
+                  hash: null,
+                  pathname,
+                });
+
+                if (chunk.name === clientEntryName) {
+                  entryAssets.push(pathname);
+                }
+              }
+            }
+
+            const namer = new UniqueNamer();
+            if (chunk.name === "client-snapshot") {
+              for (const id of chunk.dynamicImports ?? []) {
+                const mod = manifest[id];
+
+                let serverPath = path.join(root, mod.src ?? id);
+                const idx = mod.src?.indexOf("deno::") ?? -1;
+
+                if (idx > -1 && mod.src) {
+                  const src = mod.src
+                    .slice(idx)
+                    .replace(
+                      /(https?):\/([^/])/,
+                      (_m, protocol, rest) => {
+                        return `${protocol}://${rest}`;
+                      },
+                    );
+                  serverPath = resolvedIslandSpecs.get(src)!;
+                }
+
+                let spec = pathToSpec(clientOutDir, mod.file);
+
+                if (spec.startsWith("./")) {
+                  spec = spec.slice(1);
+                }
+
+                const chunkCss = mod.css?.map((id) => `/${id}`) ?? [];
+
+                const name = namer.getUniqueName(specToName(id));
+                islandMods.push({
+                  name,
+                  browser: spec,
+                  server: serverPath,
+                  css: chunkCss,
+                });
+              }
+            }
+          }
+
+          if (await fsAdapter.isDirectory(publicDir)) {
+            const entries = await fsAdapter.walk(
+              publicDir,
+              {
+                followSymlinks: false,
+                includeDirs: false,
+                includeFiles: true,
+                skip: options.ignore,
+              },
+            );
+
+            for await (const entry of entries) {
+              const relative = path.relative(publicDir, entry.path);
+              const filePath = path.join(clientOutDir, relative);
+
+              try {
+                await Deno.mkdir(path.dirname(filePath), { recursive: true });
+              } catch (err) {
+                if (!(err instanceof Deno.errors.AlreadyExists)) {
+                  throw err;
+                }
+              }
+              await Deno.copyFile(entry.path, filePath);
+
+              staticFiles.push({
+                filePath,
+                hash: null,
+                pathname: relative,
+              });
+            }
           }
         }
-      }
 
-      const code = await generateSnapshotServer({
-        outDir: path.join(clientOutDir, ".."),
-        staticFiles,
-        buildId,
-        clientEntry,
-        entryAssets,
-        fsRoutesFiles: result.routes,
-        islands: islandMods,
-        writeSpecifier: (file) => {
-          const def = islands.get(file);
-          if (def) {
-            return `fresh-island::${def.name}`;
-          }
-          return path.toFileUrl(file).href;
-        },
-      });
+        const code = await generateSnapshotServer({
+          outDir: path.join(clientOutDir, ".."),
+          staticFiles,
+          buildId,
+          clientEntry,
+          entryAssets,
+          fsRoutesFiles: result.routes,
+          islands: islandMods,
+          writeSpecifier: (file) => {
+            const def = islands.get(file);
+            if (def) {
+              return `fresh-island::${def.name}`;
+            }
+            return path.toFileUrl(file).href;
+          },
+        });
 
-      return code;
+        return code;
+      },
     },
   }, {
     name: "fresh:island-resolver",
-    resolveId(id) {
-      if (id.startsWith("fresh-island::")) {
+    resolveId: {
+      filter: {
+        id: /^fresh-island::.*/,
+      },
+      handler(id) {
         let name = id.slice("fresh-island::".length);
 
         if (JS_REG.test(name)) {
@@ -315,7 +327,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
 
         const spec = islandSpecByName.get(name);
         if (spec !== undefined) return spec;
-      }
+      },
     },
   }];
 }

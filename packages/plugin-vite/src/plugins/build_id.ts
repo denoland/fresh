@@ -26,14 +26,17 @@ export function buildIdPlugin(): Plugin {
         return `\0fresh/build-id`;
       }
     },
-    load(id) {
-      if (id !== `\0fresh/build-id`) return;
-
-      return `export let BUILD_ID = ${JSON.stringify(buildId)};
+    load: {
+      filter: {
+        id: "\0fresh/build-id",
+      },
+      handler() {
+        return `export let BUILD_ID = ${JSON.stringify(buildId)};
 export const DENO_DEPLOYMENT_ID = undefined;
 export function setBuildId(id) {
   BUILD_ID = id;
 }`;
+      },
     },
   };
 }
