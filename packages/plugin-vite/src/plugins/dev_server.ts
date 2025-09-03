@@ -13,6 +13,20 @@ export function devServer(): Plugin[] {
         server.middlewares.use(async (nodeReq, nodeRes, next) => {
           const serverCfg = server.config.server;
 
+          console.log(
+            {
+              ssr: Array.from(
+                server.environments.ssr.moduleGraph.idToModuleMap.keys(),
+              ).filter((x) => x.includes(".css")),
+              client: Array.from(
+                server.environments.client.moduleGraph.idToModuleMap.keys(),
+              ).filter((x) => x.includes(".css")),
+              tw: server.environments.client.moduleGraph.getModuleById(
+                "/Users/marvinh/dev/denoland/fresh/packages/plugin-vite/demo/assets/style.css",
+              ),
+            },
+          );
+
           const protocol = serverCfg.https ? "https" : "http";
           const host = serverCfg.host ? serverCfg.host : "localhost";
           const port = serverCfg.port;
