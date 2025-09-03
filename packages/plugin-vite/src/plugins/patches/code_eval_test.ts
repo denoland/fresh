@@ -90,3 +90,17 @@ Deno.test("code eval - resolve process.env.NODE_ENV", () => {
     expected: `module.exports = require('./cjs/react.production.js');`,
   });
 });
+
+Deno.test("code eval - npm:debug", () => {
+  runTest({
+    env: "ssr",
+    mode: "development",
+    input:
+      `if (typeof process === 'undefined' || process.type === 'renderer' || process.browser === true || process.__nwjs) {
+	module.exports = require('./browser.js');
+} else {
+	module.exports = require('./node.js');
+}`,
+    expected: `module.exports = require('./node.js');`,
+  });
+});

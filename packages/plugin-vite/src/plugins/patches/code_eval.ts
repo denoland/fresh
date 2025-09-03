@@ -128,10 +128,96 @@ function evaluateExpr(
         case "|>":
           break;
       }
+    } else if (
+      // Check: process.foo === "bar"
+      env === "ssr" && t.isMemberExpression(node.left) &&
+      t.isIdentifier(node.left.object) && node.left.object.name === "process" &&
+      t.isIdentifier(node.left.property) &&
+      !PROCESS_PROPERTIES.has(node.left.property.name)
+    ) {
+      return false;
     }
 
     return null;
+  } else if (
+    t.isMemberExpression(node) && t.isIdentifier(node.object) &&
+    node.object.name === "process" && t.isIdentifier(node.property)
+  ) {
+    return PROCESS_PROPERTIES.has(node.property.name);
   }
 
   return null;
 }
+
+const PROCESS_PROPERTIES = new Set([
+  "abort",
+  "allowedNodeEnvironmentFlags",
+  "arch",
+  "argv",
+  "argv0",
+  "availableMemory",
+  "channel",
+  "chdir",
+  "config",
+  "connected",
+  "constrainedMemory",
+  "cpuUsage",
+  "cwd",
+  "debugPort",
+  "disconnect",
+  "dlopen",
+  "emitWarning",
+  "env",
+  "execArgv",
+  "execPath",
+  "execve",
+  "exit",
+  "exitCode",
+  "features",
+  "finalization",
+  "getActiveResourcesInfo",
+  "getBuiltinModule",
+  "getegid",
+  "geteuid",
+  "getgid",
+  "getgroups",
+  "getuid",
+  "hasUncaughtExceptionCaptureCallback",
+  "hrtime",
+  "initgroups",
+  "kill",
+  "loadEnvFile",
+  "mainModule",
+  "memoryUsage",
+  "nextTick",
+  "noDeprecation",
+  "permission",
+  "pid",
+  "platform",
+  "ppid",
+  "ref",
+  "release",
+  "report",
+  "resourceUsage",
+  "send",
+  "setegid",
+  "seteuid",
+  "setgid",
+  "setgroups",
+  "setuid",
+  "setSourceMapsEnabled",
+  "setUncaughtExceptionCaptureCallback",
+  "sourceMapsEnabled",
+  "stderr",
+  "stdin",
+  "stdout",
+  "throwDeprecation",
+  "threadCpuUsage",
+  "title",
+  "traceDeprecation",
+  "umask",
+  "unref",
+  "uptime",
+  "version",
+  "versions",
+]);
