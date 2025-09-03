@@ -577,10 +577,11 @@ if (Deno.args.includes("build")) {
         "noscript",
         "template",
       ],
-    },
+    } as Record<string, unknown>,
   };
 
   if (useVite) {
+    denoJson.compilerOptions.types = ["vite/client"];
     denoJson.tasks.dev = "vite";
     denoJson.tasks.build = "vite build";
 

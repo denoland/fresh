@@ -11,7 +11,7 @@
   "compilerOptions": {
     "jsx": "precompile",
     "jsxImportSource": "preact",
-    "types": ["../../global.d.ts"]
+    "types": ["vite/client"]
   },
   "tasks": {
     "demo": "vite demo",
