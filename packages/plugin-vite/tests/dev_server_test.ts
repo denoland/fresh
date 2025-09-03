@@ -354,3 +354,16 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "vite dev - loads npm:ioredis",
+  fn: async () => {
+    await launchDevServer(DEMO_DIR, async (address) => {
+      const res = await fetch(`${address}/tests/ioredis`);
+      await res.body?.cancel();
+      expect(res.status).toEqual(200);
+    });
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});

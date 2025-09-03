@@ -5,6 +5,8 @@
     "./www"
   ],
   "tasks": {
+    "demo": "deno task --cwd=packages/plugin-vite demo",
+    "demo:build": "deno task --cwd=packages/plugin-vite demo:build",
     "test": "deno test -A --parallel",
     "www": "deno task --cwd=www dev",
     "build-www": "deno task --cwd=www build",

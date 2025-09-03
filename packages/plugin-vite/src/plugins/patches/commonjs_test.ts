@@ -544,13 +544,3 @@ _default.Debug = _Debug;
 ${DEFAULT_EXPORT_END}`,
   });
 });
-
-Deno.test.only("commonjs - npm:ioredis #3", () => {
-  runTest({
-    input: `module.exports = require('./common')(exports);;
-`,
-    expected: `${INIT}
-${DEFAULT_EXPORT}
-${DEFAULT_EXPORT_END}`,
-  });
-});

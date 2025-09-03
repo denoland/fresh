@@ -1,25 +1,29 @@
 import type { Plugin } from "vite";
+import * as path from "@std/path";
+
+const POLYFILL_DIR = path.join(import.meta.dirname!, "polyfills");
+
+// These packages can't be bundled and haven't really been updated in
+// years. They are super common though so we vendor them and convert
+// them to ESM so that they can be bundled.
+const POLYFILLS = new Map<string, string>([
+  ["supports-color", path.join(POLYFILL_DIR, "supports-color", "index.ts")],
+  ["debug", path.join(POLYFILL_DIR, "debug", "index.ts")],
+]);
 
 export function polyfillPlugin(): Plugin {
   return {
     name: "fresh:polyfills",
-    resolveId(id, _importer, opts) {
-      if (opts.ssr && id === "supports-color") {
-        return `\0supports-color`;
-      }
+    enforce: "pre",
+    applyToEnvironment() {
+      return true;
     },
-    load(id) {
-      if (id === "\0supports-color") {
-        return `function toLevel(depth) {
-  if (depth === 1) return 1;
-  if (depth === 8) return 2;
-  if (depth === 24) return 3;
-}
-
-export default {
-  stdout: toLevel(process.stdout.getColorDepth()),
-  stderr: toLevel(process.stderr.getColorDepth()),
-}`;
+    resolveId(id, _importer, opts) {
+      if (opts.ssr) {
+        const polyfill = POLYFILLS.get(id);
+        if (polyfill !== undefined) {
+          return polyfill;
+        }
       }
     },
   };
