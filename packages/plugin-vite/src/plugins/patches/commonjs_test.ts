@@ -237,10 +237,11 @@ Deno.test("commonjs - cleared exports", () => {
   runTest({
     input: `Object.defineProperty(exports, "__esModule", { value: true });
 exports.foo = exports.bar = void 0;
-exports.foo = 'foo'`,
-    expected: `${INIT}
-exports.foo = exports.bar = void 0;
 exports.foo = 'foo';
+exports.bar = 'bar';`,
+    expected: `${INIT}
+exports.foo = 'foo';
+exports.bar = 'bar';
 var _foo = exports.foo;
 var _bar = exports.bar;
 export { _foo as foo, _bar as bar };
@@ -258,12 +259,7 @@ Object.defineProperty(exports, "foo", { enumerable: true, get: function () { ret
     expected: `${INIT}
 import * as _mod from "./bar";
 var utils_1 = _mod.default ?? _mod;
-Object.defineProperty(exports, "foo", {
-  enumerable: true,
-  get: function () {
-    return utils_1.foo;
-  }
-});
+exports.foo = utils_1.foo;
 var _foo = exports.foo;
 export { _foo as foo };
 ${DEFAULT_EXPORT}
@@ -279,12 +275,7 @@ Object.defineProperty(exports, "foo", { enumerable: true, get() { return utils_1
     expected: `${INIT}
 import * as _mod from "./bar";
 var utils_1 = _mod.default ?? _mod;
-Object.defineProperty(exports, "foo", {
-  enumerable: true,
-  get() {
-    return utils_1.foo;
-  }
-});
+exports.foo = utils_1.foo;
 var _foo = exports.foo;
 export { _foo as foo };
 ${DEFAULT_EXPORT}
@@ -476,5 +467,30 @@ Deno.test("commonjs - re-export require", () => {
   runTest({
     input: `module.exports = require("./foo.js");`,
     expected: `export * from "./foo.js";`,
+  });
+});
+
+Deno.test("commonjs - Object.defineProperty exports", () => {
+  runTest({
+    input: `Object.defineProperty(exports, "__esModule", { value: true });
+exports.foo = exports.bar = void 0;
+const foo = require("./foo");
+const bar = require("./bar");
+Object.defineProperty(exports, "foo", { enumerable: true, get: function () { return foo; } });
+Object.defineProperty(exports, "bar", { enumerable: true, get: function () { return bar; } });`,
+    expected: `${INIT}
+import * as _mod2 from "./bar";
+import * as _mod from "./foo";
+const foo = _mod.default ?? _mod;
+const bar = _mod2.default ?? _mod2;
+exports.foo = foo;
+exports.bar = bar;
+var _foo = exports.foo;
+var _bar = exports.bar;
+export { _foo as foo, _bar as bar };
+${DEFAULT_EXPORT}
+_default.foo = _foo;
+_default.bar = _bar;
+${DEFAULT_EXPORT_END}`,
   });
 });

@@ -322,6 +322,92 @@ export function cjsPlugin(
           ) {
             const source = path.node.expression.right.arguments[0];
             path.replaceWith(t.exportAllDeclaration(t.cloneNode(source, true)));
+          } else if (
+            // Check: Object.defineProperty(exports, "foo", { enumerable: true, get: function () { return foo; } });
+            t.isCallExpression(path.node.expression) &&
+            t.isMemberExpression(path.node.expression.callee) &&
+            t.isIdentifier(path.node.expression.callee.object) &&
+            path.node.expression.callee.object.name === "Object" &&
+            t.isIdentifier(path.node.expression.callee.property) &&
+            path.node.expression.callee.property.name === "defineProperty" &&
+            path.node.expression.arguments.length >= 2 &&
+            t.isIdentifier(path.node.expression.arguments[0]) &&
+            path.node.expression.arguments[0].name === "exports" &&
+            t.isStringLiteral(path.node.expression.arguments[1]) &&
+            t.isObjectExpression(path.node.expression.arguments[2])
+          ) {
+            const exported = path.node.expression.arguments[1].value;
+            const obj = path.node.expression.arguments[2];
+            for (let i = 0; i < obj.properties.length; i++) {
+              const prop = obj.properties[i];
+
+              if (
+                t.isObjectProperty(prop) && t.isIdentifier(prop.key) &&
+                prop.key.name === "get" && t.isFunctionExpression(prop.value) &&
+                t.isBlockStatement(prop.value.body) &&
+                prop.value.body.body.length === 1 &&
+                t.isReturnStatement(prop.value.body.body[0])
+              ) {
+                const expr = prop.value.body.body[0].argument;
+                if (expr !== null && expr !== undefined) {
+                  path.replaceWith(
+                    t.assignmentExpression(
+                      "=",
+                      t.memberExpression(
+                        t.identifier("exports"),
+                        t.identifier(exported),
+                      ),
+                      t.cloneNode(expr, true),
+                    ),
+                  );
+                }
+              } else if (
+                t.isObjectMethod(prop) && t.isIdentifier(prop.key) &&
+                prop.key.name === "get" && t.isBlockStatement(prop.body) &&
+                prop.body.body.length === 1 &&
+                t.isReturnStatement(prop.body.body[0])
+              ) {
+                const expr = prop.body.body[0].argument;
+                if (expr !== null && expr !== undefined) {
+                  path.replaceWith(
+                    t.assignmentExpression(
+                      "=",
+                      t.memberExpression(
+                        t.identifier("exports"),
+                        t.identifier(exported),
+                      ),
+                      t.cloneNode(expr, true),
+                    ),
+                  );
+                }
+              }
+            }
+          } else {
+            let depth = 0;
+            let current = path.node.expression;
+
+            while (
+              t.isAssignmentExpression(current) &&
+              t.isMemberExpression(current.left) &&
+              t.isIdentifier(current.left.object) &&
+              current.left.object.name === "exports"
+            ) {
+              if (
+                t.isUnaryExpression(current.right) &&
+                current.right.operator === "void" &&
+                t.isNumericLiteral(current.right.argument) &&
+                current.right.argument.value === 0
+              ) {
+                if (depth > 0) {
+                  path.remove();
+                }
+
+                break;
+              }
+
+              depth++;
+              current = current.right;
+            }
           }
         },
         exit(path, state) {
