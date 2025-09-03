@@ -471,3 +471,10 @@ _default.foo = _foo;
 ${DEFAULT_EXPORT_END}`,
   });
 });
+
+Deno.test("commonjs - re-export require", () => {
+  runTest({
+    input: `module.exports = require("./foo.js");`,
+    expected: `export * from "./foo.js";`,
+  });
+});

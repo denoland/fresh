@@ -1,6 +1,6 @@
 import type { PluginObj, types } from "@babel/core";
 
-export function runtimePatcher(
+export function codeEvalPlugin(
   env: "ssr" | "client",
   mode: string,
 ) {

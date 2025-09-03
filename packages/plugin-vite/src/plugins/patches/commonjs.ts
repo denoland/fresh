@@ -284,7 +284,6 @@ export function cjsPlugin(
       ExpressionStatement: {
         enter(path, state) {
           if (
-            t.isExpressionStatement(path.node) &&
             t.isCallExpression(path.node.expression) &&
             t.isIdentifier(path.node.expression.callee) &&
             path.node.expression.callee.name === "__exportStar" &&
@@ -301,7 +300,6 @@ export function cjsPlugin(
             state.get(EXPORTED_NAMESPACES).add(spec.value);
             path.replaceWith(t.exportAllDeclaration(spec));
           } else if (
-            t.isExpressionStatement(path.node) &&
             t.isCallExpression(path.node.expression) &&
             t.isFunctionExpression(path.node.expression.callee)
           ) {
@@ -312,6 +310,18 @@ export function cjsPlugin(
               const alias = path.node.expression.callee.params[0].name;
               state.set(ALIASED, alias);
             }
+          } else if (
+            t.isAssignmentExpression(path.node.expression) &&
+            t.isMemberExpression(path.node.expression.left) &&
+            isModuleExports(t, path.node.expression.left) &&
+            t.isCallExpression(path.node.expression.right) &&
+            t.isIdentifier(path.node.expression.right.callee) &&
+            path.node.expression.right.callee.name === "require" &&
+            path.node.expression.right.arguments.length > 0 &&
+            t.isStringLiteral(path.node.expression.right.arguments[0])
+          ) {
+            const source = path.node.expression.right.arguments[0];
+            path.replaceWith(t.exportAllDeclaration(t.cloneNode(source, true)));
           }
         },
         exit(path, state) {

@@ -328,3 +328,16 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "vite dev - import commonjs conditionally",
+  fn: async () => {
+    await launchDevServer(DEMO_DIR, async (address) => {
+      const res = await fetch(`${address}/tests/commonjs_conditional`);
+      const text = await res.text();
+      expect(text).toContain("<h1>server</h1>");
+    });
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});

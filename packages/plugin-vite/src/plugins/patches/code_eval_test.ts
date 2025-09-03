@@ -1,6 +1,6 @@
 import { expect } from "@std/expect/expect";
 import * as babel from "@babel/core";
-import { runtimePatcher } from "./code_eval.ts";
+import { codeEvalPlugin } from "./code_eval.ts";
 
 function runTest(
   options: {
@@ -13,7 +13,7 @@ function runTest(
   const res = babel.transformSync(options.input, {
     filename: "foo.js",
     babelrc: false,
-    plugins: [runtimePatcher(options.env, options.mode)],
+    plugins: [codeEvalPlugin(options.env, options.mode)],
   });
 
   const output = res?.code ?? "";
