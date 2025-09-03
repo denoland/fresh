@@ -105,7 +105,7 @@
       "noscript",
       "template"
     ],
-    "types": ["./global.d.ts"]
+    "types": ["vite/client"]
   },
   "lint": {
     "rules": {
