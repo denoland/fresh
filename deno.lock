@@ -65,10 +65,11 @@
     "npm:@opentelemetry/api@^1.9.0": "1.9.0",
     "npm:@preact/signals@2": "2.3.1_preact@10.27.1",
     "npm:@preact/signals@^2.2.1": "2.3.1_preact@10.27.1",
-    "npm:@prefresh/vite@^2.4.8": "2.4.10_preact@10.27.1_vite@7.1.4__@types+node@24.3.0__picomatch@4.0.3_@types+node@24.3.0",
+    "npm:@prefresh/vite@^2.4.8": "2.4.10_preact@10.27.1_vite@7.1.4__@types+node@24.3.0__picomatch@4.0.3_@types+node@24.3.0_@types+node@24.2.0",
     "npm:@tailwindcss/postcss@^4.1.10": "4.1.12",
-    "npm:@tailwindcss/vite@^4.1.12": "4.1.12_vite@7.1.4__@types+node@24.3.0__picomatch@4.0.3_@types+node@24.3.0",
+    "npm:@tailwindcss/vite@^4.1.12": "4.1.12_vite@7.1.4__@types+node@24.3.0__picomatch@4.0.3_@types+node@24.3.0_@types+node@24.2.0",
     "npm:@types/babel__core@^7.20.5": "7.20.5",
+    "npm:@types/node@*": "24.2.0",
     "npm:@types/node@^24.1.0": "24.3.0",
     "npm:@types/node@^24.2.1": "24.3.0",
     "npm:@types/node@^24.3.0": "24.3.0",
@@ -96,11 +97,12 @@
     "npm:tailwindcss@^3.4.17": "3.4.17_postcss@8.5.6",
     "npm:tailwindcss@^4.1.10": "4.1.12",
     "npm:ts-morph@26": "26.0.0",
-    "npm:vite-plugin-inspect@^11.3.2": "11.3.3_vite@7.1.4__@types+node@24.3.0__picomatch@4.0.3_@types+node@24.3.0",
-    "npm:vite@*": "7.1.3_@types+node@24.3.0_picomatch@4.0.3",
-    "npm:vite@7.1.3": "7.1.3_@types+node@24.3.0_picomatch@4.0.3",
-    "npm:vite@^7.1.3": "7.1.4_@types+node@24.3.0_picomatch@4.0.3",
-    "npm:vite@^7.1.4": "7.1.4_@types+node@24.3.0_picomatch@4.0.3"
+    "npm:vite-plugin-inspect@^11.3.2": "11.3.3_vite@7.1.4__@types+node@24.3.0__picomatch@4.0.3_@types+node@24.3.0_@types+node@24.2.0",
+    "npm:vite@*": "7.1.3_@types+node@24.3.0_picomatch@4.0.3_@types+node@24.2.0",
+    "npm:vite@7.1.3": "7.1.3_@types+node@24.3.0_picomatch@4.0.3_@types+node@24.2.0",
+    "npm:vite@7.1.4": "7.1.4_@types+node@24.3.0_picomatch@4.0.3_@types+node@24.2.0",
+    "npm:vite@^7.1.3": "7.1.4_@types+node@24.3.0_picomatch@4.0.3_@types+node@24.2.0",
+    "npm:vite@^7.1.4": "7.1.4_@types+node@24.3.0_picomatch@4.0.3_@types+node@24.2.0"
   },
   "jsr": {
     "@astral/astral@0.5.3": {
@@ -1165,6 +1167,18 @@
         "vite@7.1.4_@types+node@24.3.0_picomatch@4.0.3"
       ]
     },
+    "@prefresh/vite@2.4.10_preact@10.27.1_vite@7.1.4__@types+node@24.3.0__picomatch@4.0.3_@types+node@24.3.0_@types+node@24.2.0": {
+      "integrity": "sha512-lt+ODASOtXRWaPplp7/DlrgAaInnQYNvcpCglQBMx2OeJPyZ4IqPRaxsK77w96mWshjYwkqTsRSHoAM7aAn0ow==",
+      "dependencies": [
+        "@babel/core",
+        "@prefresh/babel-plugin",
+        "@prefresh/core",
+        "@prefresh/utils",
+        "@rollup/pluginutils",
+        "preact",
+        "vite@7.1.4_@types+node@24.3.0_picomatch@4.0.3_@types+node@24.2.0"
+      ]
+    },
     "@rollup/pluginutils@4.2.1": {
       "integrity": "sha512-iKnFXr7NkdZAIHiIWE+BX5ULi/ucVFYWD6TbAV+rZctiRTY2PL6tsIKhoIOaoskiWAkgu+VsbXgUVDNLHf+InQ==",
       "dependencies": [
@@ -1397,6 +1411,15 @@
         "vite@7.1.4_@types+node@24.3.0_picomatch@4.0.3"
       ]
     },
+    "@tailwindcss/vite@4.1.12_vite@7.1.4__@types+node@24.3.0__picomatch@4.0.3_@types+node@24.3.0_@types+node@24.2.0": {
+      "integrity": "sha512-4pt0AMFDx7gzIrAOIYgYP0KCBuKWqyW8ayrdiLEjoJTT4pKTjrzG/e4uzWtTLDziC+66R9wbUqZBccJalSE5vQ==",
+      "dependencies": [
+        "@tailwindcss/node",
+        "@tailwindcss/oxide",
+        "tailwindcss@4.1.12",
+        "vite@7.1.4_@types+node@24.3.0_picomatch@4.0.3_@types+node@24.2.0"
+      ]
+    },
     "@trysound/sax@0.2.0": {
       "integrity": "sha512-L7z9BgrNEcYyUYtF+HaEfiS5ebkh9jXqbszz7pC0hRBPaatV0XjSD3+eHrpqFemQfgwiFF0QPIarnIihIDn7OA=="
     },
@@ -1445,6 +1468,12 @@
     },
     "@types/estree@1.0.8": {
       "integrity": "sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w=="
+    },
+    "@types/node@24.2.0": {
+      "integrity": "sha512-3xyG3pMCq3oYCNg7/ZP+E1ooTaGB4cG8JWRsqqOYQdbWNY4zbaV0Ennrd7stjiJEFZCaybcIgpTjJWHRfBSIDw==",
+      "dependencies": [
+        "undici-types"
+      ]
     },
     "@types/node@24.3.0": {
       "integrity": "sha512-aPTXCrfwnDLj4VvXrm+UUCQjNEvJgNA8s5F1cvwQU+3KNltTOkBm1j30uNLyqqPNe7gE3KFzImYoZEfLhp4Yow==",
@@ -2860,13 +2889,27 @@
       "dependencies": [
         "birpc",
         "vite@7.1.4_@types+node@24.3.0_picomatch@4.0.3",
-        "vite-hot-client"
+        "vite-hot-client@2.1.0_vite@7.1.4__@types+node@24.3.0__picomatch@4.0.3_@types+node@24.3.0"
+      ]
+    },
+    "vite-dev-rpc@1.1.0_vite@7.1.4__@types+node@24.3.0__picomatch@4.0.3_@types+node@24.3.0_@types+node@24.2.0": {
+      "integrity": "sha512-pKXZlgoXGoE8sEKiKJSng4hI1sQ4wi5YT24FCrwrLt6opmkjlqPPVmiPWWJn8M8byMxRGzp1CrFuqQs4M/Z39A==",
+      "dependencies": [
+        "birpc",
+        "vite@7.1.4_@types+node@24.3.0_picomatch@4.0.3_@types+node@24.2.0",
+        "vite-hot-client@2.1.0_vite@7.1.4__@types+node@24.3.0__picomatch@4.0.3_@types+node@24.3.0_@types+node@24.2.0"
       ]
     },
     "vite-hot-client@2.1.0_vite@7.1.4__@types+node@24.3.0__picomatch@4.0.3_@types+node@24.3.0": {
       "integrity": "sha512-7SpgZmU7R+dDnSmvXE1mfDtnHLHQSisdySVR7lO8ceAXvM0otZeuQQ6C8LrS5d/aYyP/QZ0hI0L+dIPrm4YlFQ==",
       "dependencies": [
         "vite@7.1.4_@types+node@24.3.0_picomatch@4.0.3"
+      ]
+    },
+    "vite-hot-client@2.1.0_vite@7.1.4__@types+node@24.3.0__picomatch@4.0.3_@types+node@24.3.0_@types+node@24.2.0": {
+      "integrity": "sha512-7SpgZmU7R+dDnSmvXE1mfDtnHLHQSisdySVR7lO8ceAXvM0otZeuQQ6C8LrS5d/aYyP/QZ0hI0L+dIPrm4YlFQ==",
+      "dependencies": [
+        "vite@7.1.4_@types+node@24.3.0_picomatch@4.0.3_@types+node@24.2.0"
       ]
     },
     "vite-plugin-inspect@11.3.3_vite@7.1.4__@types+node@24.3.0__picomatch@4.0.3_@types+node@24.3.0": {
@@ -2881,13 +2924,28 @@
         "sirv",
         "unplugin-utils",
         "vite@7.1.4_@types+node@24.3.0_picomatch@4.0.3",
-        "vite-dev-rpc"
+        "vite-dev-rpc@1.1.0_vite@7.1.4__@types+node@24.3.0__picomatch@4.0.3_@types+node@24.3.0"
+      ]
+    },
+    "vite-plugin-inspect@11.3.3_vite@7.1.4__@types+node@24.3.0__picomatch@4.0.3_@types+node@24.3.0_@types+node@24.2.0": {
+      "integrity": "sha512-u2eV5La99oHoYPHE6UvbwgEqKKOQGz86wMg40CCosP6q8BkB6e5xPneZfYagK4ojPJSj5anHCrnvC20DpwVdRA==",
+      "dependencies": [
+        "ansis",
+        "debug",
+        "error-stack-parser-es",
+        "ohash",
+        "open@10.2.0",
+        "perfect-debounce",
+        "sirv",
+        "unplugin-utils",
+        "vite@7.1.4_@types+node@24.3.0_picomatch@4.0.3_@types+node@24.2.0",
+        "vite-dev-rpc@1.1.0_vite@7.1.4__@types+node@24.3.0__picomatch@4.0.3_@types+node@24.3.0_@types+node@24.2.0"
       ]
     },
     "vite@7.1.3_@types+node@24.3.0_picomatch@4.0.3": {
       "integrity": "sha512-OOUi5zjkDxYrKhTV3V7iKsoS37VUM7v40+HuwEmcrsf11Cdx9y3DIr2Px6liIcZFwt3XSRpQvFpL3WVy7ApkGw==",
       "dependencies": [
-        "@types/node",
+        "@types/node@24.3.0",
         "esbuild",
         "fdir",
         "picomatch@4.0.3",
@@ -2899,14 +2957,33 @@
         "fsevents"
       ],
       "optionalPeers": [
-        "@types/node"
+        "@types/node@24.3.0"
+      ],
+      "bin": true
+    },
+    "vite@7.1.3_@types+node@24.3.0_picomatch@4.0.3_@types+node@24.2.0": {
+      "integrity": "sha512-OOUi5zjkDxYrKhTV3V7iKsoS37VUM7v40+HuwEmcrsf11Cdx9y3DIr2Px6liIcZFwt3XSRpQvFpL3WVy7ApkGw==",
+      "dependencies": [
+        "@types/node@24.2.0",
+        "esbuild",
+        "fdir",
+        "picomatch@4.0.3",
+        "postcss",
+        "rollup",
+        "tinyglobby"
+      ],
+      "optionalDependencies": [
+        "fsevents"
+      ],
+      "optionalPeers": [
+        "@types/node@24.2.0"
       ],
       "bin": true
     },
     "vite@7.1.4_@types+node@24.3.0_picomatch@4.0.3": {
       "integrity": "sha512-X5QFK4SGynAeeIt+A7ZWnApdUyHYm+pzv/8/A57LqSGcI88U6R6ipOs3uCesdc6yl7nl+zNO0t8LmqAdXcQihw==",
       "dependencies": [
-        "@types/node",
+        "@types/node@24.3.0",
         "esbuild",
         "fdir",
         "picomatch@4.0.3",
@@ -2918,7 +2995,26 @@
         "fsevents"
       ],
       "optionalPeers": [
-        "@types/node"
+        "@types/node@24.3.0"
+      ],
+      "bin": true
+    },
+    "vite@7.1.4_@types+node@24.3.0_picomatch@4.0.3_@types+node@24.2.0": {
+      "integrity": "sha512-X5QFK4SGynAeeIt+A7ZWnApdUyHYm+pzv/8/A57LqSGcI88U6R6ipOs3uCesdc6yl7nl+zNO0t8LmqAdXcQihw==",
+      "dependencies": [
+        "@types/node@24.2.0",
+        "esbuild",
+        "fdir",
+        "picomatch@4.0.3",
+        "postcss",
+        "rollup",
+        "tinyglobby"
+      ],
+      "optionalDependencies": [
+        "fsevents"
+      ],
+      "optionalPeers": [
+        "@types/node@24.2.0"
       ],
       "bin": true
     },
