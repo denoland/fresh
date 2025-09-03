@@ -23,11 +23,11 @@ This example demonstrates how to handle `application/x-www-form-urlencoded`
 import { define } from "../utils.ts";
 
 export const handlers = define.handlers({
-  async GET(req, ctx) {
-    return await ctx.render();
+  async GET(ctx) {
+    return { data: {} };
   },
-  async POST(req, ctx) {
-    const form = await req.formData();
+  async POST(ctx) {
+    const form = await ctx.req.formData();
     const email = form.get("email")?.toString();
 
     // Add email to list.
@@ -68,11 +68,11 @@ that this time, we have to explicitly declare the form's encoding to be
 import { define } from "../utils.ts";
 
 export const handler = define.handlers({
-  async GET(req, ctx) {
+  async GET(ctx) {
     return { data: { message: null } };
   },
-  async POST(req, ctx) {
-    const form = await req.formData();
+  async POST(ctx) {
+    const form = await ctx.req.formData();
     const file = form.get("my-file") as File;
 
     if (!file) {
