@@ -13,7 +13,7 @@ import { getBuildCache } from "../context.ts";
  */
 export function staticFiles<T>(): Middleware<T> {
   return async function freshServeStaticFiles(ctx) {
-    const { req, url, config } = ctx;
+    const { request, url, config } = ctx;
 
     const buildCache = getBuildCache(ctx);
     if (buildCache === null) return await ctx.next();
@@ -36,7 +36,7 @@ export function staticFiles<T>(): Middleware<T> {
       return await ctx.next();
     }
 
-    if (req.method !== "GET" && req.method !== "HEAD") {
+    if (request.method !== "GET" && request.method !== "HEAD") {
       file.close();
       return new Response("Method Not Allowed", { status: 405 });
     }
@@ -68,7 +68,7 @@ export function staticFiles<T>(): Middleware<T> {
         vary: "If-None-Match",
       });
 
-      const ifNoneMatch = req.headers.get("If-None-Match");
+      const ifNoneMatch = request.headers.get("If-None-Match");
       if (
         ifNoneMatch !== null &&
         (ifNoneMatch === etag || ifNoneMatch === `W/"${etag}"`)
@@ -98,7 +98,7 @@ export function staticFiles<T>(): Middleware<T> {
       }
 
       headers.set("Content-Length", String(file.size));
-      if (req.method === "HEAD") {
+      if (request.method === "HEAD") {
         file.close();
         return new Response(null, { status: 200, headers });
       }
