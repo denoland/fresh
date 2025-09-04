@@ -28,7 +28,7 @@ export function buildIdPlugin(): Plugin {
     },
     load: {
       filter: {
-        id: "\0fresh/build-id",
+        id: /\0fresh\/build-id/,
       },
       handler() {
         return `export let BUILD_ID = ${JSON.stringify(buildId)};

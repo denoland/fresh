@@ -33,7 +33,7 @@ export function clientEntryPlugin(options: ResolvedFreshViteConfig): Plugin {
     },
     load: {
       filter: {
-        id: `\0${modName}`,
+        id: /\0fresh:client-entry/,
       },
       async handler() {
         let exists = false;

@@ -63,7 +63,7 @@ export function clientSnapshot(options: ResolvedFreshViteConfig): Plugin {
     },
     load: {
       filter: {
-        id: `\0${modName}`,
+        id: /\0fresh:client-snapshot/,
       },
       handler() {
         const imports = Array.from(islands.keys()).map((file, i) => {

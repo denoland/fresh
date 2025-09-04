@@ -51,11 +51,9 @@ export function serverEntryPlugin(
     },
     load: {
       filter: {
-        id: `\0${modName}`,
+        id: /\0fresh:server_entry/,
       },
-      handler(id) {
-        if (id !== `\0${modName}`) return;
-
+      handler() {
         let code = generateServerEntry({
           root: isDev ? path.relative(serverOutDir, root) : "..",
           serverEntry: path.toFileUrl(serverEntry).href,
