@@ -7,10 +7,10 @@ This is the Fresh website source. The Fresh website contains:
 
 ### Usage
 
-Start the project:
+Dev the project:
 
 ```
-deno task start
+deno task dev
 ```
 
 This will watch the project directory and restart as necessary.

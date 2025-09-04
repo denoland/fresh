@@ -30,7 +30,7 @@ You can scaffold a new project by running the Fresh init script. To scaffold a
 project run the following:
 
 ```sh
-deno run -A -r https://fresh.deno.dev
+deno run -Ar jsr:@fresh/init
 ```
 
 Then navigate to the newly created project folder:
