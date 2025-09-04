@@ -103,7 +103,9 @@ export function staticFiles<T>(): Middleware<T> {
         return new Response(null, { status: 200, headers });
       }
 
-      return new Response(file.readable, { headers });
+      // Errors in TS 5.9.2, not sure why
+      // deno-lint-ignore no-explicit-any
+      return new Response(file.readable as any, { headers });
     } finally {
       span.end();
     }
