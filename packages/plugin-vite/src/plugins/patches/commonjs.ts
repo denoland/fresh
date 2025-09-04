@@ -1,4 +1,4 @@
-import type { PluginObj, types } from "@babel/core";
+import type { NodePath, PluginObj, types } from "@babel/core";
 
 export function cjsPlugin(
   { types: t }: { types: typeof types },
@@ -9,6 +9,7 @@ export function cjsPlugin(
   const EXPORTED = "exported";
   const EXPORTED_NAMESPACES = "exported_namespaces";
   const ALIASED = "aliased";
+  const NEEDS_REQUIRE_IMPORT = "needsRequireImport";
 
   return {
     name: "fresh-cjs-esm",
@@ -37,6 +38,40 @@ export function cjsPlugin(
 
           const exported = state.get(EXPORTED);
           const exportedNs = state.get(EXPORTED_NAMESPACES);
+          const needsRequireImport = state.get(NEEDS_REQUIRE_IMPORT);
+
+          if (needsRequireImport) {
+            // Inject:
+            // ```ts
+            // import { createRequire } from "node:module";
+            // const require = createRequire(import.meta.url);
+            // ```
+            const id = t.identifier("createRequire");
+            path.unshiftContainer(
+              "body",
+              t.variableDeclaration("const", [
+                t.variableDeclarator(
+                  t.identifier("require"),
+                  t.callExpression(t.identifier("createRequire"), [
+                    t.memberExpression(
+                      t.metaProperty(
+                        t.identifier("import"),
+                        t.identifier("meta"),
+                      ),
+                      t.identifier("url"),
+                    ),
+                  ]),
+                ),
+              ]),
+            );
+            path.unshiftContainer(
+              "body",
+              t.importDeclaration(
+                [t.importSpecifier(id, id)],
+                t.stringLiteral("node:module"),
+              ),
+            );
+          }
 
           const mappedNs: string[] = [];
 
@@ -224,30 +259,53 @@ export function cjsPlugin(
           const mods = state.get(REQUIRE_CALLS) ?? [];
           state.set(REQUIRE_CALLS, mods);
 
-          mods.push({
-            id,
-            specifier: t.cloneNode(path.node.arguments[0], true),
-          });
+          if (t.isStringLiteral(path.node.arguments[0])) {
+            // Check if we can hoist it or if we need to keep it.
+            let canImport = true;
+            let parent: NodePath | null = path.parentPath;
+            while (parent !== null) {
+              if (
+                t.isTryStatement(parent.node) || t.isIfStatement(parent.node) ||
+                t.isConditionalExpression(parent.node)
+              ) {
+                canImport = false;
+                break;
+              }
+              parent = parent.parentPath;
+            }
 
-          if (
-            path.parentPath?.isVariableDeclarator() &&
-              path.parentPath?.get("id").isIdentifier() ||
-            path.parentPath?.isCallExpression()
-          ) {
-            path.replaceWith(
-              t.logicalExpression(
-                "??",
-                t.memberExpression(
+            if (!canImport) {
+              state.set(NEEDS_REQUIRE_IMPORT, true);
+              return;
+            }
+
+            mods.push({
+              id,
+              specifier: t.cloneNode(path.node.arguments[0], true),
+            });
+
+            if (
+              path.parentPath?.isVariableDeclarator() &&
+                path.parentPath?.get("id").isIdentifier() ||
+              path.parentPath?.isCallExpression()
+            ) {
+              path.replaceWith(
+                t.logicalExpression(
+                  "??",
+                  t.memberExpression(
+                    t.cloneNode(id, true),
+                    t.identifier("default"),
+                  ),
                   t.cloneNode(id, true),
-                  t.identifier("default"),
                 ),
-                t.cloneNode(id, true),
-              ),
-            );
-            return;
-          }
+              );
+              return;
+            }
 
-          path.replaceWith(t.cloneNode(id, true));
+            path.replaceWith(t.cloneNode(id, true));
+          } else {
+            state.set(NEEDS_REQUIRE_IMPORT, true);
+          }
         } else if (
           t.isMemberExpression(path.node.callee) &&
           t.isIdentifier(path.node.callee.object) &&
@@ -283,6 +341,24 @@ export function cjsPlugin(
       },
       ExpressionStatement: {
         enter(path, state) {
+          // Check: Object.defineProperty(module.exports) "__esModule" ...)
+          // Check: Object.defineProperty(exports) "__esModule" ...)
+          if (
+            t.isCallExpression(path.node.expression) &&
+            t.isMemberExpression(path.node.expression.callee) &&
+            t.isIdentifier(path.node.expression.callee.object) &&
+            t.isIdentifier(path.node.expression.callee.property) &&
+            path.node.expression.callee.object.name === "Object" &&
+            path.node.expression.callee.property.name === "defineProperty" &&
+            path.node.expression.arguments.length >= 2 &&
+            t.isStringLiteral(path.node.expression.arguments[1]) &&
+            path.node.expression.arguments[1].value === "__esModule"
+          ) {
+            state.set(HAS_ES_MODULE, true);
+            path.remove();
+            return;
+          }
+
           if (
             t.isExpressionStatement(path.node) &&
             t.isCallExpression(path.node.expression) &&
@@ -311,6 +387,92 @@ export function cjsPlugin(
             ) {
               const alias = path.node.expression.callee.params[0].name;
               state.set(ALIASED, alias);
+            }
+          } else if (
+            // Check: Object.defineProperty(exports, "foo", { enumerable: true, get: function () { return foo; } });
+            t.isCallExpression(path.node.expression) &&
+            t.isMemberExpression(path.node.expression.callee) &&
+            t.isIdentifier(path.node.expression.callee.object) &&
+            path.node.expression.callee.object.name === "Object" &&
+            t.isIdentifier(path.node.expression.callee.property) &&
+            path.node.expression.callee.property.name === "defineProperty" &&
+            path.node.expression.arguments.length >= 2 &&
+            t.isIdentifier(path.node.expression.arguments[0]) &&
+            path.node.expression.arguments[0].name === "exports" &&
+            t.isStringLiteral(path.node.expression.arguments[1]) &&
+            t.isObjectExpression(path.node.expression.arguments[2])
+          ) {
+            const exported = path.node.expression.arguments[1].value;
+            const obj = path.node.expression.arguments[2];
+            for (let i = 0; i < obj.properties.length; i++) {
+              const prop = obj.properties[i];
+
+              if (
+                t.isObjectProperty(prop) && t.isIdentifier(prop.key) &&
+                prop.key.name === "get" && t.isFunctionExpression(prop.value) &&
+                t.isBlockStatement(prop.value.body) &&
+                prop.value.body.body.length === 1 &&
+                t.isReturnStatement(prop.value.body.body[0])
+              ) {
+                const expr = prop.value.body.body[0].argument;
+                if (expr !== null && expr !== undefined) {
+                  path.replaceWith(
+                    t.assignmentExpression(
+                      "=",
+                      t.memberExpression(
+                        t.identifier("exports"),
+                        t.identifier(exported),
+                      ),
+                      t.cloneNode(expr, true),
+                    ),
+                  );
+                }
+              } else if (
+                t.isObjectMethod(prop) && t.isIdentifier(prop.key) &&
+                prop.key.name === "get" && t.isBlockStatement(prop.body) &&
+                prop.body.body.length === 1 &&
+                t.isReturnStatement(prop.body.body[0])
+              ) {
+                const expr = prop.body.body[0].argument;
+                if (expr !== null && expr !== undefined) {
+                  path.replaceWith(
+                    t.assignmentExpression(
+                      "=",
+                      t.memberExpression(
+                        t.identifier("exports"),
+                        t.identifier(exported),
+                      ),
+                      t.cloneNode(expr, true),
+                    ),
+                  );
+                }
+              }
+            }
+          } else {
+            let depth = 0;
+            let current = path.node.expression;
+
+            while (
+              t.isAssignmentExpression(current) &&
+              t.isMemberExpression(current.left) &&
+              t.isIdentifier(current.left.object) &&
+              current.left.object.name === "exports"
+            ) {
+              if (
+                t.isUnaryExpression(current.right) &&
+                current.right.operator === "void" &&
+                t.isNumericLiteral(current.right.argument) &&
+                current.right.argument.value === 0
+              ) {
+                if (depth > 0) {
+                  path.remove();
+                }
+
+                break;
+              }
+
+              depth++;
+              current = current.right;
             }
           }
         },

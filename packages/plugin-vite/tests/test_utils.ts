@@ -86,6 +86,42 @@ export async function launchDevServer(
   );
 }
 
+export async function spawnDevServer(
+  dir: string,
+  env: Record<string, string> = {},
+) {
+  const boot = Promise.withResolvers<void>();
+  const p = Promise.withResolvers<void>();
+
+  let serverAddress = "";
+
+  const server = withChildProcessServer(
+    {
+      cwd: dir,
+      args: ["run", "-A", "--cached-only", "npm:vite", "--port", "0"],
+      env,
+    },
+    async (address) => {
+      serverAddress = address;
+      boot.resolve();
+      await p.promise;
+    },
+  );
+
+  await boot.promise;
+
+  return {
+    dir,
+    promise: server,
+    address: () => {
+      return serverAddress;
+    },
+    async [Symbol.asyncDispose]() {
+      await p.resolve();
+    },
+  };
+}
+
 export async function withDevServer(
   fixtureDir: string,
   fn: (address: string, dir: string) => void | Promise<void>,

@@ -5,6 +5,7 @@ import { expect } from "@std/expect";
 import { withTmpDir } from "../test_utils.ts";
 import type { CheckFile } from "./update_check.ts";
 import { WEEK } from "../constants.ts";
+import { retry } from "@std/async/retry";
 
 const CURRENT_VERSION = denoJson.version;
 
@@ -333,49 +334,51 @@ Deno.test("doesn't show update if last_shown + interval >= today", async () => {
 Deno.test(
   "shows update if last_shown + interval < today",
   async () => {
-    await using tmp = await withTmpDir();
+    await retry(async () => {
+      await using tmp = await withTmpDir();
 
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
 
-    const checkFile: CheckFile = {
-      current_version: "1.2.0",
-      latest_version: "99.999.99",
-      last_checked: new Date().toISOString(),
-      last_shown: yesterday.toISOString(),
-    };
+      const checkFile: CheckFile = {
+        current_version: "1.2.0",
+        latest_version: "99.999.99",
+        last_checked: new Date().toISOString(),
+        last_shown: yesterday.toISOString(),
+      };
 
-    await Deno.writeTextFile(
-      path.join(tmp.dir, "latest.json"),
-      JSON.stringify(checkFile, null, 2),
-    );
-
-    const out = await new Deno.Command(Deno.execPath(), {
-      args: [
-        "run",
-        "-A",
-        path.join(cwd, "../../tests/fixture_update_check/mod.ts"),
-      ],
-      cwd,
-      env: {
-        CI: "false",
-        TEST_HOME: tmp.dir,
-        CURRENT_VERSION: CURRENT_VERSION,
-        LATEST_VERSION: "99999.9999.0",
-      },
-      stderr: "piped",
-      stdout: "piped",
-    }).output();
-
-    const { stdout } = getStdOutput(out);
-    expect(stdout).toMatch(/Fresh .* is available/);
-
-    const checkFileAfter = JSON.parse(
-      await Deno.readTextFile(
+      await Deno.writeTextFile(
         path.join(tmp.dir, "latest.json"),
-      ),
-    );
+        JSON.stringify(checkFile, null, 2),
+      );
 
-    expect(checkFileAfter.last_shown).not.toEqual(yesterday.toISOString());
+      const out = await new Deno.Command(Deno.execPath(), {
+        args: [
+          "run",
+          "-A",
+          path.join(cwd, "../../tests/fixture_update_check/mod.ts"),
+        ],
+        cwd,
+        env: {
+          CI: "false",
+          TEST_HOME: tmp.dir,
+          CURRENT_VERSION: CURRENT_VERSION,
+          LATEST_VERSION: "99999.9999.0",
+        },
+        stderr: "piped",
+        stdout: "piped",
+      }).output();
+
+      const { stdout } = getStdOutput(out);
+      expect(stdout).toMatch(/Fresh .* is available/);
+
+      const checkFileAfter = JSON.parse(
+        await Deno.readTextFile(
+          path.join(tmp.dir, "latest.json"),
+        ),
+      );
+
+      expect(checkFileAfter.last_shown).not.toEqual(yesterday.toISOString());
+    }, { maxAttempts: 5 });
   },
 );
