@@ -7,7 +7,9 @@ import * as path from "@std/path";
 
 export default defineConfig({
   plugins: [
-    fresh(),
+    fresh({
+      noSsrExternals: true,
+    }),
     tailwindcss(),
     inspect(),
     copyDocs(),

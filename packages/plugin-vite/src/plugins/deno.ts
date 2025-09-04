@@ -10,13 +10,13 @@ import * as path from "@std/path";
 import * as babel from "@babel/core";
 import babelReact from "@babel/preset-react";
 import { httpAbsolute } from "./patches/http_absolute.ts";
-import { JS_REG } from "../utils.ts";
+import { JS_REG, type ResolvedFreshViteConfig } from "../utils.ts";
 
 interface DenoState {
   type: RequestedModuleType;
 }
 
-export function deno(): Plugin {
+export function deno(fConfig: ResolvedFreshViteConfig): Plugin {
   let ssrLoader: Loader;
   let browserLoader: Loader;
 
@@ -110,8 +110,31 @@ export function deno(): Plugin {
           };
         }
 
+        if (options.ssr) {
+          console.log({ id, original, resolved });
+        }
         if (original === resolved) {
           return null;
+        }
+
+        if (options.ssr && !fConfig.noSsrExternals) {
+          console.log("EXTERNAL", id, resolved, fConfig.noSsrExternals);
+          if (resolved.includes("node_modules")) {
+            return {
+              id: original,
+              external: true,
+            };
+          }
+          if (id.startsWith("npm:")) {
+            const match = id.match(/^npm:(@[^/]+\/[^@/]+|[^/]+)(@[^/]+)?(.*)$/);
+            if (match !== null) {
+              console.log(match);
+            }
+          }
+          return {
+            id: resolved,
+            external: true,
+          };
         }
 
         const type = getDenoType(id, options.attributes.type ?? "default");

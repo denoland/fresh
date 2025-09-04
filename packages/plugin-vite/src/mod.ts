@@ -28,6 +28,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
     islandSpecifiers: new Map(),
     namer: new UniqueNamer(),
     checkImports: config?.checkImports ?? [],
+    noSsrExternals: config?.noSsrExternals ?? false,
   };
 
   fConfig.checkImports.push((id, env) => {
@@ -153,7 +154,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
   ];
 
   if (typeof process.versions.deno === "string") {
-    plugins.push(deno());
+    plugins.push(deno(fConfig));
   }
 
   return plugins;

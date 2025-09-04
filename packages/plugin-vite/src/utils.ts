@@ -54,6 +54,14 @@ export interface FreshViteConfig {
    * islands from remote packages.
    */
   islandSpecifiers?: string[];
+  /**
+   * Controls whether all dependencies of the server should be bundled
+   * or if they should be kept as external. Setting this to `true` will
+   * bundle all dependencies. The default is `false` for maximum
+   * compatibility. Lots of dependencies typically used on the server
+   * are written in commonjs and can't be bundled correctly.
+   */
+  noSsrExternals?: boolean;
   checkImports?: ImportCheck[];
 }
 
