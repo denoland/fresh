@@ -350,3 +350,17 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+// issue: https://github.com/denoland/fresh/issues/3323
+Deno.test({
+  name: "vite dev - npm:pg",
+  fn: async () => {
+    await launchDevServer(tmp.dir, async (address) => {
+      const res = await fetch(`${address}/tests/pg`);
+      const text = await res.text();
+      expect(text).toContain("<h1>pg</h1>");
+    });
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});

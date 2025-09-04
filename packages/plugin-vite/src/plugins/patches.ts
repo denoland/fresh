@@ -7,6 +7,7 @@ import { inlineEnvVarsPlugin } from "./patches/inline_env_vars.ts";
 import { removePolyfills } from "./patches/remove_polyfills.ts";
 import { JS_REG, JSX_REG } from "../utils.ts";
 import { denoGlobal } from "./patches/deno_global.ts";
+import { codeEvalPlugin } from "./patches/code_eval.ts";
 
 export function patches(): Plugin {
   let isDev = false;
@@ -33,13 +34,14 @@ export function patches(): Plugin {
           }]);
         }
 
+        const env = isDev ? "development" : "production";
+
         const plugins: babel.PluginItem[] = [
+          codeEvalPlugin(options?.ssr ? "ssr" : "client", env),
           cjsPlugin,
           removePolyfills,
           jsxComments,
-          inlineEnvVarsPlugin(
-            isDev ? "development" : "production",
-          ),
+          inlineEnvVarsPlugin(env),
         ];
 
         if (!options?.ssr) {
