@@ -41,7 +41,7 @@ export function patches(): Plugin {
           cjsPlugin,
           removePolyfills,
           jsxComments,
-          inlineEnvVarsPlugin(env),
+          inlineEnvVarsPlugin(env, Deno.env.toObject()),
         ];
 
         if (!options?.ssr) {
