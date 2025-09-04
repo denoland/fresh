@@ -1,7 +1,6 @@
 import { expect } from "@std/expect/expect";
 import * as babel from "@babel/core";
 import { inlineEnvVarsPlugin } from "./inline_env_vars.ts";
-import { usingEnv } from "../../../tests/test_utils.ts";
 
 function runTest(
   options: {
