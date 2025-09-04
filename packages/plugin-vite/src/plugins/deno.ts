@@ -226,6 +226,11 @@ export function deno(): Plugin {
           const { specifier } = parseDenoSpecifier(id);
           actualId = specifier;
         }
+        actualId = actualId.replace("?commonjs-es-import", "");
+
+        if (actualId.startsWith("\0")) {
+          actualId = actualId.slice(1);
+        }
         if (path.isAbsolute(actualId)) {
           actualId = path.toFileUrl(actualId).href;
         }
