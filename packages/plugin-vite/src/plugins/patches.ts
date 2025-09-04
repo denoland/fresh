@@ -19,45 +19,48 @@ export function patches(): Plugin {
     applyToEnvironment() {
       return true;
     },
-    transform(code, id, options) {
-      if (!JS_REG.test(id)) return;
+    transform: {
+      filter: {
+        id: JS_REG,
+      },
+      handler(code, id, options) {
+        const presets = [];
+        if (!options?.ssr && JSX_REG.test(id)) {
+          presets.push([babelReact, {
+            runtime: "automatic",
+            importSource: "preact",
+            development: isDev,
+          }]);
+        }
 
-      const presets = [];
-      if (!options?.ssr && JSX_REG.test(id)) {
-        presets.push([babelReact, {
-          runtime: "automatic",
-          importSource: "preact",
-          development: isDev,
-        }]);
-      }
+        const plugins: babel.PluginItem[] = [
+          cjsPlugin,
+          removePolyfills,
+          jsxComments,
+          inlineEnvVarsPlugin(
+            isDev ? "development" : "production",
+          ),
+        ];
 
-      const plugins: babel.PluginItem[] = [
-        cjsPlugin,
-        removePolyfills,
-        jsxComments,
-        inlineEnvVarsPlugin(
-          isDev ? "development" : "production",
-        ),
-      ];
+        if (!options?.ssr) {
+          plugins.push(denoGlobal);
+        }
 
-      if (!options?.ssr) {
-        plugins.push(denoGlobal);
-      }
+        const res = babel.transformSync(code, {
+          filename: id,
+          babelrc: false,
+          compact: true,
+          plugins,
+          presets,
+        });
 
-      const res = babel.transformSync(code, {
-        filename: id,
-        babelrc: false,
-        compact: true,
-        plugins,
-        presets,
-      });
-
-      if (res?.code) {
-        return {
-          code: res.code,
-          map: res.map,
-        };
-      }
+        if (res?.code) {
+          return {
+            code: res.code,
+            map: res.map,
+          };
+        }
+      },
     },
   };
 }

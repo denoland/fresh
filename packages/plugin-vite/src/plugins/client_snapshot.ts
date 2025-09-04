@@ -48,37 +48,47 @@ export function clientSnapshot(options: ResolvedFreshViteConfig): Plugin {
         islands.add(filePath);
       }
     },
-    resolveId(id) {
-      if (id === modName) {
-        return `\0${modName}`;
-      }
-    },
     configureServer(devServer) {
       server = devServer;
     },
-    load(id) {
-      if (id !== `\0${modName}`) return;
-
-      const imports = Array.from(islands.keys()).map((file, i) => {
-        return `export const mod_${i} = await import(${JSON.stringify(file)});`;
-      }).join("\n");
-
-      if (isDev && server !== undefined) {
-        const mod = server.environments.ssr.moduleGraph.getModuleById(
-          "\0fresh:server-snapshot",
-        );
-        if (mod) {
-          server.environments.ssr.moduleGraph.invalidateModule(mod);
+    resolveId: {
+      filter: {
+        id: /fresh:client-snapshot/,
+      },
+      handler(id) {
+        if (id === modName) {
+          return `\0${modName}`;
         }
-      }
+      },
+    },
+    load: {
+      filter: {
+        id: /\0fresh:client-snapshot/,
+      },
+      handler() {
+        const imports = Array.from(islands.keys()).map((file, i) => {
+          return `export const mod_${i} = await import(${
+            JSON.stringify(file)
+          });`;
+        }).join("\n");
 
-      return `${imports}
+        if (isDev && server !== undefined) {
+          const mod = server.environments.ssr.moduleGraph.getModuleById(
+            "\0fresh:server-snapshot",
+          );
+          if (mod) {
+            server.environments.ssr.moduleGraph.invalidateModule(mod);
+          }
+        }
+
+        return `${imports}
 if (import.meta.hot) {
   import.meta.hot.accept(() => {
     console.log("accepting client-snapshot")
   });
 }
 `;
+      },
     },
   };
 }
