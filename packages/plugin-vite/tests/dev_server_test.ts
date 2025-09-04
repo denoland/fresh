@@ -176,8 +176,8 @@ Deno.test({
 Deno.test({
   name: "vite dev - serves imported assets",
   fn: async () => {
-    await launchDevServer(DEMO_DIR, async (address) => {
-      await retry(async () => {
+    await retry(async () => {
+      await launchDevServer(DEMO_DIR, async (address) => {
         // Vite has an internal allowlist that is refreshed when
         // pathnames are requested. It will discover valid static
         // files imported in JS once it encounters them. Therefore
@@ -189,8 +189,8 @@ Deno.test({
         res = await fetch(`${address}/assets/deno-logo.png`);
         expect(res.status).toEqual(200);
         expect(res.headers.get("Content-Type")).toEqual("image/png");
-      }, { maxAttempts: 5 });
-    });
+      });
+    }, { maxAttempts: 5 });
   },
   sanitizeResources: false,
   sanitizeOps: false,
