@@ -7,7 +7,7 @@ This is the Fresh website source. The Fresh website contains:
 
 ### Usage
 
-Dev the project:
+Start the development server:
 
 ```
 deno task dev
