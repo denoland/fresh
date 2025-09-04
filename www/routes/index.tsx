@@ -57,7 +57,7 @@ export default define.page<typeof handler>(function MainPage(props) {
         <Header title="" active="/" />
       </div>
       <div class="flex flex-col -mt-20 relative">
-        <Hero origin={origin} />
+        <Hero />
         <Simple />
         <RenderingSection />
         <IslandsSection />
