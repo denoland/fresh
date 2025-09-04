@@ -9,6 +9,7 @@ import {
   updateFile,
   withDevServer,
 } from "./test_utils.ts";
+import { retry } from "@std/async/retry";
 
 const tmp = await prepareDevServer(DEMO_DIR);
 
@@ -176,17 +177,19 @@ Deno.test({
   name: "vite dev - serves imported assets",
   fn: async () => {
     await launchDevServer(DEMO_DIR, async (address) => {
-      // Vite has an internal allowlist that is refreshed when
-      // pathnames are requested. It will discover valid static
-      // files imported in JS once it encounters them. Therefore
-      // we must request the URL that ultimately imports the
-      // asset first for it to work.
-      let res = await fetch(`${address}/tests/assets`);
-      await res.body?.cancel();
+      await retry(async () => {
+        // Vite has an internal allowlist that is refreshed when
+        // pathnames are requested. It will discover valid static
+        // files imported in JS once it encounters them. Therefore
+        // we must request the URL that ultimately imports the
+        // asset first for it to work.
+        let res = await fetch(`${address}/tests/assets`);
+        await res.body?.cancel();
 
-      res = await fetch(`${address}/assets/deno-logo.png`);
-      expect(res.status).toEqual(200);
-      expect(res.headers.get("Content-Type")).toEqual("image/png");
+        res = await fetch(`${address}/assets/deno-logo.png`);
+        expect(res.status).toEqual(200);
+        expect(res.headers.get("Content-Type")).toEqual("image/png");
+      }, { maxAttempts: 5 });
     });
   },
   sanitizeResources: false,
