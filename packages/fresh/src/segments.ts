@@ -153,7 +153,7 @@ export async function renderRoute<State>(
     internals.layouts = [];
   }
 
-  const method = ctx.req.method as Method;
+  const method = ctx.req.method.toUpperCase() as Method;
 
   const handlers = route.handler;
   if (handlers === undefined) {
