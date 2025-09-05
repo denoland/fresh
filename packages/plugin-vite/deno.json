@@ -26,6 +26,7 @@
     "@marvinh-test/import-json": "jsr:@marvinh-test/import-json@^0.0.1",
     "@mjackson/node-fetch-server": "npm:@mjackson/node-fetch-server@^0.7.0",
     "@prefresh/vite": "npm:@prefresh/vite@^2.4.8",
+    "@radix-ui/themes": "npm:@radix-ui/themes@^3.2.1",
     "@tailwindcss/vite": "npm:@tailwindcss/vite@^4.1.12",
     "@types/babel__core": "npm:@types/babel__core@^7.20.5",
     "@types/node": "npm:@types/node@^24.1.0",
