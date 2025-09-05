@@ -4,7 +4,7 @@ import * as path from "@std/path";
 import * as semver from "@std/semver";
 
 // Keep these as is, as we replace these version in our release script
-const FRESH_VERSION = "2.0.0-beta.3";
+const FRESH_VERSION = "2.0.0-beta.4";
 const FRESH_TAILWIND_VERSION = "0.0.1-alpha.9";
 const FRESH_VITE_PLUGIN = "0.9.7";
 const PREACT_VERSION = "10.27.1";
