@@ -113,6 +113,13 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
                 outDir: config.environments?.ssr?.build?.outDir ??
                   "_fresh/server",
                 rollupOptions: {
+                  onwarn(warning, handler) {
+                    // Ignore "use client"; warnings
+                    if (warning.code === "MODULE_LEVEL_DIRECTIVE") {
+                      return;
+                    }
+                    return handler(warning);
+                  },
                   input: {
                     "server-entry": "fresh:server_entry",
                   },
