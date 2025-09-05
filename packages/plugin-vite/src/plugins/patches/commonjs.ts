@@ -9,6 +9,7 @@ export function cjsPlugin(
   const EXPORTED = "exported";
   const EXPORTED_NAMESPACES = "exported_namespaces";
   const ALIASED = "aliased";
+  const REEXPORT = "re-export";
   const NEEDS_REQUIRE_IMPORT = "needsRequireImport";
 
   return {
@@ -19,6 +20,7 @@ export function cjsPlugin(
           state.set(ROOT_SCOPE, path.scope);
           state.set(EXPORTED, new Set<string>());
           state.set(EXPORTED_NAMESPACES, new Set<string>());
+          state.set(REEXPORT, null);
         },
         exit(path, state) {
           const body = path.get("body");
@@ -36,6 +38,7 @@ export function cjsPlugin(
             }
           }
 
+          const reexport = state.get(REEXPORT);
           const exported = state.get(EXPORTED);
           const exportedNs = state.get(EXPORTED_NAMESPACES);
           const needsRequireImport = state.get(NEEDS_REQUIRE_IMPORT);
@@ -70,6 +73,13 @@ export function cjsPlugin(
                 [t.importSpecifier(id, id)],
                 t.stringLiteral("node:module"),
               ),
+            );
+          }
+
+          if (reexport !== null) {
+            path.unshiftContainer(
+              "body",
+              t.exportAllDeclaration(t.cloneNode(reexport, true)),
             );
           }
 
@@ -448,6 +458,22 @@ export function cjsPlugin(
                 }
               }
             }
+          } else if (
+            // Check: module.exports = require(...)
+            t.isAssignmentExpression(path.node.expression) &&
+            t.isMemberExpression(path.node.expression.left) &&
+            t.isIdentifier(path.node.expression.left.object) &&
+            t.isIdentifier(path.node.expression.left.property) &&
+            path.node.expression.left.object.name === "module" &&
+            path.node.expression.left.property.name === "exports" &&
+            t.isCallExpression(path.node.expression.right) &&
+            t.isIdentifier(path.node.expression.right.callee) &&
+            path.node.expression.right.callee.name === "require" &&
+            path.node.expression.right.arguments.length === 1 &&
+            t.isStringLiteral(path.node.expression.right.arguments[0])
+          ) {
+            const source = path.node.expression.right.arguments[0];
+            state.set(REEXPORT, source);
           } else {
             let depth = 0;
             let current = path.node.expression;

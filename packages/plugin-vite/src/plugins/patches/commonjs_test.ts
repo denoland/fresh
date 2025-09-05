@@ -555,3 +555,32 @@ ${DEFAULT_EXPORT}
 ${DEFAULT_EXPORT_END}`,
   });
 });
+
+Deno.test("commonjs - wrapped iife binding", () => {
+  runTest({
+    input: `"production" !== process.env.NODE_ENV && (function() {
+  exports.foo = 123
+})()`,
+    expected: `${INIT}
+"production" !== process.env.NODE_ENV && function () {
+  exports.foo = 123;
+}();
+var _foo = exports.foo;
+export { _foo as foo };
+${DEFAULT_EXPORT}
+_default.foo = _foo;
+${DEFAULT_EXPORT_END}`,
+  });
+});
+
+Deno.test("commonjs - re-export", () => {
+  runTest({
+    input: `module.exports = require("foo");`,
+    expected: `${INIT}
+export * from "foo";
+import * as _mod from "foo";
+module.exports = _mod;
+${DEFAULT_EXPORT}
+${DEFAULT_EXPORT_END}`,
+  });
+});
