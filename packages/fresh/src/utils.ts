@@ -54,6 +54,15 @@ export class UniqueNamer {
   #seen = new Map<string, number>();
 
   getUniqueName(name: string): string {
+    // These names are only internal, so we can convert everything to
+    // plain ASCII.
+    name = name.replaceAll(/([^A-Za-z0-9_$]+)/g, "_");
+
+    // Identifiers must not start with a number
+    if (/^\d/.test(name) || JS_RESERVED.has(name)) {
+      name = "_" + name;
+    }
+
     const count = this.#seen.get(name);
     if (count === undefined) {
       this.#seen.set(name, 1);
@@ -65,6 +74,80 @@ export class UniqueNamer {
     return name;
   }
 }
+
+// See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#reserved_words
+const JS_RESERVED = new Set([
+  "break",
+  "case",
+  "catch",
+  "class",
+  "const",
+  "continue",
+  "debugger",
+  "default",
+  "delete",
+  "do",
+  "else",
+  "export",
+  "extends",
+  "false",
+  "finally",
+  "for",
+  "function",
+  "if",
+  "import",
+  "in",
+  "instanceof",
+  "new",
+  "null",
+  "return",
+  "super",
+  "switch",
+  "this",
+  "throw",
+  "true",
+  "try",
+  "typeof",
+  "var",
+  "void",
+  "while",
+  "with",
+  "let",
+  "static",
+  "yield",
+  "await",
+  "enum",
+  "implements",
+  "interface",
+  "package",
+  "private",
+  "protected",
+  "public",
+  "abstract",
+  "boolean",
+  "byte",
+  "char",
+  "double",
+  "final",
+  "float",
+  "goto",
+  "int",
+  "long",
+  "native",
+  "short",
+  "synchronized",
+  "throws",
+  "transient",
+  "volatile",
+  "arguments",
+  "as",
+  "async",
+  "eval",
+  "from",
+  "get",
+  "of",
+  "set",
+]);
 
 const PATH_TO_SPEC = /[\\/]+/g;
 export function pathToSpec(outDir: string, spec: string): string {
