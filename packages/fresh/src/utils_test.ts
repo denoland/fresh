@@ -1,5 +1,10 @@
 import { expect } from "@std/expect";
-import { escapeScript, pathToExportName, pathToSpec } from "./utils.ts";
+import {
+  escapeScript,
+  pathToExportName,
+  pathToSpec,
+  UniqueNamer,
+} from "./utils.ts";
 
 Deno.test("filenameToExportName", () => {
   expect(pathToExportName("/islands/foo.tsx")).toBe("foo");
@@ -66,4 +71,19 @@ Deno.test("pathToSpec", () => {
     "https://example.com",
   );
   expect(pathToSpec("/foo", "jsr:@foo/bar")).toEqual("jsr:@foo/bar");
+});
+
+Deno.test("UniqueNamer - generates unique name for same names", () => {
+  const namer = new UniqueNamer();
+  expect(namer.getUniqueName("foo")).toEqual("foo");
+  expect(namer.getUniqueName("foo")).toEqual("foo_1");
+});
+
+Deno.test("UniqueNamer - accounts for JS syntax", () => {
+  const namer = new UniqueNamer();
+  expect(namer.getUniqueName("foo-bar")).toEqual("foo_bar");
+  expect(namer.getUniqueName("switch")).toEqual("_switch");
+  expect(namer.getUniqueName("for")).toEqual("_for");
+  expect(namer.getUniqueName("0foo")).toEqual("_0foo");
+  expect(namer.getUniqueName("0foo$_🔥")).toEqual("_0foo$__");
 });
