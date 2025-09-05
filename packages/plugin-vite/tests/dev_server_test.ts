@@ -344,3 +344,14 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "vite dev - radix",
+  fn: async () => {
+    const res = await fetch(`${demoServer.address()}/tests/radix`);
+    const text = await res.text();
+    expect(text).toContain("click me</button>");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});

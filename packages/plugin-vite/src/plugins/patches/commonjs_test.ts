@@ -439,6 +439,21 @@ Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./node"), exports);`,
     expected: `${INIT}
 import * as _ns from "./node";
+var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
+  if (k2 === undefined) k2 = k;
+  Object.defineProperty(o, k2, {
+    enumerable: true,
+    get: function () {
+      return m[k];
+    }
+  });
+} : function (o, m, k, k2) {
+  if (k2 === undefined) k2 = k;
+  o[k2] = m[k];
+});
+var __exportStar = this && this.__exportStar || function (m, exports) {
+  for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
 export * from "./node";
 ${DEFAULT_EXPORT}
 Object.assign(_default, _ns);
@@ -467,6 +482,13 @@ Deno.test("commonjs - require non-analyzable arg", () => {
     expected: `import { createRequire } from "node:module";
 const require = createRequire(import.meta.url);
 const pkg = require(path.join(basedir, "package.json"));`,
+  });
+});
+
+Deno.test("commonjs - keep binding", () => {
+  runTest({
+    input: `export var __createBinding = Object.create ? 1 : 2;`,
+    expected: `export var __createBinding = Object.create ? 1 : 2;`,
   });
 });
 

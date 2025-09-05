@@ -524,16 +524,6 @@ export function cjsPlugin(
           path.remove();
         }
       },
-      VariableDeclarator(path) {
-        // Esbuild CJS shims
-        if (
-          t.isIdentifier(path.node.id) &&
-          (path.node.id.name === "__exportStar" ||
-            path.node.id.name === "__createBinding")
-        ) {
-          path.remove();
-        }
-      },
       ConditionalExpression(path) {
         if (
           t.isBinaryExpression(path.node.test) &&
