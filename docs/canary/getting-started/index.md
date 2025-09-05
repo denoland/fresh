@@ -44,7 +44,7 @@ deno task dev
 
 Go to the URL printed in the terminal to view your app.
 
-TODO IMAGE
+![geeting-started-1-init](/docs/geeting-started-1-init.PNG)
 
 ## Creating our first route
 
@@ -66,7 +66,7 @@ export default define.page(() => {
 
 If we navigate to `/about` in the browser we'll see our newly created page.
 
-TODO: IMAGE
+![geeting-started-about](/docs/geeting-started-2-about.PNG)
 
 ## Create an island
 
@@ -118,7 +118,7 @@ export default define.page(() => {
 
 Now, we can see our countdown in action:
 
-TODO: IMAGE
+![geeting-started-countdown](/docs/geeting-started-3-cotuntdown.PNG)
 
 ## Next steps
 
