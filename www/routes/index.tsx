@@ -47,9 +47,7 @@ export const handler = define.handlers({
   },
 });
 
-export default define.page<typeof handler>(function MainPage(props) {
-  const origin = `${props.url.protocol}//${props.url.host}`;
-
+export default define.page<typeof handler>(function MainPage() {
   return (
     <div class="flex flex-col min-h-screen bg-white">
       <div class="bg-transparent flex flex-col relative z-10">
@@ -57,7 +55,7 @@ export default define.page<typeof handler>(function MainPage(props) {
         <Header title="" active="/" />
       </div>
       <div class="flex flex-col -mt-20 relative">
-        <Hero origin={origin} />
+        <Hero />
         <Simple />
         <RenderingSection />
         <IslandsSection />
