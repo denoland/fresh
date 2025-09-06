@@ -44,7 +44,7 @@ deno task dev
 
 Go to the URL printed in the terminal to view your app.
 
-![geeting-started-1-init](/docs/getting-started-1-init)
+![geeting-started-1-init](/docs/getting-started-1-init.jpg)
 
 ## Creating our first route
 
