@@ -10,6 +10,8 @@
     "jsr:@deno/graph@~0.82.3": "0.82.3",
     "jsr:@deno/loader@~0.3.2": "0.3.5",
     "jsr:@deno/loader@~0.3.3": "0.3.5",
+    "jsr:@fresh/core@^2.0.0-beta.4": "2.0.0-beta.4",
+    "jsr:@fresh/plugin-vite@~0.9.13": "0.9.13",
     "jsr:@marvinh-test/fresh-island@^0.0.3": "0.0.3",
     "jsr:@marvinh-test/import-json@^0.0.1": "0.0.1",
     "jsr:@std/assert@^1.0.13": "1.0.14",
@@ -156,6 +158,40 @@
     },
     "@deno/loader@0.3.5": {
       "integrity": "72f6ce9c6e7242c6e070705dbd8a838884dd236d5dd0bd907d08bece92db5722"
+    },
+    "@fresh/core@2.0.0-beta.4": {
+      "integrity": "d8fe71024d89f95c740a5a123688d152a7ccfa7250d77ef5f9b3a072c913b95a",
+      "dependencies": [
+        "jsr:@deno/esbuild-plugin",
+        "jsr:@std/encoding@1",
+        "jsr:@std/fmt@^1.0.8",
+        "jsr:@std/fs@1",
+        "jsr:@std/html@1",
+        "jsr:@std/http",
+        "jsr:@std/jsonc",
+        "jsr:@std/media-types@1",
+        "jsr:@std/path@1",
+        "jsr:@std/semver",
+        "jsr:@std/uuid",
+        "npm:@opentelemetry/api",
+        "npm:esbuild-wasm",
+        "npm:esbuild@0.25.7",
+        "npm:preact-render-to-string",
+        "npm:preact@^10.27.0"
+      ]
+    },
+    "@fresh/plugin-vite@0.9.13": {
+      "integrity": "83e780892eccfee30472df9ee72e8e136cd0240698c7a7d632e6f91c3e47d30e",
+      "dependencies": [
+        "jsr:@deno/loader@~0.3.2",
+        "jsr:@fresh/core",
+        "jsr:@std/fmt@^1.0.7",
+        "jsr:@std/path@1",
+        "npm:@babel/core",
+        "npm:@babel/preset-react",
+        "npm:@mjackson/node-fetch-server",
+        "npm:@prefresh/vite"
+      ]
     },
     "@marvinh-test/fresh-island@0.0.3": {
       "integrity": "6d06b6009b7dfba9bba28e941e03e6ff652c4ef4f2fbfdf4b78741abd6c6c1c6",
@@ -4182,6 +4218,7 @@
       },
       "www": {
         "dependencies": [
+          "jsr:@fresh/plugin-vite@~0.9.13",
           "npm:@tailwindcss/vite@^4.1.12",
           "npm:vite-plugin-inspect@^11.3.2",
           "npm:vite@^7.1.4"
