@@ -269,11 +269,23 @@ Deno.test({
         waitUntil: "networkidle2",
       });
 
-      const color = await page
-        .locator("h1")
+      let color = await page
+        .locator(".red > h1")
         // deno-lint-ignore no-explicit-any
         .evaluate((el) => window.getComputedStyle(el as any).color);
       expect(color).toEqual("rgb(255, 0, 0)");
+
+      color = await page
+        .locator(".green > h1")
+        // deno-lint-ignore no-explicit-any
+        .evaluate((el) => window.getComputedStyle(el as any).color);
+      expect(color).toEqual("rgb(0, 128, 0)");
+
+      color = await page
+        .locator(".blue > h1")
+        // deno-lint-ignore no-explicit-any
+        .evaluate((el) => window.getComputedStyle(el as any).color);
+      expect(color).toEqual("rgb(0, 0, 255)");
     });
   },
   sanitizeResources: false,
