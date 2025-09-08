@@ -1,5 +1,9 @@
 import { expect } from "@std/expect";
-import { waitForText, withBrowser } from "../../fresh/tests/test_utils.tsx";
+import {
+  waitFor,
+  waitForText,
+  withBrowser,
+} from "../../fresh/tests/test_utils.tsx";
 import {
   buildVite,
   DEMO_DIR,
@@ -427,6 +431,34 @@ Deno.test({
     const fixture = path.join(FIXTURE_DIR, "deno_global_ssr");
 
     await buildVite(fixture);
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite build - client side <Head>",
+  fn: async () => {
+    await launchProd(
+      { cwd: viteResult.tmp },
+      async (address) => {
+        await withBrowser(async (page) => {
+          await page.goto(`${address}/tests/head_counter`, {
+            waitUntil: "networkidle2",
+          });
+
+          await page.locator(".ready").wait();
+          await page.locator("button").click();
+          await waitForText(page, ".result", "Count: 1");
+
+          await waitFor(async () => {
+            const title = await page.evaluate(() => document.title);
+            expect(title).toEqual("Count: 1");
+            return true;
+          });
+        });
+      },
+    );
   },
   sanitizeOps: false,
   sanitizeResources: false,

@@ -4,11 +4,16 @@ import {
   buildProd,
   parseHtml,
   waitFor,
+  waitForText,
   withBrowserApp,
 } from "./test_utils.tsx";
 import { expect } from "@std/expect";
 import { FakeServer } from "../src/test_utils.ts";
 import * as path from "@std/path";
+
+const applyHeadCache = await buildProd({
+  root: path.join(import.meta.dirname!, "fixture_head"),
+});
 
 Deno.test("Head - ssr - updates title", async () => {
   const handler = new App()
@@ -155,15 +160,11 @@ Deno.test({
   ignore: true, // Temporarily until client perf is fixed
   name: "Head - client - set title",
   fn: async () => {
-    const applyCache = await buildProd({
-      root: path.join(import.meta.dirname!, "fixture_head"),
-    });
-
     const app = new App({})
       .use(staticFiles())
       .fsRoutes();
 
-    applyCache(app);
+    applyHeadCache(app);
 
     await withBrowserApp(app, async (page, address) => {
       await page.goto(`${address}/title`);
@@ -171,10 +172,7 @@ Deno.test({
       await page.locator(".ready").wait();
       await page.locator("button").click();
 
-      await waitFor(async () => {
-        const title = await page.evaluate(() => document.title);
-        return title === "Count: 1";
-      });
+      await waitForText(page, "title", "Count: 1");
     });
   },
   sanitizeOps: false,
@@ -185,15 +183,11 @@ Deno.test({
   ignore: true, // Temporarily until client perf is fixed
   name: "Head - client - match meta",
   fn: async () => {
-    const applyCache = await buildProd({
-      root: path.join(import.meta.dirname!, "fixture_head"),
-    });
-
     const app = new App({})
       .use(staticFiles())
       .fsRoutes();
 
-    applyCache(app);
+    applyHeadCache(app);
 
     await withBrowserApp(app, async (page, address) => {
       await page.goto(`${address}/meta`);
@@ -210,15 +204,14 @@ Deno.test({
           ) => ({ name: el.name, content: el.content }));
         });
 
-        try {
-          expect(metas).toEqual([
-            { name: "foo", content: "ok" },
-            { name: "bar", content: "not ok" },
-          ]);
-          return true;
-        } catch {
-          return false;
-        }
+        // deno-lint-ignore no-console
+        console.log(metas);
+
+        expect(metas).toEqual([
+          { name: "foo", content: "ok" },
+          { name: "bar", content: "not ok" },
+        ]);
+        return true;
       });
     });
   },
@@ -230,15 +223,11 @@ Deno.test({
   ignore: true, // Temporarily until client perf is fixed
   name: "Head - client - match style by id",
   fn: async () => {
-    const applyCache = await buildProd({
-      root: path.join(import.meta.dirname!, "fixture_head"),
-    });
-
     const app = new App({})
       .use(staticFiles())
       .fsRoutes();
 
-    applyCache(app);
+    applyHeadCache(app);
 
     await withBrowserApp(app, async (page, address) => {
       await page.goto(`${address}/id`);
@@ -255,15 +244,14 @@ Deno.test({
           ) => ({ id: el.id, text: el.textContent }));
         });
 
-        try {
-          expect(styles).toEqual([
-            { id: "", text: "not ok" },
-            { id: "style-id", text: "ok" },
-          ]);
-          return true;
-        } catch {
-          return false;
-        }
+        // deno-lint-ignore no-console
+        console.log(styles);
+
+        expect(styles).toEqual([
+          { id: "", text: "not ok" },
+          { id: "style-id", text: "ok" },
+        ]);
+        return true;
       });
     });
   },
@@ -275,15 +263,11 @@ Deno.test({
   ignore: true, // Temporarily until client perf is fixed
   name: "Head - client - match key",
   fn: async () => {
-    const applyCache = await buildProd({
-      root: path.join(import.meta.dirname!, "fixture_head"),
-    });
-
     const app = new App({})
       .use(staticFiles())
       .fsRoutes();
 
-    applyCache(app);
+    applyHeadCache(app);
 
     await withBrowserApp(app, async (page, address) => {
       await page.goto(`${address}/key`);
@@ -303,16 +287,15 @@ Deno.test({
           }));
         });
 
-        try {
-          expect(tpls).toEqual([
-            { key: "a", text: "ok" },
-            { key: "b", text: "not ok" },
-            { key: null, text: "not ok" },
-          ]);
-          return true;
-        } catch {
-          return false;
-        }
+        // deno-lint-ignore no-console
+        console.log(tpls);
+
+        expect(tpls).toEqual([
+          { key: "a", text: "ok" },
+          { key: "b", text: "not ok" },
+          { key: null, text: "not ok" },
+        ]);
+        return true;
       });
     });
   },
