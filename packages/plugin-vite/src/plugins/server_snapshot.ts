@@ -353,7 +353,8 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
             let item: EnvironmentModuleNode | undefined;
             while ((item = queue.pop()) !== undefined) {
               if (item.file !== null) {
-                const name = routeFileToName.get(item.file);
+                const normalized = path.normalize(item.file);
+                const name = routeFileToName.get(normalized);
 
                 if (name !== undefined) {
                   const route = routes.get(name);
