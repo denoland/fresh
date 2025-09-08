@@ -102,6 +102,18 @@ if (import.meta.hot) import.meta.hot.accept();`;
               });
             }
           }
+
+          if (item.css) {
+            for (let i = 0; i < item.css.length; i++) {
+              const id = item.css[i];
+
+              staticFiles.push({
+                filePath: path.join(serverOutDir, id),
+                hash: null,
+                pathname: `/${id}`,
+              });
+            }
+          }
         }
       }
 

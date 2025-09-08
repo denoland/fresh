@@ -52,6 +52,7 @@ export type FreshContext<State = unknown> = Context<State>;
 
 export let getBuildCache: <T>(ctx: Context<T>) => BuildCache<T>;
 export let getInternals: <T>(ctx: Context<T>) => UiTree<unknown, T>;
+export let setAdditionalStyles: <T>(ctx: Context<T>, css: string[]) => void;
 
 /**
  * The context passed to every middleware. It is unique for every request.
@@ -116,6 +117,7 @@ export class Context<State> {
   next: () => Promise<Response>;
 
   #buildCache: BuildCache<State>;
+  #additionalStyles: string[] | null = null;
 
   Component!: FunctionComponent;
 
@@ -123,6 +125,8 @@ export class Context<State> {
     // deno-lint-ignore no-explicit-any
     getInternals = <T>(ctx: Context<T>) => ctx.#internal as any;
     getBuildCache = <T>(ctx: Context<T>) => ctx.#buildCache;
+    setAdditionalStyles = <T>(ctx: Context<T>, css: string[]) =>
+      ctx.#additionalStyles = css;
   }
 
   constructor(
@@ -279,6 +283,13 @@ export class Context<State> {
         this.#buildCache,
         partialId,
       );
+
+      if (this.#additionalStyles !== null) {
+        for (let i = 0; i < this.#additionalStyles.length; i++) {
+          const css = this.#additionalStyles[i];
+          state.islandAssets.add(css);
+        }
+      }
 
       try {
         setRenderState(state);

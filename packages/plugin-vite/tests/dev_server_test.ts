@@ -1,6 +1,10 @@
 import * as path from "@std/path";
 import { expect } from "@std/expect";
-import { waitForText, withBrowser } from "../../fresh/tests/test_utils.tsx";
+import {
+  waitFor,
+  waitForText,
+  withBrowser,
+} from "../../fresh/tests/test_utils.tsx";
 import {
   DEMO_DIR,
   FIXTURE_DIR,
@@ -262,30 +266,40 @@ Deno.test({
 });
 
 Deno.test({
-  name: "vite dev - island css modules",
+  name: "vite dev - css modules",
   fn: async () => {
     await withBrowser(async (page) => {
       await page.goto(`${demoServer.address()}/tests/css_modules`, {
         waitUntil: "networkidle2",
       });
 
-      let color = await page
-        .locator(".red > h1")
-        // deno-lint-ignore no-explicit-any
-        .evaluate((el) => window.getComputedStyle(el as any).color);
-      expect(color).toEqual("rgb(255, 0, 0)");
+      await waitFor(async () => {
+        let color = await page
+          .locator(".red > h1")
+          // deno-lint-ignore no-explicit-any
+          .evaluate((el) => window.getComputedStyle(el as any).color);
+        expect(color).toEqual("rgb(255, 0, 0)");
 
-      color = await page
-        .locator(".green > h1")
-        // deno-lint-ignore no-explicit-any
-        .evaluate((el) => window.getComputedStyle(el as any).color);
-      expect(color).toEqual("rgb(0, 128, 0)");
+        color = await page
+          .locator(".green > h1")
+          // deno-lint-ignore no-explicit-any
+          .evaluate((el) => window.getComputedStyle(el as any).color);
+        expect(color).toEqual("rgb(0, 128, 0)");
 
-      color = await page
-        .locator(".blue > h1")
-        // deno-lint-ignore no-explicit-any
-        .evaluate((el) => window.getComputedStyle(el as any).color);
-      expect(color).toEqual("rgb(0, 0, 255)");
+        color = await page
+          .locator(".blue > h1")
+          // deno-lint-ignore no-explicit-any
+          .evaluate((el) => window.getComputedStyle(el as any).color);
+        expect(color).toEqual("rgb(0, 0, 255)");
+
+        // Route css
+        color = await page
+          .locator(".route > h1")
+          // deno-lint-ignore no-explicit-any
+          .evaluate((el) => window.getComputedStyle(el as any).color);
+        expect(color).toEqual("rgb(255, 218, 185)");
+        return true;
+      });
     });
   },
   sanitizeResources: false,
