@@ -392,3 +392,14 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "vite dev - static index.html",
+  fn: async () => {
+    const res = await fetch(`${demoServer.address()}/test_static/foo`);
+    const text = await res.text();
+    expect(text).toContain("<h1>ok</h1>");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});

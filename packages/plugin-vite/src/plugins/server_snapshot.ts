@@ -308,6 +308,19 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
                   hash: null,
                   pathname: relative,
                 });
+
+                if (path.basename(relative) === "index.html") {
+                  const htmlRelative = path.relative(
+                    publicDir,
+                    path.dirname(entry.path),
+                  );
+
+                  staticFiles.push({
+                    filePath,
+                    hash: null,
+                    pathname: htmlRelative,
+                  });
+                }
               }
             }
           }

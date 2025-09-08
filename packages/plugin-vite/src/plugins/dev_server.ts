@@ -52,6 +52,21 @@ export function devServer(): Plugin[] {
             // Ignore
           }
 
+          // Check if it's a static/index.html file
+          const staticFilePathIndex = path.join(
+            publicDir,
+            url.pathname.slice(1),
+            "index.html",
+          );
+          try {
+            const content = await Deno.readTextFile(staticFilePathIndex);
+            nodeRes.setHeader("Content-Type", "text/html; charset=utf-8");
+            nodeRes.end(content);
+            return;
+          } catch {
+            // Ignore
+          }
+
           const mod = await server.ssrLoadModule("fresh:server_entry");
 
           try {
