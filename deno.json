@@ -52,6 +52,7 @@
     "esbuild-wasm": "npm:esbuild-wasm@0.25.7",
     "fresh": "jsr:@fresh/core@^2.0.0-beta.5",
     "mime-db": "npm:mime-db@^1.54.0",
+    "mongodb": "npm:mongodb@^6.19.0",
     "preact": "npm:preact@^10.27.0",
     "preact-render-to-string": "npm:preact-render-to-string@^6.5.11",
     "$ga4": "https://raw.githubusercontent.com/denoland/ga4/main/mod.ts",

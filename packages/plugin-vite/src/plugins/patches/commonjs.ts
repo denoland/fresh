@@ -153,6 +153,8 @@ export function cjsPlugin(
             );
           }
 
+          const hasEsModule = state.get(HAS_ES_MODULE);
+
           const exportNamed = new Map<string, string>();
 
           const idExports: types.ExportSpecifier[] = [];
@@ -211,6 +213,47 @@ export function cjsPlugin(
               ]),
             );
 
+            if (!hasEsModule) {
+              path.pushContainer(
+                "body",
+                t.expressionStatement(
+                  t.assignmentExpression(
+                    "=",
+                    t.memberExpression(
+                      t.cloneNode(id, true),
+                      t.identifier("__esModule"),
+                    ),
+                    t.booleanLiteral(true),
+                  ),
+                ),
+              );
+              path.pushContainer(
+                "body",
+                t.expressionStatement(
+                  t.assignmentExpression(
+                    "=",
+                    t.memberExpression(
+                      t.identifier("exports"),
+                      t.identifier("__esModule"),
+                    ),
+                    t.booleanLiteral(true),
+                  ),
+                ),
+              );
+              path.pushContainer(
+                "body",
+                t.exportNamedDeclaration(
+                  t.variableDeclaration(
+                    "const",
+                    [t.variableDeclarator(
+                      t.identifier("__esModule"),
+                      t.booleanLiteral(true),
+                    )],
+                  ),
+                ),
+              );
+            }
+
             for (const [local, exported] of exportNamed.entries()) {
               if (exported === "default") continue;
 
@@ -256,7 +299,13 @@ export function cjsPlugin(
             );
           }
 
-          if (body.length === 0 && state.get(HAS_ES_MODULE)) {
+          const hasAnyExports = path.get("body").some((p) =>
+            t.isExportAllDeclaration(p.node) ||
+            t.isExportDefaultDeclaration(p.node) ||
+            t.isExportNamedDeclaration(p.node)
+          );
+
+          if (!hasAnyExports && hasEsModule) {
             path.pushContainer("body", t.exportNamedDeclaration(null));
           }
         },
@@ -266,7 +315,6 @@ export function cjsPlugin(
 
         if (isObjEsModuleFlag(t, path.node)) {
           state.set(HAS_ES_MODULE, true);
-          path.remove();
           return;
         }
 
@@ -383,7 +431,6 @@ export function cjsPlugin(
             path.node.expression.arguments[1].value === "__esModule"
           ) {
             state.set(HAS_ES_MODULE, true);
-            path.remove();
             return;
           }
 
@@ -529,7 +576,7 @@ export function cjsPlugin(
 
             if (isEsModuleFlag(t, expr.node)) {
               state.set(HAS_ES_MODULE, true);
-              path.remove();
+              // path.remove();
             } else if (left.isMemberExpression()) {
               if (isModuleExports(t, left.node)) {
                 exported.add("default");
@@ -558,7 +605,6 @@ export function cjsPlugin(
           } else if (expr.isCallExpression()) {
             if (isObjEsModuleFlag(t, expr.node)) {
               state.set(HAS_ES_MODULE, true);
-              path.remove();
             }
           }
         },

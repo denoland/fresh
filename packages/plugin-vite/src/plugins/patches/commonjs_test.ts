@@ -56,6 +56,7 @@ Deno.test("commonjs - exports with default + named", () => {
 exports.default = 'x';
 exports.foo = 'foo';`,
     expected: `${INIT}
+exports.__esModule = true;
 exports.default = 'x';
 exports.foo = 'foo';
 var _foo = exports.foo;
@@ -72,6 +73,7 @@ Deno.test("commonjs - module.exports with default + named", () => {
 module.exports.default = 'x';
 module.exports.foo = 'foo';`,
     expected: `${INIT}
+module.exports.__esModule = true;
 module.exports.default = 'x';
 module.exports.foo = 'foo';
 var _foo = exports.foo;
@@ -84,11 +86,16 @@ ${DEFAULT_EXPORT_END}`,
 
 Deno.test("commonjs - Object es module flag with named clash", () => {
   runTest({
-    input: `Object.defineProperty(exports, '__esModule', { value: true });
+    input: `Object.defineProperty(exports, '__esModule', {
+  value: true
+});
 exports.foo = 'bar';
 const foo = 'also bar';
 `,
     expected: `${INIT}
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
 exports.foo = 'bar';
 const foo = 'also bar';
 var _foo = exports.foo;
@@ -106,6 +113,9 @@ exports.default = 'foo';
 exports.foo = 'bar';
 `,
     expected: `${INIT}
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
 exports.default = 'foo';
 exports.foo = 'bar';
 var _foo = exports.foo;
@@ -119,7 +129,10 @@ ${DEFAULT_EXPORT_END}`,
 Deno.test("commonjs - esModule flag only", () => {
   runTest({
     input: `Object.defineProperty(exports, "__esModule", { value: true });`,
-    expected: `export {};`,
+    expected: `Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+export {};`,
   });
 });
 
@@ -127,14 +140,20 @@ Deno.test("commonjs - esModule flag only #2", () => {
   runTest({
     input:
       `Object.defineProperty(module.exports, "__esModule", { value: true });`,
-    expected: `export {};`,
+    expected: `Object.defineProperty(module.exports, "__esModule", {
+  value: true
+});
+export {};`,
   });
 });
 
 Deno.test("commonjs - esModule flag only minified #3", () => {
   runTest({
     input: `Object.defineProperty(exports, '__esModule', { value: !0 });`,
-    expected: `export {};`,
+    expected: `Object.defineProperty(exports, '__esModule', {
+  value: !0
+});
+export {};`,
   });
 });
 
@@ -145,6 +164,9 @@ exports.foo = 'bar';
 exports.bar = 'foo';
 `,
     expected: `${INIT}
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
 exports.foo = 'bar';
 exports.bar = 'foo';
 var _foo = exports.foo;
@@ -226,6 +248,9 @@ Deno.test("commonjs - duplicate exports", () => {
 exports.trace = void 0;
 exports.trace = 'foo'`,
     expected: `${INIT}
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
 exports.trace = void 0;
 exports.trace = 'foo';
 var _trace = exports.trace;
@@ -242,6 +267,9 @@ Deno.test("commonjs - cleared exports", () => {
 exports.foo = exports.bar = void 0;
 exports.foo = 'foo'`,
     expected: `${INIT}
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
 exports.foo = 'foo';
 var _foo = exports.foo;
 export { _foo as foo };
@@ -289,6 +317,9 @@ Deno.test("commonjs - define exports #3", () => {
 exports._globalThis = void 0;
 exports._globalThis = typeof globalThis === 'object' ? globalThis : global;`,
     expected: `${INIT}
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
 exports._globalThis = void 0;
 exports._globalThis = typeof globalThis === 'object' ? globalThis : global;
 var _globalThis = exports._globalThis;
@@ -305,6 +336,9 @@ Deno.test("commonjs - named function", () => {
 function foo() {};
 exports.foo = foo;`,
     expected: `${INIT}
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
 function foo() {}
 exports.foo = foo;
 var _foo = exports.foo;
@@ -361,6 +395,9 @@ var DiagLogLevel;
     DiagLogLevel[DiagLogLevel["ALL"] = 9999] = "ALL";
 })(DiagLogLevel = exports.DiagLogLevel || (exports.DiagLogLevel = {}));`,
     expected: `${INIT}
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
 exports.DiagLogLevel = void 0;
 var DiagLogLevel;
 (function (DiagLogLevel) {
@@ -395,6 +432,9 @@ Deno.test("commonjs - export default object", () => {
 module.exports = { foo: 'bar' };
 `,
     expected: `${INIT}
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
 module.exports = {
   foo: 'bar'
 };
@@ -455,6 +495,9 @@ var __createBinding = this && this.__createBinding || (Object.create ? function 
 var __exportStar = this && this.__exportStar || function (m, exports) {
   for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
 export * from "./node";
 ${DEFAULT_EXPORT}
 Object.assign(_default, _ns);
@@ -582,6 +625,23 @@ export * from "foo";
 import * as _mod from "foo";
 module.exports = _mod;
 ${DEFAULT_EXPORT}
+${DEFAULT_EXPORT_END}`,
+  });
+});
+
+Deno.test.only("commonjs - re-export", () => {
+  runTest({
+    input: `function foo() {}
+foo.foo = foo;
+foo.default = foo;
+module.exports = foo;`,
+    expected: `${INIT}
+function foo() {}
+foo.foo = foo;
+foo.default = foo;
+module.exports = foo;
+${DEFAULT_EXPORT}
+_default.__esModule = true;
 ${DEFAULT_EXPORT_END}`,
   });
 });
