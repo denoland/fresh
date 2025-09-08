@@ -118,6 +118,23 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
                     if (warning.code === "MODULE_LEVEL_DIRECTIVE") {
                       return;
                     }
+
+                    // Ignore optional export errors
+                    if (
+                      warning.code === "MISSING_EXPORT" &&
+                      warning.id?.startsWith("\0fresh-route::")
+                    ) {
+                      return;
+                    }
+
+                    // Ignore commonjs optional exports
+                    if (
+                      warning.code === "MISSING_EXPORT" &&
+                      warning.message.includes("__require")
+                    ) {
+                      return;
+                    }
+
                     return handler(warning);
                   },
                   input: {
