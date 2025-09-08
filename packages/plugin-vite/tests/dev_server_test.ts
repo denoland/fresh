@@ -372,6 +372,17 @@ Deno.test({
 });
 
 Deno.test({
+  name: "vite dev - npm:ioredis",
+  fn: async () => {
+    const res = await fetch(`${demoServer.address()}/tests/ioredis`);
+    const text = await res.text();
+    expect(text).toContain("<h1>ioredis</h1>");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
   name: "vite dev - radix",
   fn: async () => {
     const res = await fetch(`${demoServer.address()}/tests/radix`);
