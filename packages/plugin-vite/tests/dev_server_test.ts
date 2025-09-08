@@ -262,7 +262,7 @@ Deno.test({
 });
 
 Deno.test({
-  name: "vite dev - island css modules",
+  name: "vite dev - css modules",
   fn: async () => {
     await withBrowser(async (page) => {
       await page.goto(`${demoServer.address()}/tests/css_modules`, {
@@ -286,6 +286,13 @@ Deno.test({
         // deno-lint-ignore no-explicit-any
         .evaluate((el) => window.getComputedStyle(el as any).color);
       expect(color).toEqual("rgb(0, 0, 255)");
+
+      // Route css
+      color = await page
+        .locator(".route > h1")
+        // deno-lint-ignore no-explicit-any
+        .evaluate((el) => window.getComputedStyle(el as any).color);
+      expect(color).toEqual("rgb(255, 218, 185)");
     });
   },
   sanitizeResources: false,

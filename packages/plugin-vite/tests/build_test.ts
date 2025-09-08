@@ -328,7 +328,7 @@ Deno.test({
 });
 
 Deno.test({
-  name: "vite build - island css modules",
+  name: "vite build - css modules",
   fn: async () => {
     await launchProd(
       { cwd: viteResult.tmp },
@@ -355,6 +355,13 @@ Deno.test({
             // deno-lint-ignore no-explicit-any
             .evaluate((el) => window.getComputedStyle(el as any).color);
           expect(color).toEqual("rgb(0, 0, 255)");
+
+          // Route css
+          color = await page
+            .locator(".route > h1")
+            // deno-lint-ignore no-explicit-any
+            .evaluate((el) => window.getComputedStyle(el as any).color);
+          expect(color).toEqual("rgb(255, 218, 185)");
         });
       },
     );
