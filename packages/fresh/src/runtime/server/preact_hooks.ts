@@ -68,6 +68,7 @@ export class RenderState {
   // deno-lint-ignore no-explicit-any
   islandProps: any[] = [];
   islands = new Set<Island>();
+  islandAssets = new Set<string>();
   // deno-lint-ignore no-explicit-any
   encounteredPartials = new Set<any>();
   owners = new Map<VNode, VNode>();
@@ -194,10 +195,13 @@ options[OptionsType.DIFF] = (vnode) => {
           );
         }
       } else if (
-        !PATCHED.has(vnode) && !hasIslandOwner(RENDER_STATE, vnode)
+        !PATCHED.has(vnode)
       ) {
         const island = RENDER_STATE.buildCache.islandRegistry.get(vnode.type);
+        const insideIsland = hasIslandOwner(RENDER_STATE, vnode);
         if (island === undefined) {
+          if (insideIsland) break patcher;
+
           // Not an island, but we might need to preserve keys
           if (vnode.key !== undefined) {
             const key = normalizeKey(vnode.key);
@@ -212,7 +216,16 @@ options[OptionsType.DIFF] = (vnode) => {
           break patcher;
         }
 
-        const { islands, islandProps } = RENDER_STATE;
+        const { islands, islandProps, islandAssets } = RENDER_STATE;
+
+        if (insideIsland) {
+          for (let i = 0; i < island.css.length; i++) {
+            const css = island.css[i];
+            islandAssets.add(css);
+          }
+          break patcher;
+        }
+
         islands.add(island);
 
         const originalType = vnode.type;
@@ -417,6 +430,10 @@ function RemainingHead() {
           items.push(h("link", { rel: "stylesheet", href: css }));
         }
       }
+    });
+
+    RENDER_STATE.islandAssets.forEach((css) => {
+      items.push(h("link", { rel: "stylesheet", href: css }));
     });
 
     if (items.length > 0) {
