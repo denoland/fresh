@@ -243,6 +243,17 @@ export function cjsPlugin(
             }
 
             path.pushContainer("body", t.exportDefaultDeclaration(id));
+            path.pushContainer(
+              "body",
+              t.exportNamedDeclaration(
+                t.variableDeclaration("var", [
+                  t.variableDeclarator(
+                    t.identifier("__require"),
+                    t.identifier("exports"),
+                  ),
+                ]),
+              ),
+            );
           }
 
           if (body.length === 0 && state.get(HAS_ES_MODULE)) {
@@ -304,9 +315,16 @@ export function cjsPlugin(
                   "??",
                   t.memberExpression(
                     t.cloneNode(id, true),
-                    t.identifier("default"),
+                    t.identifier("__require"),
                   ),
-                  t.cloneNode(id, true),
+                  t.logicalExpression(
+                    "??",
+                    t.memberExpression(
+                      t.cloneNode(id, true),
+                      t.identifier("default"),
+                    ),
+                    t.cloneNode(id, true),
+                  ),
                 ),
               );
               return;

@@ -25,7 +25,8 @@ Object.defineProperty(module, "exports", {
 });`;
 
 const DEFAULT_EXPORT = `const _default = exports.default ?? exports;`;
-const DEFAULT_EXPORT_END = `export default _default;`;
+const DEFAULT_EXPORT_END = `export default _default;
+export var __require = exports;`;
 const IMPORT_REQUIRE = `import { createRequire } from "node:module";
 const require = createRequire(import.meta.url);`;
 
@@ -162,7 +163,7 @@ Deno.test("commonjs - require", () => {
 console.log(foo);
 `,
     expected: `import * as _mod from "tape";
-var foo = _mod.default ?? _mod;
+var foo = _mod.__require ?? _mod.default ?? _mod;
 console.log(foo);`,
   });
 });
@@ -206,7 +207,7 @@ Deno.test("commonjs - require function call", () => {
   runTest({
     input: `var a = require('./a')()`,
     expected: `import * as _mod from './a';
-var a = (_mod.default ?? _mod)();`,
+var a = (_mod.__require ?? _mod.default ?? _mod)();`,
   });
 });
 
@@ -214,7 +215,7 @@ Deno.test("commonjs - require var decls", () => {
   runTest({
     input: `var a = require('./a'), b = 42;`,
     expected: `import * as _mod from './a';
-var a = _mod.default ?? _mod,
+var a = _mod.__require ?? _mod.default ?? _mod,
   b = 42;`,
   });
 });
@@ -256,7 +257,7 @@ Deno.test("commonjs - define exports", () => {
 Object.defineProperty(exports, "foo", { enumerable: true, get: function () { return utils_1.foo; } });`,
     expected: `${INIT}
 import * as _mod from "./bar";
-var utils_1 = _mod.default ?? _mod;
+var utils_1 = _mod.__require ?? _mod.default ?? _mod;
 exports.foo = utils_1.foo;
 var _foo = exports.foo;
 export { _foo as foo };
@@ -272,7 +273,7 @@ Deno.test("commonjs - define exports #2", () => {
 Object.defineProperty(exports, "foo", { enumerable: true, get() { return utils_1.foo; } });`,
     expected: `${INIT}
 import * as _mod from "./bar";
-var utils_1 = _mod.default ?? _mod;
+var utils_1 = _mod.__require ?? _mod.default ?? _mod;
 exports.foo = utils_1.foo;
 var _foo = exports.foo;
 export { _foo as foo };
