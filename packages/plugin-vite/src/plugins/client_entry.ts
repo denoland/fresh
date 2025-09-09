@@ -6,34 +6,47 @@ export function clientEntryPlugin(options: ResolvedFreshViteConfig): Plugin {
   const modNameUser = "fresh:client-entry-user";
 
   let clientEntry = "";
+  let isDev = false;
 
   return {
     name: "fresh:client-entry",
+    config(_, env) {
+      isDev = env.command === "serve";
+    },
     applyToEnvironment(env) {
       return env.name === "client";
     },
     configResolved(config) {
       clientEntry = pathWithRoot(options.clientEntry, config.root);
     },
-    resolveId(id) {
-      if (id === modName) {
-        return `\0${modName}`;
-      } else if (id === modNameUser) {
-        return clientEntry;
-      }
+    resolveId: {
+      filter: {
+        id: /(fresh:client-entry|fresh:client-entry-user)/,
+      },
+      handler(id) {
+        if (id === modName) {
+          return `\0${modName}`;
+        } else if (id === modNameUser) {
+          return clientEntry;
+        }
+      },
     },
-    async load(id) {
-      if (id !== `\0${modName}`) return;
+    load: {
+      filter: {
+        id: /\0fresh:client-entry/,
+      },
+      async handler() {
+        let exists = false;
+        try {
+          const stat = await Deno.stat(clientEntry);
+          exists = stat.isFile;
+        } catch {
+          exists = false;
+        }
 
-      let exists = false;
-      try {
-        const stat = await Deno.stat(clientEntry);
-        exists = stat.isFile;
-      } catch {
-        exists = false;
-      }
-
-      return `export * from "fresh/runtime-client";
+        return `
+${isDev ? 'import "preact/debug"' : ""}
+export * from "fresh/runtime-client";
 ${exists ? `import "fresh:client-entry-user";` : ""}
 
 if (import.meta.hot) {
@@ -46,6 +59,7 @@ if (import.meta.hot) {
   });
 }
 `;
+      },
     },
   };
 }

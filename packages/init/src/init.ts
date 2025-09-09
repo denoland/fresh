@@ -1,10 +1,12 @@
 // deno-lint-ignore-file no-console
 import * as colors from "@std/fmt/colors";
 import * as path from "@std/path";
+import * as semver from "@std/semver";
 
 // Keep these as is, as we replace these version in our release script
-const FRESH_VERSION = "2.0.0-alpha.60";
-const FRESH_TAILWIND_VERSION = "0.0.1-alpha.9";
+const FRESH_VERSION = "2.0.0";
+const FRESH_TAILWIND_VERSION = "1.0.0";
+const FRESH_VITE_PLUGIN = "1.0.0";
 const PREACT_VERSION = "10.27.1";
 const PREACT_SIGNALS_VERSION = "2.3.1";
 const TAILWINDCSS_VERSION = "4.1.10";
@@ -49,6 +51,7 @@ OPTIONS:
     --tailwind   Use Tailwind for styling
     --vscode     Setup project for VS Code
     --docker     Setup Project to use Docker
+    --builder    Setup with builder instead of vite
 `;
 
 export const CONFIRM_EMPTY_MESSAGE =
@@ -57,6 +60,9 @@ export const CONFIRM_TAILWIND_MESSAGE = `Set up ${
   colors.cyan("Tailwind CSS")
 } for styling?`;
 export const CONFIRM_VSCODE_MESSAGE = `Do you use ${colors.cyan("VS Code")}?`;
+export const CONFIRM_VITE_MESSAGE = `Set up ${
+  colors.cyan("Vite")
+} for build tooling?`;
 
 export async function initProject(
   cwd = Deno.cwd(),
@@ -66,6 +72,7 @@ export async function initProject(
     force?: boolean | null;
     tailwind?: boolean | null;
     vscode?: boolean | null;
+    builder?: boolean | null;
   } = {},
 ): Promise<void> {
   console.log();
@@ -107,6 +114,8 @@ export async function initProject(
       throw err;
     }
   }
+
+  const useVite = !flags.builder;
 
   const useDocker = flags.docker;
   let useTailwind = flags.tailwind || false;
@@ -320,7 +329,17 @@ ${GRADIENT_CSS}`;
 ${GRADIENT_CSS}`;
 
   const cssStyles = useTailwind ? TAILWIND_CSS : NO_TAILWIND_STYLES;
-  await writeFile("static/styles.css", cssStyles);
+
+  if (useVite) {
+    await writeFile("assets/styles.css", cssStyles);
+    await writeFile(
+      "client.ts",
+      `// Import CSS files here for hot module reloading to work.
+import "./assets/styles.css";`,
+    );
+  } else {
+    await writeFile("static/styles.css", cssStyles);
+  }
   // deno-fmt-ignore
   const STATIC_LOGO =
     `<svg width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -358,6 +377,12 @@ import { define, type State } from "./utils.ts";
 export const app = new App<State>();
 
 app.use(staticFiles());
+
+// Pass a shared value from a middleware
+app.use(async (ctx) => {
+  ctx.state.shared = "hello";
+  return await ctx.next();
+});
 
 // this is the same as the /api/:name route defined via a file. feel free to delete this!
 app.get("/api2/:name", (ctx) => {
@@ -400,25 +425,30 @@ export function Button(props: ButtonProps) {
 
   const UTILS_TS = `import { createDefine } from "fresh";
 
+// This specifies the type of "ctx.state" which is used to share
+// data among middlewares, layouts and routes.
 export interface State {
-  title: string;
+  shared: string;
 }
 
 export const define = createDefine<State>();`;
   await writeFile("utils.ts", UTILS_TS);
 
   const ROUTES_HOME = `import { useSignal } from "@preact/signals";
+import { Head } from "fresh/runtime";
 import { define } from "../utils.ts";
 import Counter from "../islands/Counter.tsx";
 
 export default define.page(function Home(ctx) {
   const count = useSignal(3);
 
-  ctx.state.title = count.value + " Fresh Counter" +
-    (Math.abs(count.value) === 1 ? "" : "s");
+  console.log("Shared value " + ctx.state.shared);
 
   return (
     <div class="px-4 py-8 mx-auto fresh-gradient min-h-screen">
+      <Head>
+        <title>Fresh counter</title>
+      </Head>
       <div class="max-w-screen-md mx-auto flex flex-col items-center justify-center">
         <img
           class="my-6"
@@ -441,14 +471,15 @@ export default define.page(function Home(ctx) {
 
   const APP_WRAPPER = `import { define } from "../utils.ts";
 
-export default define.page(function App({ Component, state }) {
+export default define.page(function App({ Component }) {
   return (
     <html>
       <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>{state.title ?? "${path.basename(projectDir)}"}</title>
-        <link rel="stylesheet" href="/styles.css" />
+        <title>${path.basename(projectDir)}</title>${
+    useVite ? "" : `\n        <link rel="stylesheet" href="/styles.css" />`
+  }
       </head>
       <body>
         <Component />
@@ -499,7 +530,12 @@ if (Deno.args.includes("build")) {
 } else {
   await builder.listen(() => import("./main.ts"));
 }`;
-  await writeFile("dev.ts", DEV_TS);
+
+  if (!useVite) {
+    await writeFile("dev.ts", DEV_TS);
+  }
+
+  const freshVersion = await getLatestVersion("@fresh/core", FRESH_VERSION);
 
   const denoJson = {
     nodeModulesDir: "auto",
@@ -517,7 +553,7 @@ if (Deno.args.includes("build")) {
     },
     exclude: ["**/_fresh/*"],
     imports: {
-      "fresh": `jsr:@fresh/core@^${FRESH_VERSION}`,
+      "fresh": `jsr:@fresh/core@^${freshVersion}`,
       "preact": `npm:preact@^${PREACT_VERSION}`,
       "@preact/signals": `npm:@preact/signals@^${PREACT_SIGNALS_VERSION}`,
     } as Record<string, string>,
@@ -532,11 +568,38 @@ if (Deno.args.includes("build")) {
         "body",
         "html",
         "head",
+        "title",
+        "meta",
+        "script",
+        "link",
+        "style",
+        "base",
+        "noscript",
+        "template",
       ],
-    },
+    } as Record<string, unknown>,
   };
 
-  if (useTailwind) {
+  if (useVite) {
+    denoJson.compilerOptions.types = ["vite/client"];
+    denoJson.tasks.dev = "vite";
+    denoJson.tasks.build = "vite build";
+
+    const vitePluginVersion = await getLatestVersion(
+      "@fresh/plugin-vite",
+      FRESH_VITE_PLUGIN,
+    );
+
+    denoJson.imports["@fresh/plugin-vite"] =
+      `jsr:@fresh/plugin-vite@^${vitePluginVersion}`;
+    denoJson.imports["vite"] = "npm:vite@^7.1.3";
+
+    if (useTailwind) {
+      denoJson.imports["tailwindcss"] =
+        `npm:tailwindcss@^${TAILWINDCSS_VERSION}`;
+      denoJson.imports["@tailwindcss/vite"] = `npm:@tailwindcss/vite@^4.1.12`;
+    }
+  } else if (useTailwind) {
     denoJson.imports["tailwindcss"] = `npm:tailwindcss@^${TAILWINDCSS_VERSION}`;
     denoJson.imports["@fresh/plugin-tailwind"] =
       `jsr:@fresh/plugin-tailwind@^${FRESH_TAILWIND_VERSION}`;
@@ -546,6 +609,21 @@ if (Deno.args.includes("build")) {
   }
 
   await writeFile("deno.json", denoJson);
+
+  if (useVite) {
+    let viteConfig = `import { defineConfig } from "vite";
+import { fresh } from "@fresh/plugin-vite";\n`;
+
+    if (useTailwind) {
+      viteConfig += `import tailwindcss from "@tailwindcss/vite";\n`;
+    }
+
+    viteConfig += `\nexport default defineConfig({
+  plugins: [fresh()${useTailwind ? ", tailwindcss()" : ""}],
+});`;
+
+    await writeFile("vite.config.ts", viteConfig);
+  }
 
   const README_MD = `# Fresh project
 
@@ -735,5 +813,47 @@ async function writeProjectFile(
     if (!(err instanceof Deno.errors.AlreadyExists)) {
       throw err;
     }
+  }
+}
+
+interface JsrMeta {
+  scope: string;
+  name: string;
+  latest: string | null;
+  versions: Record<string, unknown>;
+}
+
+async function getLatestVersion(
+  pkg: string,
+  fallback: string,
+): Promise<string> {
+  // deno-lint-ignore no-explicit-any
+  if ((globalThis as any).INIT_TEST) {
+    return fallback;
+  }
+
+  try {
+    const res = await fetch(`https://jsr.io/${pkg}/meta.json`);
+    const json = (await res.json()) as JsrMeta;
+
+    if (json.latest !== null) {
+      return json.latest;
+    }
+
+    const versions = Object.keys(json.versions);
+    if (versions.length === 0) throw new Error("No versions");
+
+    versions.sort((a, b) => {
+      const s1 = semver.parse(a);
+      const s2 = semver.parse(b);
+      return semver.compare(s1, s2);
+    });
+
+    return versions.at(-1)!;
+  } catch {
+    console.log(
+      `Could not fetch latest ${pkg} version. Falling back to: ${fallback}`,
+    );
+    return fallback;
   }
 }

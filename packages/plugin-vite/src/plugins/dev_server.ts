@@ -1,12 +1,16 @@
 import type { Plugin } from "vite";
-import { nodeToRequest, responseToNode } from "../request.ts";
 import * as path from "@std/path";
 import { ASSET_CACHE_BUST_KEY } from "fresh/internal";
+import { createRequest, sendResponse } from "@mjackson/node-fetch-server";
 
 export function devServer(): Plugin[] {
+  let publicDir = "";
   return [
     {
       name: "fresh:dev_server",
+      configResolved(config) {
+        publicDir = config.publicDir;
+      },
       configureServer(server) {
         const IGNORE_URLS = /^\/(@(vite|fs|id)|\.vite)\//;
 
@@ -29,26 +33,46 @@ export function devServer(): Plugin[] {
             server.environments.client.moduleGraph.urlToModuleMap.has(
               url.pathname,
             ) ||
+            server.environments.ssr.moduleGraph.urlToModuleMap.has(
+              url.pathname,
+            ) ||
             url.pathname === "/.well-known/appspecific/com.chrome.devtools.json"
           ) {
             return next();
           }
 
           // Check if it's a static file first
-          if (url.pathname !== "/") {
-            const ext = path.extname(url.pathname);
-            if (ext !== "") {
+          const staticFilePath = path.join(publicDir, url.pathname.slice(1));
+          try {
+            const stat = await Deno.stat(staticFilePath);
+            if (stat.isFile) {
               return next();
             }
+          } catch {
+            // Ignore
+          }
+
+          // Check if it's a static/index.html file
+          const staticFilePathIndex = path.join(
+            publicDir,
+            url.pathname.slice(1),
+            "index.html",
+          );
+          try {
+            const content = await Deno.readTextFile(staticFilePathIndex);
+            nodeRes.setHeader("Content-Type", "text/html; charset=utf-8");
+            nodeRes.end(content);
+            return;
+          } catch {
+            // Ignore
           }
 
           const mod = await server.ssrLoadModule("fresh:server_entry");
 
           try {
-            const req = nodeToRequest(nodeReq, url);
+            const req = createRequest(nodeReq, nodeRes);
             const res = await mod.default.fetch(req);
-            await responseToNode(res, nodeRes);
-            return nodeRes;
+            await sendResponse(nodeRes, res);
           } catch (err) {
             return next(err);
           }

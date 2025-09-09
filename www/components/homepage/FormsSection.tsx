@@ -63,7 +63,7 @@ export function FormsSection() {
             <a href="https://deno.com" class="underline">Deno</a>, it's built on
             web standards.
           </p>
-          <FancyLink href="/docs/concepts/forms" class="mt-2">
+          <FancyLink href="/docs/advanced/forms" class="mt-2">
             Forms in Fresh
           </FancyLink>
         </div>

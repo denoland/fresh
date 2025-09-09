@@ -120,7 +120,10 @@ export const handler = define.handlers<Data>({
     }
 
     // Parse markdown front matter
-    const url = new URL(`../../../${entry.file}`, import.meta.url);
+    // deno-lint-ignore no-explicit-any
+    const url = (import.meta as any).env.PROD
+      ? new URL(`../${entry.file}`, import.meta.url)
+      : new URL(`../../../${entry.file}`, import.meta.url);
     const fileContent = await Deno.readTextFile(url);
     const { body, attrs } = frontMatter<Record<string, unknown>>(fileContent);
 

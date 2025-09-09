@@ -5,6 +5,9 @@ import { jsxComments } from "./patches/jsx_comment.ts";
 import babelReact from "@babel/preset-react";
 import { inlineEnvVarsPlugin } from "./patches/inline_env_vars.ts";
 import { removePolyfills } from "./patches/remove_polyfills.ts";
+import { JS_REG, JSX_REG } from "../utils.ts";
+import { denoGlobal } from "./patches/deno_global.ts";
+import { codeEvalPlugin } from "./patches/code_eval.ts";
 
 export function patches(): Plugin {
   let isDev = false;
@@ -17,38 +20,49 @@ export function patches(): Plugin {
     applyToEnvironment() {
       return true;
     },
-    transform(code, id, options) {
-      if (!/\.([tj]sx?|[mc][tj]s)$/.test(id)) return;
+    transform: {
+      filter: {
+        id: JS_REG,
+      },
+      handler(code, id, options) {
+        const presets = [];
+        if (!options?.ssr && JSX_REG.test(id)) {
+          presets.push([babelReact, {
+            runtime: "automatic",
+            importSource: "preact",
+            development: isDev,
+          }]);
+        }
 
-      const presets = [];
-      if (!options?.ssr && /\.(tsx?|m[jt]s)$/.test(id)) {
-        presets.push([babelReact, {
-          runtime: "automatic",
-          importSource: "preact",
-          development: isDev,
-        }]);
-      }
+        const env = isDev ? "development" : "production";
 
-      const res = babel.transformSync(code, {
-        filename: id,
-        babelrc: false,
-        plugins: [
+        const plugins: babel.PluginItem[] = [
+          codeEvalPlugin(options?.ssr ? "ssr" : "client", env),
           cjsPlugin,
           removePolyfills,
           jsxComments,
-          inlineEnvVarsPlugin(
-            isDev ? "development" : "production",
-          ),
-        ],
-        presets,
-      });
+          inlineEnvVarsPlugin(env, Deno.env.toObject()),
+        ];
 
-      if (res?.code) {
-        return {
-          code: res.code,
-          map: res.map,
-        };
-      }
+        if (!options?.ssr) {
+          plugins.push(denoGlobal);
+        }
+
+        const res = babel.transformSync(code, {
+          filename: id,
+          babelrc: false,
+          compact: true,
+          plugins,
+          presets,
+        });
+
+        if (res?.code) {
+          return {
+            code: res.code,
+            map: res.map,
+          };
+        }
+      },
     },
   };
 }

@@ -1,14 +1,14 @@
 import type { NodePath, PluginObj, types } from "@babel/core";
 
-export function inlineEnvVarsPlugin(mode: string) {
+export function inlineEnvVarsPlugin(mode: string, env: Record<string, string>) {
   const allowed = new Map<string, string>();
-  for (const [name, value] of Object.entries(Deno.env.toObject())) {
+  for (const [name, value] of Object.entries(env)) {
     if (name.startsWith("FRESH_PUBLIC_")) {
       allowed.set(name, value);
     }
   }
 
-  allowed.set("NODE_ENV", Deno.env.get("NODE_ENV") ?? mode);
+  allowed.set("NODE_ENV", mode);
 
   return (
     { types: t }: { types: typeof types },
@@ -37,6 +37,18 @@ export function inlineEnvVarsPlugin(mode: string) {
             t.isIdentifier(path.node.object.property) &&
             path.node.object.property.name === "env" &&
             t.isIdentifier(path.node.property)
+          ) {
+            const name = path.node.property.name;
+            replace(path, name);
+          }
+
+          // Check: import.meta.env.*
+          if (
+            t.isIdentifier(path.node.property) &&
+            t.isMemberExpression(path.node.object) &&
+            t.isIdentifier(path.node.object.property) &&
+            path.node.object.property.name === "env" &&
+            t.isMetaProperty(path.node.object.object)
           ) {
             const name = path.node.property.name;
             replace(path, name);

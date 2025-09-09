@@ -9,7 +9,7 @@ import {
 } from "preact";
 import { type CustomParser, parse } from "../../jsonify/parse.ts";
 import { computed, signal } from "@preact/signals";
-import { DATA_FRESH_KEY, PartialMode } from "../shared_internal.tsx";
+import { DATA_FRESH_KEY, PartialMode } from "../shared_internal.ts";
 
 const enum RootKind {
   Island,

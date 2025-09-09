@@ -6,7 +6,7 @@ import {
   matchesUrl,
   PartialMode,
   UrlMatchKind,
-} from "../shared_internal.tsx";
+} from "../shared_internal.ts";
 import {
   ACTIVE_PARTIALS,
   copyOldChildren,
@@ -19,7 +19,7 @@ import {
   PartialComp,
 } from "./reviver.ts";
 import { createRootFragment, isCommentNode, isElementNode } from "./reviver.ts";
-import type { PartialStateJson } from "../server/preact_hooks.tsx";
+import type { PartialStateJson } from "../server/preact_hooks.ts";
 import { parse } from "../../jsonify/parse.ts";
 import { INTERNAL_PREFIX, PARTIAL_SEARCH_PARAM } from "../../constants.ts";
 

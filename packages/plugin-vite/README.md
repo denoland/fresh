@@ -1,7 +1,6 @@
-# EXPERIMENTAL: vite plugin for Fresh
+# Fresh vite plugin
 
-> **Warning** This package is experimental. Please report bugs to
-> https://github.com/denoland/fresh/issues
+Vite plugin for [Fresh](https://fresh.deno.dev).
 
 ## Usage
 
@@ -33,3 +32,6 @@
 
 - Dev: `vite`
 - Build: `vite build`
+
+More information
+[on the Fresh documentation](https://fresh.deno.dev/docs/canary/advanced/vite) .

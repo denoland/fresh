@@ -5,16 +5,8 @@ import {
   type RenderableProps,
   type VNode,
 } from "preact";
-import {
-  FreshScripts,
-  type RenderState,
-  setRenderState,
-} from "./runtime/server/preact_hooks.tsx";
 import type { Context } from "./context.ts";
 import { recordSpanError, tracer } from "./otel.ts";
-import { DEV_ERROR_OVERLAY_URL } from "./constants.ts";
-import { renderToString } from "preact-render-to-string";
-import { escape as escapeHtml } from "@std/html";
 
 export type AsyncAnyComponent<P> = {
   (
@@ -55,67 +47,6 @@ export async function renderAsyncAnyComponent<Props>(
       }
     },
   );
-}
-
-export function preactRender<State, Data>(
-  vnode: VNode,
-  ctx: PageProps<Data, State>,
-  state: RenderState,
-  headers: Headers,
-) {
-  try {
-    let res = renderToString(vnode);
-    // We require a the full outer DOM structure so that browser put
-    // comment markers in the right place in the DOM.
-    if (!state.renderedHtmlBody) {
-      let scripts = "";
-      if (ctx.url.pathname !== ctx.config.basePath + DEV_ERROR_OVERLAY_URL) {
-        scripts = renderToString(h(FreshScripts, null));
-      }
-      res = `<body>${res}${scripts}</body>`;
-    }
-    if (!state.renderedHtmlHead) {
-      let head = `<head><meta charset="utf-8">`;
-
-      const entryAssets = state.buildCache.getEntryAssets();
-      for (let i = 0; i < entryAssets.length; i++) {
-        const asset = entryAssets[i];
-
-        if (asset.endsWith(".css")) {
-          head += `<link rel="stylesheet" href="${escapeHtml(asset)}">`;
-        }
-      }
-
-      res = `${head}</head>${res}`;
-    }
-    if (!state.renderedHtmlTag) {
-      res = `<html>${res}</html>`;
-    }
-
-    return `<!DOCTYPE html>${res}`;
-  } finally {
-    // Add preload headers
-    const basePath = ctx.config.basePath;
-    const runtimeUrl = state.buildCache.clientEntry.startsWith(".")
-      ? state.buildCache.clientEntry.slice(1)
-      : state.buildCache.clientEntry;
-    let link = `<${
-      encodeURI(`${basePath}${runtimeUrl}`)
-    }>; rel="modulepreload"; as="script"`;
-    state.islands.forEach((island) => {
-      const specifier = `${basePath}${
-        island.file.startsWith(".") ? island.file.slice(1) : island.file
-      }`;
-      link += `, <${encodeURI(specifier)}>; rel="modulepreload"; as="script"`;
-    });
-
-    if (link !== "") {
-      headers.append("Link", link);
-    }
-
-    state.clear();
-    setRenderState(null);
-  }
 }
 
 export type PageProps<Data = unknown, T = unknown> =

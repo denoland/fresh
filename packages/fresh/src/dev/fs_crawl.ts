@@ -91,6 +91,7 @@ export async function crawlRouteDir<State>(
       pattern,
       routePattern,
       lazy,
+      css: [],
       overrideConfig,
     });
   }, ignore);

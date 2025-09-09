@@ -16,6 +16,7 @@ import {
   newRouteCmd,
 } from "./commands.ts";
 import { isLazy } from "./utils.ts";
+import { recordSpanError, tracer } from "./otel.ts";
 
 export interface FreshFsMod<State> {
   config?: RouteConfig;
@@ -24,6 +25,7 @@ export interface FreshFsMod<State> {
   default?:
     | AnyComponent<PageProps<unknown, State>>
     | AsyncAnyComponent<PageProps<unknown, State>>;
+  css?: string[];
 }
 
 export interface FsRouteFile<State> {
@@ -34,6 +36,7 @@ export interface FsRouteFile<State> {
   type: CommandType;
   routePattern: string;
   overrideConfig: RouteConfig | undefined;
+  css: string[];
 }
 
 // deno-lint-ignore no-explicit-any
@@ -140,8 +143,19 @@ export function fsItemsToCommands<State>(
         let config: RouteConfig = {};
         if (isLazy(rawMod)) {
           normalized = async () => {
-            const result = await rawMod();
-            return normalizeRoute(filePath, result, routePattern);
+            return await tracer.startActiveSpan("lazy-route", {
+              attributes: { "fresh.route_name": rawMod.name ?? "anonymous" },
+            }, async (span) => {
+              try {
+                const result = await rawMod();
+                return normalizeRoute(filePath, result, routePattern);
+              } catch (err) {
+                recordSpanError(span, err);
+                throw err;
+              } finally {
+                span.end();
+              }
+            });
           };
 
           config.methods = item.overrideConfig?.methods ?? "ALL";
@@ -322,5 +336,6 @@ function normalizeRoute<State>(
     // deno-lint-ignore no-explicit-any
     handler: (handlers as any) ?? undefined,
     component: mod.default,
+    css: rawMod.css,
   };
 }

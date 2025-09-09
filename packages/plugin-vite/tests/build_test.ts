@@ -9,13 +9,13 @@ import {
 } from "./test_utils.ts";
 import * as path from "@std/path";
 
+const viteResult = await buildVite(DEMO_DIR);
+
 Deno.test({
   name: "vite build - launches",
   fn: async () => {
-    await using res = await buildVite(DEMO_DIR);
-
     await launchProd(
-      { cwd: res.tmp },
+      { cwd: viteResult.tmp },
       async (address) => {
         const res = await fetch(address);
         const text = await res.text();
@@ -30,8 +30,6 @@ Deno.test({
 Deno.test({
   name: "vite build - serves static files",
   fn: async () => {
-    await using viteResult = await buildVite(DEMO_DIR);
-
     await launchProd(
       { cwd: viteResult.tmp },
       async (address) => {
@@ -48,10 +46,8 @@ Deno.test({
 Deno.test({
   name: "vite build - loads islands",
   fn: async () => {
-    await using res = await buildVite(DEMO_DIR);
-
     await launchProd(
-      { cwd: res.tmp },
+      { cwd: viteResult.tmp },
       async (address) => {
         await withBrowser(async (page) => {
           await page.goto(`${address}/tests/island_hooks`, {
@@ -130,10 +126,8 @@ Deno.test({
 Deno.test({
   name: "vite build - load json inside npm package",
   fn: async () => {
-    await using res = await buildVite(DEMO_DIR);
-
     await launchProd(
-      { cwd: res.tmp },
+      { cwd: viteResult.tmp },
       async (address) => {
         await withBrowser(async (page) => {
           await page.goto(`${address}/tests/mime`, {
@@ -152,10 +146,8 @@ Deno.test({
 Deno.test({
   name: "vite build - fetch static assets",
   fn: async () => {
-    await using res = await buildVite(DEMO_DIR);
-
     await launchProd(
-      { cwd: res.tmp },
+      { cwd: viteResult.tmp },
       async (address) => {
         await withBrowser(async (page) => {
           await page.goto(`${address}/tests/assets`, {
@@ -200,7 +192,7 @@ Deno.test({
               return (el as any).href;
             });
 
-          expect(href).toMatch(/\/assets\/client-entry-.*\.css$/);
+          expect(href).toMatch(/\/assets\/client-entry-.*\.css(\?.*)?$/);
         });
       },
     );
@@ -242,10 +234,8 @@ Deno.test({
 Deno.test({
   name: "vite build - partial island",
   fn: async () => {
-    await using res = await buildVite(DEMO_DIR);
-
     await launchProd(
-      { cwd: res.tmp },
+      { cwd: viteResult.tmp },
       async (address) => {
         await withBrowser(async (page) => {
           await page.goto(`${address}/tests/partial`, {
@@ -308,10 +298,8 @@ Deno.test({
 Deno.test({
   name: "vite build - import json from jsr dependency",
   fn: async () => {
-    await using res = await buildVite(DEMO_DIR);
-
     await launchProd(
-      { cwd: res.tmp },
+      { cwd: viteResult.tmp },
       async (address) => {
         const res = await fetch(`${address}/tests/dep_json`);
         const json = await res.json();
@@ -326,14 +314,133 @@ Deno.test({
 Deno.test({
   name: "vite build - import node:*",
   fn: async () => {
-    await using res = await buildVite(DEMO_DIR);
-
     await launchProd(
-      { cwd: res.tmp },
+      { cwd: viteResult.tmp },
       async (address) => {
         const res = await fetch(`${address}/tests/feed`);
         await res.body?.cancel();
         expect(res.status).toEqual(200);
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite build - css modules",
+  fn: async () => {
+    await launchProd(
+      { cwd: viteResult.tmp },
+      async (address) => {
+        await withBrowser(async (page) => {
+          await page.goto(`${address}/tests/css_modules`, {
+            waitUntil: "networkidle2",
+          });
+
+          let color = await page
+            .locator(".red > h1")
+            // deno-lint-ignore no-explicit-any
+            .evaluate((el) => window.getComputedStyle(el as any).color);
+          expect(color).toEqual("rgb(255, 0, 0)");
+
+          color = await page
+            .locator(".green > h1")
+            // deno-lint-ignore no-explicit-any
+            .evaluate((el) => window.getComputedStyle(el as any).color);
+          expect(color).toEqual("rgb(0, 128, 0)");
+
+          color = await page
+            .locator(".blue > h1")
+            // deno-lint-ignore no-explicit-any
+            .evaluate((el) => window.getComputedStyle(el as any).color);
+          expect(color).toEqual("rgb(0, 0, 255)");
+
+          // Route css
+          color = await page
+            .locator(".route > h1")
+            // deno-lint-ignore no-explicit-any
+            .evaluate((el) => window.getComputedStyle(el as any).color);
+          expect(color).toEqual("rgb(255, 218, 185)");
+        });
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite build - remote island",
+  fn: async () => {
+    const fixture = path.join(FIXTURE_DIR, "remote_island");
+    await using res = await buildVite(fixture);
+
+    await launchProd(
+      { cwd: res.tmp },
+      async (address) => {
+        await withBrowser(async (page) => {
+          await page.goto(`${address}`, {
+            waitUntil: "networkidle2",
+          });
+
+          await page.locator(".remote-island").wait();
+          await page.locator(".increment").click();
+          await waitForText(page, ".result", "Count: 1");
+        });
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite build - error on 'node:process' import",
+  fn: async () => {
+    const fixture = path.join(FIXTURE_DIR, "node_builtin");
+
+    await expect(buildVite(fixture)).rejects.toThrow(
+      "Node built-in modules cannot be imported in the browser",
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite build - throw when using Deno.* global inside an island",
+  fn: async () => {
+    const fixture = path.join(FIXTURE_DIR, "deno_global_island");
+
+    await expect(buildVite(fixture)).rejects.toThrow(
+      "The Deno.* global cannot be used in the browser",
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite build - don't throw when using Deno.* global in ssr",
+  fn: async () => {
+    const fixture = path.join(FIXTURE_DIR, "deno_global_ssr");
+
+    await buildVite(fixture);
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite build - static index.html",
+  fn: async () => {
+    await launchProd(
+      { cwd: viteResult.tmp },
+      async (address) => {
+        const res = await fetch(`${address}/test_static/foo`);
+        const text = await res.text();
+        expect(text).toContain("<h1>ok</h1>");
       },
     );
   },

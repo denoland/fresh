@@ -10,6 +10,7 @@ import * as path from "@std/path";
 import * as babel from "@babel/core";
 import babelReact from "@babel/preset-react";
 import { httpAbsolute } from "./patches/http_absolute.ts";
+import { JS_REG, JSX_REG } from "../utils.ts";
 
 interface DenoState {
   type: RequestedModuleType;
@@ -180,7 +181,7 @@ export function deno(): Plugin {
       // Skip for non-js files like `.css`
       if (
         meta.type === RequestedModuleType.Default &&
-        !/\.([tj]sx?|[mc]?[tj]s)$/.test(id)
+        !JS_REG.test(id)
       ) {
         return;
       }
@@ -209,40 +210,50 @@ export function deno(): Plugin {
         code,
       };
     },
-    async transform(_, id, options) {
-      // This transform is a hack to be able to re-use Deno's precompile
-      // jsx transform.
-      if (!options?.ssr || !id.endsWith(".tsx") || id.endsWith(".jsx")) {
-        return;
-      }
+    transform: {
+      filter: {
+        id: JSX_REG,
+      },
+      async handler(_, id, options) {
+        // This transform is a hack to be able to re-use Deno's precompile
+        // jsx transform.
+        if (!options?.ssr) {
+          return;
+        }
 
-      let actualId = id;
-      if (isDenoSpecifier(id)) {
-        const { specifier } = parseDenoSpecifier(id);
-        actualId = specifier;
-      }
-      if (path.isAbsolute(actualId)) {
-        actualId = path.toFileUrl(actualId).href;
-      }
+        let actualId = id;
+        if (isDenoSpecifier(id)) {
+          const { specifier } = parseDenoSpecifier(id);
+          actualId = specifier;
+        }
+        actualId = actualId.replace("?commonjs-es-import", "");
 
-      const resolved = await ssrLoader.resolve(
-        actualId,
-        undefined,
-        ResolutionMode.Import,
-      );
-      const result = await ssrLoader.load(
-        resolved,
-        RequestedModuleType.Default,
-      );
-      if (result.kind === "external") {
-        return;
-      }
+        if (actualId.startsWith("\0")) {
+          actualId = actualId.slice(1);
+        }
+        if (path.isAbsolute(actualId)) {
+          actualId = path.toFileUrl(actualId).href;
+        }
 
-      const code = new TextDecoder().decode(result.code);
+        const resolved = await ssrLoader.resolve(
+          actualId,
+          undefined,
+          ResolutionMode.Import,
+        );
+        const result = await ssrLoader.load(
+          resolved,
+          RequestedModuleType.Default,
+        );
+        if (result.kind === "external") {
+          return;
+        }
 
-      return {
-        code,
-      };
+        const code = new TextDecoder().decode(result.code);
+
+        return {
+          code,
+        };
+      },
     },
   };
 }
@@ -359,6 +370,7 @@ function babelTransform(
     sourceMaps: "inline",
     presets: presets,
     plugins: [httpAbsolute(url)],
+    compact: true,
   });
 
   if (result !== null && result.code) {
