@@ -1,4 +1,3 @@
-import VERSIONS from "../versions.json" with { type: "json" };
 import {
   withBrowser,
   withChildProcessServer,
