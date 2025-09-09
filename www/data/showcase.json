@@ -195,12 +195,6 @@
     "image": "ppaste"
   },
   {
-    "title": "VailNote",
-    "link": "https://vailnote.com/",
-    "github": "emilkrebs/vailnote",
-    "image": "vailnote"
-  },
-  {
     "title": "Linksapp",
     "link": "https://linksapp.deno.dev/",
     "github": "commune-org/linksapp-fresh",
