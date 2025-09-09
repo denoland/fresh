@@ -10,6 +10,7 @@ export function cjsPlugin(
   const EXPORTED_NAMESPACES = "exported_namespaces";
   const ALIASED = "aliased";
   const REEXPORT = "re-export";
+  const ASSIGN_EXPORT = "assign-export";
   const NEEDS_REQUIRE_IMPORT = "needsRequireImport";
 
   return {
@@ -39,6 +40,7 @@ export function cjsPlugin(
           }
 
           const reexport = state.get(REEXPORT);
+          const assignExport = state.get(ASSIGN_EXPORT);
           const exported = state.get(EXPORTED);
           const exportedNs = state.get(EXPORTED_NAMESPACES);
           const needsRequireImport = state.get(NEEDS_REQUIRE_IMPORT);
@@ -198,7 +200,7 @@ export function cjsPlugin(
 
             path.pushContainer(
               "body",
-              t.variableDeclaration("const", [
+              t.variableDeclaration("var", [
                 t.variableDeclarator(
                   id,
                   t.logicalExpression(
@@ -213,7 +215,7 @@ export function cjsPlugin(
               ]),
             );
 
-            if (!hasEsModule) {
+            if (!hasEsModule && !assignExport) {
               path.pushContainer(
                 "body",
                 t.expressionStatement(
@@ -227,32 +229,35 @@ export function cjsPlugin(
                   ),
                 ),
               );
-              path.pushContainer(
-                "body",
-                t.expressionStatement(
-                  t.assignmentExpression(
-                    "=",
-                    t.memberExpression(
-                      t.identifier("exports"),
-                      t.identifier("__esModule"),
-                    ),
-                    t.booleanLiteral(true),
-                  ),
-                ),
-              );
-              path.pushContainer(
-                "body",
-                t.exportNamedDeclaration(
-                  t.variableDeclaration(
-                    "const",
-                    [t.variableDeclarator(
-                      t.identifier("__esModule"),
-                      t.booleanLiteral(true),
-                    )],
-                  ),
-                ),
-              );
             }
+            if (assignExport === null) {
+              // path.pushContainer(
+              //   "body",
+              //   t.expressionStatement(
+              //     t.assignmentExpression(
+              //       "=",
+              //       t.memberExpression(
+              //         t.identifier("exports"),
+              //         t.identifier("__esModule"),
+              //       ),
+              //       t.booleanLiteral(true),
+              //     ),
+              //   ),
+              // );
+            }
+            path.pushContainer(
+              "body",
+              t.exportNamedDeclaration(
+                t.variableDeclaration(
+                  "var",
+                  [t.variableDeclarator(
+                    t.identifier("__esModule"),
+                    t.booleanLiteral(true),
+                  )],
+                ),
+              ),
+            );
+            // }
 
             for (const [local, exported] of exportNamed.entries()) {
               if (exported === "default") continue;
@@ -539,6 +544,18 @@ export function cjsPlugin(
           ) {
             const source = path.node.expression.right.arguments[0];
             state.set(REEXPORT, source);
+            state.set(ASSIGN_EXPORT, true);
+          } else if (
+            // Check not obj: module.exports = FOO
+            t.isAssignmentExpression(path.node.expression) &&
+            t.isMemberExpression(path.node.expression.left) &&
+            t.isIdentifier(path.node.expression.left.object) &&
+            t.isIdentifier(path.node.expression.left.property) &&
+            path.node.expression.left.object.name === "module" &&
+            path.node.expression.left.property.name === "exports" &&
+            !t.isObjectExpression(path.node.expression.right)
+          ) {
+            state.set(ASSIGN_EXPORT, true);
           } else {
             let depth = 0;
             let current = path.node.expression;

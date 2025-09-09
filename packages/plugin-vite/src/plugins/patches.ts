@@ -57,15 +57,6 @@ export function patches(): Plugin {
         });
 
         if (res?.code) {
-          if (id.includes("memory-code-points.js")) {
-            console.log(res.code);
-            console.log("================================");
-          }
-          if (id.includes("mime-db/index.js")) {
-            console.log(res.code);
-            console.log("================================");
-          }
-
           return {
             code: res.code,
             map: res.map,
