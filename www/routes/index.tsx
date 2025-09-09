@@ -77,7 +77,7 @@ function HelloBar() {
       href="https://deno.com/blog/fresh-and-vite"
     >
       Fresh 2 <b>release with vite</b>{" "}
-      <span class="group-hovser:underline">→</span>
+      <span class="group-hover:underline">→</span>
     </a>
   );
 }
