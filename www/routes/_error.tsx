@@ -39,6 +39,9 @@ export default function ErrorPage(props: PageProps) {
     }
   }
 
+  // deno-lint-ignore no-console
+  console.error(error);
+
   return ServerCodePage({
     serverCode: 500,
     codeDescription: "Oops! Something went wrong.",
