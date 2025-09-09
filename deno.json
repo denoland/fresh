@@ -86,7 +86,8 @@
     "imagescript": "https://deno.land/x/imagescript@1.3.0/mod.ts",
     "marked": "npm:marked@^15.0.11",
     "marked-mangle": "npm:marked-mangle@^1.1.9",
-    "prismjs": "npm:prismjs@^1.29.0"
+    "prismjs": "npm:prismjs@^1.29.0",
+    "vite": "npm:vite@^7.1.5"
   },
   "compilerOptions": {
     "lib": ["dom", "dom.asynciterable", "deno.ns", "deno.unstable"],

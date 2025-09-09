@@ -103,7 +103,8 @@
     "npm:vite-plugin-inspect@^11.3.2": "11.3.3_vite@7.1.4__@types+node@24.3.0__picomatch@4.0.3_@types+node@24.3.0_@types+node@24.2.0",
     "npm:vite@*": "7.1.4_@types+node@24.3.0_picomatch@4.0.3_@types+node@24.2.0",
     "npm:vite@7.1.4": "7.1.4_@types+node@24.3.0_picomatch@4.0.3_@types+node@24.2.0",
-    "npm:vite@^7.1.4": "7.1.4_@types+node@24.3.0_picomatch@4.0.3_@types+node@24.2.0"
+    "npm:vite@^7.1.4": "7.1.4_@types+node@24.3.0_picomatch@4.0.3_@types+node@24.2.0",
+    "npm:vite@^7.1.5": "7.1.5_@types+node@24.2.0_picomatch@4.0.3"
   },
   "jsr": {
     "@astral/astral@0.5.3": {
@@ -3800,6 +3801,13 @@
         "picomatch@4.0.3"
       ]
     },
+    "tinyglobby@0.2.15_picomatch@4.0.3": {
+      "integrity": "sha512-j2Zq4NyQYG5XMST4cbs02Ak8iJUdxRM0XI5QyxXuZOzKOINmWurp3smXu3y5wDcJrptwpSjgXHzIQxR0omXljQ==",
+      "dependencies": [
+        "fdir",
+        "picomatch@4.0.3"
+      ]
+    },
     "to-regex-range@5.0.1": {
       "integrity": "sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==",
       "dependencies": [
@@ -3935,7 +3943,7 @@
         "picomatch@4.0.3",
         "postcss",
         "rollup",
-        "tinyglobby"
+        "tinyglobby@0.2.14_picomatch@4.0.3"
       ],
       "optionalDependencies": [
         "fsevents"
@@ -3954,7 +3962,26 @@
         "picomatch@4.0.3",
         "postcss",
         "rollup",
-        "tinyglobby"
+        "tinyglobby@0.2.14_picomatch@4.0.3"
+      ],
+      "optionalDependencies": [
+        "fsevents"
+      ],
+      "optionalPeers": [
+        "@types/node@24.2.0"
+      ],
+      "bin": true
+    },
+    "vite@7.1.5_@types+node@24.2.0_picomatch@4.0.3": {
+      "integrity": "sha512-4cKBO9wR75r0BeIWWWId9XK9Lj6La5X846Zw9dFfzMRw38IlTk2iCcUt6hsyiDRcPidc55ZParFYDXi0nXOeLQ==",
+      "dependencies": [
+        "@types/node@24.2.0",
+        "esbuild",
+        "fdir",
+        "picomatch@4.0.3",
+        "postcss",
+        "rollup",
+        "tinyglobby@0.2.15_picomatch@4.0.3"
       ],
       "optionalDependencies": [
         "fsevents"
@@ -4135,7 +4162,8 @@
       "npm:prismjs@^1.29.0",
       "npm:rollup@^4.50.0",
       "npm:tailwindcss@^4.1.10",
-      "npm:ts-morph@26"
+      "npm:ts-morph@26",
+      "npm:vite@^7.1.5"
     ],
     "members": {
       "packages/build-id": {
