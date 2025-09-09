@@ -1,6 +1,6 @@
 {
   "name": "@fresh/plugin-vite",
-  "version": "0.10.2",
+  "version": "1.0.0",
   "license": "MIT",
   "exports": {
     ".": "./src/mod.ts"
@@ -31,7 +31,7 @@
     "@types/babel__core": "npm:@types/babel__core@^7.20.5",
     "@types/node": "npm:@types/node@^24.1.0",
     "feed": "npm:feed@^5.1.0",
-    "fresh": "jsr:@fresh/core@^2.0.0-alpha.60",
+    "fresh": "jsr:@fresh/core@^2.0.0",
     "ioredis": "npm:ioredis@^5.7.0",
     "mime-db": "npm:mime-db@^1.54.0",
     "pg": "npm:pg@^8.16.3",
