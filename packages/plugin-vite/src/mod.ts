@@ -174,7 +174,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
     ...devServer(),
     prefresh({
       include: [/\.[cm]?[tj]sx?$/],
-      exclude: [/node_modules/],
+      exclude: [/node_modules/, /\/deno\/npm\//],
       parserPlugins: [
         "importMeta",
         "explicitResourceManagement",
