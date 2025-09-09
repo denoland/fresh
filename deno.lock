@@ -4127,7 +4127,7 @@
       "jsr:@deno/doc@0.172",
       "jsr:@deno/esbuild-plugin@^1.2.0",
       "jsr:@fresh/build-id@1",
-      "jsr:@fresh/core@^2.0.0-beta.5",
+      "jsr:@fresh/core@2",
       "jsr:@marvinh-test/fresh-island@^0.0.3",
       "jsr:@std/async@^1.0.13",
       "jsr:@std/cli@^1.0.19",
@@ -4189,7 +4189,7 @@
       "packages/plugin-vite": {
         "dependencies": [
           "jsr:@deno/loader@~0.3.2",
-          "jsr:@fresh/core@^2.0.0-alpha.60",
+          "jsr:@fresh/core@2",
           "jsr:@marvinh-test/import-json@^0.0.1",
           "npm:@babel/core@^7.28.0",
           "npm:@babel/preset-react@^7.27.1",

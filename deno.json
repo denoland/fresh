@@ -50,7 +50,7 @@
     "docsearch": "https://esm.sh/@docsearch/js@3.5.2?target=es2020",
     "esbuild": "npm:esbuild@0.25.7",
     "esbuild-wasm": "npm:esbuild-wasm@0.25.7",
-    "fresh": "jsr:@fresh/core@^2.0.0-beta.5",
+    "fresh": "jsr:@fresh/core@^2.0.0",
     "mime-db": "npm:mime-db@^1.54.0",
     "preact": "npm:preact@^10.27.0",
     "preact-render-to-string": "npm:preact-render-to-string@^6.5.11",
