@@ -9,6 +9,3 @@ coverage/
 vite-inspect/
 .vite-inspect/
 demo/dist/
-
-# Local development
-CLAUDE.md
