@@ -16,6 +16,7 @@ import toc from "../../../docs/toc.ts";
 import { TableOfContents } from "../../islands/TableOfContents.tsx";
 import SearchButton from "../../islands/SearchButton.tsx";
 import VersionSelect from "../../islands/VersionSelect.tsx";
+import CodeCopyButton from "../../islands/CodeCopyButton.tsx";
 import { define } from "../../utils/state.ts";
 
 interface Data {
@@ -221,6 +222,7 @@ export default define.page<typeof handler>(function DocsPage(props) {
                     // deno-lint-ignore react-no-danger
                     dangerouslySetInnerHTML={{ __html: html }}
                   />
+                  <CodeCopyButton />
 
                   <div class="mb-8">
                     <ForwardBackButtons

@@ -172,7 +172,9 @@ class DefaultRenderer extends Marked.Renderer {
     const icon = LOGOS.find((l) => l.file.test(title)) ??
       LOGOS.find((l) => l.lang.test(lang));
 
-    let out = `<div class="fenced-code">`;
+    let out = `<div class="fenced-code relative" data-code-lang="${
+      escapeHtml(lang)
+    }" data-code-text="${escapeHtml(text)}">`;
 
     if (title || icon) {
       const image = icon

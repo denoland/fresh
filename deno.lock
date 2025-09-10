@@ -12,6 +12,7 @@
     "jsr:@deno/loader@~0.3.3": "0.3.5",
     "jsr:@marvinh-test/fresh-island@^0.0.3": "0.0.3",
     "jsr:@marvinh-test/import-json@^0.0.1": "0.0.1",
+    "jsr:@std/assert@1": "1.0.14",
     "jsr:@std/assert@^1.0.13": "1.0.14",
     "jsr:@std/assert@^1.0.14": "1.0.14",
     "jsr:@std/async@1": "1.0.14",
@@ -4211,6 +4212,7 @@
       },
       "www": {
         "dependencies": [
+          "jsr:@std/assert@^1.0.14",
           "npm:@tailwindcss/vite@^4.1.12",
           "npm:vite-plugin-inspect@^11.3.2",
           "npm:vite@^7.1.4"

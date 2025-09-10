@@ -5,6 +5,7 @@
     "build": "vite build"
   },
   "imports": {
+    "@std/assert": "jsr:@std/assert@^1.0.14",
     "@tailwindcss/vite": "npm:@tailwindcss/vite@^4.1.12",
     "vite": "npm:vite@^7.1.4",
     "vite-plugin-inspect": "npm:vite-plugin-inspect@^11.3.2"
