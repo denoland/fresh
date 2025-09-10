@@ -168,6 +168,20 @@ project/
 - **Legacy mode**: Use `@fresh/plugin-tailwindcss` or
   `@fresh/plugin-tailwindcss-v3`
 
+## Contributing
+
+For contributors working on Fresh itself:
+
+- **Required check**: Run `deno task ok` before submitting PRs
+- **Local development**: Workspace automatically links packages for testing
+- **Testing changes**: Use `deno task www` (docs site) and `deno task demo`
+  (Vite plugin)
+- **External testing**: Use `links` in `deno.json` to override JSR packages with
+  local ones
+- **Documentation**: See
+  [Contributing Guide](https://fresh.deno.dev/docs/contributing) for detailed
+  setup instructions
+
 ## Code Conventions
 
 - Uses Preact as the React-like library
