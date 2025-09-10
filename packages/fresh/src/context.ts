@@ -251,6 +251,7 @@ export class Context<State> {
         req: this.req,
         state: this.state,
         url: this.url,
+        route: this.route,
       });
     } else {
       hasApp = false;
