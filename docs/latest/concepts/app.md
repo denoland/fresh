@@ -300,7 +300,18 @@ TODO: Route
 
 ## `.mountApp()`
 
-TODO
+Mount an entire other app at the specified path.
+
+```ts
+const someRoutes = new App()
+  .get("/sitemap.xml", (ctx) => {/* ... */})
+  .get("/robots.txt", (ctx) => {/* ... */});
+
+export const app = new App()
+  .use(staticFiles())
+  .mountApp("/", someRoutes())
+  .fsRoutes();
+```
 
 ## `.handler()`
 
