@@ -56,6 +56,7 @@ export type PageProps<Data = unknown, T = unknown> =
     | "url"
     | "req"
     | "params"
+    | "route"
     | "info"
     | "state"
     | "isPartial"
