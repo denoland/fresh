@@ -106,22 +106,36 @@ Deno.test("MyLayout - renders heading and content", async () => {
 
 ## Testing with file routes and islands
 
-[File routes](/docs/concepts/file-routing) are collected by the
-[`Builder`](/docs/advanced/builder) class and not just by
-[`App`](/docs/concepts/app) alone. We can generate a snapshot and re-use it for
-many app instances in our test suite.
+[File routes](/docs/concepts/file-routing) are collected by Vite's build process
+and not just by [`App`](/docs/concepts/app) alone. We can generate a build and
+re-use it for many app instances in our test suite.
 
 ```ts my-app.test.ts
 import { createBuilder } from "vite";
+import * as path from "@std/path";
+
 // Best to do this once instead of for every test case for
 // performance reasons.
 const builder = await createBuilder({
+  logLevel: "error",
   root: "./path/to/app",
   build: {
     emptyOutDir: true,
   },
+  environments: {
+    ssr: {
+      build: {
+        outDir: path.join("./path/to/app", "_fresh", "server"),
+      },
+    },
+    client: {
+      build: {
+        outDir: path.join("./path/to/app", "_fresh", "client"),
+      },
+    },
+  },
 });
-await builder.build();
+await builder.buildApp();
 
 const { app } = await import("./path/to/app/_fresh/server.js");
 
