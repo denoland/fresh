@@ -147,15 +147,23 @@ behavior:
 ### Server-side rendering of islands
 
 You can test that your islands render correctly on the server using the same
-[`App`](/docs/concepts/app) pattern:
+[`App`](/docs/concepts/app) pattern. Note: this requires a `.tsx` file extension
+to use JSX:
 
-```ts island-ssr.test.ts
+```tsx island-ssr.test.tsx
 import { expect } from "@std/expect";
 import { App } from "fresh";
-import { handler as pageHandler } from "./routes/counter-page.tsx";
+import Counter from "./islands/Counter.tsx";
 
 Deno.test("Counter page renders island", async () => {
-  const app = new App().get("/counter", pageHandler);
+  const app = new App().get("/counter", (ctx) => {
+    return ctx.render(
+      <div className="p-8">
+        <h1>Counter Test Page</h1>
+        <Counter />
+      </div>,
+    );
+  });
   const handler = app.handler();
 
   const response = await handler(new Request("http://localhost/counter"));
@@ -173,10 +181,9 @@ For testing client-side island behavior (clicks, state changes, etc.), you need
 a full build and browser environment. You can use the approach similar to
 Fresh's own tests:
 
-```ts island-client.test.ts
+```tsx island-client.test.tsx
 import { expect } from "@std/expect";
 import { createBuilder } from "vite";
-import { withBrowser } from "@std/testing/browser";
 import * as path from "@std/path";
 
 // Create a production build
@@ -191,37 +198,29 @@ const builder = await createBuilder({
 });
 await builder.buildApp();
 
-const { app } = await import("./_fresh/server.js");
+const app = await import("./_fresh/server.js");
 
-Deno.test("Counter island is interactive", async () => {
+Deno.test("Counter island renders correctly", async () => {
   // Start production server
   const server = Deno.serve({
     port: 0,
-    handler: app.handler(),
+    handler: app.default.fetch,
   });
 
   const { port } = server.addr as Deno.NetAddr;
   const address = `http://localhost:${port}`;
 
   try {
-    await withBrowser(async (page) => {
-      await page.goto(`${address}/counter`, {
-        waitUntil: "networkidle2",
-      });
+    // Basic smoke test: verify the island HTML is served
+    const response = await fetch(`${address}/counter`);
+    const html = await response.text();
 
-      // Wait for island to hydrate and become interactive
-      await page.locator("button").wait();
-      await page.textContent("button", { timeout: 5000 });
+    expect(html).toContain('class="counter"');
+    expect(html).toContain("count: 0");
 
-      // Test initial state
-      const initialText = await page.textContent("button");
-      expect(initialText).toContain("count: 0");
-
-      // Test interactivity
-      await page.locator("button").click();
-      const updatedText = await page.textContent("button");
-      expect(updatedText).toContain("count: 1");
-    });
+    // For full browser interactivity testing, you would need:
+    // - Browser automation tools (Puppeteer, Playwright)
+    // - withBrowser utility from Fresh's test suite
   } finally {
     await server.shutdown();
   }
