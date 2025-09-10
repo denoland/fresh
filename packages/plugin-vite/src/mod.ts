@@ -65,6 +65,9 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
             jsxImportSource: "preact",
             jsxDev: env.command === "serve",
           },
+          json: {
+            namedExports: false,
+          },
           resolve: {
             alias: {
               "react-dom/test-utils": "preact/test-utils",
@@ -76,6 +79,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
             // environment.
             noExternal: true,
           },
+
           optimizeDeps: {
             // Optimize deps somehow leads to duplicate modules or them
             // being placed in the wrong chunks...
@@ -107,7 +111,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
 
                 outDir: config.environments?.client?.build?.outDir ??
                   "_fresh/client",
-                rollupOptions: {
+                rolldownOptions: {
                   preserveEntrySignatures: "strict",
                   input: {
                     "client-entry": "fresh:client-entry",
@@ -123,7 +127,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
 
                 outDir: config.environments?.ssr?.build?.outDir ??
                   "_fresh/server",
-                rollupOptions: {
+                rolldownOptions: {
                   onwarn(warning, handler) {
                     // Ignore "use client"; warnings
                     if (warning.code === "MODULE_LEVEL_DIRECTIVE") {

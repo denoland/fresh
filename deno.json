@@ -76,6 +76,7 @@
     "@std/testing": "jsr:@std/testing@^1.0.12",
 
     "@tailwindcss/postcss": "npm:@tailwindcss/postcss@^4.1.10",
+    "rolldown": "npm:rolldown@^1.0.0-beta.36",
     "rollup": "npm:rollup@^4.50.0",
     "tailwindcss": "npm:tailwindcss@^4.1.10",
     "postcss": "npm:postcss@8.5.6",
@@ -88,7 +89,7 @@
     "marked": "npm:marked@^15.0.11",
     "marked-mangle": "npm:marked-mangle@^1.1.9",
     "prismjs": "npm:prismjs@^1.29.0",
-    "vite": "npm:vite@^7.1.5"
+    "vite": "npm:rolldown-vite@^7.1.5"
   },
   "compilerOptions": {
     "lib": ["dom", "dom.asynciterable", "deno.ns", "deno.unstable"],
