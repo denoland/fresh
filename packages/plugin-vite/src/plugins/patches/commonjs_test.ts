@@ -25,7 +25,10 @@ Object.defineProperty(module, "exports", {
 });`;
 
 const DEFAULT_EXPORT = `const _default = exports.default ?? exports;`;
-const DEFAULT_EXPORT_END = `export default _default;`;
+const DEFAULT_EXPORT_END = `export default _default;
+export var __require = exports;`;
+const IMPORT_REQUIRE = `import { createRequire } from "node:module";
+const require = createRequire(import.meta.url);`;
 
 Deno.test("commonjs - module.exports default", () => {
   runTest({
@@ -160,7 +163,7 @@ Deno.test("commonjs - require", () => {
 console.log(foo);
 `,
     expected: `import * as _mod from "tape";
-var foo = _mod.default ?? _mod;
+var foo = _mod.__require ?? _mod.default ?? _mod;
 console.log(foo);`,
   });
 });
@@ -204,7 +207,7 @@ Deno.test("commonjs - require function call", () => {
   runTest({
     input: `var a = require('./a')()`,
     expected: `import * as _mod from './a';
-var a = (_mod.default ?? _mod)();`,
+var a = (_mod.__require ?? _mod.default ?? _mod)();`,
   });
 });
 
@@ -212,7 +215,7 @@ Deno.test("commonjs - require var decls", () => {
   runTest({
     input: `var a = require('./a'), b = 42;`,
     expected: `import * as _mod from './a';
-var a = _mod.default ?? _mod,
+var a = _mod.__require ?? _mod.default ?? _mod,
   b = 42;`,
   });
 });
@@ -239,14 +242,11 @@ Deno.test("commonjs - cleared exports", () => {
 exports.foo = exports.bar = void 0;
 exports.foo = 'foo'`,
     expected: `${INIT}
-exports.foo = exports.bar = void 0;
 exports.foo = 'foo';
 var _foo = exports.foo;
-var _bar = exports.bar;
-export { _foo as foo, _bar as bar };
+export { _foo as foo };
 ${DEFAULT_EXPORT}
 _default.foo = _foo;
-_default.bar = _bar;
 ${DEFAULT_EXPORT_END}`,
   });
 });
@@ -257,13 +257,8 @@ Deno.test("commonjs - define exports", () => {
 Object.defineProperty(exports, "foo", { enumerable: true, get: function () { return utils_1.foo; } });`,
     expected: `${INIT}
 import * as _mod from "./bar";
-var utils_1 = _mod.default ?? _mod;
-Object.defineProperty(exports, "foo", {
-  enumerable: true,
-  get: function () {
-    return utils_1.foo;
-  }
-});
+var utils_1 = _mod.__require ?? _mod.default ?? _mod;
+exports.foo = utils_1.foo;
 var _foo = exports.foo;
 export { _foo as foo };
 ${DEFAULT_EXPORT}
@@ -278,13 +273,8 @@ Deno.test("commonjs - define exports #2", () => {
 Object.defineProperty(exports, "foo", { enumerable: true, get() { return utils_1.foo; } });`,
     expected: `${INIT}
 import * as _mod from "./bar";
-var utils_1 = _mod.default ?? _mod;
-Object.defineProperty(exports, "foo", {
-  enumerable: true,
-  get() {
-    return utils_1.foo;
-  }
-});
+var utils_1 = _mod.__require ?? _mod.default ?? _mod;
+exports.foo = utils_1.foo;
 var _foo = exports.foo;
 export { _foo as foo };
 ${DEFAULT_EXPORT}
@@ -450,6 +440,21 @@ Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./node"), exports);`,
     expected: `${INIT}
 import * as _ns from "./node";
+var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
+  if (k2 === undefined) k2 = k;
+  Object.defineProperty(o, k2, {
+    enumerable: true,
+    get: function () {
+      return m[k];
+    }
+  });
+} : function (o, m, k, k2) {
+  if (k2 === undefined) k2 = k;
+  o[k2] = m[k];
+});
+var __exportStar = this && this.__exportStar || function (m, exports) {
+  for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
 export * from "./node";
 ${DEFAULT_EXPORT}
 Object.assign(_default, _ns);
@@ -468,6 +473,115 @@ var _foo = exports.foo;
 export { _foo as foo };
 ${DEFAULT_EXPORT}
 _default.foo = _foo;
+${DEFAULT_EXPORT_END}`,
+  });
+});
+
+Deno.test("commonjs - require non-analyzable arg", () => {
+  runTest({
+    input: `const pkg = require(path.join(basedir, "package.json"))`,
+    expected: `import { createRequire } from "node:module";
+const require = createRequire(import.meta.url);
+const pkg = require(path.join(basedir, "package.json"));`,
+  });
+});
+
+Deno.test("commonjs - keep binding", () => {
+  runTest({
+    input: `export var __createBinding = Object.create ? 1 : 2;`,
+    expected: `export var __createBinding = Object.create ? 1 : 2;`,
+  });
+});
+
+Deno.test("commonjs - require lazy import", () => {
+  runTest({
+    input: `if (typeof process.env.NODE_PG_FORCE_NATIVE !== 'undefined') {
+  module.exports = new PG(require('./native'))
+} else {
+  module.exports = new PG(Client)
+
+  // lazy require native module...the native module may not have installed
+  Object.defineProperty(module.exports, 'native', {
+    configurable: true,
+    enumerable: false,
+    get() {
+      let native = null
+      try {
+        native = new PG(require('./native'))
+      } catch (err) {
+        if (err.code !== 'MODULE_NOT_FOUND') {
+          throw err
+        }
+      }
+
+      // overwrite module.exports.native so that getter is never called again
+      Object.defineProperty(module.exports, 'native', {
+        value: native,
+      })
+
+      return native
+    },
+  })
+}`,
+    expected: `${INIT}
+${IMPORT_REQUIRE}
+if (typeof process.env.NODE_PG_FORCE_NATIVE !== 'undefined') {
+  module.exports = new PG(require('./native'));
+} else {
+  module.exports = new PG(Client);
+
+  // lazy require native module...the native module may not have installed
+  Object.defineProperty(module.exports, 'native', {
+    configurable: true,
+    enumerable: false,
+    get() {
+      let native = null;
+      try {
+        native = new PG(require('./native'));
+      } catch (err) {
+        if (err.code !== 'MODULE_NOT_FOUND') {
+          throw err;
+        }
+      }
+
+      // overwrite module.exports.native so that getter is never called again
+      Object.defineProperty(module.exports, 'native', {
+        value: native
+      });
+      return native;
+    }
+  });
+}
+${DEFAULT_EXPORT}
+${DEFAULT_EXPORT_END}`,
+  });
+});
+
+Deno.test("commonjs - wrapped iife binding", () => {
+  runTest({
+    input: `"production" !== process.env.NODE_ENV && (function() {
+  exports.foo = 123
+})()`,
+    expected: `${INIT}
+"production" !== process.env.NODE_ENV && function () {
+  exports.foo = 123;
+}();
+var _foo = exports.foo;
+export { _foo as foo };
+${DEFAULT_EXPORT}
+_default.foo = _foo;
+${DEFAULT_EXPORT_END}`,
+  });
+});
+
+Deno.test("commonjs - re-export", () => {
+  runTest({
+    input: `module.exports = require("foo");`,
+    expected: `${INIT}
+export * from "foo";
+import * as _mod from "foo";
+module.exports = _mod;
+${DEFAULT_EXPORT}
 ${DEFAULT_EXPORT_END}`,
   });
 });

@@ -18,6 +18,13 @@ export function denoGlobal({ types: t }: { types: typeof types }): PluginObj {
           ) {
             return;
           }
+          // Ignore `Deno?.thing` expression. Those will result in undefined, and that might be used for shims.
+          if (
+            t.isOptionalMemberExpression(path.parent) &&
+            path.parent.object === path.node
+          ) {
+            return;
+          }
 
           throw path.buildCodeFrameError(
             `The Deno.* global cannot be used in the browser.`,

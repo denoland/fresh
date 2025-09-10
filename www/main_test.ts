@@ -1,4 +1,3 @@
-import VERSIONS from "../versions.json" with { type: "json" };
 import {
   withBrowser,
   withChildProcessServer,
@@ -55,15 +54,9 @@ Deno.test({
                 }));
               });
 
-            expect(options).toEqual([
-              {
-                value: "canary",
-                label: "canary",
-              },
-              {
-                value: "latest",
-                label: VERSIONS[0],
-              },
+            expect(options.map((item) => item.value)).toEqual([
+              "latest",
+              "1.x",
             ]);
 
             const selectValue = await page
@@ -76,7 +69,7 @@ Deno.test({
               const el = document.querySelector(
                 "#version",
               ) as HTMLSelectElement;
-              el.value = "canary";
+              el.value = "1.x";
               el.dispatchEvent(new Event("change"));
             });
 
@@ -86,11 +79,11 @@ Deno.test({
             const selectValue2 = await page
               .locator<HTMLSelectElement>("#version")
               .evaluate((el) => el.value);
-            expect(selectValue2).toEqual("canary");
+            expect(selectValue2).toEqual("1.x");
 
             await page.waitForFunction(() => {
               const url = new URL(window.location.href);
-              return url.pathname === "/docs/canary/introduction";
+              return url.pathname === "/docs/1.x/introduction";
             });
           });
         },

@@ -328,7 +328,7 @@ Deno.test({
 });
 
 Deno.test({
-  name: "vite build - island css modules",
+  name: "vite build - css modules",
   fn: async () => {
     await launchProd(
       { cwd: viteResult.tmp },
@@ -338,11 +338,30 @@ Deno.test({
             waitUntil: "networkidle2",
           });
 
-          const color = await page
-            .locator("h1")
+          let color = await page
+            .locator(".red > h1")
             // deno-lint-ignore no-explicit-any
             .evaluate((el) => window.getComputedStyle(el as any).color);
           expect(color).toEqual("rgb(255, 0, 0)");
+
+          color = await page
+            .locator(".green > h1")
+            // deno-lint-ignore no-explicit-any
+            .evaluate((el) => window.getComputedStyle(el as any).color);
+          expect(color).toEqual("rgb(0, 128, 0)");
+
+          color = await page
+            .locator(".blue > h1")
+            // deno-lint-ignore no-explicit-any
+            .evaluate((el) => window.getComputedStyle(el as any).color);
+          expect(color).toEqual("rgb(0, 0, 255)");
+
+          // Route css
+          color = await page
+            .locator(".route > h1")
+            // deno-lint-ignore no-explicit-any
+            .evaluate((el) => window.getComputedStyle(el as any).color);
+          expect(color).toEqual("rgb(255, 218, 185)");
         });
       },
     );
@@ -408,6 +427,22 @@ Deno.test({
     const fixture = path.join(FIXTURE_DIR, "deno_global_ssr");
 
     await buildVite(fixture);
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite build - static index.html",
+  fn: async () => {
+    await launchProd(
+      { cwd: viteResult.tmp },
+      async (address) => {
+        const res = await fetch(`${address}/test_static/foo`);
+        const text = await res.text();
+        expect(text).toContain("<h1>ok</h1>");
+      },
+    );
   },
   sanitizeOps: false,
   sanitizeResources: false,

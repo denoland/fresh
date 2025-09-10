@@ -25,7 +25,7 @@ import { parseDirPath } from "../config.ts";
 import { pathToExportName, UniqueNamer } from "../utils.ts";
 import { checkDenoCompilerOptions } from "./check.ts";
 import { crawlFsItem } from "./fs_crawl.ts";
-import { DAY } from "../constants.ts";
+import { UPDATE_INTERVAL } from "../constants.ts";
 
 export interface BuildOptions {
   /**
@@ -158,7 +158,7 @@ export class Builder<State = any> {
     options: ListenOptions = {},
   ): Promise<void> {
     // Run update check in background
-    updateCheck(DAY).catch(() => {});
+    updateCheck(UPDATE_INTERVAL).catch(() => {});
 
     this.config.mode = "development";
 

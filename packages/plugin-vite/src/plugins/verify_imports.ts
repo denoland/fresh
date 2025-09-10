@@ -51,91 +51,98 @@ export function checkImports(pluginOptions: CheckImportOptions): Plugin {
     configResolved(config) {
       root = pathWithRoot(config.root);
     },
-    async resolveId(id, importer, options) {
-      if (
-        id.startsWith("\0") || id.startsWith("/@fs/") ||
-        id.startsWith("fresh-island::") || id.startsWith("fresh:") ||
-        id.includes("node_modules") ||
-        importer &&
+    resolveId: {
+      filter: {
+        id: [
+          /^(?!\0|[\\/]@fs[\\/]|fresh-island::|fresh:)/,
+          /[\\/]node_modules[\\/]/,
+        ],
+      },
+      async handler(id, importer, options) {
+        if (
+          importer &&
           (importer.startsWith("\0") || importer.includes("node_modules") ||
             importer.includes("deno::"))
-      ) {
-        return;
-      }
-      const env = options.ssr ? "ssr" : "client";
+        ) {
+          return;
+        }
+        const env = options.ssr ? "ssr" : "client";
 
-      let result: ImportCheckDiagnostic | undefined;
-      if (id.startsWith(".")) {
-        const resolved = await this.resolve(id, importer, options);
+        let result: ImportCheckDiagnostic | undefined;
+        if (id.startsWith(".")) {
+          const resolved = await this.resolve(id, importer, options);
 
-        if (resolved !== null) {
-          const key = `${env}::${resolved.id}::${importer}`;
-          if (!seen.has(key)) {
-            result = check(pluginOptions, resolved.id, env);
+          if (resolved !== null) {
+            const key = `${env}::${resolved.id}::${importer}`;
+            if (!seen.has(key)) {
+              result = check(pluginOptions, resolved.id, env);
+            }
+
+            seen.add(key);
           }
-
+        } else {
+          const key = `${env}::${id}::${importer}`;
+          if (!seen.has(key)) {
+            result = check(pluginOptions, id, env);
+          }
           seen.add(key);
         }
-      } else {
-        const key = `${env}::${id}::${importer}`;
-        if (!seen.has(key)) {
-          result = check(pluginOptions, id, env);
-        }
-        seen.add(key);
-      }
 
-      if (result) {
-        const label = result.type === "warn"
-          ? cl.inverse(cl.yellow(` WARN `))
-          : cl.inverse(cl.red(` ERROR `));
+        if (result) {
+          const label = result.type === "warn"
+            ? cl.inverse(cl.yellow(` WARN `))
+            : cl.inverse(cl.red(` ERROR `));
 
-        // deno-lint-ignore no-console
-        console.log();
-        // deno-lint-ignore no-console
-        console.log();
-        // deno-lint-ignore no-console
-        console.log(`${label} ${result.message}`);
-        // deno-lint-ignore no-console
-        console.log();
+          // deno-lint-ignore no-console
+          console.log();
+          // deno-lint-ignore no-console
+          console.log();
+          // deno-lint-ignore no-console
+          console.log(`${label} ${result.message}`);
+          // deno-lint-ignore no-console
+          console.log();
 
-        if (importer !== undefined) {
-          const ancestors = findAncestors(this, importer, isDev);
+          if (importer !== undefined) {
+            const ancestors = findAncestors(this, importer, isDev);
 
-          if (ancestors && ancestors.length > 0) {
-            // deno-lint-ignore no-console
-            console.log(`The specifier ${cl.cyan(`"${id}"`)} was imported in:`);
-            ancestors.forEach((spec) => {
-              if (path.isAbsolute(spec)) {
-                spec = path.relative(root, spec);
-              }
+            if (ancestors && ancestors.length > 0) {
               // deno-lint-ignore no-console
-              console.log(` - ${cl.cyan(spec)}`);
-            });
+              console.log(
+                `The specifier ${cl.cyan(`"${id}"`)} was imported in:`,
+              );
+              ancestors.forEach((spec) => {
+                if (path.isAbsolute(spec)) {
+                  spec = path.relative(root, spec);
+                }
+                // deno-lint-ignore no-console
+                console.log(` - ${cl.cyan(spec)}`);
+              });
 
+              // deno-lint-ignore no-console
+              console.log();
+            }
+          }
+
+          if (result.hint) {
+            // deno-lint-ignore no-console
+            console.log(cl.bold(` hint: `) + result.hint);
             // deno-lint-ignore no-console
             console.log();
           }
-        }
 
-        if (result.hint) {
-          // deno-lint-ignore no-console
-          console.log(cl.bold(` hint: `) + result.hint);
-          // deno-lint-ignore no-console
-          console.log();
+          if (result.type === "error") {
+            this.error({
+              message: result.message,
+              id: importer,
+            });
+          } else {
+            this.warn({
+              message: result.message,
+              id: importer,
+            });
+          }
         }
-
-        if (result.type === "error") {
-          this.error({
-            message: result.message,
-            id: importer,
-          });
-        } else {
-          this.warn({
-            message: result.message,
-            id: importer,
-          });
-        }
-      }
+      },
     },
   };
 }

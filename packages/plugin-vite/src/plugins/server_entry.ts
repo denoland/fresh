@@ -39,21 +39,28 @@ export function serverEntryPlugin(
         config.root,
       );
     },
-    resolveId(id) {
-      if (id === modName) {
-        return `\0${modName}`;
-      }
+    resolveId: {
+      filter: {
+        id: /fresh:server_entry/,
+      },
+      handler(id) {
+        if (id === modName) {
+          return `\0${modName}`;
+        }
+      },
     },
-    load(id) {
-      if (id !== `\0${modName}`) return;
+    load: {
+      filter: {
+        id: /\0fresh:server_entry/,
+      },
+      handler() {
+        let code = generateServerEntry({
+          root: isDev ? path.relative(serverOutDir, root) : "..",
+          serverEntry: path.toFileUrl(serverEntry).href,
+          snapshotSpecifier: "fresh:server-snapshot",
+        });
 
-      let code = generateServerEntry({
-        root: isDev ? path.relative(serverOutDir, root) : "..",
-        serverEntry: path.toFileUrl(serverEntry).href,
-        snapshotSpecifier: "fresh:server-snapshot",
-      });
-
-      code += `
+        code += `
       
 export function registerStaticFile(prepared) {
   snapshot.staticFiles.set(prepared.name, {
@@ -64,13 +71,14 @@ export function registerStaticFile(prepared) {
 }
 `;
 
-      if (isDev) {
-        code = `import "preact/debug";
+        if (isDev) {
+          code = `import "preact/debug";
 ${code}
 if (import.meta.hot) import.meta.hot.accept();`;
-      }
+        }
 
-      return code;
+        return code;
+      },
     },
     async writeBundle(_options, bundle) {
       const manifest = bundle[".vite/manifest.json"];
@@ -86,6 +94,18 @@ if (import.meta.hot) import.meta.hot.accept();`;
           if (item.assets) {
             for (let i = 0; i < item.assets.length; i++) {
               const id = item.assets[i];
+
+              staticFiles.push({
+                filePath: path.join(serverOutDir, id),
+                hash: null,
+                pathname: `/${id}`,
+              });
+            }
+          }
+
+          if (item.css) {
+            for (let i = 0; i < item.css.length; i++) {
+              const id = item.css[i];
 
               staticFiles.push({
                 filePath: path.join(serverOutDir, id),

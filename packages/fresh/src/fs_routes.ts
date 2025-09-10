@@ -25,6 +25,7 @@ export interface FreshFsMod<State> {
   default?:
     | AnyComponent<PageProps<unknown, State>>
     | AsyncAnyComponent<PageProps<unknown, State>>;
+  css?: string[];
 }
 
 export interface FsRouteFile<State> {
@@ -35,6 +36,7 @@ export interface FsRouteFile<State> {
   type: CommandType;
   routePattern: string;
   overrideConfig: RouteConfig | undefined;
+  css: string[];
 }
 
 // deno-lint-ignore no-explicit-any
@@ -334,5 +336,6 @@ function normalizeRoute<State>(
     // deno-lint-ignore no-explicit-any
     handler: (handlers as any) ?? undefined,
     component: mod.default,
+    css: rawMod.css,
   };
 }

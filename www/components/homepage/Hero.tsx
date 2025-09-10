@@ -14,7 +14,7 @@ export function Hero() {
             </h2>
             <div class="mt-12 flex flex-wrap justify-center items-stretch md:justify-start gap-4">
               <FancyLink href="/docs/getting-started">Get started</FancyLink>
-              <CopyArea code="deno run -Ar jsr:@fresh/init" />
+              <CopyArea code={`deno run -Ar jsr:@fresh/init`} />
             </div>
           </div>
           <div class="md:col-span-2 flex justify-center items-end">

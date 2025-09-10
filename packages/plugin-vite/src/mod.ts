@@ -14,7 +14,12 @@ import { clientSnapshot } from "./plugins/client_snapshot.ts";
 import { serverSnapshot } from "./plugins/server_snapshot.ts";
 import { patches } from "./plugins/patches.ts";
 import process from "node:process";
-import { specToName, UniqueNamer } from "@fresh/core/internal-dev";
+import {
+  specToName,
+  UniqueNamer,
+  UPDATE_INTERVAL,
+  updateCheck,
+} from "@fresh/core/internal-dev";
 import { checkImports } from "./plugins/verify_imports.ts";
 import { isBuiltin } from "node:module";
 
@@ -113,6 +118,30 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
                 outDir: config.environments?.ssr?.build?.outDir ??
                   "_fresh/server",
                 rollupOptions: {
+                  onwarn(warning, handler) {
+                    // Ignore "use client"; warnings
+                    if (warning.code === "MODULE_LEVEL_DIRECTIVE") {
+                      return;
+                    }
+
+                    // Ignore optional export errors
+                    if (
+                      warning.code === "MISSING_EXPORT" &&
+                      warning.id?.startsWith("\0fresh-route::")
+                    ) {
+                      return;
+                    }
+
+                    // Ignore commonjs optional exports
+                    if (
+                      warning.code === "MISSING_EXPORT" &&
+                      warning.message.includes("__require")
+                    ) {
+                      return;
+                    }
+
+                    return handler(warning);
+                  },
                   input: {
                     "server-entry": "fresh:server_entry",
                   },
@@ -123,6 +152,9 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
         };
       },
       configResolved(vConfig) {
+        // Run update check in background
+        updateCheck(UPDATE_INTERVAL).catch(() => {});
+
         fConfig.islandsDir = pathWithRoot(fConfig.islandsDir, vConfig.root);
         fConfig.routeDir = pathWithRoot(fConfig.routeDir, vConfig.root);
 

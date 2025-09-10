@@ -56,6 +56,8 @@ export interface Route<State> {
   component?: RouteComponent<State>;
   config?: RouteConfig;
   handler?: RouteHandler<unknown, State>;
+  /** Additional .css files to load */
+  css?: string[];
 }
 
 /**

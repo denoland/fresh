@@ -70,7 +70,7 @@ export function PartialsSection() {
             page, without a full page reload—perfect for interactive elements
             and dynamic apps.
           </p>
-          <FancyLink href="/docs/concepts/partials" class="mt-4">
+          <FancyLink href="/docs/advanced/partials" class="mt-4">
             Learn more about Partials
           </FancyLink>
         </div>
