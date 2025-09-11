@@ -447,3 +447,20 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "vite build - base path asset handling",
+  fn: async () => {
+    await using res = await buildVite(DEMO_DIR, { base: "/my-app/" });
+
+    // Read the generated server.js to check asset paths
+    const serverJs = await Deno.readTextFile(
+      path.join(res.tmp, "_fresh", "server.js"),
+    );
+
+    // Asset paths should include the base path /my-app/
+    expect(serverJs).toContain('"/my-app/assets/');
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});

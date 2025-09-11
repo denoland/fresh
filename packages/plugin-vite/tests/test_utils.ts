@@ -131,7 +131,10 @@ export async function withDevServer(
   await launchDevServer(tmp.dir, fn, env);
 }
 
-export async function buildVite(fixtureDir: string) {
+export async function buildVite(
+  fixtureDir: string,
+  options?: { base?: string },
+) {
   const tmp = await withTmpDir({
     dir: path.join(import.meta.dirname!, ".."),
     prefix: "tmp_vite_",
@@ -140,6 +143,7 @@ export async function buildVite(fixtureDir: string) {
   const builder = await createBuilder({
     logLevel: "error",
     root: fixtureDir,
+    base: options?.base,
     build: {
       emptyOutDir: true,
     },

@@ -16,8 +16,18 @@ export function serverEntryPlugin(
   let serverOutDir = "";
   let clientOutDir = "";
   let root = "";
+  let basePath = "";
 
   let isDev = false;
+
+  const getAssetPath = (id: string): string => {
+    if (basePath === "/") {
+      return `/${id}`;
+    }
+    // Ensure basePath ends with / and construct the path manually to avoid platform-specific path issues
+    const normalizedBase = basePath.endsWith("/") ? basePath : basePath + "/";
+    return normalizedBase + id;
+  };
 
   return {
     name: "fresh:server_entry",
@@ -29,6 +39,10 @@ export function serverEntryPlugin(
     },
     configResolved(config) {
       root = config.root;
+      basePath = config.base || "/";
+      if (basePath !== "/" && !basePath.endsWith("/")) {
+        basePath += "/";
+      }
       serverEntry = pathWithRoot(options.serverEntry, config.root);
       serverOutDir = pathWithRoot(
         config.environments.ssr.build.outDir,
@@ -98,7 +112,7 @@ if (import.meta.hot) import.meta.hot.accept();`;
               staticFiles.push({
                 filePath: path.join(serverOutDir, id),
                 hash: null,
-                pathname: `/${id}`,
+                pathname: getAssetPath(id),
               });
             }
           }
@@ -110,7 +124,7 @@ if (import.meta.hot) import.meta.hot.accept();`;
               staticFiles.push({
                 filePath: path.join(serverOutDir, id),
                 hash: null,
-                pathname: `/${id}`,
+                pathname: getAssetPath(id),
               });
             }
           }
