@@ -1,7 +1,7 @@
-import CopyArea from "../../islands/CopyArea.tsx";
 import { FancyLink } from "../../components/FancyLink.tsx";
 import LemonTop from "../../islands/LemonTop.tsx";
 import LemonBottom from "../../islands/LemonBottom.tsx";
+import { CopyButton } from "../CopyButton.tsx";
 
 export function Hero() {
   return (
@@ -24,5 +24,17 @@ export function Hero() {
       </div>
       <LemonBottom />
     </>
+  );
+}
+
+function CopyArea(props: { code: string }) {
+  return (
+    <div class="bg-slate-800 rounded-sm text-green-100 flex items-center min-w-0 overflow-x-auto">
+      <pre class="overflow-x-auto w-full flex-1 px-6 py-4">
+        {props.code}
+      </pre>
+
+      <CopyButton code={props.code} />
+    </div>
   );
 }
