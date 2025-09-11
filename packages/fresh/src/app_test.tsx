@@ -778,8 +778,8 @@ Deno.test("App - ctx.render() without app wrapper or layout", async () => {
   expect(await res.text()).toContain("<body>index<");
 });
 
-Deno.test("App - .mountApp() with basePath (current behavior: inner basePath ignored)", async () => {
-  const innerApp = new App({ basePath: "/api" })  // This basePath is ignored in mountApp()
+Deno.test("App - .mountApp() with basePath", async () => {
+  const innerApp = new App({ basePath: "/api" })
     .get("/users", () => new Response("users"));
 
   const app = new App()
@@ -791,12 +791,12 @@ Deno.test("App - .mountApp() with basePath (current behavior: inner basePath ign
   let res = await server.get("/");
   expect(await res.text()).toEqual("home");
 
-  // Current behavior: inner app's basePath is ignored, route is just /v1/users
-  res = await server.get("/v1/users");
+  // Fixed behavior: inner app's basePath is now applied
+  res = await server.get("/v1/api/users");
   expect(await res.text()).toEqual("users");
 
-  // The basePath from inner app is not applied
-  res = await server.get("/v1/api/users");
+  // Routes without the full basePath should not work
+  res = await server.get("/v1/users");
   expect(res.status).toEqual(404);
 });
 
@@ -818,5 +818,34 @@ Deno.test("App - .mountApp() with main app basePath", async () => {
 
   // Should not work without main basePath
   res = await server.get("/sub/data");
+  expect(res.status).toEqual(404);
+});
+
+Deno.test("App - .mountApp() with both main and inner basePath", async () => {
+  const innerApp = new App({ basePath: "/api/v2" })
+    .get("/users", () => new Response("users"))
+    .get("/posts", () => new Response("posts"));
+
+  const app = new App({ basePath: "/main" })
+    .get("/", () => new Response("home"))
+    .mountApp("/services", innerApp);
+
+  const server = new FakeServer(app.handler());
+
+  let res = await server.get("/main");
+  expect(await res.text()).toEqual("home");
+
+  // Both basePaths should be applied: main basePath + mount path + inner basePath
+  res = await server.get("/main/services/api/v2/users");
+  expect(await res.text()).toEqual("users");
+
+  res = await server.get("/main/services/api/v2/posts");
+  expect(await res.text()).toEqual("posts");
+
+  // Partial paths should not work
+  res = await server.get("/services/api/v2/users");
+  expect(res.status).toEqual(404);
+
+  res = await server.get("/main/services/users");
   expect(res.status).toEqual(404);
 });

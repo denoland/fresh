@@ -328,9 +328,15 @@ export class App<State> {
       const cmd = app.#commands[i];
 
       if (cmd.type !== CommandType.App && cmd.type !== CommandType.NotFound) {
+        // Apply the inner app's basePath if it exists
+        let effectivePattern = cmd.pattern;
+        if (app.config.basePath) {
+          effectivePattern = mergePath(app.config.basePath, cmd.pattern, false);
+        }
+
         const clone = {
           ...cmd,
-          pattern: mergePath(path, cmd.pattern, true),
+          pattern: mergePath(path, effectivePattern, true),
           includeLastSegment: cmd.pattern === "/" || cmd.includeLastSegment,
         };
         this.#commands.push(clone);
