@@ -5,6 +5,8 @@ import {
 import { expect } from "@std/expect";
 import { retry } from "@std/async/retry";
 import { buildVite } from "../packages/plugin-vite/tests/test_utils.ts";
+import { assertEquals } from "@std/assert";
+import { renderMarkdown } from "./utils/markdown.ts";
 
 const result = await buildVite(import.meta.dirname!);
 
@@ -68,6 +70,65 @@ Deno.test("copy button functionality", async () => {
         expect(buttonStillExists).toBe(true);
       });
     },
+  );
+});
+
+Deno.test("markdown renderer adds copy button data attributes", () => {
+  const markdown = `
+\`\`\`typescript
+const hello = 'world';
+console.log(hello);
+\`\`\`
+
+\`\`\`
+plain code block
+\`\`\`
+  `;
+
+  const { html } = renderMarkdown(markdown);
+
+  // Check that code blocks have the required data attributes
+  assertEquals(
+    html.includes('data-code-lang="typescript"'),
+    true,
+    "Should include language data attribute",
+  );
+  assertEquals(
+    html.includes('data-code-lang=""'),
+    true,
+    "Should handle code blocks without language",
+  );
+  assertEquals(
+    html.includes("data-code-text="),
+    true,
+    "Should include code text data attribute",
+  );
+  assertEquals(
+    html.includes('class="fenced-code relative"'),
+    true,
+    "Should include relative class for positioning",
+  );
+});
+
+Deno.test("markdown renderer escapes HTML in data attributes", () => {
+  const markdown = `
+\`\`\`html
+<div class="test">Hello & goodbye</div>
+\`\`\`
+  `;
+
+  const { html } = renderMarkdown(markdown);
+
+  // Should escape HTML characters in the data-code-text attribute
+  assertEquals(
+    html.includes("&lt;div class=&quot;test&quot;&gt;"),
+    true,
+    "Should escape HTML in data attribute",
+  );
+  assertEquals(
+    html.includes("Hello &amp; goodbye"),
+    true,
+    "Should escape ampersand in data attribute",
   );
 });
 
