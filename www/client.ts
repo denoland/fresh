@@ -11,14 +11,14 @@ document.addEventListener("click", async (ev) => {
   const code = el.dataset.code;
   if (!code) return;
 
-  el.dataset.copied = "true";
-
-  setTimeout(() => {
-    delete el.dataset.copied;
-  }, 1000);
-
   try {
     await navigator.clipboard.writeText(code);
+
+    el.dataset.copied = "true";
+
+    setTimeout(() => {
+      delete el.dataset.copied;
+    }, 1000);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     // deno-lint-ignore no-console
