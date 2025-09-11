@@ -777,3 +777,46 @@ Deno.test("App - ctx.render() without app wrapper or layout", async () => {
   const res = await server.get("/");
   expect(await res.text()).toContain("<body>index<");
 });
+
+Deno.test("App - .mountApp() with basePath (current behavior: inner basePath ignored)", async () => {
+  const innerApp = new App({ basePath: "/api" })  // This basePath is ignored in mountApp()
+    .get("/users", () => new Response("users"));
+
+  const app = new App()
+    .get("/", () => new Response("home"))
+    .mountApp("/v1", innerApp);
+
+  const server = new FakeServer(app.handler());
+
+  let res = await server.get("/");
+  expect(await res.text()).toEqual("home");
+
+  // Current behavior: inner app's basePath is ignored, route is just /v1/users
+  res = await server.get("/v1/users");
+  expect(await res.text()).toEqual("users");
+
+  // The basePath from inner app is not applied
+  res = await server.get("/v1/api/users");
+  expect(res.status).toEqual(404);
+});
+
+Deno.test("App - .mountApp() with main app basePath", async () => {
+  const innerApp = new App()
+    .get("/data", () => new Response("data"));
+
+  const app = new App({ basePath: "/main" })
+    .get("/", () => new Response("home"))
+    .mountApp("/sub", innerApp);
+
+  const server = new FakeServer(app.handler());
+
+  let res = await server.get("/main");
+  expect(await res.text()).toEqual("home");
+
+  res = await server.get("/main/sub/data");
+  expect(await res.text()).toEqual("data");
+
+  // Should not work without main basePath
+  res = await server.get("/sub/data");
+  expect(res.status).toEqual(404);
+});
