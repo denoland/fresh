@@ -21,13 +21,7 @@
   --color-canvas-default: var(--color-background-primary);
   --color-canvas-subtle: var(--color-background-secondary);
   --color-border-default: hsl(
-    from
-    var(--color-foreground-secondary)
-    h
-    s
-    l
-    /
-    0.3
+    from var(--color-foreground-secondary) h s l / 0.3
   );
   --color-border-muted: hsl(from var(--color-foreground-secondary) h s l / 0.1);
   --color-neutral-muted: rgba(175, 184, 193, 0.2);
@@ -801,7 +795,8 @@ ol.nested li:before {
 .fenced-code-header {
   border-top-left-radius: 0.5rem;
   border-top-right-radius: 0.5rem;
-  padding: 0.5rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
   background: var(--color-background-tertiary);
   display: flex;
   align-items: center;
@@ -812,13 +807,14 @@ ol.nested li:before {
   border-top-right-radius: 0 !important;
 }
 .fenced-code-title {
-  display: grid;
-  font-family:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
-    "Courier New", monospace;
+  display: flex;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
   font-size: 0.8125rem;
   line-height: 1;
-  grid-auto-flow: column;
+  justify-content: space-between;
   align-items: center;
   gap: 0.625rem;
 }

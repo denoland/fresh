@@ -57,9 +57,8 @@ html[data-theme="dark"]:root {
 }
 
 body {
-  font-family:
-    Fixel, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-family: Fixel, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   font-weight: 450;
   font-size: 1.125rem;
   line-height: 1.5;
@@ -92,4 +91,18 @@ html[data-theme="dark"] ::selection {
   background-position: right 0.5rem center;
   background-size: 1.5em 1.5em;
   background-repeat: no-repeat;
+}
+
+.group:not([data-copied]) .group-not-copied {
+  display: block;
+}
+.group[data-copied] .group-not-copied {
+  display: none;
+}
+
+.group[data-copied] .group-copied {
+  display: block;
+}
+.group:not([data-copied]) .group-copied {
+  display: none;
 }
