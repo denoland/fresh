@@ -38,7 +38,7 @@ const builder = new Builder({
   // The path to your server entry point. (Default: `<root>/main.ts`)
   serverEntry?: string;
   // Where to write generated files when doing a production build.
-  // (default: `<root>/_fresh/`)
+  // (default: `<root>/.fresh/`)
   outDir?: string;
   // Path to static file directory. (Default: `<root>/static/`)
   staticDir?: string;

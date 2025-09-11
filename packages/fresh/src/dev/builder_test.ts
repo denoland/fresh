@@ -489,7 +489,7 @@ export const app = new App()
     await new Builder({ root: tmp }).build();
 
     await withChildProcessServer(
-      { cwd: tmp, args: ["serve", "-A", "_fresh/server.js"] },
+      { cwd: tmp, args: ["serve", "-A", ".fresh/server.js"] },
       async (address) => {
         let res = await fetch(`${address}/foo.txt`);
         expect(await res.text()).toEqual("ok");
@@ -519,7 +519,7 @@ export const app = new App()
     await new Builder({ root: tmp, serverEntry: "other.ts" }).build();
 
     await withChildProcessServer(
-      { cwd: tmp, args: ["serve", "-A", "--port=0", "_fresh/server.js"] },
+      { cwd: tmp, args: ["serve", "-A", "--port=0", ".fresh/server.js"] },
       async (address) => {
         const res = await fetch(`${address}`);
         expect(await res.text()).toEqual("ok");
@@ -714,10 +714,10 @@ export const app = new App()
         "--include",
         "static/",
         "--include",
-        "_fresh",
+        ".fresh",
         "--output",
         outBin,
-        path.join("_fresh", "compiled-entry.js"),
+        path.join(".fresh", "compiled-entry.js"),
       ],
       cwd: tmp,
     }).output();

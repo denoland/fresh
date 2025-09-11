@@ -123,7 +123,7 @@ const builder = await createBuilder({
 });
 await builder.build();
 
-const { app } = await import("./path/to/app/_fresh/server.js");
+const { app } = await import("./path/to/app/.fresh/server.js");
 
 Deno.test("My Test", async () => {
   const handler = app.handler();

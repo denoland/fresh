@@ -17,7 +17,7 @@
     "demo": "vite demo",
     "debug": "deno run -A --inspect-brk npm:vite demo",
     "demo:build": "vite build demo",
-    "demo:start": "cd demo && deno serve -A _fresh/server.js"
+    "demo:start": "cd demo && deno serve -A .fresh/server.js"
   },
   "imports": {
     "@babel/core": "npm:@babel/core@^7.28.0",

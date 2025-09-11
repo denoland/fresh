@@ -34,4 +34,4 @@ jobs:
         with:
           project: "fresh"
           entrypoint: "server.js"
-          root: "./www/_fresh/"
+          root: "./www/.fresh/"

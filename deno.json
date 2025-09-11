@@ -19,7 +19,7 @@
     "release": "deno run -A tools/release.ts"
   },
   "exclude": [
-    "**/_fresh/*",
+    "**/.fresh/*",
     "**/tmp/*",
     "*/tests_OLD/**",
     "**/vite.config.ts.*",

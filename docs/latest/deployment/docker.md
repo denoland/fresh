@@ -25,11 +25,11 @@ WORKDIR /app
 
 COPY . .
 RUN deno task build
-RUN deno cache _fresh/server.js
+RUN deno cache .fresh/server.js
 
 EXPOSE 8000
 
-CMD ["serve", "-A", "_fresh/server.js"]
+CMD ["serve", "-A", ".fresh/server.js"]
 ```
 
 To build your Docker image inside of a Git repository:
