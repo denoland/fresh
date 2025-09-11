@@ -93,3 +93,17 @@ html[data-theme="dark"] ::selection {
   background-size: 1.5em 1.5em;
   background-repeat: no-repeat;
 }
+
+.group:not([data-copied]) .group-not-copied {
+  display: block;
+}
+.group[data-copied] .group-not-copied {
+  display: none;
+}
+
+.group[data-copied] .group-copied {
+  display: block;
+}
+.group:not([data-copied]) .group-copied {
+  display: none;
+}
