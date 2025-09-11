@@ -16,7 +16,7 @@ function CopyButton(
   return (
     <div class="copy-button-container absolute top-3 right-3">
       <div
-        class={`absolute pointer-events-none bg-gray-900 text-white text-sm px-2 py-1 rounded -top-8 left-1/2 transform -translate-x-1/2 transition-opacity duration-200 z-10 ${
+        class={`absolute pointer-events-none bg-foreground-primary text-background-primary text-sm px-2 py-1 rounded -top-8 left-1/2 transform -translate-x-1/2 transition-opacity duration-200 z-10 ${
           copied ? "opacity-100" : "opacity-0"
         }`}
       >
@@ -28,8 +28,8 @@ function CopyButton(
         disabled={!IS_BROWSER}
         class={`rounded p-1.5 border transition-colors backdrop-blur-sm ${
           copied
-            ? "text-green-600 border-green-400 bg-green-50/90"
-            : "text-gray-600 border-gray-300 bg-white/90 hover:bg-gray-50/90"
+            ? "text-fresh-green border-fresh-green/40 bg-fresh-green/10"
+            : "border-foreground-secondary/30 hover:bg-foreground-secondary/20 text-foreground-secondary"
         }`}
         onClick={onCopy}
       >
