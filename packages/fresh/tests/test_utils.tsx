@@ -196,7 +196,7 @@ function _printDomNode(
   }
 
   let out = space;
-  if (node instanceof HTMLElement) {
+  if (node instanceof HTMLElement || node instanceof HTMLMetaElement) {
     out += colors.dim(colors.cyan("<"));
     out += colors.cyan(node.localName);
 
