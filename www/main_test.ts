@@ -49,13 +49,9 @@ Deno.test("copy button functionality", async () => {
 
         // The tooltip should become visible after click
         const tooltipExists = await page.evaluate(() => {
-          const tooltip = document.querySelector("text=Copied!") ||
-            document.querySelector(
-              '[class*="absolute"][class*="pointer-events-none"]:has-text("Copied!")',
-            ) ||
-            Array.from(document.querySelectorAll("*")).find((el) =>
-              el.textContent?.includes("Copied!")
-            );
+          const tooltip = Array.from(document.querySelectorAll("*")).find((
+            el,
+          ) => el.textContent?.includes("Copied!"));
           return tooltip !== null;
         });
 
