@@ -20,11 +20,21 @@ Deploy Fresh to Cloudflare Workers by following these instructions:
   });
 ```
 
-3. Follow further instructions provided by the cloudflare vite plugin.
+3. Create a `server.js` file that serves as the cloudflare worker entry file:
+
+```js
+import server from "./_fresh/server.js";
+
+export default {
+  fetch: server.fetch,
+};
+```
+
+4. Follow further instructions provided by the cloudflare vite plugin.
 
 Check out the
 [Cloudflare Documentation](https://developers.cloudflare.com/workers/vite-plugin/)
 for further information.
 
 > [info]: Make sure that you set the the correct entrypoint in your
-> `wrangler.jsonc` file. It should point to `"main": "./_fresh/server.js"`
+> `wrangler.jsonc` file. It should point to `"main": "./server.js"`
