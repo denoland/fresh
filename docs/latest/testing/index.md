@@ -104,35 +104,129 @@ Deno.test("MyLayout - renders heading and content", async () => {
 });
 ```
 
-## Testing with file routes and islands
+## Testing routes and handlers
 
-[File routes](/docs/concepts/file-routing) are collected by the
-[`Builder`](/docs/advanced/builder) class and not just by
-[`App`](/docs/concepts/app) alone. We can generate a snapshot and re-use it for
-many app instances in our test suite.
+For testing your route handlers and business logic, you can use the same
+[`App`](/docs/concepts/app) pattern shown above. Fresh 2.0 makes it easy to test
+individual routes without needing a full build process:
 
-```ts my-app.test.ts
-import { createBuilder } from "vite";
-// Best to do this once instead of for every test case for
-// performance reasons.
-const builder = await createBuilder({
-  root: "./path/to/app",
-  build: {
-    emptyOutDir: true,
-  },
-});
-await builder.build();
+```ts my-routes.test.ts
+import { expect } from "@std/expect";
+import { App } from "fresh";
 
-const { app } = await import("./path/to/app/_fresh/server.js");
+// Import your route handlers
+import { handler as indexHandler } from "./routes/index.ts";
+import { handler as apiHandler } from "./routes/api/users.ts";
 
-Deno.test("My Test", async () => {
+Deno.test("Index route returns homepage", async () => {
+  const app = new App().get("/", indexHandler);
   const handler = app.handler();
 
-  const response = await handler(new Request("http://localhost"));
+  const response = await handler(new Request("http://localhost/"));
   const text = await response.text();
 
-  if (text !== "hello") {
-    throw new Error("fail");
+  expect(text).toContain("Welcome");
+});
+
+Deno.test("API route returns JSON", async () => {
+  const app = new App().get("/api/users", apiHandler);
+  const handler = app.handler();
+
+  const response = await handler(new Request("http://localhost/api/users"));
+  const json = await response.json();
+
+  expect(json).toEqual({ users: [] });
+});
+```
+
+## Testing islands
+
+Testing islands requires different approaches for server-side and client-side
+behavior:
+
+### Server-side rendering of islands
+
+You can test that your islands render correctly on the server using the same
+[`App`](/docs/concepts/app) pattern. Note: this requires a `.tsx` file extension
+to use JSX:
+
+```tsx island-ssr.test.tsx
+import { expect } from "@std/expect";
+import { App } from "fresh";
+import Counter from "./islands/Counter.tsx";
+
+Deno.test("Counter page renders island", async () => {
+  const app = new App().get("/counter", (ctx) => {
+    return ctx.render(
+      <div className="p-8">
+        <h1>Counter Test Page</h1>
+        <Counter />
+      </div>,
+    );
+  });
+  const handler = app.handler();
+
+  const response = await handler(new Request("http://localhost/counter"));
+  const html = await response.text();
+
+  // Verify the island's initial HTML is present
+  expect(html).toContain('class="counter"');
+  expect(html).toContain("count: 0");
+});
+```
+
+### Client-side island interactivity
+
+For testing client-side island behavior (clicks, state changes, etc.), you need
+a full build and browser environment. You can use the approach similar to
+Fresh's own tests:
+
+```tsx island-client.test.tsx
+import { expect } from "@std/expect";
+import { createBuilder } from "vite";
+import * as path from "@std/path";
+
+// Create a production build
+const builder = await createBuilder({
+  logLevel: "error",
+  root: "./",
+  build: { emptyOutDir: true },
+  environments: {
+    ssr: { build: { outDir: path.join("_fresh", "server") } },
+    client: { build: { outDir: path.join("_fresh", "client") } },
+  },
+});
+await builder.buildApp();
+
+const app = await import("./_fresh/server.js");
+
+Deno.test("Counter island renders correctly", async () => {
+  // Start production server
+  const server = Deno.serve({
+    port: 0,
+    handler: app.default.fetch,
+  });
+
+  const { port } = server.addr as Deno.NetAddr;
+  const address = `http://localhost:${port}`;
+
+  try {
+    // Basic smoke test: verify the island HTML is served
+    const response = await fetch(`${address}/counter`);
+    const html = await response.text();
+
+    expect(html).toContain('class="counter"');
+    expect(html).toContain("count: 0");
+
+    // For full browser interactivity testing, you would need:
+    // - Browser automation tools (Puppeteer, Playwright)
+    // - withBrowser utility from Fresh's test suite
+  } finally {
+    await server.shutdown();
   }
 });
 ```
+
+**Note:** For most applications, testing the server-side rendering is
+sufficient. Only test client-side interactivity if you have complex island logic
+that needs verification.
