@@ -25,3 +25,6 @@ Deploy Fresh to Cloudflare Workers by following these instructions:
 Check out the
 [Cloudflare Documentation](https://developers.cloudflare.com/workers/vite-plugin/)
 for further information.
+
+> [info]: Make sure that you set the the correct entrypoint in your
+> `wrangler.jsonc` file. It should point to `"main": "./_fresh/server.js"`
