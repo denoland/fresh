@@ -22,6 +22,8 @@ import {
 } from "@fresh/core/internal-dev";
 import { checkImports } from "./plugins/verify_imports.ts";
 import { isBuiltin } from "node:module";
+import { load as stdLoadEnv } from "@std/dotenv";
+import path from "node:path";
 
 export function fresh(config?: FreshViteConfig): Plugin[] {
   const fConfig: ResolvedFreshViteConfig = {
@@ -48,10 +50,14 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
     }
   });
 
+  let isDev = false;
+
   const plugins: Plugin[] = [
     {
       name: "fresh",
       config(config, env) {
+        isDev = env.command === "serve";
+
         return {
           esbuild: {
             jsx: "automatic",
@@ -151,7 +157,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
           },
         };
       },
-      configResolved(vConfig) {
+      async configResolved(vConfig) {
         // Run update check in background
         updateCheck(UPDATE_INTERVAL).catch(() => {});
 
@@ -163,6 +169,17 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
           const name = fConfig.namer.getUniqueName(specName);
           fConfig.islandSpecifiers.set(spec, name);
         });
+
+        const envDir = pathWithRoot(
+          vConfig.envDir || vConfig.root,
+          vConfig.root,
+        );
+
+        await loadEnvFile(path.join(envDir, ".env"));
+        await loadEnvFile(path.join(envDir, ".env.local"));
+        const mode = isDev ? "development" : "production";
+        await loadEnvFile(path.join(envDir, `.env.${mode}`));
+        await loadEnvFile(path.join(envDir, `.env.${mode}.local`));
       },
     },
     serverEntryPlugin(fConfig),
@@ -189,4 +206,12 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
   }
 
   return plugins;
+}
+
+async function loadEnvFile(envPath: string) {
+  try {
+    await stdLoadEnv({ envPath, export: true });
+  } catch {
+    // Ignoe
+  }
 }
