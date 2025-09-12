@@ -3,6 +3,7 @@ import {
   CONFIRM_TAILWIND_MESSAGE,
   CONFIRM_VITE_MESSAGE,
   CONFIRM_VSCODE_MESSAGE,
+  HELP_TEXT,
   initProject,
 } from "./init.ts";
 import * as path from "@std/path";
@@ -24,6 +25,14 @@ function stubConfirm(steps: Record<string, boolean> = {}) {
     globalThis,
     "confirm",
     (message) => message ? steps[message] : false,
+  );
+}
+
+function stubLogs() {
+  return stub(
+    console,
+    "log",
+    () => undefined,
   );
 }
 
@@ -74,6 +83,18 @@ async function readProjectFile(dir: string, pathname: string): Promise<string> {
   const content = await Deno.readTextFile(filePath);
   return content;
 }
+
+Deno.test("init - show help", async () => {
+  using logs = stubLogs();
+
+  await initProject("", [], { help: true });
+  const args = logs.calls.flatMap((c) => c.args);
+  const out = args.join("\n");
+  await initProject("", [], { h: true });
+
+  expect(out).toBe(HELP_TEXT);
+  expect(args).toEqual(logs.calls.flatMap((c) => c.args).slice(args.length));
+});
 
 Deno.test("init - new project", async () => {
   await using tmp = await withTmpDir();
