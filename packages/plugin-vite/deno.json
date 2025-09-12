@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "license": "MIT",
   "exports": {
-    ".": "./src/mod.ts"
+    ".": "./src/mod.ts",
+    "./client": "./src/client.ts"
   },
   "publish": {
     "include": ["./src", "README.md"]

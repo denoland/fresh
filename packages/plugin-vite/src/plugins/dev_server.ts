@@ -1,7 +1,8 @@
-import type { Plugin } from "vite";
+import type { DevEnvironment, Plugin } from "vite";
 import * as path from "@std/path";
 import { ASSET_CACHE_BUST_KEY } from "fresh/internal";
 import { createRequest, sendResponse } from "@mjackson/node-fetch-server";
+import { hashCode } from "../shared.ts";
 
 export function devServer(): Plugin[] {
   let publicDir = "";
@@ -71,7 +72,33 @@ export function devServer(): Plugin[] {
 
           try {
             const req = createRequest(nodeReq, nodeRes);
-            const res = await mod.default.fetch(req);
+            const res = (await mod.default.fetch(req)) as Response;
+
+            // Collect css eagerly to avoid FOUC. This is a workaround for
+            // Vite not supporting css natively. It's a bit hacky, but
+            // gets the job done.
+            if (
+              url.pathname !== "/__inspect" &&
+              res.headers.get("Content-Type")?.includes("text/html")
+            ) {
+              const collected = await collectCss2(
+                "fresh:client-entry",
+                server.environments.client,
+              );
+
+              let html = await res.text();
+
+              const styles = collected.join("\n");
+              html = html.replace("</head>", styles + "</head>");
+
+              const newRes = new Response(html, {
+                status: res.status,
+                headers: res.headers,
+              });
+              await sendResponse(nodeRes, newRes);
+              return;
+            }
+
             await sendResponse(nodeRes, res);
           } catch (err) {
             return next(err);
@@ -103,4 +130,57 @@ export function devServer(): Plugin[] {
       },
     },
   ];
+}
+
+async function collectCss2(
+  id: string,
+  env: DevEnvironment,
+) {
+  const seen = new Set<string>();
+  const queue: string[] = [id];
+  const out: string[] = [];
+
+  let current: string | undefined;
+  while ((current = queue.pop()) !== undefined) {
+    if (seen.has(current)) continue;
+    seen.add(current);
+
+    let mod = env.moduleGraph.idToModuleMap.get(current);
+    if (mod === undefined || mod.transformResult === null) {
+      // During development assets are loaded lazily, so we need
+      // to trigger processing manually.
+      await env.fetchModule(current);
+      mod = env.moduleGraph.idToModuleMap.get(current) ??
+        env.moduleGraph.idToModuleMap.get(`\0${current}`);
+
+      if (mod === undefined) continue;
+    }
+
+    if (
+      (current.endsWith(".scss") ||
+        current.endsWith(".css")) && mod.transformResult
+    ) {
+      // Since vite stores everything as a JS file we need to
+      // extract the CSS out of the JS
+      const match = mod.transformResult.code.match(
+        /__vite__css\s+=\s+("(?:\\\\|\\"|[^"])*")/,
+      );
+
+      if (match !== null) {
+        const content = JSON.parse(match[1]);
+        out.push(
+          `<style type="text/css" vite-module-id="${
+            hashCode(id)
+          }">${content}</style>`,
+        );
+      }
+    }
+
+    mod.importedModules.forEach((m) => {
+      if (m.id === null) return;
+      queue.push(m.id);
+    });
+  }
+
+  return out;
 }
