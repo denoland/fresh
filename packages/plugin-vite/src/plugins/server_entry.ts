@@ -3,6 +3,7 @@ import {
   generateServerEntry,
   type PendingStaticFile,
   prepareStaticFile,
+  writeCompiledEntry,
 } from "fresh/internal-dev";
 import { pathWithRoot, type ResolvedFreshViteConfig } from "../utils.ts";
 import * as path from "@std/path";
@@ -154,6 +155,8 @@ export default {
 };
 `,
       );
+
+      await writeCompiledEntry(outDir);
     },
   };
 }

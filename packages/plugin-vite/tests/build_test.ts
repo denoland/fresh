@@ -28,6 +28,19 @@ Deno.test({
 });
 
 Deno.test({
+  name: "vite build - creates compiled entry",
+  fn: async () => {
+    const stat = await Deno.stat(
+      path.join(viteResult.tmp, "_fresh", "compiled-entry.js"),
+    );
+
+    expect(stat.isFile).toEqual(true);
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
   name: "vite build - serves static files",
   fn: async () => {
     await launchProd(
