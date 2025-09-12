@@ -6,7 +6,6 @@ import babelReact from "@babel/preset-react";
 import { inlineEnvVarsPlugin } from "./patches/inline_env_vars.ts";
 import { removePolyfills } from "./patches/remove_polyfills.ts";
 import { JS_REG, JSX_REG } from "../utils.ts";
-import { denoGlobal } from "./patches/deno_global.ts";
 import { codeEvalPlugin } from "./patches/code_eval.ts";
 
 export function patches(): Plugin {
@@ -43,10 +42,6 @@ export function patches(): Plugin {
           jsxComments,
           inlineEnvVarsPlugin(env, Deno.env.toObject()),
         ];
-
-        if (!options?.ssr) {
-          plugins.push(denoGlobal);
-        }
 
         const res = babel.transformSync(code, {
           filename: id,
