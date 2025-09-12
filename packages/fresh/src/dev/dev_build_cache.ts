@@ -381,15 +381,7 @@ export class DiskBuildCache<State> implements DevBuildCache<State> {
       }),
     );
 
-    await Deno.writeTextFile(
-      path.join(outDir, "compiled-entry.js"),
-      `import fetcher from "./server.js";
-
-Deno.serve(
-  { port: Deno.env.get("PORT"), hostname: Deno.env.get("HOSTNAME") },
-  fetcher.fetch
-);`,
-    );
+    await writeCompiledEntry(outDir);
   }
 }
 
@@ -423,6 +415,18 @@ export interface PendingStaticFile {
   pathname: string;
   filePath: string;
   hash: string | null;
+}
+
+export async function writeCompiledEntry(outDir: string) {
+  await Deno.writeTextFile(
+    path.join(outDir, "compiled-entry.js"),
+    `import fetcher from "./server.js";
+
+Deno.serve(
+  { port: Deno.env.get("PORT"), hostname: Deno.env.get("HOSTNAME") },
+  fetcher.fetch
+);`,
+  );
 }
 
 export async function generateSnapshotServer(
