@@ -62,6 +62,7 @@ ${colors.rgb8("OPTIONS:", 3)}
     ${colors.rgb8("--vscode", 2)}     Setup project for VS Code
     ${colors.rgb8("--docker", 2)}     Setup Project to use Docker
     ${colors.rgb8("--builder", 2)}    Setup with builder instead of vite
+    ${colors.rgb8("--src-dir", 2)}    Setup with "src" directory (Vite only)
     ${colors.rgb8("--help, -h", 2)}   Show this help message
 `;
 
@@ -84,6 +85,7 @@ export async function initProject(
     tailwind?: boolean | null;
     vscode?: boolean | null;
     builder?: boolean | null;
+    "src-dir"?: string | null;
     help?: boolean | null;
     h?: boolean | null;
   } = {},
@@ -138,6 +140,16 @@ export async function initProject(
     }
   }
 
+  let src = "";
+  if (flags.builder && typeof flags["src-dir"] === "string") {
+    error("The --src-dir flag is only supported with Vite.");
+  } else if (typeof flags["src-dir"] === "string") {
+    // The --src-dir flag was passed (empty or non-empty string)
+    src = flags["src-dir"] || "src";
+    if (!src.endsWith("/")) src += "/";
+  }
+  const srcDir = path.join(projectDir, src);
+
   const useVite = !flags.builder;
 
   const useDocker = flags.docker;
@@ -162,6 +174,8 @@ export async function initProject(
       | ReadableStream<Uint8Array>
       | Record<string, unknown>,
   ) => await writeProjectFile(projectDir, pathname, content);
+  const writeSrcFile = async (...args: Parameters<typeof writeFile>) =>
+    await writeProjectFile(srcDir, ...args);
 
   const GITIGNORE = `# dotenv environment variable files
 .env
@@ -354,14 +368,14 @@ ${GRADIENT_CSS}`;
   const cssStyles = useTailwind ? TAILWIND_CSS : NO_TAILWIND_STYLES;
 
   if (useVite) {
-    await writeFile("assets/styles.css", cssStyles);
-    await writeFile(
+    await writeSrcFile("assets/styles.css", cssStyles);
+    await writeSrcFile(
       "client.ts",
       `// Import CSS files here for hot module reloading to work.
 import "./assets/styles.css";`,
     );
   } else {
-    await writeFile("static/styles.css", cssStyles);
+    await writeSrcFile("static/styles.css", cssStyles);
   }
   // deno-fmt-ignore
   const STATIC_LOGO =
@@ -384,12 +398,12 @@ import "./assets/styles.css";`,
     fill="#fff"
   />
 </svg>`;
-  await writeFile("static/logo.svg", STATIC_LOGO);
+  await writeSrcFile("static/logo.svg", STATIC_LOGO);
 
   try {
     const res = await fetch("https://fresh.deno.dev/favicon.ico");
     const buf = await res.arrayBuffer();
-    await writeFile("static/favicon.ico", new Uint8Array(buf));
+    await writeSrcFile("static/favicon.ico", new Uint8Array(buf));
   } catch {
     // Skip this and be silent if there is a network issue.
   }
@@ -424,7 +438,7 @@ app.use(exampleLoggerMiddleware);
 
 // Include file-system based routes here
 app.fsRoutes();`;
-  await writeFile("main.ts", MAIN_TS);
+  await writeSrcFile("main.ts", MAIN_TS);
 
   const COMPONENTS_BUTTON_TSX =
     `import type { ComponentChildren } from "preact";
@@ -444,7 +458,7 @@ export function Button(props: ButtonProps) {
     />
   );
 }`;
-  await writeFile("components/Button.tsx", COMPONENTS_BUTTON_TSX);
+  await writeSrcFile("components/Button.tsx", COMPONENTS_BUTTON_TSX);
 
   const UTILS_TS = `import { createDefine } from "fresh";
 
@@ -455,7 +469,7 @@ export interface State {
 }
 
 export const define = createDefine<State>();`;
-  await writeFile("utils.ts", UTILS_TS);
+  await writeSrcFile("utils.ts", UTILS_TS);
 
   const ROUTES_HOME = `import { useSignal } from "@preact/signals";
 import { Head } from "fresh/runtime";
@@ -490,7 +504,7 @@ export default define.page(function Home(ctx) {
     </div>
   );
 });`;
-  await writeFile("routes/index.tsx", ROUTES_HOME);
+  await writeSrcFile("routes/index.tsx", ROUTES_HOME);
 
   const APP_WRAPPER = `import { define } from "../utils.ts";
 
@@ -510,7 +524,7 @@ export default define.page(function App({ Component }) {
     </html>
   );
 });`;
-  await writeFile("routes/_app.tsx", APP_WRAPPER);
+  await writeSrcFile("routes/_app.tsx", APP_WRAPPER);
 
   const API_NAME = `import { define } from "../../utils.ts";
 
@@ -522,7 +536,7 @@ export const handler = define.handlers({
     );
   },
 });`;
-  await writeFile("routes/api/[name].tsx", API_NAME);
+  await writeSrcFile("routes/api/[name].tsx", API_NAME);
 
   const ISLANDS_COUNTER_TSX = `import type { Signal } from "@preact/signals";
 import { Button } from "../components/Button.tsx";
@@ -540,7 +554,7 @@ export default function Counter(props: CounterProps) {
     </div>
   );
 }`;
-  await writeFile("islands/Counter.tsx", ISLANDS_COUNTER_TSX);
+  await writeSrcFile("islands/Counter.tsx", ISLANDS_COUNTER_TSX);
 
   const DEV_TS = `#!/usr/bin/env -S deno run -A --watch=static/,routes/
 ${useTailwind ? `import { tailwind } from "@fresh/plugin-tailwind";\n` : ""}
@@ -555,16 +569,16 @@ if (Deno.args.includes("build")) {
 }`;
 
   if (!useVite) {
-    await writeFile("dev.ts", DEV_TS);
+    await writeSrcFile("dev.ts", DEV_TS);
   }
 
   const denoJson = {
     nodeModulesDir: "auto",
     tasks: {
       check: "deno fmt --check . && deno lint . && deno check",
-      dev: "deno run -A --watch=static/,routes/ dev.ts",
-      build: "deno run -A dev.ts build",
-      start: "deno serve -A _fresh/server.js",
+      dev: `deno run -A --watch=static/,routes/ ${src}dev.ts`,
+      build: `deno run -A ${src}dev.ts build`,
+      start: `deno serve -A ${src}_fresh/server.js`,
       update: "deno run -A -r jsr:@fresh/update .",
     },
     lint: {
@@ -639,9 +653,15 @@ import { fresh } from "@fresh/plugin-vite";\n`;
       viteConfig += `import tailwindcss from "@tailwindcss/vite";\n`;
     }
 
-    viteConfig += `\nexport default defineConfig({
-  plugins: [fresh()${useTailwind ? ", tailwindcss()" : ""}],
-});`;
+    viteConfig += "\nexport default defineConfig({\n";
+
+    if (src.length > 0) {
+      viteConfig += `  root: "${src.slice(0, -1)}",\n`;
+    }
+
+    viteConfig += `  plugins: [fresh()${
+      useTailwind ? ", tailwindcss()" : ""
+    }],\n});`;
 
     await writeFile("vite.config.ts", viteConfig);
   }
