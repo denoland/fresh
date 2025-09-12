@@ -43,7 +43,9 @@ export function setBuildId(id) {
 
 export async function getBuildId(dev: boolean): Promise<string> {
   const gitRevision = Deno.env.get("DENO_DEPLOYMENT_ID") ??
-    Deno.env.get("GITHUB_SHA") ?? Deno.env.get("CI_COMMIT_SHA");
+    Deno.env.get("DENO_DEPLOY_BUILD_ID") ??
+    Deno.env.get("GITHUB_SHA") ??
+    Deno.env.get("CI_COMMIT_SHA");
   if (gitRevision !== undefined) {
     return gitRevision.trim();
   }
