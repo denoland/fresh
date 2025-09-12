@@ -2347,19 +2347,25 @@ Deno.test({
       assertMetaContent(doc, "og:foo", "og value foo");
       assertMetaContent(doc, "og:bar", "og value bar");
 
-      const color = await page
-        .locator<HTMLHeadingElement>("h1")
-        .evaluate((el) => {
-          return globalThis.getComputedStyle(el).color;
-        });
-      expect(color).toEqual("rgb(255, 0, 0)");
+      await waitFor(async () => {
+        const color = await page
+          .locator<HTMLHeadingElement>("h1")
+          .evaluate((el) => {
+            return globalThis.getComputedStyle(el).color;
+          });
+        expect(color).toEqual("rgb(255, 0, 0)");
+        return true;
+      });
 
-      const textColor = await page
-        .locator<HTMLParagraphElement>("p")
-        .evaluate((el) => {
-          return globalThis.getComputedStyle(el).color;
-        });
-      expect(textColor).toEqual("rgb(0, 128, 0)");
+      await waitFor(async () => {
+        const textColor = await page
+          .locator<HTMLParagraphElement>("p")
+          .evaluate((el) => {
+            return globalThis.getComputedStyle(el).color;
+          });
+        expect(textColor).toEqual("rgb(0, 128, 0)");
+        return true;
+      });
     });
   },
 });
