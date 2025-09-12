@@ -72,13 +72,18 @@ export function deno(): Plugin {
       // But we still want to ignore everything `vite:resolve` does
       // because we're kinda replacing that plugin here.
       const tmp = await this.resolve(id, importer, options);
+      if (id.includes("?worker")) {
+        console.log({ tmp });
+      }
       if (tmp && tmp.resolvedBy !== "vite:resolve") {
         if (tmp.external && !/^https?:\/\//.test(tmp.id)) {
+          console.log("no");
           return tmp;
         }
 
         // A plugin namespaced it, we should not attempt to resolve it.
         if (tmp.id.startsWith("\0")) {
+          console.log("no 2");
           return tmp;
         }
 
@@ -89,6 +94,16 @@ export function deno(): Plugin {
       if (!isHttp && path.isAbsolute(id)) {
         id = path.toFileUrl(path.normalize(id))
           .href;
+      }
+
+      let query = "";
+      if (!isHttp && !/^https?:\/\//.test(id)) {
+        const idx = id.indexOf("?");
+        if (idx > -1) {
+          query = id.slice(idx);
+          id = id.slice(0, idx);
+          console.log("deno", JSON.stringify(id));
+        }
       }
 
       try {
@@ -103,6 +118,10 @@ export function deno(): Plugin {
           ResolutionMode.Import,
         );
 
+        if (query) {
+          console.log({ id, denoImporter, resolved });
+        }
+
         if (resolved.startsWith("node:")) {
           return {
             id: resolved,
@@ -111,6 +130,9 @@ export function deno(): Plugin {
         }
 
         if (original === resolved) {
+          if (query) {
+            console.log("same", resolved);
+          }
           return null;
         }
 
@@ -119,6 +141,9 @@ export function deno(): Plugin {
           type !== RequestedModuleType.Default ||
           /^(https?|jsr|npm):/.test(resolved)
         ) {
+          if (query) {
+            console.log("Deno", resolved, type);
+          }
           return toDenoSpecifier(resolved, type);
         }
 
@@ -126,8 +151,12 @@ export function deno(): Plugin {
           resolved = path.fromFileUrl(resolved);
         }
 
+        if (query) {
+          console.log("re-construct", resolved + query);
+        }
+
         return {
-          id: resolved,
+          id: resolved + query,
           meta: {
             deno: {
               type,
@@ -169,6 +198,13 @@ export function deno(): Plugin {
 
       if (id.startsWith("\0")) {
         id = id.slice(1);
+      }
+
+      if (!/^https?:\/\//.test(id)) {
+        const idx = id.indexOf("?");
+        if (idx > -1) {
+          return;
+        }
       }
 
       const meta = this.getModuleInfo(id)?.meta.deno as
