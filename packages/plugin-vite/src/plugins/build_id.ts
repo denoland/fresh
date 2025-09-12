@@ -45,7 +45,7 @@ export async function getBuildId(dev: boolean): Promise<string> {
   const gitRevision = Deno.env.get("DENO_DEPLOYMENT_ID") ??
     Deno.env.get("GITHUB_SHA") ?? Deno.env.get("CI_COMMIT_SHA");
   if (gitRevision !== undefined) {
-    return gitRevision;
+    return gitRevision.trim();
   }
 
   if (!dev) {
@@ -54,7 +54,7 @@ export async function getBuildId(dev: boolean): Promise<string> {
       const res = await new Deno.Command(bin, { args: ["rev-parse", "HEAD"] })
         .output();
 
-      return new TextDecoder().decode(res.stdout);
+      return new TextDecoder().decode(res.stdout).trim();
     } catch {
       // ignore
     }
@@ -62,5 +62,5 @@ export async function getBuildId(dev: boolean): Promise<string> {
 
   const arr = new Uint32Array(1);
   crypto.getRandomValues(arr);
-  return String(arr[0]);
+  return String(arr[0]).trim();
 }
