@@ -105,7 +105,7 @@ export async function initProject(
   console.log(`    version ${colors.rgb8(freshVersion, 4)}`);
   console.log();
 
-  let unresolvedDirectory = Deno.args[0];
+  let unresolvedDirectory = input.map((x) => String(x))[0];
   if (input.length !== 1) {
     const userInput = prompt(
       "Project Name:",
