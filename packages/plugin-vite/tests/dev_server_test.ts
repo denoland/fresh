@@ -403,3 +403,19 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "vite dev - load .env files",
+  fn: async () => {
+    const res = await fetch(`${demoServer.address()}/tests/env_files`);
+    const json = await res.json();
+    expect(json).toEqual({
+      MY_ENV: "MY_ENV test value",
+      VITE_MY_ENV: "VITE_MY_ENV test value",
+      MY_LOCAL_ENV: "MY_LOCAL_ENV test value",
+      VITE_MY_LOCAL_ENV: "VITE_MY_LOCAL_ENV test value",
+    });
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});

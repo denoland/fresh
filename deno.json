@@ -44,6 +44,7 @@
     "@fresh/build-id": "jsr:@fresh/build-id@^1.0.0",
     "@std/cli": "jsr:@std/cli@^1.0.19",
     "@std/collections": "jsr:@std/collections@^1.1.2",
+    "@std/dotenv": "jsr:@std/dotenv@^0.225.5",
     "@std/http": "jsr:@std/http@^1.0.15",
     "@std/uuid": "jsr:@std/uuid@^1.0.7",
     "@types/node": "npm:@types/node@^24.3.0",

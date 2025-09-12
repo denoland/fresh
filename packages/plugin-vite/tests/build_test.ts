@@ -453,3 +453,24 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "vite build - env files",
+  fn: async () => {
+    await launchProd(
+      { cwd: viteResult.tmp },
+      async (address) => {
+        const res = await fetch(`${address}/tests/env_files`);
+        const json = await res.json();
+        expect(json).toEqual({
+          MY_ENV: "MY_ENV test value",
+          VITE_MY_ENV: "VITE_MY_ENV test value",
+          MY_LOCAL_ENV: "MY_LOCAL_ENV test value",
+          VITE_MY_LOCAL_ENV: "VITE_MY_LOCAL_ENV test value",
+        });
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
