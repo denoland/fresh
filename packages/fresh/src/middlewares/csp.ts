@@ -3,7 +3,7 @@ import type { Middleware } from "./mod.ts";
 /** Options for Content-Security-Policy middleware */
 export interface CSPOptions {
   reportOnly?: boolean;
-  reportUri?: string;
+  reportTo?: string;
   csp?: string[];
 }
 
@@ -12,7 +12,7 @@ export interface CSPOptions {
  * @example
  * app.use(csp({
  *   reportOnly: true,
- *   reportUri: '/csp-violation-report-endpoint',
+ *   reportTo: '/api/csp-reports',
  *   csp: [
  *       "script-src 'self' 'unsafe-inline'",
  *   ],
@@ -21,11 +21,10 @@ export interface CSPOptions {
 export function csp<State>(options: CSPOptions = {}): Middleware<State> {
   const {
     reportOnly = false,
-    reportUri = "/csp-violation-report-endpoint",
+    reportTo,
     csp = [],
   } = options;
 
-  // Default CSP directives for maximum security
   const defaultCsp = [
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline'", // unsafe-inline needed for fresh
@@ -43,8 +42,9 @@ export function csp<State>(options: CSPOptions = {}): Middleware<State> {
   ];
 
   const cspDirectives = [...defaultCsp, ...csp];
-  if (reportUri) {
-    cspDirectives.push(`report-uri ${reportUri}`);
+  if (reportTo) {
+    cspDirectives.push(`report-to csp-endpoint`);
+    cspDirectives.push(`report-uri ${reportTo}`); // deprecated but some browsers still use it
   }
   const cspString = cspDirectives.join("; ");
 
@@ -54,6 +54,9 @@ export function csp<State>(options: CSPOptions = {}): Middleware<State> {
       ? "Content-Security-Policy-Report-Only"
       : "Content-Security-Policy";
     res.headers.set(headerName, cspString);
+    if (reportTo) {
+      res.headers.set("Reporting-Endpoints", `csp-endpoint="${reportTo}"`);
+    }
     return res;
   };
 }
