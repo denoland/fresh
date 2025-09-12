@@ -12,7 +12,7 @@ write tests.
 
 To test [middlewares](/docs/concepts/middleware) we're going to create a dummy
 app and return the relevant info we want to check in a custom `/` handler. This
-test assmumes the `State` object in `utils.ts` has `text` property.
+test assumes the `State` object in `utils.ts` has `text` property.
 
 ```ts tests/middleware.test.ts
 import { expect } from "@std/expect";
