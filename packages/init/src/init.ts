@@ -105,7 +105,7 @@ export async function initProject(
   console.log(`    version ${colors.rgb8(freshVersion, 4)}`);
   console.log();
 
-  let unresolvedDirectory = input.map((x) => String(x))[0];
+  let unresolvedDirectory;
   if (input.length !== 1) {
     const userInput = prompt(
       "Project Name:",
@@ -116,6 +116,8 @@ export async function initProject(
     }
 
     unresolvedDirectory = userInput;
+  } else {
+    unresolvedDirectory = String(input[0]);
   }
 
   const projectDir = path.resolve(cwd, unresolvedDirectory);
