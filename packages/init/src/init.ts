@@ -6,6 +6,7 @@ import initConfig from "../deno.json" with { type: "json" };
 
 // Keep these as is, as we replace these version in our release script
 const FRESH_VERSION = "2.0.0";
+const FRESH_LINT_VERSION = "0.0.0";
 const FRESH_TAILWIND_VERSION = "1.0.0";
 const FRESH_VITE_PLUGIN = "1.0.0";
 const PREACT_VERSION = "10.27.1";
@@ -566,6 +567,7 @@ if (Deno.args.includes("build")) {
       update: "deno run -A -r jsr:@fresh/update .",
     },
     lint: {
+      plugins: ["jsr:@fresh/lint"],
       rules: {
         tags: ["fresh", "recommended"],
       },
@@ -573,6 +575,7 @@ if (Deno.args.includes("build")) {
     exclude: ["**/_fresh/*"],
     imports: {
       "fresh": `jsr:@fresh/core@^${freshVersion}`,
+      "@fresh/lint": `jsr:@fresh/lint@^${FRESH_LINT_VERSION}`,
       "preact": `npm:preact@^${PREACT_VERSION}`,
       "@preact/signals": `npm:@preact/signals@^${PREACT_SIGNALS_VERSION}`,
     } as Record<string, string>,
