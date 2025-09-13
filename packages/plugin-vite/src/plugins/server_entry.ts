@@ -25,6 +25,7 @@ export function serverEntryPlugin(
     if (basePath === "/") {
       return `/${id}`;
     }
+    // Ensure basePath ends with / and construct the path manually to avoid platform-specific path issues
     const normalizedBase = basePath.endsWith("/") ? basePath : basePath + "/";
     return normalizedBase + id;
   };
