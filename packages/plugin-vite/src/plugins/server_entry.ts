@@ -25,6 +25,11 @@ export function serverEntryPlugin(
     if (basePath === "/") {
       return `/${id}`;
     }
+    if (basePath === "./") {
+      // For relative basePath, remove leading slash from id
+      const cleanId = id.startsWith("/") ? id.substring(1) : id;
+      return basePath + cleanId;
+    }
     // Ensure basePath ends with / and construct the path manually to avoid platform-specific path issues
     const normalizedBase = basePath.endsWith("/") ? basePath : basePath + "/";
     return normalizedBase + id;

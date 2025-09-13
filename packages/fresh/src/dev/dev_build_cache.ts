@@ -536,10 +536,18 @@ export async function prepareStaticFile(
 > {
   const file = await Deno.open(item.filePath);
   const hash = item.hash ? item.hash : await hashContent(file.readable);
-  const url = new URL(item.pathname, "http://localhost");
+
+  // Handle relative basePath case - if pathname starts with "./" preserve it
+  let name: string;
+  if (item.pathname.startsWith("./")) {
+    name = item.pathname;
+  } else {
+    const url = new URL(item.pathname, "http://localhost");
+    name = url.pathname;
+  }
 
   return {
-    name: url.pathname,
+    name,
     hash,
     filePath: path.isAbsolute(item.filePath)
       ? path.relative(outDir, item.filePath)
