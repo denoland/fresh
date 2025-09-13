@@ -557,16 +557,29 @@ Deno.test({
 Deno.test({
   name: "vite build - basePath image links are correctly prefixed",
   fn: async () => {
-    await using _res = await buildVite(DEMO_DIR, { base: "/ui/" });
+    await using res = await buildVite(DEMO_DIR, { base: "/ui/" });
 
-    // The image basePath test would require a more complex fixture setup
-    // with Fresh basePath configured, not just Vite base config.
-    // For now, we'll skip this specific test as the core functionality
-    // (CSS basePath support) is verified and working.
+    // Read the generated server.js to check that image assets have basePath applied
+    const serverJs = await Deno.readTextFile(
+      path.join(res.tmp, "_fresh", "server.js"),
+    );
 
-    // Note: Image basePath support is implemented and functional,
-    // but testing it requires a Fresh app with basePath configured
-    // rather than just Vite's base configuration.
+    // The server.js should contain image assets with the basePath /ui/
+    // Look for the deno-logo.png asset registration
+    expect(serverJs).toContain('"/ui/assets/deno-logo-');
+    expect(serverJs).toContain('.png"');
+
+    // Verify the basePath is properly applied to all assets, not just CSS
+    const assetRegistrations = serverJs.match(
+      /registerStaticFile\({[^}]+}\);/g,
+    );
+    expect(assetRegistrations).toBeTruthy();
+
+    // Check that image assets (png files) have the correct basePath
+    const imageRegistrations = assetRegistrations?.filter((reg) =>
+      reg.includes(".png") && reg.includes('"/ui/assets/')
+    );
+    expect(imageRegistrations && imageRegistrations.length > 0).toBe(true);
   },
   sanitizeOps: false,
   sanitizeResources: false,
