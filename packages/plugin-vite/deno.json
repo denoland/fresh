@@ -33,6 +33,7 @@
     "@types/node": "npm:@types/node@^24.1.0",
     "feed": "npm:feed@^5.1.0",
     "fresh": "jsr:@fresh/core@^2.0.0",
+    "hono": "npm:hono@^4.9.7",
     "ioredis": "npm:ioredis@^5.7.0",
     "mime-db": "npm:mime-db@^1.54.0",
     "pg": "npm:pg@^8.16.3",
