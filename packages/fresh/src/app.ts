@@ -206,7 +206,8 @@ export class App<State> {
       );
     }
 
-    if (!/^\/[\w\-\.\/]*$/.test(basePath)) {
+    const hasInvalidChars = /[@#?&=\s]/.test(basePath);
+    if (hasInvalidChars) {
       throw new Error(
         `Invalid basePath: "${basePath}". Contains invalid characters`,
       );
