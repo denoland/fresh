@@ -10,8 +10,8 @@ import * as path from "@std/path";
 import { getStdOutput, withBrowser } from "../../fresh/tests/test_utils.tsx";
 import { waitForText } from "../../fresh/tests/test_utils.tsx";
 import { withChildProcessServer } from "../../fresh/tests/test_utils.tsx";
-import { withTmpDir as withTmpDirBase } from "../../fresh/src/test_utils.ts";
 import { stub } from "@std/testing/mock";
+import { withTmpDir } from "../../fresh/src/test_utils.ts";
 
 // deno-lint-ignore no-explicit-any
 (globalThis as any).INIT_TEST = true;
@@ -34,11 +34,6 @@ function stubLogs() {
     "log",
     () => undefined,
   );
-}
-
-function withTmpDir(): Promise<{ dir: string } & AsyncDisposable> {
-  const dir = path.join(import.meta.dirname!, "..", "..", "..", "..");
-  return withTmpDirBase({ dir, prefix: "tmp_" });
 }
 
 async function patchProject(dir: string): Promise<void> {
