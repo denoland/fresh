@@ -602,3 +602,35 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "vite build - Fresh app with basePath can be built for Hono mounting",
+  fn: async () => {
+    const honoMountFixture = path.join(FIXTURE_DIR, "hono_mount");
+    await using res = await buildVite(honoMountFixture);
+
+    // Verify that a Fresh app with basePath can be successfully built with Vite
+    const freshServerPath = path.join(res.tmp, "_fresh", "server.js");
+    const freshServerExists = await Deno.stat(freshServerPath).then(() => true)
+      .catch(() => false);
+    expect(freshServerExists).toBe(true);
+
+    // Read the server.js content to verify it's properly built
+    const serverJs = await Deno.readTextFile(freshServerPath);
+
+    // Server should be built successfully and export the expected interface
+    expect(serverJs).toContain("export default");
+    expect(serverJs).toContain("fetch:");
+
+    // Verify the server can be imported (this validates the build output)
+    const serverModule = await import(`file://${freshServerPath}`);
+    expect(serverModule.default).toBeDefined();
+    expect(typeof serverModule.default.fetch).toBe("function");
+
+    // This test verifies that the build process works for Hono mounting scenarios.
+    // The actual routing behavior with basePath in production would need to be
+    // tested in a more comprehensive integration test environment.
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
