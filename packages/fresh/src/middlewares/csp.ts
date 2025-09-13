@@ -2,8 +2,13 @@ import type { Middleware } from "./mod.ts";
 
 /** Options for Content-Security-Policy middleware */
 export interface CSPOptions {
+  /** If true, sets Content-Security-Policy-Report-Only header instead of Content-Security-Policy */
   reportOnly?: boolean;
+
+  /** If set, adds Reporting-Endpoints, report-to, and report-uri directive */
   reportTo?: string;
+
+  /** Additional CSP directives to add or override the defaults */
   csp?: string[];
 }
 
@@ -14,7 +19,7 @@ export interface CSPOptions {
  *   reportOnly: true,
  *   reportTo: '/api/csp-reports',
  *   csp: [
- *       "script-src 'self' 'unsafe-inline'",
+ *       "script-src 'self' 'unsafe-inline' 'https://example.com'",
  *   ],
  * }));
  */
