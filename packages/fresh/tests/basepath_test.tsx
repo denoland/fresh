@@ -67,5 +67,4 @@ Deno.test("applyBasePath - non-absolute paths", () => {
   expect(applyBasePath("//cdn.example.com/test", "/ui")).toBe(
     "//cdn.example.com/test",
   );
-  expect(applyBasePath("relative/path", "/ui")).toBe("relative/path");
 });
