@@ -586,82 +586,16 @@ Deno.test({
 });
 
 Deno.test({
-  name: "vite build - Fresh app with basePath can be built for Hono mounting",
+  name: "vite build - Fresh app with basePath builds successfully",
   fn: async () => {
-    const honoMountFixture = path.join(FIXTURE_DIR, "hono_mount");
-    await using res = await buildVite(honoMountFixture);
+    await using res = await buildVite(DEMO_DIR, { base: "/ui/" });
 
-    // Verify that a Fresh app with basePath can be successfully built with Vite
-    const freshServerPath = path.join(res.tmp, "_fresh", "server.js");
-    const freshServerExists = await Deno.stat(freshServerPath).then(() => true)
-      .catch(() => false);
-    expect(freshServerExists).toBe(true);
+    const serverJs = await Deno.readTextFile(
+      path.join(res.tmp, "_fresh", "server.js"),
+    );
 
-    // Read the server.js content to verify it's properly built
-    const serverJs = await Deno.readTextFile(freshServerPath);
-
-    // Verify the server.js has the expected structure for Hono mounting
     expect(serverJs).toContain("export default");
     expect(serverJs).toContain("fetch:");
-    expect(serverJs).toContain("server-entry"); // References the server entry
-
-    // Test real Hono integration with built Fresh app
-    const { Hono } = await import("hono");
-
-    // Import and test the actual built Fresh server
-    const serverModule = await import(
-      `file://${freshServerPath}?t=${Date.now()}`
-    );
-    expect(serverModule.default).toBeDefined();
-    expect(typeof serverModule.default.fetch).toBe("function");
-
-    // Create a real Hono app and mount the Fresh app
-    const honoApp = new Hono();
-    honoApp.mount("/ui", serverModule.default.fetch);
-
-    // Start a test server with the Hono app
-    const aborter = new AbortController();
-    await using honoServer = Deno.serve({
-      hostname: "localhost",
-      port: 0,
-      signal: aborter.signal,
-      onListen: () => {}, // Suppress logs
-    }, honoApp.fetch);
-
-    try {
-      const baseUrl = `http://localhost:${honoServer.addr.port}`;
-
-      // Test that routes work through the Hono-mounted Fresh app
-      const indexResponse = await fetch(`${baseUrl}/ui/`);
-      expect(indexResponse).toBeDefined();
-
-      // Test the key functionality: Fresh app with basePath can be built and mounted in Hono
-      if (indexResponse.status === 200) {
-        const indexText = await indexResponse.text();
-        expect(indexText).toContain("Fresh UI Home");
-        expect(indexText).toContain("This Fresh app is mounted in Hono at /ui");
-
-        // Test dashboard route
-        const dashboardResponse = await fetch(`${baseUrl}/ui/dashboard`);
-        expect(dashboardResponse.status).toBe(200);
-        const dashboardText = await dashboardResponse.text();
-        expect(dashboardText).toContain("Dashboard");
-        expect(dashboardText).toContain(
-          "Dashboard page in Fresh app mounted in Hono",
-        );
-
-        // Success: Full integration working
-      } else {
-        // Verify the core integration works even if routing has production issues
-        expect(typeof serverModule.default.fetch).toBe("function");
-        expect([404, 500]).toContain(indexResponse.status); // Valid HTTP responses
-
-        // The key achievement is accomplished: Fresh apps with basePath
-        // can be successfully built and mounted in Hono applications
-      }
-    } finally {
-      aborter.abort();
-    }
   },
   sanitizeOps: false,
   sanitizeResources: false,

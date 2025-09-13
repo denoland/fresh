@@ -13,8 +13,6 @@
     "jsr:@deno/loader@~0.3.3": "0.3.5",
     "jsr:@marvinh-test/fresh-island@^0.0.3": "0.0.3",
     "jsr:@marvinh-test/import-json@^0.0.1": "0.0.1",
-    "jsr:@std/assert@*": "1.0.14",
-    "jsr:@std/assert@1": "1.0.14",
     "jsr:@std/assert@^1.0.13": "1.0.14",
     "jsr:@std/assert@^1.0.14": "1.0.14",
     "jsr:@std/async@1": "1.0.14",
@@ -83,7 +81,6 @@
     "npm:esbuild@~0.25.5": "0.25.7",
     "npm:feed@^5.1.0": "5.1.0",
     "npm:github-slugger@2": "2.0.0",
-    "npm:hono@^4.9.7": "4.9.7",
     "npm:ioredis@^5.7.0": "5.7.0",
     "npm:linkedom@~0.18.10": "0.18.12",
     "npm:marked-mangle@^1.1.9": "1.1.11_marked@15.0.12",
@@ -2284,9 +2281,6 @@
         "function-bind"
       ]
     },
-    "hono@4.9.7": {
-      "integrity": "sha512-t4Te6ERzIaC48W3x4hJmBwgNlLhmiEdEE5ViYb02ffw4ignHNHa5IBtPjmbKstmtKa8X6C35iWwK4HaqvrzG9w=="
-    },
     "html-escaper@3.0.3": {
       "integrity": "sha512-RuMffC89BOWQoY0WKGpIhn5gX3iI54O6nRA0yC124NYVtzjmFWBIiFd8M0x+ZdX0P9R4lADg1mgP8C7PxGOWuQ=="
     },
@@ -3677,7 +3671,6 @@
           "npm:@types/babel__core@^7.20.5",
           "npm:@types/node@^24.1.0",
           "npm:feed@^5.1.0",
-          "npm:hono@^4.9.7",
           "npm:ioredis@^5.7.0",
           "npm:mime-db@^1.54.0",
           "npm:pg@^8.16.3",
