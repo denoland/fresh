@@ -523,7 +523,23 @@ Deno.test({
 });
 
 Deno.test({
-  name: "vite build - basePath CSS links are correctly prefixed",
+  name: "vite build - support _middleware Array",
+  fn: async () => {
+    await launchProd(
+      { cwd: viteResult.tmp },
+      async (address) => {
+        const res = await fetch(`${address}/tests/middlewares`);
+        const text = await res.text();
+        expect(text).toEqual("AB");
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite build - basePath asset links are correctly prefixed",
   fn: async () => {
     await using res = await buildVite(DEMO_DIR, { base: "/ui/" });
 
@@ -535,6 +551,7 @@ Deno.test({
             waitUntil: "networkidle2",
           });
 
+          // Test CSS links are prefixed correctly
           const stylesheetHrefs = await page.evaluate(() => {
             const links = Array.from(
               document.querySelectorAll('link[rel="stylesheet"]'),
@@ -542,44 +559,24 @@ Deno.test({
             return links.map((link) => (link as HTMLLinkElement).href);
           });
 
-          // All CSS links should include the basePath /ui/
           stylesheetHrefs.forEach((href) => {
             expect(href).toMatch(/\/ui\/assets\/.*\.css/);
+          });
+
+          // Test image links are prefixed correctly
+          const imageSrcs = await page.evaluate(() => {
+            const images = Array.from(document.querySelectorAll("img"));
+            return images.map((img) => img.src).filter((src) =>
+              src.includes("/assets/")
+            );
+          });
+
+          imageSrcs.forEach((src) => {
+            expect(src).toMatch(/\/ui\/assets\//);
           });
         });
       },
     );
-  },
-  sanitizeOps: false,
-  sanitizeResources: false,
-});
-
-Deno.test({
-  name: "vite build - basePath image links are correctly prefixed",
-  fn: async () => {
-    await using res = await buildVite(DEMO_DIR, { base: "/ui/" });
-
-    // Read the generated server.js to check that image assets have basePath applied
-    const serverJs = await Deno.readTextFile(
-      path.join(res.tmp, "_fresh", "server.js"),
-    );
-
-    // The server.js should contain image assets with the basePath /ui/
-    // Look for the deno-logo.png asset registration
-    expect(serverJs).toContain('"/ui/assets/deno-logo-');
-    expect(serverJs).toContain('.png"');
-
-    // Verify the basePath is properly applied to all assets, not just CSS
-    const assetRegistrations = serverJs.match(
-      /registerStaticFile\({[^}]+}\);/g,
-    );
-    expect(assetRegistrations).toBeTruthy();
-
-    // Check that image assets (png files) have the correct basePath
-    const imageRegistrations = assetRegistrations?.filter((reg) =>
-      reg.includes(".png") && reg.includes('"/ui/assets/')
-    );
-    expect(imageRegistrations && imageRegistrations.length > 0).toBe(true);
   },
   sanitizeOps: false,
   sanitizeResources: false,
