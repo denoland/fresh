@@ -178,11 +178,40 @@ export class App<State> {
   config: ResolvedFreshConfig;
 
   constructor(config: FreshConfig = {}) {
+    if (config.basePath !== undefined) {
+      this.#validateBasePath(config.basePath);
+    }
+
     this.config = {
       root: ".",
       basePath: config.basePath ?? "",
       mode: config.mode ?? "production",
     };
+  }
+
+  #validateBasePath(basePath: string): void {
+    if (basePath === "" || basePath === "/") {
+      return;
+    }
+
+    if (!basePath.startsWith("/")) {
+      throw new Error(
+        `Invalid basePath: "${basePath}". Must be empty, "/" or start with "/"`,
+      );
+    }
+
+    if (basePath.endsWith("/")) {
+      throw new Error(
+        `Invalid basePath: "${basePath}". Must not end with "/" except for root path`,
+      );
+    }
+
+    const hasInvalidChars = /[@#?&=\s]/.test(basePath);
+    if (hasInvalidChars) {
+      throw new Error(
+        `Invalid basePath: "${basePath}". Contains invalid characters`,
+      );
+    }
   }
 
   /**
@@ -328,10 +357,16 @@ export class App<State> {
       const cmd = app.#commands[i];
 
       if (cmd.type !== CommandType.App && cmd.type !== CommandType.NotFound) {
-        // Apply the inner app's basePath if it exists
         let effectivePattern = cmd.pattern;
         if (app.config.basePath) {
-          effectivePattern = mergePath(app.config.basePath, cmd.pattern, false);
+          // Avoid double basePath when mount path equals inner app's basePath
+          if (path !== app.config.basePath) {
+            effectivePattern = mergePath(
+              app.config.basePath,
+              cmd.pattern,
+              false,
+            );
+          }
         }
 
         const clone = {
