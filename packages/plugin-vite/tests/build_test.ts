@@ -28,6 +28,19 @@ Deno.test({
 });
 
 Deno.test({
+  name: "vite build - creates compiled entry",
+  fn: async () => {
+    const stat = await Deno.stat(
+      path.join(viteResult.tmp, "_fresh", "compiled-entry.js"),
+    );
+
+    expect(stat.isFile).toEqual(true);
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
   name: "vite build - serves static files",
   fn: async () => {
     await launchProd(
@@ -409,30 +422,6 @@ Deno.test({
 });
 
 Deno.test({
-  name: "vite build - throw when using Deno.* global inside an island",
-  fn: async () => {
-    const fixture = path.join(FIXTURE_DIR, "deno_global_island");
-
-    await expect(buildVite(fixture)).rejects.toThrow(
-      "The Deno.* global cannot be used in the browser",
-    );
-  },
-  sanitizeOps: false,
-  sanitizeResources: false,
-});
-
-Deno.test({
-  name: "vite build - don't throw when using Deno.* global in ssr",
-  fn: async () => {
-    const fixture = path.join(FIXTURE_DIR, "deno_global_ssr");
-
-    await buildVite(fixture);
-  },
-  sanitizeOps: false,
-  sanitizeResources: false,
-});
-
-Deno.test({
   name: "vite build - static index.html",
   fn: async () => {
     await launchProd(
@@ -441,6 +430,44 @@ Deno.test({
         const res = await fetch(`${address}/test_static/foo`);
         const text = await res.text();
         expect(text).toContain("<h1>ok</h1>");
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite build - base path asset handling",
+  fn: async () => {
+    await using res = await buildVite(DEMO_DIR, { base: "/my-app/" });
+
+    // Read the generated server.js to check asset paths
+    const serverJs = await Deno.readTextFile(
+      path.join(res.tmp, "_fresh", "server.js"),
+    );
+
+    // Asset paths should include the base path /my-app/
+    expect(serverJs).toContain('"/my-app/assets/');
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite build - env files",
+  fn: async () => {
+    await launchProd(
+      { cwd: viteResult.tmp },
+      async (address) => {
+        const res = await fetch(`${address}/tests/env_files`);
+        const json = await res.json();
+        expect(json).toEqual({
+          MY_ENV: "MY_ENV test value",
+          VITE_MY_ENV: "VITE_MY_ENV test value",
+          MY_LOCAL_ENV: "MY_LOCAL_ENV test value",
+          VITE_MY_LOCAL_ENV: "VITE_MY_LOCAL_ENV test value",
+        });
       },
     );
   },

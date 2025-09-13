@@ -283,6 +283,11 @@ The `createHandler` function was often used to launch Fresh for tests. This can
 be now done via vite's `createBuilder` function. See the
 [testing page](/docs/testing) for more information.
 
+## `deno compile`
+
+If you're using `deno compile` to generate a binary out of the Fresh app be sure
+to [update the command](/docs/deployment/deno-compile) to generate the binary.
+
 ## Getting help
 
 If you run into problems with upgrading your app, reach out to us by creating an

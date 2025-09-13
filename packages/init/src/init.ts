@@ -2,9 +2,10 @@
 import * as colors from "@std/fmt/colors";
 import * as path from "@std/path";
 import * as semver from "@std/semver";
+import initConfig from "../deno.json" with { type: "json" };
 
 // Keep these as is, as we replace these version in our release script
-const FRESH_VERSION = "2.0.0";
+const FRESH_VERSION = "2.0.2";
 const FRESH_TAILWIND_VERSION = "1.0.0";
 const FRESH_VITE_PLUGIN = "1.0.0";
 const PREACT_VERSION = "10.27.1";
@@ -32,26 +33,36 @@ function error(message: string): never {
   throw new InitError();
 }
 
-export const HELP_TEXT = `@fresh/init
+export const HELP_TEXT = `
+${
+  colors.bgRgb8(
+    colors.rgb8(
+      ` 🍋 @fresh/init${colors.rgb8(`@${initConfig.version}`, 248)} `,
+      0,
+    ),
+    121,
+  )
+}
 
-Initialize a new Fresh project. This will create all the necessary files for a
-new project.
+Initialize a new Fresh project. This will create all the necessary files
+for a new project.
 
 To generate a project in the './foobar' subdirectory:
-  deno run -Ar jsr:@fresh/init ./foobar
+    ${colors.rgb8("deno run -Ar jsr:@fresh/init ./foobar", 245)}
 
 To generate a project in the current directory:
-  deno run -Ar jsr:@fresh/init .
+    ${colors.rgb8("deno run -Ar jsr:@fresh/init .", 245)}
 
-USAGE:
-    deno run -Ar jsr:@fresh/init [DIRECTORY]
+${colors.rgb8("USAGE:", 3)}
+    ${colors.rgb8("deno run -Ar jsr:@fresh/init [DIRECTORY]", 245)}
 
-OPTIONS:
-    --force      Overwrite existing files
-    --tailwind   Use Tailwind for styling
-    --vscode     Setup project for VS Code
-    --docker     Setup Project to use Docker
-    --builder    Setup with builder instead of vite
+${colors.rgb8("OPTIONS:", 3)}
+    ${colors.rgb8("--force", 2)}      Overwrite existing files
+    ${colors.rgb8("--tailwind", 2)}   Use Tailwind for styling
+    ${colors.rgb8("--vscode", 2)}     Setup project for VS Code
+    ${colors.rgb8("--docker", 2)}     Setup Project to use Docker
+    ${colors.rgb8("--builder", 2)}    Setup with builder instead of vite
+    ${colors.rgb8("--help, -h", 2)}   Show this help message
 `;
 
 export const CONFIRM_EMPTY_MESSAGE =
@@ -73,8 +84,17 @@ export async function initProject(
     tailwind?: boolean | null;
     vscode?: boolean | null;
     builder?: boolean | null;
+    help?: boolean | null;
+    h?: boolean | null;
   } = {},
 ): Promise<void> {
+  const freshVersion = await getLatestVersion("@fresh/core", FRESH_VERSION);
+
+  if (flags.help || flags.h) {
+    console.log(HELP_TEXT);
+    return;
+  }
+
   console.log();
   console.log(
     colors.bgRgb8(
@@ -82,9 +102,10 @@ export async function initProject(
       121,
     ),
   );
+  console.log(`    version ${colors.rgb8(freshVersion, 4)}`);
   console.log();
 
-  let unresolvedDirectory = Deno.args[0];
+  let unresolvedDirectory;
   if (input.length !== 1) {
     const userInput = prompt(
       "Project Name:",
@@ -95,6 +116,8 @@ export async function initProject(
     }
 
     unresolvedDirectory = userInput;
+  } else {
+    unresolvedDirectory = String(input[0]);
   }
 
   const projectDir = path.resolve(cwd, unresolvedDirectory);
@@ -534,8 +557,6 @@ if (Deno.args.includes("build")) {
   if (!useVite) {
     await writeFile("dev.ts", DEV_TS);
   }
-
-  const freshVersion = await getLatestVersion("@fresh/core", FRESH_VERSION);
 
   const denoJson = {
     nodeModulesDir: "auto",
