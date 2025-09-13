@@ -1,5 +1,11 @@
-import type { Config, ResolvedConfig } from "./config.ts";
-import type { ModuleGraph } from "./state.ts";
+import type {
+  Command,
+  Config,
+  EnvironmentConfig,
+  Mode,
+  ResolvedConfig,
+} from "./config.ts";
+import type { ModuleGraph, ResolvedEnvironment, State } from "./state.ts";
 
 export type ModuleType =
   | "js"
@@ -12,6 +18,7 @@ export type ModuleType =
   | "text"
   | "bytes"
   | "css"
+  | "css-module"
   | "sass"
   | "less"
   | "yaml"
@@ -21,6 +28,7 @@ export type ModuleType =
   | "svg";
 
 export interface ConfigEnv {
+  mode: "development" | "production";
   command: "build" | "serve";
 }
 
@@ -70,6 +78,8 @@ export type LoadFn = (
 export type LoadHook = LoadFn | HookWithFilter<LoadFn>;
 
 export interface TransformResult {
+  code: unknown;
+  moduleType?: ModuleType;
 }
 
 export type TransformFn = (
@@ -95,7 +105,7 @@ export interface DevServer {
   moduleGraph: ModuleGraph;
 }
 
-export interface Plugin {
+export interface VitePlugin {
   name: string;
   config?(foo: any, env: ConfigEnv): Promise<Config | void> | Config | void;
   configResolved?(config: ResolvedConfig): Promise<void> | void;
@@ -105,4 +115,97 @@ export interface Plugin {
   load?: LoadHook;
   transform?: TransformHook;
   configureServer?(server: DevServer): Promise<void> | void;
+}
+
+export interface Plugin {
+  name: string;
+  enforce?: "pre" | "post";
+  apply?: (
+    config: Config,
+    opts: { command: Command; env: string; mode: Mode },
+  ) => boolean;
+  config?(
+    config: Config,
+    env: ConfigEnv,
+  ): Promise<Config | void> | Config | void;
+  setup(ctx: PluginBuilder): Promise<void> | void;
+}
+
+export interface ResolveEvent {
+  type: "resolve";
+  plugin: string;
+  env: string;
+  id: string;
+  importer: string | null;
+  result: ResolveResult;
+  durationMs: number;
+}
+export interface LoadEvent {
+  type: "load";
+  plugin: string;
+  env: string;
+  id: string;
+  result: LoadResult;
+  durationMs: number;
+}
+
+export interface TransformEvent {
+  type: "transform";
+  plugin: string;
+  env: string;
+  id: string;
+  result: TransformResult;
+  durationMs: number;
+}
+
+export interface PluginEventMap {
+  resolve: ResolveEvent;
+  load: LoadEvent;
+  transform: TransformEvent;
+}
+
+export class PluginBuilder {
+  #env: ResolvedEnvironment;
+  mode: Mode;
+  command: Command;
+  debug = false;
+  #events = {
+    resolve: [],
+    load: [],
+    transform: [],
+  } as { [K in keyof PluginEventMap]: Array<(ev: PluginEventMap[K]) => void> };
+
+  constructor(public name: string, env: ResolvedEnvironment) {
+    this.#env = env;
+    this.mode = "development";
+    this.command = "serve";
+  }
+
+  on<T extends keyof PluginEventMap>(
+    event: T,
+    fn: (event: PluginEventMap[T]) => void,
+  ): void {
+    this.#events[event].push(fn);
+  }
+
+  onResolve(
+    filter: HookFilter,
+    fn: (args: any) => Promise<ResolveResult | void> | ResolveResult | void,
+  ): void {
+    this.#env.resolvers.push({ name: this.name, filter, fn });
+  }
+
+  onLoad(
+    filter: HookFilter,
+    fn: (args: any) => Promise<LoadResult | void> | LoadResult | void,
+  ): void {
+    this.#env.loaders.push({ name: this.name, filter, fn });
+  }
+
+  onTransform(
+    filter: HookFilter,
+    fn: (args: any) => Promise<TransformResult | void> | TransformResult | void,
+  ): void {
+    this.#env.transformers.push({ name: this.name, filter, fn });
+  }
 }

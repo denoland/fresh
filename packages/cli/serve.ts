@@ -1,7 +1,8 @@
 import { boot } from "./boot.ts";
 import type { ResolvedConfig } from "./config.ts";
 import type { DevServer, Middleware, ModuleType } from "./plugin.ts";
-import type { State } from "./state.ts";
+import { loadAndTransform, resolveId } from "./plugin_container.ts";
+import type { ExternalNode, ModuleNode, State } from "./state.ts";
 
 const NOT_FOUND = () =>
   Promise.resolve(new Response("Not Found", { status: 404 }));
@@ -38,6 +39,26 @@ export class DevServerInstance implements DevServer {
   use(middleware: Middleware): this {
     this.#middlewares.push(middleware);
     return this;
+  }
+
+  async loadModule(
+    envName: string,
+    id: string,
+  ): Promise<ModuleNode | null> {
+    const env = this.#state.environments.get(envName);
+    if (env === undefined) throw new Error(`Unknown environment: ${envName}`);
+
+    const resolved = await resolveId(env, id, null);
+
+    if (!resolved) {
+      throw new Error(`Could not resolve ${id}`);
+    }
+
+    if (resolved.external) {
+      return null;
+    }
+
+    const mod = await loadAndTransform(this.#state, env, resolved.id);
   }
 
   fetch(): (req: Request) => Promise<Response> {
@@ -112,6 +133,7 @@ function toMime(moduleType: ModuleType): string {
     case "ts":
     case "tsx":
       return "text/javascript; charset=UTF-8";
+    case "css-module":
     case "css":
       return "text/css; charset=UTF-8";
     case "html":
