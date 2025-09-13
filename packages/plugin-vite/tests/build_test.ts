@@ -586,47 +586,6 @@ Deno.test({
 });
 
 Deno.test({
-  name: "vite build - relative basePath './' support",
-  fn: async () => {
-    const relativeFixture = path.join(FIXTURE_DIR, "relative_basepath");
-    await using res = await buildVite(relativeFixture);
-
-    // Read the generated server entry file to check asset registration
-    const serverEntryPath = path.join(
-      res.tmp,
-      "_fresh",
-      "server",
-      "server-entry.mjs",
-    );
-    const serverEntry = await Deno.readTextFile(serverEntryPath);
-
-    // Verify that the build completed successfully with relative basePath
-    expect(serverEntry.length).toBeGreaterThan(0);
-
-    // Check that the client directory was created successfully
-    const clientDir = path.join(res.tmp, "_fresh", "client");
-    expect(Deno.statSync(clientDir).isDirectory).toBe(true);
-
-    // Test that the prepareStaticFile function can handle relative basePath
-    // The key success indicator is that the build completes without throwing errors
-    // when basePath is set to "./" - this tests the fix in dev_build_cache.ts
-
-    // The build should complete successfully and produce a valid server entry
-    expect(serverEntry).toContain("server");
-
-    // Verify the build process handled relative paths (the fix allows this to work)
-    const hasRelativePathLogic = serverEntry.includes("./");
-    expect(hasRelativePathLogic).toBe(true);
-
-    // This test verifies that the fix for relative basePath in prepareStaticFile works
-    // Previously, relative paths like "./assets/file.png" would fail URL parsing
-    // Now they are handled correctly, allowing builds with basePath: "./" to succeed
-  },
-  sanitizeOps: false,
-  sanitizeResources: false,
-});
-
-Deno.test({
   name: "vite build - Fresh app with basePath can be built for Hono mounting",
   fn: async () => {
     const honoMountFixture = path.join(FIXTURE_DIR, "hono_mount");

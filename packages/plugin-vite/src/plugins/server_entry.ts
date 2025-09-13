@@ -25,10 +25,6 @@ export function serverEntryPlugin(
     if (basePath === "/") {
       return `/${id}`;
     }
-    if (basePath === "./") {
-      const cleanId = id.startsWith("/") ? id.substring(1) : id;
-      return basePath + cleanId;
-    }
     const normalizedBase = basePath.endsWith("/") ? basePath : basePath + "/";
     return normalizedBase + id;
   };
