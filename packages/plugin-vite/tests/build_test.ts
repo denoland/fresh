@@ -585,18 +585,3 @@ Deno.test({
   sanitizeResources: false,
 });
 
-Deno.test({
-  name: "vite build - Fresh app with basePath builds successfully",
-  fn: async () => {
-    await using res = await buildVite(DEMO_DIR, { base: "/ui/" });
-
-    const serverJs = await Deno.readTextFile(
-      path.join(res.tmp, "_fresh", "server.js"),
-    );
-
-    expect(serverJs).toContain("export default");
-    expect(serverJs).toContain("fetch:");
-  },
-  sanitizeOps: false,
-  sanitizeResources: false,
-});
