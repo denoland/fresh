@@ -190,13 +190,13 @@ export class App<State> {
   }
 
   #validateBasePath(basePath: string): void {
-    if (basePath === "" || basePath === "/" || basePath === "./") {
+    if (basePath === "" || basePath === "/") {
       return;
     }
 
     if (!basePath.startsWith("/")) {
       throw new Error(
-        `Invalid basePath: "${basePath}". Must be empty, "/", "./", or start with "/"`,
+        `Invalid basePath: "${basePath}". Must be empty, "/" or start with "/"`,
       );
     }
 

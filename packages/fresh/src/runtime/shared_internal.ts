@@ -176,9 +176,5 @@ export function applyBasePath(path: string, basePath?: string): string {
     return path;
   }
 
-  if (basePath === "./") {
-    return basePath + path.substring(1);
-  }
-
   return basePath + path;
 }

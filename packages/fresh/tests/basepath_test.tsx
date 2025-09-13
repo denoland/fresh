@@ -4,7 +4,7 @@ import { applyBasePath } from "../src/runtime/shared_internal.ts";
 
 Deno.test("basePath validation - rejects invalid paths", () => {
   expect(() => new App({ basePath: "invalid" })).toThrow(
-    'Invalid basePath: "invalid". Must be empty, "/", "./", or start with "/"',
+    'Invalid basePath: "invalid". Must be empty, "/" or start with "/"',
   );
 
   expect(() => new App({ basePath: "/ui/" })).toThrow(
@@ -23,12 +23,17 @@ Deno.test("basePath validation - rejects invalid paths", () => {
 Deno.test("basePath validation - accepts valid paths", () => {
   expect(() => new App({ basePath: "" })).not.toThrow();
   expect(() => new App({ basePath: "/" })).not.toThrow();
-  expect(() => new App({ basePath: "./" })).not.toThrow();
   expect(() => new App({ basePath: "/ui" })).not.toThrow();
   expect(() => new App({ basePath: "/api/v1" })).not.toThrow();
   expect(() => new App({ basePath: "/ui-admin" })).not.toThrow();
   expect(() => new App({ basePath: "/ui.test" })).not.toThrow();
   expect(() => new App({ basePath: "/deep/nested/path" })).not.toThrow();
+});
+
+Deno.test("basePath validation - rejects relative paths", () => {
+  expect(() => new App({ basePath: "./" })).toThrow(
+    'Invalid basePath: "./". Must be empty, "/" or start with "/"',
+  );
 });
 Deno.test("applyBasePath - no basePath", () => {
   expect(applyBasePath("/test", undefined)).toBe("/test");
@@ -46,12 +51,6 @@ Deno.test("applyBasePath - absolute basePath", () => {
   expect(applyBasePath("/test", "/ui")).toBe("/ui/test");
   expect(applyBasePath("/api/users", "/ui")).toBe("/ui/api/users");
   expect(applyBasePath("/", "/ui")).toBe("/ui/");
-});
-
-Deno.test("applyBasePath - relative basePath", () => {
-  expect(applyBasePath("/test", "./")).toBe("./test");
-  expect(applyBasePath("/api/users", "./")).toBe("./api/users");
-  expect(applyBasePath("/", "./")).toBe("./");
 });
 
 Deno.test("applyBasePath - complex paths", () => {
