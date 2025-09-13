@@ -1,8 +1,8 @@
 import type { EnvironmentConfig, ResolvedConfig } from "./config.ts";
 import type {
   HookFilter,
+  Loader,
   LoadFn,
-  ModuleType,
   Plugin,
   ResolveFn,
   TransformFn,
@@ -14,7 +14,7 @@ export interface ModuleNode {
   environment: string;
   file: string | undefined;
   content: unknown;
-  moduleType: ModuleType;
+  loader: Loader;
   importers: Set<ModuleNode>;
   dynamicImporters: Set<ModuleNode>;
   imports: Set<ModuleNode>;

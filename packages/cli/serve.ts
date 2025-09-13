@@ -1,6 +1,6 @@
 import { boot } from "./boot.ts";
 import type { ResolvedConfig } from "./config.ts";
-import type { DevServer, Middleware, ModuleType } from "./plugin.ts";
+import type { DevServer, Loader, Middleware } from "./plugin.ts";
 import { loadAndTransform, resolveId } from "./plugin_container.ts";
 import type { ExternalNode, ModuleNode, State } from "./state.ts";
 
@@ -8,17 +8,13 @@ const NOT_FOUND = () =>
   Promise.resolve(new Response("Not Found", { status: 404 }));
 
 export async function serve(config: ResolvedConfig) {
-  const state = await boot(config);
+  const state = await boot(config, {
+    command: "serve",
+    debug: false,
+    mode: "development",
+  });
 
   const server = new DevServerInstance(state);
-
-  const { plugins } = state.config;
-  for (let i = 0; i < plugins.length; i++) {
-    const plugin = plugins[i];
-    if (plugin.configureServer !== undefined) {
-      await plugin.configureServer(server);
-    }
-  }
 
   return server.fetch();
 }
@@ -72,10 +68,12 @@ export class DevServerInstance implements DevServer {
 
       const mod = this.moduleGraph.byUrl("client", urlId);
       if (mod !== undefined) {
-        const headers = new Headers();
-        headers.set("Content-Type", toMime(mod.moduleType));
+        if (mod.type === "external") return next();
 
-        switch (mod.moduleType) {
+        const headers = new Headers();
+        headers.set("Content-Type", toMime(mod.loader));
+
+        switch (mod.loader) {
           case "json":
             return Response.json(mod.content);
           case "js":
@@ -124,7 +122,7 @@ function compose(middlewares: Middleware[]): Middleware {
   };
 }
 
-function toMime(moduleType: ModuleType): string {
+function toMime(moduleType: Loader): string {
   switch (moduleType) {
     case "js":
     case "jsx":

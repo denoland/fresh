@@ -17,6 +17,6 @@ export function toModuleNode(
     importers: new Set(),
     file: undefined,
     imports: new Set(),
-    moduleType: transformed.moduleType ?? loaded.moduleType ?? "js",
+    loader: transformed.moduleType ?? loaded.moduleType ?? "js",
   };
 }

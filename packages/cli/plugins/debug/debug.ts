@@ -1,4 +1,4 @@
-import type { Plugin } from "../plugin.ts";
+import type { Plugin } from "../../plugin.ts";
 
 export function debugPlugin(): Plugin {
   return {
@@ -18,6 +18,23 @@ export function debugPlugin(): Plugin {
         // deno-lint-ignore no-console
         console.log(`transform [${ev.plugin}]: ${ev.id}`);
       });
+
+      ctx.server?.use((req, next) => {
+        const url = new URL(req.url);
+        if (url.pathname === "/__inspect") {
+          return new Response("ok");
+        }
+
+        return next();
+      });
     },
   };
 }
+
+const html = (arr: TemplateStringsArray, ...expr: any[]) => {
+  return arr[0];
+};
+
+const index = html`
+  <div></div>
+`;

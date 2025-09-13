@@ -1,13 +1,8 @@
-import type {
-  Command,
-  Config,
-  EnvironmentConfig,
-  Mode,
-  ResolvedConfig,
-} from "./config.ts";
-import type { ModuleGraph, ResolvedEnvironment, State } from "./state.ts";
+import type { Command, Config, Mode, ResolvedConfig } from "./config.ts";
+import { DevServerInstance } from "./DevServerInstance.ts";
+import type { ModuleGraph, ResolvedEnvironment } from "./state.ts";
 
-export type ModuleType =
+export type Loader =
   | "js"
   | "jsx"
   | "cjs"
@@ -39,10 +34,7 @@ export interface HookOptions {
 export type FilterId = string | RegExp | RegExp[];
 export interface HookFilter {
   id?: FilterId;
-  moduleType?: ModuleType;
-}
-
-export interface PluginContext {
+  moduleType?: Loader;
 }
 
 export interface ResolveResult {
@@ -51,7 +43,6 @@ export interface ResolveResult {
 }
 
 export type ResolveFn = (
-  this: PluginContext,
   id: string,
   importer: string | null,
   options: HookOptions,
@@ -66,11 +57,10 @@ export type ResolveHook = ResolveFn | HookWithFilter<ResolveFn>;
 
 export interface LoadResult {
   code: string | Uint8Array;
-  moduleType?: ModuleType;
+  moduleType?: Loader;
 }
 
 export type LoadFn = (
-  this: PluginContext,
   id: string,
   options: HookOptions,
 ) => Promise<LoadResult | void> | LoadResult | void;
@@ -79,11 +69,10 @@ export type LoadHook = LoadFn | HookWithFilter<LoadFn>;
 
 export interface TransformResult {
   code: unknown;
-  moduleType?: ModuleType;
+  moduleType?: Loader;
 }
 
 export type TransformFn = (
-  this: PluginContext,
   code: string,
   options: HookOptions,
 ) => Promise<TransformResult | void> | TransformResult | void;
@@ -107,7 +96,10 @@ export interface DevServer {
 
 export interface VitePlugin {
   name: string;
-  config?(foo: any, env: ConfigEnv): Promise<Config | void> | Config | void;
+  config?(
+    config: Config,
+    env: ConfigEnv,
+  ): Promise<Config | void> | Config | void;
   configResolved?(config: ResolvedConfig): Promise<void> | void;
   applyToEnvironment?(env: ApplyEnvOptions): boolean;
 
@@ -175,7 +167,11 @@ export class PluginBuilder {
     transform: [],
   } as { [K in keyof PluginEventMap]: Array<(ev: PluginEventMap[K]) => void> };
 
-  constructor(public name: string, env: ResolvedEnvironment) {
+  constructor(
+    public name: string,
+    env: ResolvedEnvironment,
+    public server: DevServerInstance | null,
+  ) {
     this.#env = env;
     this.mode = "development";
     this.command = "serve";
