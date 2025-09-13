@@ -851,8 +851,6 @@ Deno.test("App - .mountApp() with both main and inner basePath", async () => {
 });
 
 Deno.test("App - .mountApp() avoids double basePath when mounting at same path as inner basePath", async () => {
-  // This test reproduces the issue where mounting an app with basePath "/ui"
-  // at mount path "/ui" results in "/ui/ui" being required
   const innerApp = new App({ basePath: "/ui" })
     .get("/", () => new Response("ui home"))
     .get("/dashboard", () => new Response("dashboard"));
@@ -866,7 +864,6 @@ Deno.test("App - .mountApp() avoids double basePath when mounting at same path a
   let res = await server.get("/");
   expect(await res.text()).toEqual("root home");
 
-  // The fix should make /ui work (not /ui/ui)
   res = await server.get("/ui");
   expect(await res.text()).toEqual("ui home");
 

@@ -537,7 +537,6 @@ export async function prepareStaticFile(
   const file = await Deno.open(item.filePath);
   const hash = item.hash ? item.hash : await hashContent(file.readable);
 
-  // Handle relative basePath case - if pathname starts with "./" preserve it
   let name: string;
   if (item.pathname.startsWith("./")) {
     name = item.pathname;

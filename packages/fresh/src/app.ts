@@ -178,7 +178,6 @@ export class App<State> {
   config: ResolvedFreshConfig;
 
   constructor(config: FreshConfig = {}) {
-    // Validate basePath if provided
     if (config.basePath !== undefined) {
       this.#validateBasePath(config.basePath);
     }
@@ -191,26 +190,22 @@ export class App<State> {
   }
 
   #validateBasePath(basePath: string): void {
-    // Allow empty string, root path, relative path, or valid absolute paths
     if (basePath === "" || basePath === "/" || basePath === "./") {
       return;
     }
 
-    // Must start with "/" for absolute paths
     if (!basePath.startsWith("/")) {
       throw new Error(
         `Invalid basePath: "${basePath}". Must be empty, "/", "./", or start with "/"`,
       );
     }
 
-    // Must not end with "/" (except for root "/")
     if (basePath.endsWith("/")) {
       throw new Error(
         `Invalid basePath: "${basePath}". Must not end with "/" except for root path`,
       );
     }
 
-    // Must only contain valid URL path characters
     if (!/^\/[\w\-\.\/]*$/.test(basePath)) {
       throw new Error(
         `Invalid basePath: "${basePath}". Contains invalid characters`,
@@ -361,12 +356,9 @@ export class App<State> {
       const cmd = app.#commands[i];
 
       if (cmd.type !== CommandType.App && cmd.type !== CommandType.NotFound) {
-        // Apply the inner app's basePath if it exists, but avoid double application
-        // when the mount path is the same as the inner app's basePath
         let effectivePattern = cmd.pattern;
         if (app.config.basePath) {
-          // If mount path equals inner app's basePath, don't apply inner basePath
-          // to avoid double basePath (e.g., mounting app with basePath="/ui" at "/ui")
+          // Avoid double basePath when mount path equals inner app's basePath
           if (path !== app.config.basePath) {
             effectivePattern = mergePath(
               app.config.basePath,
