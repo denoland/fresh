@@ -3,29 +3,24 @@ import { App } from "fresh";
 import { applyBasePath } from "../src/runtime/shared_internal.ts";
 
 Deno.test("basePath validation - rejects invalid paths", () => {
-  // Invalid: doesn't start with "/"
   expect(() => new App({ basePath: "invalid" })).toThrow(
     'Invalid basePath: "invalid". Must be empty, "/", "./", or start with "/"',
   );
 
-  // Invalid: ends with "/" (except root)
   expect(() => new App({ basePath: "/ui/" })).toThrow(
     'Invalid basePath: "/ui/". Must not end with "/" except for root path',
   );
 
-  // Invalid: contains invalid characters
   expect(() => new App({ basePath: "/ui@admin" })).toThrow(
     'Invalid basePath: "/ui@admin". Contains invalid characters',
   );
 
-  // Invalid: contains spaces
   expect(() => new App({ basePath: "/ui admin" })).toThrow(
     'Invalid basePath: "/ui admin". Contains invalid characters',
   );
 });
 
 Deno.test("basePath validation - accepts valid paths", () => {
-  // Valid paths should not throw
   expect(() => new App({ basePath: "" })).not.toThrow();
   expect(() => new App({ basePath: "/" })).not.toThrow();
   expect(() => new App({ basePath: "./" })).not.toThrow();
@@ -35,8 +30,6 @@ Deno.test("basePath validation - accepts valid paths", () => {
   expect(() => new App({ basePath: "/ui.test" })).not.toThrow();
   expect(() => new App({ basePath: "/deep/nested/path" })).not.toThrow();
 });
-
-// applyBasePath utility function tests
 Deno.test("applyBasePath - no basePath", () => {
   expect(applyBasePath("/test", undefined)).toBe("/test");
   expect(applyBasePath("/test", "")).toBe("/test");
@@ -69,7 +62,6 @@ Deno.test("applyBasePath - complex paths", () => {
 });
 
 Deno.test("applyBasePath - non-absolute paths", () => {
-  // Should not apply basePath to non-absolute paths
   expect(applyBasePath("http://example.com/test", "/ui")).toBe(
     "http://example.com/test",
   );

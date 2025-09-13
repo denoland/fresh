@@ -107,16 +107,7 @@ export function assetInternal(
     url.searchParams.set(ASSET_CACHE_BUST_KEY, buildId);
     let finalPath = url.pathname + url.search + url.hash;
 
-    // Apply basePath if provided and finalPath starts with /
-    if (basePath && basePath !== "/" && finalPath.startsWith("/")) {
-      if (basePath === "./") {
-        // For relative basePath, remove the leading slash
-        finalPath = basePath + finalPath.substring(1);
-      } else {
-        // For absolute basePath, concatenate directly
-        finalPath = basePath + finalPath;
-      }
-    }
+    finalPath = applyBasePath(finalPath, basePath);
 
     return finalPath;
   } catch (err) {
@@ -175,30 +166,19 @@ export function assetHashingHook(
   }
 }
 
-/**
- * Apply basePath to a given path string.
- * Handles both absolute basePaths ("/ui") and relative basePaths ("./").
- *
- * @param path - The path to apply basePath to
- * @param basePath - The basePath to apply (undefined, "/", "/ui", or "./")
- * @returns The path with basePath applied
- */
+/** Apply basePath to a given path string */
 export function applyBasePath(path: string, basePath?: string): string {
-  // No basePath or root basePath - return as-is
   if (!basePath || basePath === "/") {
     return path;
   }
 
-  // Only apply basePath to absolute paths starting with "/" but not "//"
   if (!path.startsWith("/") || path.startsWith("//")) {
     return path;
   }
 
-  // Handle relative basePath
   if (basePath === "./") {
     return basePath + path.substring(1);
   }
 
-  // Handle absolute basePath
   return basePath + path;
 }
