@@ -174,3 +174,31 @@ export function assetHashingHook(
     }
   }
 }
+
+/**
+ * Apply basePath to a given path string.
+ * Handles both absolute basePaths ("/ui") and relative basePaths ("./").
+ *
+ * @param path - The path to apply basePath to
+ * @param basePath - The basePath to apply (undefined, "/", "/ui", or "./")
+ * @returns The path with basePath applied
+ */
+export function applyBasePath(path: string, basePath?: string): string {
+  // No basePath or root basePath - return as-is
+  if (!basePath || basePath === "/") {
+    return path;
+  }
+
+  // Only apply basePath to absolute paths starting with "/" but not "//"
+  if (!path.startsWith("/") || path.startsWith("//")) {
+    return path;
+  }
+
+  // Handle relative basePath
+  if (basePath === "./") {
+    return basePath + path.substring(1);
+  }
+
+  // Handle absolute basePath
+  return basePath + path;
+}
