@@ -16,6 +16,7 @@ import { asset, Partial, type PartialProps } from "../shared.ts";
 import { stringify } from "../../jsonify/stringify.ts";
 import type { Island } from "../../context.ts";
 import {
+  applyBasePath,
   assetHashingHook,
   CLIENT_NAV_ATTR,
   DATA_FRESH_KEY,
@@ -433,32 +434,14 @@ function RemainingHead() {
       if (island.css.length > 0) {
         for (let i = 0; i < island.css.length; i++) {
           const css = island.css[i];
-          // Island CSS paths are typically already absolute or asset references
-          // Apply basePath if it's an absolute path
-          let fullPath = css;
-          if (css.startsWith("/") && basePath !== "/") {
-            if (basePath === "./") {
-              fullPath = basePath + css.substring(1);
-            } else {
-              fullPath = basePath + css;
-            }
-          }
+          const fullPath = applyBasePath(css, basePath);
           items.push(h("link", { rel: "stylesheet", href: fullPath }));
         }
       }
     });
 
     RENDER_STATE.islandAssets.forEach((css) => {
-      // IslandAssets paths are typically already absolute or asset references
-      // Apply basePath if it's an absolute path
-      let fullPath = css;
-      if (css.startsWith("/") && basePath !== "/") {
-        if (basePath === "./") {
-          fullPath = basePath + css.substring(1);
-        } else {
-          fullPath = basePath + css;
-        }
-      }
+      const fullPath = applyBasePath(css, basePath);
       items.push(h("link", { rel: "stylesheet", href: fullPath }));
     });
 
