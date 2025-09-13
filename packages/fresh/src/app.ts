@@ -328,10 +328,19 @@ export class App<State> {
       const cmd = app.#commands[i];
 
       if (cmd.type !== CommandType.App && cmd.type !== CommandType.NotFound) {
-        // Apply the inner app's basePath if it exists
+        // Apply the inner app's basePath if it exists, but avoid double application
+        // when the mount path is the same as the inner app's basePath
         let effectivePattern = cmd.pattern;
         if (app.config.basePath) {
-          effectivePattern = mergePath(app.config.basePath, cmd.pattern, false);
+          // If mount path equals inner app's basePath, don't apply inner basePath
+          // to avoid double basePath (e.g., mounting app with basePath="/ui" at "/ui")
+          if (path !== app.config.basePath) {
+            effectivePattern = mergePath(
+              app.config.basePath,
+              cmd.pattern,
+              false,
+            );
+          }
         }
 
         const clone = {
