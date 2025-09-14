@@ -1,6 +1,6 @@
+import type { DevServerInstance } from "./DevServerInstance.ts";
 import type { Plugin } from "./plugin.ts";
 import type { RunnerHost } from "./runner/connection.ts";
-import { RunnerCtx } from "./runner/runner_ctx.ts";
 
 export type Mode = "development" | "production";
 export type Command = "build" | "serve";
@@ -18,7 +18,7 @@ export interface EnvironmentConfig {
   };
   plugins?: Plugin[];
   runner?: (
-    ctx: RunnerCtx,
+    server: DevServerInstance,
     envName: string,
   ) => Promise<RunnerHost> | RunnerHost;
 }

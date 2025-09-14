@@ -1,12 +1,17 @@
+import type { DevServerInstance } from "../DevServerInstance.ts";
 import type { RunnerHost } from "./connection.ts";
 import { ModuleRunner } from "./module_runner.ts";
-import { RunnerCtx } from "./runner_ctx.ts";
 import type { ModuleInstance } from "./shared.ts";
 
-export function newServerRunner(ctx: RunnerCtx, envName: string): RunnerHost {
+export function newServerRunner(
+  ctx: DevServerInstance,
+  envName: string,
+): RunnerHost {
   const runner = new ModuleRunner();
 
   return {
+    instantiateModule(id, code) {
+    },
     async loadModule(id: string): Promise<ModuleInstance> {
       const mod = await ctx.fetchModule(envName, id);
       if (mod === undefined) {

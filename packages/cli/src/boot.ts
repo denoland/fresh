@@ -5,12 +5,12 @@ import {
   type Mode,
   type ResolvedConfig,
 } from "./config.ts";
-import { type ConfigEnv, PluginBuilder } from "./plugin.ts";
+import { DevServerInstance } from "./DevServerInstance.ts";
+import { type ConfigEnv, type Plugin, PluginBuilder } from "./plugin.ts";
 import { debugPlugin } from "./plugins/debug/debug.ts";
 import { htmlPlugin } from "./plugins/debug/html.ts";
 import { newBrowserRunner } from "./runner/browser/browser_host.ts";
 import type { RunnerHost } from "./runner/connection.ts";
-import { RunnerCtx } from "./runner/runner_ctx.ts";
 import { newServerRunner } from "./runner/server_runner.ts";
 import { ModuleGraph, type ResolvedEnvironment, type State } from "./state.ts";
 
@@ -24,7 +24,7 @@ export interface BootOptions {
 export async function boot(
   config: Config,
   options: BootOptions,
-): Promise<State> {
+): Promise<{ state: State; server: DevServerInstance }> {
   const configEnv: ConfigEnv = {
     command: options.command,
     mode: options.mode,
@@ -35,6 +35,22 @@ export async function boot(
   if (options.debug) {
     plugins.push(debugPlugin());
   }
+
+  if (config.environments !== undefined) {
+    for (const [name, env] of Object.entries(config.environments)) {
+      if (env.plugins !== undefined) {
+        for (let i = 0; i < env.plugins.length; i++) {
+          const plugin = env.plugins[i];
+          plugin.apply = (_config, opts) => {
+            return opts.env === name;
+          };
+          plugins.push(plugin);
+        }
+      }
+    }
+  }
+
+  plugins.sort(sortPlugins);
 
   for (let i = 0; i < plugins.length; i++) {
     const plugin = plugins[i];
@@ -54,7 +70,6 @@ export async function boot(
 
   plugins.push(htmlPlugin());
 
-  console.log(config);
   console.log(resolvedConfig);
 
   const state: State = {
@@ -63,31 +78,10 @@ export async function boot(
     moduleGraph: new ModuleGraph(),
   };
 
-  for (const [name, envConfig] of Object.entries(resolvedConfig.environments)) {
-    const runnerCtx = new RunnerCtx(state);
+  const server = new DevServerInstance(state);
+  const envPlugins = new Map<string, Plugin[]>();
 
-    let runner: RunnerHost;
-    if (envConfig.runner) {
-      runner = await envConfig.runner(runnerCtx, name);
-    } else if (name === "client") {
-      runner = await newBrowserRunner(runnerCtx, name);
-    } else if (name === "ssr") {
-      runner = await newServerRunner(runnerCtx, name);
-    } else {
-      throw new Error(`No runner defined for environment: ${name}`);
-    }
-
-    const env: ResolvedEnvironment = {
-      name,
-      config: envConfig,
-      plugins: [],
-      resolvers: [],
-      loaders: [],
-      transformers: [],
-      finalizers: [],
-      runner,
-    };
-
+  for (const [name, _env] of Object.entries(resolvedConfig.environments)) {
     for (let i = 0; i < plugins.length; i++) {
       const plugin = plugins[i];
 
@@ -102,14 +96,56 @@ export async function boot(
         continue;
       }
 
-      env.plugins.push(plugin);
+      const pluginsPerEnv = envPlugins.get(name) ?? [];
+      pluginsPerEnv.push(plugin);
+      envPlugins.set(name, pluginsPerEnv);
+    }
+  }
 
-      const builder = new PluginBuilder(plugin.name, env, state.server);
+  for (const [name, envConfig] of Object.entries(resolvedConfig.environments)) {
+    let runner: RunnerHost;
+    if (envConfig.runner) {
+      runner = await envConfig.runner(server, name);
+    } else if (name === "client") {
+      runner = await newBrowserRunner(server, name);
+    } else if (name === "ssr") {
+      runner = await newServerRunner(server, name);
+    } else {
+      throw new Error(`No runner defined for environment: ${name}`);
+    }
+
+    const env: ResolvedEnvironment = {
+      name,
+      config: envConfig,
+      plugins: envPlugins.get(name) ?? [],
+      resolvers: [],
+      loaders: [],
+      transformers: [],
+      finalizers: [],
+      runner,
+    };
+
+    for (let i = 0; i < env.plugins.length; i++) {
+      const plugin = env.plugins[i];
+      const builder = new PluginBuilder(plugin.name, env, server);
       await plugin.setup(builder);
     }
 
     state.environments.set(name, env);
   }
 
-  return state;
+  return { state, server };
+}
+
+function sortPlugins(a: Plugin, b: Plugin) {
+  if (a.enforce === b.enforce) return 0;
+  if (a.enforce === "pre" && b.enforce !== "pre") {
+    return -1;
+  } else if (
+    b.enforce === "pre" || a.enforce === "post" && b.enforce !== "post"
+  ) {
+    return 1;
+  }
+
+  return 0;
 }

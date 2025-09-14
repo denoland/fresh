@@ -1,13 +1,16 @@
+import type { DevServerInstance } from "../DevServerInstance.ts";
 import type { RunnerHost } from "./connection.ts";
 import { ModuleRunner } from "./module_runner.ts";
-import type { RunnerCtx } from "./runner_ctx.ts";
 import type { ModuleInstance } from "./shared.ts";
 
-export function newServerRunner(ctx: RunnerCtx, envName: string): RunnerHost {
+export function newServerRunner(
+  server: DevServerInstance,
+  envName: string,
+): RunnerHost {
   const runner = new ModuleRunner();
 
   const fetcher = async (id: string) => {
-    const mod = await ctx.fetchModule(envName, id);
+    const mod = await server.fetchModule(envName, id);
 
     // FIXME
     // deno-lint-ignore no-explicit-any

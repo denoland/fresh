@@ -1,6 +1,5 @@
 import type { Command, Config, Mode } from "./config.ts";
 import type { DevServerInstance } from "./DevServerInstance.ts";
-import { RunnerCtx } from "./runner/runner_ctx.ts";
 import type { ModuleGraph, ResolvedEnvironment } from "./state.ts";
 
 export type Loader =
@@ -186,7 +185,7 @@ export class PluginBuilder {
   constructor(
     public name: string,
     env: ResolvedEnvironment,
-    public server: RunnerCtx | null,
+    public server: DevServerInstance,
   ) {
     this.#env = env;
     this.mode = "development";

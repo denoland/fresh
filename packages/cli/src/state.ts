@@ -1,5 +1,4 @@
 import type { EnvironmentConfig, ResolvedConfig } from "./config.ts";
-import { DevServerInstance } from "./DevServerInstance.ts";
 import type {
   HookFilter,
   Loader,
@@ -9,8 +8,7 @@ import type {
   SealFn,
   TransformFn,
 } from "./plugin.ts";
-import { RunnerHost } from "./runner/connection.ts";
-import { RunnerCtx } from "./runner/runner_ctx.ts";
+import type { RunnerHost } from "./runner/connection.ts";
 
 export interface ModuleNode {
   type: "module";

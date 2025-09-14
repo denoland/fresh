@@ -14,23 +14,30 @@ const fetcher = await serve({
         {
           name: "fresh:ssr",
           setup(ctx) {
-            ctx.server?.use(async (_req, next) => {
+            ctx.server.use(async (req, next) => {
               const res = await next();
 
               if (res.status === 404) {
-                const mod = await ctx.server!.loadModule(
+                const mod = await ctx.server.loadModule(
                   "ssr",
                   "fresh:ssr-entry",
                 );
+
+                return mod.fetch(req);
               }
 
               return res;
             });
 
             ctx.onResolve({ id: /fresh:ssr-entry/ }, (args) => {
-              console.log("ssr resolve", args);
               return {
                 id: args.id,
+              };
+            });
+
+            ctx.onLoad({ id: "/fresh:ssr-entry/" }, (args) => {
+              return {
+                code: `console.log("hello")`,
               };
             });
           },

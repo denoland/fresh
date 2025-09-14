@@ -34,11 +34,22 @@ export function matchFilter(filter: HookFilter, id: string): boolean {
   return true;
 }
 
-export function loadAndTransform(
-  state: State,
+export async function loadAndTransform(
   env: ResolvedEnvironment,
   id: string,
 ): Promise<TransformResult> {
+  for (let i = 0; i < env.loaders.length; i++) {
+    const load = env.loaders[i];
+
+    if (!matchFilter(load.filter, id)) continue;
+
+    const result = await load.fn({ env: env.name, id });
+    if (result !== undefined) {
+      console.log({ loaded: result });
+    }
+  }
+
+  console.log("LOAD", id);
 }
 
 export function finalizeModule(

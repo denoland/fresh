@@ -1,5 +1,9 @@
 import type { DevServer, Loader, Middleware } from "./plugin.ts";
-import { loadAndTransform, resolveId } from "./plugin_container.ts";
+import {
+  finalizeModule,
+  loadAndTransform,
+  resolveId,
+} from "./plugin_container.ts";
 import type { ModuleNode, State } from "./state.ts";
 
 const NOT_FOUND = () =>
@@ -8,14 +12,14 @@ const NOT_FOUND = () =>
 export class DevServerInstance implements DevServer {
   address = "";
   #middlewares: Middleware[] = [];
-  #getState: () => State;
+  #state: State;
 
   get moduleGraph() {
-    return this.#getState().moduleGraph;
+    return this.#state.moduleGraph;
   }
 
-  constructor(getState: () => State) {
-    this.#getState = getState;
+  constructor(state: State) {
+    this.#state = state;
   }
 
   use(middleware: Middleware): this {
@@ -24,8 +28,36 @@ export class DevServerInstance implements DevServer {
   }
 
   async loadModule(envName: string, id: string) {
-    const env = this.#getState().environments.get(envName)!;
+    const env = this.#state.environments.get(envName)!;
+
+    console.log("LOAD", envName, id, env);
     return await env.runner.loadModule(id);
+  }
+
+  async fetchModule(
+    envName: string,
+    id: string,
+  ): Promise<ModuleNode> {
+    const env = this.#state.environments.get(envName);
+    if (env === undefined) {
+      throw new Error(`Unknown environment: ${envName}`);
+    }
+
+    const resolved = await resolveId(env, id, null);
+
+    if (!resolved) {
+      throw new Error(`Could not resolve ${id}`);
+    }
+
+    if (resolved.external) {
+      throw new Error(`External module: ${id}`);
+    }
+
+    const loaded = await loadAndTransform(env, resolved.id);
+
+    const finalized = await finalizeModule(this.#state, env, loaded);
+
+    return finalized;
   }
 
   fetch(): (req: Request) => Promise<Response> {
@@ -92,7 +124,9 @@ function compose(middlewares: Middleware[]): Middleware {
     for (let i = middlewares.length - 1; i >= 0; i--) {
       const fn = middlewares[i];
       const localNext = nextFn;
-      nextFn = () => Promise.resolve(fn(req, localNext));
+      nextFn = () => {
+        return Promise.resolve(fn(req, localNext));
+      };
     }
 
     return await nextFn();
