@@ -1,9 +1,21 @@
-import type { Command, Config, Mode, ResolvedConfig } from "./config.ts";
+import {
+  type Command,
+  type Config,
+  mergeConfig,
+  type Mode,
+  type ResolvedConfig,
+} from "./config.ts";
 import { type ConfigEnv, PluginBuilder } from "./plugin.ts";
-import { debugPlugin } from "./plugins/debug.ts";
+import { debugPlugin } from "./plugins/debug/debug.ts";
+import { htmlPlugin } from "./plugins/debug/html.ts";
+import { newBrowserRunner } from "./runner/browser/browser_host.ts";
+import type { RunnerHost } from "./runner/connection.ts";
+import { RunnerCtx } from "./runner/runner_ctx.ts";
+import { newServerRunner } from "./runner/server_runner.ts";
 import { ModuleGraph, type ResolvedEnvironment, type State } from "./state.ts";
 
 export interface BootOptions {
+  cwd: string;
   command: Command;
   mode: Mode;
   debug: boolean;
@@ -35,9 +47,15 @@ export async function boot(
   }
 
   const resolvedConfig: ResolvedConfig = {
-    root: "",
-    environments: {},
+    root: config.root ?? options.cwd,
+    environments: config.environments ?? {},
+    plugins,
   };
+
+  plugins.push(htmlPlugin());
+
+  console.log(config);
+  console.log(resolvedConfig);
 
   const state: State = {
     config: resolvedConfig,
@@ -46,6 +64,19 @@ export async function boot(
   };
 
   for (const [name, envConfig] of Object.entries(resolvedConfig.environments)) {
+    const runnerCtx = new RunnerCtx(state);
+
+    let runner: RunnerHost;
+    if (envConfig.runner) {
+      runner = await envConfig.runner(runnerCtx, name);
+    } else if (name === "client") {
+      runner = await newBrowserRunner(runnerCtx, name);
+    } else if (name === "ssr") {
+      runner = await newServerRunner(runnerCtx, name);
+    } else {
+      throw new Error(`No runner defined for environment: ${name}`);
+    }
+
     const env: ResolvedEnvironment = {
       name,
       config: envConfig,
@@ -53,6 +84,8 @@ export async function boot(
       resolvers: [],
       loaders: [],
       transformers: [],
+      seal: [],
+      runner,
     };
 
     for (let i = 0; i < plugins.length; i++) {
@@ -71,7 +104,7 @@ export async function boot(
 
       env.plugins.push(plugin);
 
-      const builder = new PluginBuilder(plugin.name, env);
+      const builder = new PluginBuilder(plugin.name, env, state.server);
       await plugin.setup(builder);
     }
 
@@ -79,8 +112,4 @@ export async function boot(
   }
 
   return state;
-}
-
-export function mergeConfig<T>(a: T, b: T): T {
-  return { ...a, ...b };
 }

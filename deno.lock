@@ -88,6 +88,7 @@
     "npm:marked-mangle@^1.1.9": "1.1.11_marked@15.0.12",
     "npm:marked@^15.0.11": "15.0.12",
     "npm:mime-db@^1.54.0": "1.54.0",
+    "npm:parse5@8": "8.0.0",
     "npm:pg@^8.16.3": "8.16.3",
     "npm:postcss@8.5.6": "8.5.6",
     "npm:postcss@^8.5.6": "8.5.6",
@@ -3079,6 +3080,12 @@
     "package-json-from-dist@1.0.1": {
       "integrity": "sha512-UEZIS3/by4OC8vL3P2dTXRETpebLI2NiI5vIrjaD/5UtrkFX/tNbwjTSRAGC/+7CAo2pIcBaRgWmcBBHcsaCIw=="
     },
+    "parse5@8.0.0": {
+      "integrity": "sha512-9m4m5GSgXjL4AjumKzq1Fgfp3Z8rsvjRNbnkVwfu2ImRqE5D0LnY2QfDen18FSY9C573YU5XxSapdHZTZ2WolA==",
+      "dependencies": [
+        "entities@6.0.1"
+      ]
+    },
     "path-browserify@1.0.1": {
       "integrity": "sha512-b7uo2UCUOYZcnF/3ID0lulOJi/bafxa1xPe7ZPsammBSpjSWQkjNxlt635YGS2MiR9GjvuXCtz2emr3jbsz98g=="
     },
@@ -4162,6 +4169,7 @@
       "npm:marked-mangle@^1.1.9",
       "npm:marked@^15.0.11",
       "npm:mime-db@^1.54.0",
+      "npm:parse5@8",
       "npm:postcss@8.5.6",
       "npm:preact-render-to-string@^6.5.11",
       "npm:preact@^10.27.0",

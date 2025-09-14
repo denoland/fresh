@@ -1,35 +1,21 @@
-import { boot } from "./boot.ts";
-import type { ResolvedConfig } from "./config.ts";
 import type { DevServer, Loader, Middleware } from "./plugin.ts";
 import { loadAndTransform, resolveId } from "./plugin_container.ts";
-import type { ExternalNode, ModuleNode, State } from "./state.ts";
+import type { ModuleNode, State } from "./state.ts";
 
 const NOT_FOUND = () =>
   Promise.resolve(new Response("Not Found", { status: 404 }));
 
-export async function serve(config: ResolvedConfig) {
-  const state = await boot(config, {
-    command: "serve",
-    debug: false,
-    mode: "development",
-  });
-
-  const server = new DevServerInstance(state);
-
-  return server.fetch();
-}
-
 export class DevServerInstance implements DevServer {
   address = "";
   #middlewares: Middleware[] = [];
-  #state: State;
+  #getState: () => State;
 
   get moduleGraph() {
-    return this.#state.moduleGraph;
+    return this.#getState().moduleGraph;
   }
 
-  constructor(state: State) {
-    this.#state = state;
+  constructor(getState: () => State) {
+    this.#getState = getState;
   }
 
   use(middleware: Middleware): this {
@@ -37,24 +23,9 @@ export class DevServerInstance implements DevServer {
     return this;
   }
 
-  async loadModule(
-    envName: string,
-    id: string,
-  ): Promise<ModuleNode | null> {
-    const env = this.#state.environments.get(envName);
-    if (env === undefined) throw new Error(`Unknown environment: ${envName}`);
-
-    const resolved = await resolveId(env, id, null);
-
-    if (!resolved) {
-      throw new Error(`Could not resolve ${id}`);
-    }
-
-    if (resolved.external) {
-      return null;
-    }
-
-    const mod = await loadAndTransform(this.#state, env, resolved.id);
+  async loadModule(envName: string, id: string) {
+    const env = this.#getState().environments.get(envName)!;
+    return await env.runner.loadModule(id);
   }
 
   fetch(): (req: Request) => Promise<Response> {
@@ -66,7 +37,12 @@ export class DevServerInstance implements DevServer {
         urlId += `?${url.search}`;
       }
 
-      const mod = this.moduleGraph.byUrl("client", urlId);
+      let mod = this.moduleGraph.byUrl("client", urlId);
+      if (mod === undefined) {
+        mod = await this.fetchModule("client", "");
+      }
+
+      console.log({ mod });
       if (mod !== undefined) {
         if (mod.type === "external") return next();
 
@@ -115,7 +91,8 @@ function compose(middlewares: Middleware[]): Middleware {
 
     for (let i = middlewares.length - 1; i >= 0; i--) {
       const fn = middlewares[i];
-      nextFn = () => Promise.resolve(fn(req, nextFn));
+      const localNext = nextFn;
+      nextFn = () => Promise.resolve(fn(req, localNext));
     }
 
     return await nextFn();

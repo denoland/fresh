@@ -1,5 +1,6 @@
-import type { Command, Config, Mode, ResolvedConfig } from "./config.ts";
-import { DevServerInstance } from "./DevServerInstance.ts";
+import type { Command, Config, Mode } from "./config.ts";
+import type { DevServerInstance } from "./DevServerInstance.ts";
+import { RunnerCtx } from "./runner/runner_ctx.ts";
 import type { ModuleGraph, ResolvedEnvironment } from "./state.ts";
 
 export type Loader =
@@ -27,14 +28,10 @@ export interface ConfigEnv {
   command: "build" | "serve";
 }
 
-export interface HookOptions {
-  ssr: boolean;
-}
-
 export type FilterId = string | RegExp | RegExp[];
 export interface HookFilter {
   id?: FilterId;
-  moduleType?: Loader;
+  loader?: Loader;
 }
 
 export interface ResolveResult {
@@ -42,10 +39,14 @@ export interface ResolveResult {
   external?: boolean;
 }
 
+export interface ResolveArgs {
+  id: string;
+  importer: string | null;
+  env: string;
+}
+
 export type ResolveFn = (
-  id: string,
-  importer: string | null,
-  options: HookOptions,
+  args: ResolveArgs,
 ) => Promise<ResolveResult | void> | ResolveResult | void;
 
 export interface HookWithFilter<T> {
@@ -53,35 +54,54 @@ export interface HookWithFilter<T> {
   handle: T;
 }
 
-export type ResolveHook = ResolveFn | HookWithFilter<ResolveFn>;
-
 export interface LoadResult {
   code: string | Uint8Array;
-  moduleType?: Loader;
+  loader?: Loader;
+}
+
+export interface LoaderArgs {
+  id: string;
+  env: string;
 }
 
 export type LoadFn = (
-  id: string,
-  options: HookOptions,
+  args: LoaderArgs,
 ) => Promise<LoadResult | void> | LoadResult | void;
-
-export type LoadHook = LoadFn | HookWithFilter<LoadFn>;
 
 export interface TransformResult {
   code: unknown;
-  moduleType?: Loader;
+  loader?: Loader;
+}
+
+export interface TransformArgs {
+  content: string;
+  loader?: Loader;
 }
 
 export type TransformFn = (
-  code: string,
-  options: HookOptions,
+  args: TransformArgs,
 ) => Promise<TransformResult | void> | TransformResult | void;
 
-export type TransformHook = TransformFn | HookWithFilter<TransformFn>;
-
-export interface ApplyEnvOptions {
-  name: string;
+export interface SealResult {
+  content: unknown;
+  importers?: string[];
+  dynamicImporters?: string[];
 }
+
+export interface SealArgs {
+  id: string;
+  attributes: Record<string, unknown>;
+  content: string;
+  loader?: Loader;
+}
+
+export type SealFn = (
+  args: SealArgs,
+) =>
+  | Promise<SealResult | SealResult[] | void>
+  | SealResult
+  | (SealResult & { id: string })[]
+  | void;
 
 export type Middleware = (
   req: Request,
@@ -92,21 +112,6 @@ export interface DevServer {
   address: string;
   use(middleware: Middleware): this;
   moduleGraph: ModuleGraph;
-}
-
-export interface VitePlugin {
-  name: string;
-  config?(
-    config: Config,
-    env: ConfigEnv,
-  ): Promise<Config | void> | Config | void;
-  configResolved?(config: ResolvedConfig): Promise<void> | void;
-  applyToEnvironment?(env: ApplyEnvOptions): boolean;
-
-  resolveId?: ResolveHook;
-  load?: LoadHook;
-  transform?: TransformHook;
-  configureServer?(server: DevServer): Promise<void> | void;
 }
 
 export interface Plugin {
@@ -150,10 +155,20 @@ export interface TransformEvent {
   durationMs: number;
 }
 
+export interface SealEvent {
+  type: "seal";
+  plugin: string;
+  env: string;
+  id: string;
+  result: SealResult;
+  durationMs: number;
+}
+
 export interface PluginEventMap {
   resolve: ResolveEvent;
   load: LoadEvent;
   transform: TransformEvent;
+  seal: SealEvent;
 }
 
 export class PluginBuilder {
@@ -165,43 +180,39 @@ export class PluginBuilder {
     resolve: [],
     load: [],
     transform: [],
+    seal: [],
   } as { [K in keyof PluginEventMap]: Array<(ev: PluginEventMap[K]) => void> };
 
   constructor(
     public name: string,
     env: ResolvedEnvironment,
-    public server: DevServerInstance | null,
+    public server: RunnerCtx | null,
   ) {
     this.#env = env;
     this.mode = "development";
     this.command = "serve";
   }
 
-  on<T extends keyof PluginEventMap>(
+  subscribe<T extends keyof PluginEventMap>(
     event: T,
     fn: (event: PluginEventMap[T]) => void,
   ): void {
     this.#events[event].push(fn);
   }
 
-  onResolve(
-    filter: HookFilter,
-    fn: (args: any) => Promise<ResolveResult | void> | ResolveResult | void,
-  ): void {
+  onResolve(filter: HookFilter, fn: ResolveFn): void {
     this.#env.resolvers.push({ name: this.name, filter, fn });
   }
 
-  onLoad(
-    filter: HookFilter,
-    fn: (args: any) => Promise<LoadResult | void> | LoadResult | void,
-  ): void {
+  onLoad(filter: HookFilter, fn: LoadFn): void {
     this.#env.loaders.push({ name: this.name, filter, fn });
   }
 
-  onTransform(
-    filter: HookFilter,
-    fn: (args: any) => Promise<TransformResult | void> | TransformResult | void,
-  ): void {
+  onTransform(filter: HookFilter, fn: TransformFn): void {
     this.#env.transformers.push({ name: this.name, filter, fn });
+  }
+
+  onSealModule(filter: HookFilter, fn: SealFn): void {
+    this.#env.seal.push({ name: this.name, filter, fn });
   }
 }

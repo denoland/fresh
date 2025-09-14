@@ -1,12 +1,16 @@
 import type { EnvironmentConfig, ResolvedConfig } from "./config.ts";
+import { DevServerInstance } from "./DevServerInstance.ts";
 import type {
   HookFilter,
   Loader,
   LoadFn,
   Plugin,
   ResolveFn,
+  SealFn,
   TransformFn,
 } from "./plugin.ts";
+import { RunnerHost } from "./runner/connection.ts";
+import { RunnerCtx } from "./runner/runner_ctx.ts";
 
 export interface ModuleNode {
   type: "module";
@@ -28,6 +32,8 @@ export interface ExternalNode {
   importers: Set<ModuleNode>;
   dynamicImporters: Set<ModuleNode>;
 }
+
+export type AllModuleNode = ModuleNode | ExternalNode;
 
 export class ModuleGraph {
   byId(env: string, id: string): ModuleNode | ExternalNode | undefined {
@@ -56,6 +62,12 @@ export interface InternalTransformFn {
   fn: TransformFn;
 }
 
+export interface InternalSealFn {
+  name: string;
+  filter: HookFilter;
+  fn: SealFn;
+}
+
 export interface ResolvedEnvironment {
   name: string;
   config: EnvironmentConfig;
@@ -63,6 +75,8 @@ export interface ResolvedEnvironment {
   resolvers: Resolver[];
   loaders: InternalLoaderFn[];
   transformers: InternalTransformFn[];
+  seal: InternalSealFn[];
+  runner: RunnerHost;
 }
 
 export interface State {

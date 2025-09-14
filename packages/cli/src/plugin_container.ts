@@ -1,6 +1,6 @@
-import type { HookFilter, ResolveResult } from "./plugin.ts";
+import type { HookFilter, ResolveResult, TransformResult } from "./plugin.ts";
 import { plugin } from "./scratch.ts";
-import type { ResolvedEnvironment, State } from "./state.ts";
+import type { ModuleNode, ResolvedEnvironment, State } from "./state.ts";
 
 export interface PluginPassCtx {
   environment: string;
@@ -16,7 +16,7 @@ export async function resolveId(
     if (!matchFilter(resolver.filter, id)) continue;
 
     try {
-      const resolved = await resolver.fn(id, importer, { ssr: false });
+      const resolved = await resolver.fn({ id, importer, env: env.name });
       if (resolved) {
         return resolved;
       }
@@ -38,8 +38,11 @@ export function loadAndTransform(
   state: State,
   env: ResolvedEnvironment,
   id: string,
-) {
+): Promise<TransformResult> {
 }
 
-export function withTimed<T>() {
+export function finalizeModule(
+  state: State,
+  env: ResolvedEnvironment,
+): Promise<ModuleNode> {
 }
