@@ -7,6 +7,7 @@ import { retry } from "@std/async/retry";
 import { buildVite } from "../packages/plugin-vite/tests/test_utils.ts";
 
 async function runTests() {
+  // Build the project
   await using result = await buildVite(import.meta.dirname!);
 
   Deno.test("CORS should not set on GET /fresh-badge.svg", async () => {
