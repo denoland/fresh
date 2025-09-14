@@ -89,18 +89,26 @@ export async function renderRouteComponent<State>(
     route: ctx.route,
   };
 
-  // Try to call as a function first (handle "() => Promise.resolve" directly)
-  let result;
-  try {
-    result = (def.component as any)(vnodeProps);
-  } catch {
-    // fallback to h()
+  let result: unknown;
+  if (typeof def.component === "function") {
+    result = (def.component as (props: typeof vnodeProps) => unknown)(
+      vnodeProps,
+    );
+  } else {
     result = h(def.component, vnodeProps);
   }
-  if (typeof result?.then === "function") {
-    const awaited = await result;
+
+  if (
+    typeof result === "object" &&
+    result !== null &&
+    // Ensure it's a thenable
+    "then" in result &&
+    typeof (result as { then: unknown }).then === "function"
+  ) {
+    const awaited = await (result as Promise<unknown>);
     if (awaited instanceof Response) return awaited;
-    return awaited;
+    return awaited as VNode;
   }
+
   return result as VNode;
 }
