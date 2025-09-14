@@ -213,6 +213,6 @@ export class PluginBuilder {
   }
 
   onSealModule(filter: HookFilter, fn: SealFn): void {
-    this.#env.seal.push({ name: this.name, filter, fn });
+    this.#env.finalizers.push({ name: this.name, filter, fn });
   }
 }

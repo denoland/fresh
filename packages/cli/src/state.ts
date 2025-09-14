@@ -75,7 +75,7 @@ export interface ResolvedEnvironment {
   resolvers: Resolver[];
   loaders: InternalLoaderFn[];
   transformers: InternalTransformFn[];
-  seal: InternalSealFn[];
+  finalizers: InternalSealFn[];
   runner: RunnerHost;
 }
 

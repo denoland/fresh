@@ -84,7 +84,7 @@ export async function boot(
       resolvers: [],
       loaders: [],
       transformers: [],
-      seal: [],
+      finalizers: [],
       runner,
     };
 
