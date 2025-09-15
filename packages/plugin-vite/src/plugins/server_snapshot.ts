@@ -351,7 +351,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
       },
       transform: {
         filter: {
-          id: /\.module\.(css|less|sass)(\?.*)?$/,
+          id: /\.(css|less|sass|scss)(\?.*)?$/,
         },
         handler(_code, id, _options) {
           if (server) {

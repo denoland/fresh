@@ -1,5 +1,9 @@
 import { expect } from "@std/expect";
-import { waitForText, withBrowser } from "../../fresh/tests/test_utils.tsx";
+import {
+  waitFor,
+  waitForText,
+  withBrowser,
+} from "../../fresh/tests/test_utils.tsx";
 import {
   buildVite,
   DEMO_DIR,
@@ -375,6 +379,33 @@ Deno.test({
             // deno-lint-ignore no-explicit-any
             .evaluate((el) => window.getComputedStyle(el as any).color);
           expect(color).toEqual("rgb(255, 218, 185)");
+        });
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite build - route css import",
+  fn: async () => {
+    await launchProd(
+      { cwd: viteResult.tmp },
+      async (address) => {
+        await withBrowser(async (page) => {
+          await page.goto(`${address}/tests/css`, {
+            waitUntil: "networkidle2",
+          });
+
+          await waitFor(async () => {
+            const color = await page
+              .locator("h1")
+              // deno-lint-ignore no-explicit-any
+              .evaluate((el) => window.getComputedStyle(el as any).color);
+            expect(color).toEqual("rgb(255, 0, 0)");
+            return true;
+          });
         });
       },
     );
