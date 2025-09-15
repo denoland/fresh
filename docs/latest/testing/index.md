@@ -204,10 +204,6 @@ Deno.test("Counter island renders correctly", async () => {
 
     expect(html).toContain('class="flex gap-8 py-6"');
     expect(html).toContain("3");
-
-    // For full browser interactivity testing, you would need:
-    // - Browser automation tools (Puppeteer, Playwright)
-    // - withBrowser utility from Fresh's test suite
   } finally {
     await server.shutdown();
   }
@@ -236,15 +232,12 @@ export async function buildFreshApp(config: InlineConfig = FRESH_BUILD_CONFIG) {
   return await import("../_fresh/server.js");
 }
 
-// Type for Fresh app module
-export interface FreshApp {
-  default: {
-    fetch: (req: Request) => Response | Promise<Response>;
-  };
-}
-
 // Helper function to start a test server
-export function startTestServer(app: FreshApp) {
+export function startTestServer(app: {
+  default: {
+    fetch: (req: Request) => Promise<Response>;
+  };
+}) {
   const server = Deno.serve({
     port: 0,
     handler: app.default.fetch,
