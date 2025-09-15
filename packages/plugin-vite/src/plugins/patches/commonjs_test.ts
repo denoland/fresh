@@ -2,9 +2,11 @@ import { expect } from "@std/expect/expect";
 import * as babel from "@babel/core";
 import { cjsPlugin } from "../patches/commonjs.ts";
 
-function runTest(options: { input: string; expected: string }) {
+function runTest(
+  options: { input: string; expected: string; filename?: string },
+) {
   const res = babel.transformSync(options.input, {
-    filename: "foo.js",
+    filename: options.filename ?? "foo.js",
     babelrc: false,
     plugins: [cjsPlugin],
   });
@@ -583,5 +585,27 @@ import * as _mod from "foo";
 module.exports = _mod;
 ${DEFAULT_EXPORT}
 ${DEFAULT_EXPORT_END}`,
+  });
+});
+
+Deno.test("commonjs - keep require() in .mjs", () => {
+  runTest({
+    filename: "foo.mjs",
+    input: `try { require("foo"); } catch {}`,
+    expected: `try {
+  require("foo");
+} catch {}`,
+  });
+});
+
+Deno.test("commonjs - keep conditional require() in ESM file", () => {
+  runTest({
+    filename: "foo.mjs",
+    input: `try { require("foo"); } catch {};
+export {};`,
+    expected: `try {
+  require("foo");
+} catch {}
+export {};`,
   });
 });
