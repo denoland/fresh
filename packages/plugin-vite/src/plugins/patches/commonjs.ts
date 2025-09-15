@@ -11,9 +11,20 @@ export function cjsPlugin(
   const ALIASED = "aliased";
   const REEXPORT = "re-export";
   const NEEDS_REQUIRE_IMPORT = "needsRequireImport";
+  const IS_ESM = "isESM";
 
   return {
     name: "fresh-cjs-esm",
+    pre(file) {
+      const filename = file.opts.filename;
+      if (filename) {
+        if (filename.endsWith(".mjs") || filename.endsWith(".cts")) {
+          this.set(IS_ESM, true);
+        } else if (filename.endsWith(".cjs") || filename.endsWith(".cts")) {
+          this.set(IS_ESM, false);
+        }
+      }
+    },
     visitor: {
       Program: {
         enter(path, state) {
@@ -21,6 +32,24 @@ export function cjsPlugin(
           state.set(EXPORTED, new Set<string>());
           state.set(EXPORTED_NAMESPACES, new Set<string>());
           state.set(REEXPORT, null);
+
+          path.traverse({
+            Import(_path, state) {
+              state.set(IS_ESM, true);
+            },
+            ImportDeclaration(_path, state) {
+              state.set(IS_ESM, true);
+            },
+            ExportAllDeclaration(_path, state) {
+              state.set(IS_ESM, true);
+            },
+            ExportDefaultDeclaration(_path, state) {
+              state.set(IS_ESM, true);
+            },
+            ExportNamedDeclaration(_path, state) {
+              state.set(IS_ESM, true);
+            },
+          }, state);
         },
         exit(path, state) {
           const body = path.get("body");
@@ -42,8 +71,9 @@ export function cjsPlugin(
           const exported = state.get(EXPORTED);
           const exportedNs = state.get(EXPORTED_NAMESPACES);
           const needsRequireImport = state.get(NEEDS_REQUIRE_IMPORT);
+          const isESM = state.get(IS_ESM);
 
-          if (needsRequireImport) {
+          if (!isESM && needsRequireImport) {
             // Inject:
             // ```ts
             // import { createRequire } from "node:module";
