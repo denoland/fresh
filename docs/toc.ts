@@ -82,6 +82,7 @@ const toc: RawTableOfContents = {
         pages: [
           ["cors", "cors", "link:latest"],
           ["csrf", "csrf", "link:latest"],
+          ["csp", "csp", "link:latest"],
           ["trailing-slashes", "trailingSlashes", "link:latest"],
         ],
       },
