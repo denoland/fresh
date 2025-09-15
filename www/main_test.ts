@@ -6,38 +6,24 @@ import { expect } from "@std/expect";
 import { retry } from "@std/async/retry";
 import { buildVite } from "../packages/plugin-vite/tests/test_utils.ts";
 
-// Build result that will be shared across all tests
-let result: Awaited<ReturnType<typeof buildVite>>;
+Deno.test("www main tests", async (t) => {
+  await using result = await buildVite(import.meta.dirname!);
 
-Deno.test.beforeAll(async () => {
-  // Build the project
-  result = await buildVite(import.meta.dirname!);
-});
+  await t.step("CORS should not set on GET /fresh-badge.svg", async () => {
+    await withChildProcessServer(
+      {
+        cwd: result.tmp,
+        args: ["serve", "-A", "--port", "0", "_fresh/server.js"],
+      },
+      async (address) => {
+        const resp = await fetch(`${address}/fresh-badge.svg`);
+        await resp?.body?.cancel();
+        expect(resp.headers.get("cross-origin-resource-policy")).toEqual(null);
+      },
+    );
+  });
 
-Deno.test.afterAll(async () => {
-  // Clean up the build result
-  if (result) {
-    await result[Symbol.asyncDispose]();
-  }
-});
-
-Deno.test("CORS should not set on GET /fresh-badge.svg", async () => {
-  await withChildProcessServer(
-    {
-      cwd: result.tmp,
-      args: ["serve", "-A", "--port", "0", "_fresh/server.js"],
-    },
-    async (address) => {
-      const resp = await fetch(`${address}/fresh-badge.svg`);
-      await resp?.body?.cancel();
-      expect(resp.headers.get("cross-origin-resource-policy")).toEqual(null);
-    },
-  );
-});
-
-Deno.test({
-  name: "shows version selector",
-  fn: async () => {
+  await t.step("shows version selector", async () => {
     await retry(async () => {
       await withChildProcessServer(
         {
@@ -102,5 +88,5 @@ Deno.test({
         },
       );
     });
-  },
+  });
 });
