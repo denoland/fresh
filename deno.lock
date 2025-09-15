@@ -3643,7 +3643,7 @@
           "jsr:@std/encoding@^1.0.10"
         ]
       },
-      "packages/fresh": {
+      "packages/core": {
         "dependencies": [
           "jsr:@std/fmt@^1.0.8",
           "npm:@types/node@^24.2.1"

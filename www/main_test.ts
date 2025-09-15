@@ -1,7 +1,7 @@
 import {
   withBrowser,
   withChildProcessServer,
-} from "../packages/fresh/tests/test_utils.tsx";
+} from "../packages/core/tests/test_utils.tsx";
 import { expect } from "@std/expect";
 import { retry } from "@std/async/retry";
 import { buildVite } from "../packages/plugin-vite/tests/test_utils.ts";

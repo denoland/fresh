@@ -1,5 +1,5 @@
 import FRESH_VERSIONS_1x from "../versions.json" with { type: "json" };
-import LATEST_VERSION_2 from "../packages/fresh/deno.json" with {
+import LATEST_VERSION_2 from "../packages/core/deno.json" with {
   type: "json",
 };
 

@@ -7,10 +7,10 @@ import {
   initProject,
 } from "./init.ts";
 import * as path from "@std/path";
-import { getStdOutput, withBrowser } from "../../fresh/tests/test_utils.tsx";
-import { waitForText } from "../../fresh/tests/test_utils.tsx";
-import { withChildProcessServer } from "../../fresh/tests/test_utils.tsx";
-import { withTmpDir as withTmpDirBase } from "../../fresh/src/test_utils.ts";
+import { getStdOutput, withBrowser } from "../../core/tests/test_utils.tsx";
+import { waitForText } from "../../core/tests/test_utils.tsx";
+import { withChildProcessServer } from "../../core/tests/test_utils.tsx";
+import { withTmpDir as withTmpDirBase } from "../../core/src/test_utils.ts";
 import { stub } from "@std/testing/mock";
 
 // deno-lint-ignore no-explicit-any
@@ -52,7 +52,7 @@ async function patchProject(dir: string): Promise<void> {
   json.workspace = [];
   // See https://github.com/denoland/deno/issues/27313
   // json.links = [path.fromFileURL(new URL("../..", import.meta.url))];
-  json.links = [new URL("../../fresh", import.meta.url).href];
+  json.links = [new URL("../../core", import.meta.url).href];
 
   // assert with this stricter rule, before adding it to initialized projects
   json.lint.rules.include = ["verbatim-module-syntax"];

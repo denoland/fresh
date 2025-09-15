@@ -1,5 +1,5 @@
 import { expect } from "@std/expect";
-import { waitForText, withBrowser } from "../../fresh/tests/test_utils.tsx";
+import { waitForText, withBrowser } from "../../core/tests/test_utils.tsx";
 import {
   buildVite,
   DEMO_DIR,
