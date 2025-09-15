@@ -307,6 +307,28 @@ Deno.test({
 });
 
 Deno.test({
+  name: "vite dev - route css import",
+  fn: async () => {
+    await withBrowser(async (page) => {
+      await page.goto(`${demoServer.address()}/tests/css`, {
+        waitUntil: "networkidle2",
+      });
+
+      await waitFor(async () => {
+        const color = await page
+          .locator("h1")
+          // deno-lint-ignore no-explicit-any
+          .evaluate((el) => window.getComputedStyle(el as any).color);
+        expect(color).toEqual("rgb(255, 0, 0)");
+        return true;
+      });
+    });
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
   name: "vite dev - remote island",
   fn: async () => {
     const fixture = path.join(FIXTURE_DIR, "remote_island");
