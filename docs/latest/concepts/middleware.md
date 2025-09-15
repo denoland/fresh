@@ -68,3 +68,21 @@ export default define.middleware(async (ctx) => {
   return await ctx.next();
 });
 ```
+
+You can also export an array of middlewares:
+
+```ts routes/_middleware.ts
+import { define } from "../utils.ts";
+
+const middleware1 = define.middleware(async (ctx) => {
+  console.log("A");
+  return await ctx.next();
+});
+
+const middleware2 = define.middleware(async (ctx) => {
+  console.log("B");
+  return await ctx.next();
+});
+
+export default [middleware1, middleware2];
+```
