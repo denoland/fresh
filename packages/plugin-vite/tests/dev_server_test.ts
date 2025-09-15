@@ -329,6 +329,22 @@ Deno.test({
 });
 
 Deno.test({
+  name: "vite dev - nested islands",
+  fn: async () => {
+    await withBrowser(async (page) => {
+      await page.goto(`${demoServer.address()}/tests/island_nested`, {
+        waitUntil: "networkidle2",
+      });
+
+      await page.locator(".outer-ready").wait();
+      await page.locator(".inner-ready").wait();
+    });
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
   name: "vite dev - remote island",
   fn: async () => {
     const fixture = path.join(FIXTURE_DIR, "remote_island");

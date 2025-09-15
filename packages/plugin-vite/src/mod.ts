@@ -110,7 +110,6 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
                   preserveEntrySignatures: "strict",
                   input: {
                     "client-entry": "fresh:client-entry",
-                    "client-snapshot": "fresh:client-snapshot",
                   },
                 },
               },
@@ -186,7 +185,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
     patches(),
     ...serverSnapshot(fConfig),
     clientEntryPlugin(fConfig),
-    clientSnapshot(fConfig),
+    ...clientSnapshot(fConfig),
     buildIdPlugin(),
     ...devServer(),
     prefresh({
