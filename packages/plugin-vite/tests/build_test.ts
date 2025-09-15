@@ -474,3 +474,19 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "vite build - support _middleware Array",
+  fn: async () => {
+    await launchProd(
+      { cwd: viteResult.tmp },
+      async (address) => {
+        const res = await fetch(`${address}/tests/middlewares`);
+        const text = await res.text();
+        expect(text).toEqual("AB");
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
