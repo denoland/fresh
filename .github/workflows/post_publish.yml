@@ -28,5 +28,5 @@ jobs:
 
       - name: Upload version file to dl.deno.land
         run: |
-          cat packages/fresh/deno.json | jq -r ".version" > release-latest.txt
+          cat packages/core/deno.json | jq -r ".version" > release-latest.txt
           gsutil -h "Cache-Control: no-cache" cp release-latest.txt gs://dl.deno.land/fresh/release-latest.txt
