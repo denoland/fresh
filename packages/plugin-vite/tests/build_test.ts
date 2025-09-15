@@ -84,6 +84,27 @@ Deno.test({
 });
 
 Deno.test({
+  name: "vite build - nested islands",
+  fn: async () => {
+    await launchProd(
+      { cwd: viteResult.tmp },
+      async (address) => {
+        await withBrowser(async (page) => {
+          await page.goto(`${address}/tests/island_nested`, {
+            waitUntil: "networkidle2",
+          });
+
+          await page.locator(".outer-ready").wait();
+          await page.locator(".inner-ready").wait();
+        });
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
   name: "vite build - without static/ dir",
   fn: async () => {
     const fixture = path.join(FIXTURE_DIR, "no_static");
