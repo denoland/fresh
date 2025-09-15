@@ -32,15 +32,16 @@ const version = Deno.args[0];
 const current = semver.parse(denoJson.version!);
 const next = semver.parse(denoJson.version!);
 if (version === "major") {
-  if (next.prerelease) {
-    next.prerelease = undefined;
-  } else {
-    next.major++;
-  }
+  next.major++;
+  next.minor = 0;
+  next.patch = 0;
+  next.prerelease = undefined;
 } else if (version === "minor") {
   next.minor++;
+  next.patch = 0;
 } else if (version === "patch") {
   next.patch++;
+  next.prerelease = undefined;
 } else {
   if (!next.prerelease) {
     exitError(`Unknown prerelease version`);
