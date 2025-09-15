@@ -81,7 +81,7 @@ export function devServer(): Plugin[] {
               url.pathname !== "/__inspect" &&
               res.headers.get("Content-Type")?.includes("text/html")
             ) {
-              const collected = await collectCss2(
+              const collected = await collectCss(
                 "fresh:client-entry",
                 server.environments.client,
               );
@@ -132,7 +132,7 @@ export function devServer(): Plugin[] {
   ];
 }
 
-async function collectCss2(
+async function collectCss(
   id: string,
   env: DevEnvironment,
 ) {

@@ -37,8 +37,12 @@ function stubLogs() {
 }
 
 function withTmpDir(): Promise<{ dir: string } & AsyncDisposable> {
-  const dir = path.join(import.meta.dirname!, "..", "..", "..", "..");
-  return withTmpDirBase({ dir, prefix: "tmp_" });
+  // Windows need temporary files in the repository root
+  if (Deno.build.os === "windows") {
+    const dir = path.join(import.meta.dirname!, "..", "..", "..", "..");
+    return withTmpDirBase({ dir, prefix: "tmp_" });
+  }
+  return withTmpDirBase();
 }
 
 async function patchProject(dir: string): Promise<void> {

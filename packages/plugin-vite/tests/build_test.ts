@@ -1,5 +1,9 @@
 import { expect } from "@std/expect";
-import { waitForText, withBrowser } from "../../fresh/tests/test_utils.tsx";
+import {
+  waitFor,
+  waitForText,
+  withBrowser,
+} from "../../fresh/tests/test_utils.tsx";
 import {
   buildVite,
   DEMO_DIR,
@@ -384,6 +388,33 @@ Deno.test({
 });
 
 Deno.test({
+  name: "vite build - route css import",
+  fn: async () => {
+    await launchProd(
+      { cwd: viteResult.tmp },
+      async (address) => {
+        await withBrowser(async (page) => {
+          await page.goto(`${address}/tests/css`, {
+            waitUntil: "networkidle2",
+          });
+
+          await waitFor(async () => {
+            const color = await page
+              .locator("h1")
+              // deno-lint-ignore no-explicit-any
+              .evaluate((el) => window.getComputedStyle(el as any).color);
+            expect(color).toEqual("rgb(255, 0, 0)");
+            return true;
+          });
+        });
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
   name: "vite build - remote island",
   fn: async () => {
     const fixture = path.join(FIXTURE_DIR, "remote_island");
@@ -468,6 +499,22 @@ Deno.test({
           MY_LOCAL_ENV: "MY_LOCAL_ENV test value",
           VITE_MY_LOCAL_ENV: "VITE_MY_LOCAL_ENV test value",
         });
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite build - support _middleware Array",
+  fn: async () => {
+    await launchProd(
+      { cwd: viteResult.tmp },
+      async (address) => {
+        const res = await fetch(`${address}/tests/middlewares`);
+        const text = await res.text();
+        expect(text).toEqual("AB");
       },
     );
   },
