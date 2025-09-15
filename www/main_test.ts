@@ -4,21 +4,19 @@ import {
 } from "../packages/fresh/tests/test_utils.tsx";
 import { expect } from "@std/expect";
 import { retry } from "@std/async/retry";
-import { buildVite } from "../packages/plugin-vite/tests/test_utils.ts";
+import {
+  buildVite,
+  launchProd,
+} from "../packages/plugin-vite/tests/test_utils.ts";
 
-// Build result that will be shared across all tests
 let result: Awaited<ReturnType<typeof buildVite>>;
 
 Deno.test.beforeAll(async () => {
-  // Build the project
   result = await buildVite(import.meta.dirname!);
 });
 
 Deno.test.afterAll(async () => {
-  // Clean up the build result using modern disposal
-  if (result) {
-    await using _cleanup = result;
-  }
+  await result?.[Symbol.asyncDispose]();
 });
 
 Deno.test({
@@ -26,17 +24,11 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
   fn: async () => {
-    await withChildProcessServer(
-      {
-        cwd: result.tmp,
-        args: ["serve", "-A", "--port", "0", "_fresh/server.js"],
-      },
-      async (address) => {
-        const resp = await fetch(`${address}/fresh-badge.svg`);
-        await resp?.body?.cancel();
-        expect(resp.headers.get("cross-origin-resource-policy")).toEqual(null);
-      },
-    );
+    await launchProd({ cwd: result.tmp }, async (address) => {
+      const resp = await fetch(`${address}/fresh-badge.svg`);
+      await resp?.body?.cancel();
+      expect(resp.headers.get("cross-origin-resource-policy")).toEqual(null);
+    });
   },
 });
 
