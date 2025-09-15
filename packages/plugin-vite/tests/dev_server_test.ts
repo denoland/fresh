@@ -156,9 +156,10 @@ Deno.test({
       });
       await page.locator(".ready").wait();
 
-      const res = await page.locator("pre").evaluate((el) =>
-        // deno-lint-ignore no-explicit-any
-        (el as any).textContent ?? ""
+      const res = await page.locator("pre").evaluate(
+        (el) =>
+          // deno-lint-ignore no-explicit-any
+          (el as any).textContent ?? "",
       );
 
       expect(JSON.parse(res)).toEqual({ deno: "foobar", nodeEnv: "foobar" });
@@ -426,6 +427,17 @@ Deno.test({
     const res = await fetch(`${demoServer.address()}/tests/middlewares`);
     const text = await res.text();
     expect(text).toEqual("AB");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite dev - support async define.page callback",
+  fn: async () => {
+    const res = await fetch(`${demoServer.address()}/tests/async_route`);
+    const text = await res.text();
+    expect(text).toContain("<h1>async_route</h1>");
   },
   sanitizeOps: false,
   sanitizeResources: false,

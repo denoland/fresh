@@ -1011,29 +1011,6 @@ Deno.test("fsRoutes - route group order #3", async () => {
   expect(doc.body.firstChild?.textContent).toEqual("ok");
 });
 
-Deno.test(
-  "fsRoutes - explicit and implicit async route components",
-  async () => {
-    const server = await createServer<{ text: string }>({
-      "routes/async-explicit.tsx": {
-        // deno-lint-ignore require-await
-        default: async () => Promise.resolve(<div>explicit async</div>),
-      },
-      "routes/async-implicit.tsx": {
-        default: () => Promise.resolve(<div>implicit async</div>),
-      },
-    });
-
-    let res = await server.get("/async-explicit");
-    let doc = parseHtml(await res.text());
-    expect(doc.body.firstChild?.textContent).toEqual("explicit async");
-
-    res = await server.get("/async-implicit");
-    doc = parseHtml(await res.text());
-    expect(doc.body.firstChild?.textContent).toEqual("implicit async");
-  },
-);
-
 Deno.test("fsRoutes - async route components", async () => {
   const server = await createServer<{ text: string }>({
     "routes/_error.tsx": {

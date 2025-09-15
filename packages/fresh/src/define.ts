@@ -1,7 +1,7 @@
 import type { AnyComponent } from "preact";
 import type { HandlerByMethod, HandlerFn, RouteHandler } from "./handlers.ts";
 import type { Middleware } from "./middlewares/mod.ts";
-import type { PageProps } from "./render.ts";
+import { isAsyncAnyComponent, type PageProps } from "./render.ts";
 
 /**
  * A set of define functions that enable better type inference and code
@@ -173,6 +173,11 @@ export function createDefine<State>(): Define<State> {
       return handlers;
     },
     page(render) {
+      if (isAsyncAnyComponent(render)) return render;
+      if (typeof render === "function") {
+        // deno-lint-ignore no-explicit-any
+        return async (ctx) => await (render as any)(ctx);
+      }
       return render;
     },
     layout(render) {

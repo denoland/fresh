@@ -1,8 +1,9 @@
-import type {
-  AnyComponent,
-  FunctionComponent,
-  RenderableProps,
-  VNode,
+import {
+  type AnyComponent,
+  type FunctionComponent,
+  h,
+  type RenderableProps,
+  type VNode,
 } from "preact";
 import type { Context } from "./context.ts";
 import { recordSpanError, tracer } from "./otel.ts";
@@ -18,18 +19,9 @@ export type AsyncAnyComponent<P> = {
   defaultProps?: Partial<P> | undefined;
 };
 
-type AnyRenderableComponent<P> = (
-  props: P,
-) => VNode | Response | Promise<VNode | Response>;
-
 // deno-lint-ignore no-explicit-any
 export function isAsyncAnyComponent(fn: any): fn is AsyncAnyComponent<any> {
-  return typeof fn === "function" &&
-    (
-      fn.constructor.name === "AsyncFunction" ||
-      (Reflect.get(fn, "prototype") === undefined &&
-        /\bPromise\b/.test(String(fn)))
-    );
+  return typeof fn === "function" && fn.constructor.name === "AsyncFunction";
 }
 
 export async function renderAsyncAnyComponent<Props>(
@@ -97,14 +89,14 @@ export async function renderRouteComponent<State>(
     route: ctx.route,
   };
 
-  const component = def.component as AnyRenderableComponent<
-    PageProps<unknown, State>
-  >;
+  if (isAsyncAnyComponent(def.component)) {
+    const result = await renderAsyncAnyComponent(def.component, vnodeProps);
+    if (result instanceof Response) {
+      return result;
+    }
 
-  let result = component(vnodeProps);
-  if (result && typeof (result as Promise<unknown>).then === "function") {
-    result = await result;
+    return result;
   }
 
-  return result;
+  return h(def.component, vnodeProps) as VNode;
 }
