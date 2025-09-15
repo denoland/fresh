@@ -54,3 +54,11 @@ To debug vite plugin transformations, use
 [`vite-plugin-inspect`](https://github.com/antfu-collective/vite-plugin-inspect).
 This gives you a UI that shows all transformations of all plugins for every
 file.
+
+## My deployment won't start
+
+If your deployment doesn't boot, check the following things:
+
+1. Make sure that you ran `deno task build`.
+2. Make sure that your entry points to the generated `_fresh/server.js` file
+   instead of `main.ts`. The latter won't work with Fresh 2.

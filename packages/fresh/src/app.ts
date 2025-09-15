@@ -368,7 +368,7 @@ export class App<State> {
         DENO_DEPLOYMENT_ID !== undefined
       ) {
         throw new Error(
-          `Could not find _fresh directory. Maybe you forgot to run "deno task build"?`,
+          `Could not find _fresh directory. Maybe you forgot to run "deno task build" or maybe you're trying to run "main.ts" directly instead of "_fresh/server.js"?`,
         );
       } else {
         buildCache = new MockBuildCache([], this.config.mode);
