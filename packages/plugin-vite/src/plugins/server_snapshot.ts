@@ -240,42 +240,36 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
                 }
               }
 
-              const namer = new UniqueNamer();
-              if (chunk.name === "client-snapshot") {
-                for (const id of chunk.dynamicImports ?? []) {
-                  const mod = manifest[id];
+              if (chunk.name?.startsWith("fresh-island__")) {
+                const name = chunk.name.slice("fresh-island__".length);
+                let serverPath = path.join(root, chunk.src ?? chunk.file);
+                const idx = chunk.src?.indexOf("deno::") ?? -1;
 
-                  let serverPath = path.join(root, mod.src ?? id);
-                  const idx = mod.src?.indexOf("deno::") ?? -1;
-
-                  if (idx > -1 && mod.src) {
-                    const src = mod.src
-                      .slice(idx)
-                      .replace(
-                        /(https?):\/([^/])/,
-                        (_m, protocol, rest) => {
-                          return `${protocol}://${rest}`;
-                        },
-                      );
-                    serverPath = resolvedIslandSpecs.get(src)!;
-                  }
-
-                  let spec = pathToSpec(clientOutDir, mod.file);
-
-                  if (spec.startsWith("./")) {
-                    spec = spec.slice(1);
-                  }
-
-                  const chunkCss = mod.css?.map((id) => `/${id}`) ?? [];
-
-                  const name = namer.getUniqueName(specToName(id));
-                  islandMods.push({
-                    name,
-                    browser: spec,
-                    server: serverPath,
-                    css: chunkCss,
-                  });
+                if (idx > -1 && chunk.src) {
+                  const src = chunk.src
+                    .slice(idx)
+                    .replace(
+                      /(https?):\/([^/])/,
+                      (_m, protocol, rest) => {
+                        return `${protocol}://${rest}`;
+                      },
+                    );
+                  serverPath = resolvedIslandSpecs.get(src)!;
                 }
+
+                let spec = pathToSpec(clientOutDir, chunk.file);
+
+                if (spec.startsWith("./")) {
+                  spec = spec.slice(1);
+                }
+
+                const chunkCss = chunk.css?.map((id) => `/${id}`) ?? [];
+                islandMods.push({
+                  name,
+                  browser: spec,
+                  server: serverPath,
+                  css: chunkCss,
+                });
               }
             }
 
