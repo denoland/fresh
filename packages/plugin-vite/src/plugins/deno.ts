@@ -48,6 +48,9 @@ export function deno(): Plugin {
       return true;
     },
     async resolveId(id, importer, options) {
+      if (id.includes("woff")) {
+        console.log({ id, importer });
+      }
       const loader = options?.ssr ? ssrLoader : browserLoader;
 
       const original = id;

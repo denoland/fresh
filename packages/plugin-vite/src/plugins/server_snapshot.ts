@@ -19,6 +19,7 @@ import {
   JS_REG,
   pathWithRoot,
   type ResolvedFreshViteConfig,
+  STYLE_REG,
 } from "../utils.ts";
 import * as path from "@std/path";
 import { getBuildId } from "./build_id.ts";
@@ -351,7 +352,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
       },
       transform: {
         filter: {
-          id: /\.(css|less|sass|scss)(\?.*)?$/,
+          id: STYLE_REG,
         },
         handler(_code, id, _options) {
           if (server) {

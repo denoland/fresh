@@ -24,6 +24,7 @@ import { checkImports } from "./plugins/verify_imports.ts";
 import { isBuiltin } from "node:module";
 import { load as stdLoadEnv } from "@std/dotenv";
 import path from "node:path";
+import { cssPlugin } from "./plugins/css_plugin.ts";
 
 export function fresh(config?: FreshViteConfig): Plugin[] {
   const fConfig: ResolvedFreshViteConfig = {
@@ -189,6 +190,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
     clientSnapshot(fConfig),
     buildIdPlugin(),
     ...devServer(),
+    cssPlugin(),
     prefresh({
       include: [/\.[cm]?[tj]sx?$/],
       exclude: [/node_modules/, /[\\/]+deno[\\/]+npm[\\/]+/],

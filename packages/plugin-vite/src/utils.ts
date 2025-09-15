@@ -4,6 +4,7 @@ import type { ImportCheck } from "./plugins/verify_imports.ts";
 
 export const JS_REG = /\.([tj]sx?|[mc]?[tj]s)(\?.*)?$/;
 export const JSX_REG = /\.[tj]sx(\?.*)?$/;
+export const STYLE_REG = /\.(css|less|sass|scss)(\?.*)?$/;
 
 export function pathWithRoot(fileOrDir: string, root?: string): string {
   if (path.isAbsolute(fileOrDir)) return fileOrDir;
