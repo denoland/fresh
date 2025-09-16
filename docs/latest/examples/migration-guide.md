@@ -288,8 +288,18 @@ be now done via vite's `createBuilder` function. See the
 If you're using `deno compile` to generate a binary out of the Fresh app be sure
 to [update the command](/docs/deployment/deno-compile) to generate the binary.
 
+
+
 ## Getting help
 
-If you run into problems with upgrading your app, reach out to us by creating an
-issue here https://github.com/denoland/fresh/issues/new . That way we can
+### 1. Migrate by example
+
+If you run into problems with upgrading your app, first, try starting a new Fresh 2 project and looking
+at the new structure.
+
+eg. `mkdir fresh2-demo && cd fresh2-demo && deno run -Ar jsr:@fresh/init`
+
+### 2. Document
+
+If you still can't solve the migration problems. Please reach out to us by creating an issue here https://github.com/denoland/fresh/issues/new . That way we can
 improve this migration guide for everyone.
