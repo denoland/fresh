@@ -157,8 +157,10 @@ accordingly.
 
 ## Update deployment settings
 
-Fresh 2 requires assets to be build during deployment instead of building them
-on demand. Run the `deno task build` command as part of your deployment process.
+Fresh 2 requires assets to be built during deployment instead of building them
+on demand. Run the `deno task build` or `deno run build` command as part of your
+deployment process.
+
 If you have already set up Fresh's 1.x "Ahead-of-Time Builds", then no changes
 are necessary.
 
@@ -236,9 +238,9 @@ re-use existing objects internally as a minor performance optimization.
 
 ### `ctx.render()`
 
-The meaning of `ctx.render()` has changed. In Fresh 1.x this was used to pass
+The _meaning_ of `ctx.render()` has changed. In Fresh 1.x this was used to pass
 data from a handler to a component. In Fresh 2.x this function has been
-generalized to render JSX.
+generalized to render JSX, so it's no longer needed.
 
 Fresh 1.x:
 
@@ -255,7 +257,7 @@ export default function Page({ data }) {
 }
 ```
 
-Fresh 2:
+Fresh 2 (removed):
 
 ```ts
 export const handlers = {
@@ -290,6 +292,15 @@ to [update the command](/docs/deployment/deno-compile) to generate the binary.
 
 ## Getting help
 
-If you run into problems with upgrading your app, reach out to us by creating an
-issue here https://github.com/denoland/fresh/issues/new . That way we can
-improve this migration guide for everyone.
+### 1. Migrate by example
+
+If you run into problems with upgrading your app, first, try starting a new
+Fresh 2 project and looking at the new structure.
+
+eg. `mkdir fresh2-demo && cd fresh2-demo && deno run -Ar jsr:@fresh/init`
+
+### 2. Document
+
+If you still can't solve the migration problems. Please reach out to us by
+creating an issue here https://github.com/denoland/fresh/issues/new . That way
+we can improve this migration guide for everyone.
