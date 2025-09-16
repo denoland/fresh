@@ -40,6 +40,14 @@ export function deno(): Plugin {
       ssrLoader = await new Workspace({
         platform: "node",
         cachedOnly: true,
+        nodeConditions: [
+          "deno",
+          "node",
+          "import",
+          "module",
+          "default",
+          "require",
+        ],
       }).createLoader();
       browserLoader = await new Workspace({
         platform: "browser",
@@ -115,6 +123,10 @@ export function deno(): Plugin {
           denoImporter,
           ResolutionMode.Import,
         );
+
+        if (original.includes("supabas")) {
+          console.log({ original, id, resolved });
+        }
 
         if (resolved.startsWith("node:")) {
           return {
