@@ -52,6 +52,9 @@ export function cjsPlugin(
           }, state);
         },
         exit(path, state) {
+          const isESM = state.get(IS_ESM);
+          if (isESM) return;
+
           const body = path.get("body");
           const requires = state.get(REQUIRE_CALLS);
           if (requires !== undefined) {
@@ -71,9 +74,8 @@ export function cjsPlugin(
           const exported = state.get(EXPORTED);
           const exportedNs = state.get(EXPORTED_NAMESPACES);
           const needsRequireImport = state.get(NEEDS_REQUIRE_IMPORT);
-          const isESM = state.get(IS_ESM);
 
-          if (!isESM && needsRequireImport) {
+          if (needsRequireImport) {
             // Inject:
             // ```ts
             // import { createRequire } from "node:module";
@@ -292,6 +294,7 @@ export function cjsPlugin(
         },
       },
       CallExpression(path, state) {
+        if (state.get(IS_ESM)) return;
         const exported = state.get(EXPORTED);
 
         if (isObjEsModuleFlag(t, path.node)) {
@@ -384,6 +387,7 @@ export function cjsPlugin(
       },
       MemberExpression: {
         exit(path, state) {
+          if (state.get(IS_ESM)) return;
           if (
             t.isIdentifier(path.node.object) &&
             path.node.object.name === "exports" &&
@@ -399,6 +403,7 @@ export function cjsPlugin(
       },
       ExpressionStatement: {
         enter(path, state) {
+          if (state.get(IS_ESM)) return;
           // Check: Object.defineProperty(module.exports) "__esModule" ...)
           // Check: Object.defineProperty(exports) "__esModule" ...)
           if (
@@ -551,6 +556,7 @@ export function cjsPlugin(
           }
         },
         exit(path, state) {
+          if (state.get(IS_ESM)) return;
           const exported = state.get(EXPORTED);
           const expr = path.get("expression");
 
@@ -598,7 +604,9 @@ export function cjsPlugin(
           path.remove();
         }
       },
-      ConditionalExpression(path) {
+      ConditionalExpression(path, state) {
+        if (state.get(IS_ESM)) return;
+
         if (
           t.isBinaryExpression(path.node.test) &&
           t.isUnaryExpression(path.node.test.left) &&
@@ -611,6 +619,8 @@ export function cjsPlugin(
         }
       },
       AssignmentExpression(path, state) {
+        if (state.get(IS_ESM)) return;
+
         const exported = state.get(EXPORTED);
         const aliased = state.get(ALIASED);
         if (aliased === undefined) return;
