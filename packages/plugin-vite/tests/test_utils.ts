@@ -48,10 +48,12 @@ async function copyDir(from: string, to: string) {
 }
 
 export async function prepareDevServer(fixtureDir: string) {
-  const tmp = await withTmpDir({
-    dir: path.join(import.meta.dirname!, ".."),
-    prefix: "tmp_vite_",
-  });
+  const tmp = Deno.build.os === "windows"
+    ? await withTmpDir({
+      dir: path.join(import.meta.dirname!, ".."),
+      prefix: "tmp_vite_",
+    })
+    : await withTmpDir();
 
   await copyDir(fixtureDir, tmp.dir);
 
