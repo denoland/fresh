@@ -101,6 +101,7 @@
     "npm:ts-morph@26": "26.0.0",
     "npm:vite-plugin-inspect@^11.3.2": "11.3.3_vite@7.1.5__@types+node@24.3.3__picomatch@4.0.3_@types+node@24.3.3",
     "npm:vite@*": "7.1.5_@types+node@24.3.3_picomatch@4.0.3",
+    "npm:vite@7.1.5": "7.1.5_@types+node@24.3.3_picomatch@4.0.3",
     "npm:vite@^7.1.4": "7.1.5_@types+node@24.3.3_picomatch@4.0.3",
     "npm:vite@^7.1.5": "7.1.5_@types+node@24.3.3_picomatch@4.0.3"
   },

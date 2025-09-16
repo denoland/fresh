@@ -27,6 +27,7 @@ import path from "node:path";
 
 export function fresh(config?: FreshViteConfig): Plugin[] {
   const fConfig: ResolvedFreshViteConfig = {
+    root: config?.root,
     serverEntry: config?.serverEntry ?? "main.ts",
     clientEntry: config?.clientEntry ?? "client.ts",
     islandsDir: config?.islandsDir ?? "islands",
@@ -55,8 +56,27 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
   const plugins: Plugin[] = [
     {
       name: "fresh",
-      config(config, env) {
+      sharedDuringBuild: true,
+      async config(config, env) {
         isDev = env.command === "serve";
+
+        // Check for src
+        let staticPath = pathWithRoot("static", config.root);
+        if (fConfig.root === undefined) {
+          try {
+            const maybeStatic = path.join(
+              config.root ?? Deno.cwd(),
+              "src",
+              "static",
+            );
+            const stat = await Deno.stat(maybeStatic);
+            if (stat.isDirectory) {
+              staticPath = maybeStatic;
+            }
+          } catch {
+            // ignore
+          }
+        }
 
         return {
           esbuild: {
@@ -81,7 +101,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
             noDiscovery: true,
           },
 
-          publicDir: pathWithRoot("static", config.root),
+          publicDir: staticPath,
 
           builder: {
             async buildApp(builder) {
@@ -160,8 +180,24 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
         // Run update check in background
         updateCheck(UPDATE_INTERVAL).catch(() => {});
 
-        fConfig.islandsDir = pathWithRoot(fConfig.islandsDir, vConfig.root);
-        fConfig.routeDir = pathWithRoot(fConfig.routeDir, vConfig.root);
+        if (fConfig.root === undefined) {
+          try {
+            const srcPath = path.join(vConfig.root, "src");
+            const stat = await Deno.stat(srcPath);
+            if (stat.isDirectory) {
+              fConfig.root = srcPath;
+            }
+          } catch {
+            // ignore
+          }
+        }
+
+        fConfig.root = pathWithRoot(fConfig.root ?? vConfig.root, vConfig.root);
+
+        fConfig.serverEntry = pathWithRoot(fConfig.serverEntry, fConfig.root);
+        fConfig.clientEntry = pathWithRoot(fConfig.clientEntry, fConfig.root);
+        fConfig.islandsDir = pathWithRoot(fConfig.islandsDir, fConfig.root);
+        fConfig.routeDir = pathWithRoot(fConfig.routeDir, fConfig.root);
 
         config?.islandSpecifiers?.map((spec) => {
           const specName = specToName(spec);

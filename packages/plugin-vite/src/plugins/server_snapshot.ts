@@ -46,6 +46,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
   return [
     {
       name: "fresh:server-snapshot",
+      sharedDuringBuild: true,
       applyToEnvironment(env) {
         return env.name === "ssr";
       },
@@ -68,7 +69,6 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
         options.islandSpecifiers.forEach((name, spec) => {
           islands.set(spec, { name, chunk: null });
           islandSpecByName.set(name, spec);
-          // islandsByFile.add(spec);
         });
       },
       configureServer(viteServer) {
@@ -389,6 +389,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
     },
     {
       name: "fresh:island-resolver",
+      sharedDuringBuild: true,
       resolveId: {
         filter: {
           id: /^fresh-island::.*/,
@@ -407,6 +408,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
     },
     {
       name: "fresh:route-css",
+      sharedDuringBuild: true,
       resolveId: {
         filter: {
           id: /^(\/@id\/)?fresh-route-css::/,
@@ -447,6 +449,7 @@ export default ${JSON.stringify(route.css)}
     },
     {
       name: "fresh-route-css-build-ssr",
+      sharedDuringBuild: true,
       applyToEnvironment(env) {
         return env.name === "ssr";
       },
@@ -475,6 +478,7 @@ export default ${JSON.stringify(route.css)}
     },
     {
       name: "fresh:route-resolver",
+      sharedDuringBuild: true,
       resolveId: {
         filter: {
           id: /^fresh-route::/,

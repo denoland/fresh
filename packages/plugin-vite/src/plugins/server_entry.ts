@@ -13,7 +13,6 @@ export function serverEntryPlugin(
 ): Plugin {
   const modName = "fresh:server_entry";
 
-  let serverEntry = "";
   let serverOutDir = "";
   let clientOutDir = "";
   let root = "";
@@ -32,6 +31,7 @@ export function serverEntryPlugin(
 
   return {
     name: "fresh:server_entry",
+    sharedDuringBuild: true,
     applyToEnvironment(env) {
       return env.name === "ssr";
     },
@@ -44,7 +44,7 @@ export function serverEntryPlugin(
       if (basePath !== "/" && !basePath.endsWith("/")) {
         basePath += "/";
       }
-      serverEntry = pathWithRoot(options.serverEntry, config.root);
+
       serverOutDir = pathWithRoot(
         config.environments.ssr.build.outDir,
         config.root,
@@ -71,7 +71,7 @@ export function serverEntryPlugin(
       handler() {
         let code = generateServerEntry({
           root: isDev ? path.relative(serverOutDir, root) : "..",
-          serverEntry: path.toFileUrl(serverEntry).href,
+          serverEntry: path.toFileUrl(options.serverEntry).href,
           snapshotSpecifier: "fresh:server-snapshot",
         });
 

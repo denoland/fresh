@@ -36,6 +36,8 @@ export interface ClientSnapshot {
 }
 
 export interface FreshViteConfig {
+  /** Fresh root directory */
+  root?: string;
   /** Path to main server entry file. Default: main.ts */
   serverEntry?: string;
   /** Path to main client entry file. Default: client.ts */
@@ -59,6 +61,10 @@ export interface FreshViteConfig {
 
 export type ResolvedFreshViteConfig =
   & Required<
-    Omit<FreshViteConfig, "islandSpecifiers">
+    Omit<FreshViteConfig, "islandSpecifiers" | "root">
   >
-  & { islandSpecifiers: Map<string, string>; namer: UniqueNamer };
+  & {
+    islandSpecifiers: Map<string, string>;
+    namer: UniqueNamer;
+    root: string | undefined;
+  };

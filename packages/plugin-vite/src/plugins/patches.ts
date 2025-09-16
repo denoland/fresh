@@ -13,6 +13,7 @@ export function patches(): Plugin {
 
   return {
     name: "fresh:patches",
+    sharedDuringBuild: true,
     config(_, env) {
       isDev = env.command === "serve";
     },

@@ -15,18 +15,18 @@ export function clientSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
   return [
     {
       name: "fresh:client-snapshot",
+      sharedDuringBuild: true,
       applyToEnvironment(env) {
         return env.name === "client";
       },
 
-      async config(cfg, env) {
+      config(_cfg, env) {
         isDev = env.command === "serve";
-
-        const cwd = Deno.cwd();
-
+      },
+      async options(opts) {
         const result = await crawlFsItem({
-          islandDir: pathWithRoot(options.islandsDir, cfg.root ?? cwd),
-          routeDir: pathWithRoot(options.routeDir, cfg.root ?? cwd),
+          islandDir: options.islandsDir,
+          routeDir: options.routeDir,
           ignore: options.ignore,
         });
 
@@ -49,25 +49,13 @@ export function clientSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
           }
         }
 
-        return {
-          environments: {
-            client: {
-              build: {
-                rollupOptions: {
-                  input,
-                },
-              },
-            },
-          },
-        };
-      },
-      configResolved(cfg) {
+        opts.input = input;
+
         for (const [name, spec] of entryToIsland.entries()) {
-          const full = pathWithRoot(spec, cfg.root);
+          const full = pathWithRoot(spec, options.root);
           entryToIsland.set(name, full);
         }
-      },
-      options(opts) {
+
         options.islandSpecifiers.forEach((_name, spec) => {
           islands.add(spec);
 
@@ -142,6 +130,10 @@ if (import.meta.hot) {
     },
     {
       name: "fresh:client-island",
+      sharedDuringBuild: true,
+      applyToEnvironment(env) {
+        return env.name === "client";
+      },
       resolveId: {
         filter: {
           id: /^fresh-client-island::/,

@@ -468,3 +468,32 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  only: true,
+  name: "vite dev - supports src/ dir",
+  fn: async () => {
+    const fixture = path.join(FIXTURE_DIR, "src_dir");
+
+    await launchDevServer(fixture, async (address) => {
+      await withBrowser(async (page) => {
+        await page.goto(`${address}`, {
+          waitUntil: "networkidle2",
+        });
+
+        await page.locator(".ready").wait();
+        await page.locator("meta[name='foo']").wait();
+        await page.locator(".foo-text").wait();
+
+        const text = await page
+          .locator(".foo-text")
+          // deno-lint-ignore no-explicit-any
+          .evaluate((el: any) => el.textContent);
+
+        expect(text).toEqual("foo");
+      });
+    });
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});

@@ -9,6 +9,7 @@ export function devServer(): Plugin[] {
   return [
     {
       name: "fresh:dev_server",
+      sharedDuringBuild: true,
       configResolved(config) {
         publicDir = config.publicDir;
       },

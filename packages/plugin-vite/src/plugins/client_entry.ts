@@ -1,23 +1,20 @@
 import type { Plugin } from "vite";
-import { pathWithRoot, type ResolvedFreshViteConfig } from "../utils.ts";
+import type { ResolvedFreshViteConfig } from "../utils.ts";
 
 export function clientEntryPlugin(options: ResolvedFreshViteConfig): Plugin {
   const modName = "fresh:client-entry";
   const modNameUser = "fresh:client-entry-user";
 
-  let clientEntry = "";
   let isDev = false;
 
   return {
     name: "fresh:client-entry",
+    sharedDuringBuild: true,
     config(_, env) {
       isDev = env.command === "serve";
     },
     applyToEnvironment(env) {
       return env.name === "client";
-    },
-    configResolved(config) {
-      clientEntry = pathWithRoot(options.clientEntry, config.root);
     },
     resolveId: {
       filter: {
@@ -29,7 +26,7 @@ export function clientEntryPlugin(options: ResolvedFreshViteConfig): Plugin {
         } else if (id === "fresh:client-quirks") {
           return "@fresh/plugin-vite/client";
         } else if (id === modNameUser) {
-          return clientEntry;
+          return options.clientEntry;
         }
       },
     },
@@ -40,7 +37,7 @@ export function clientEntryPlugin(options: ResolvedFreshViteConfig): Plugin {
       async handler() {
         let exists = false;
         try {
-          const stat = await Deno.stat(clientEntry);
+          const stat = await Deno.stat(options.clientEntry);
           exists = stat.isFile;
         } catch {
           exists = false;
