@@ -610,7 +610,7 @@ export {};`,
   });
 });
 
-Deno.test("commonjs - ESM-fied cjs module", () => {
+Deno.test("commonjs - CJS turned ESM module", () => {
   runTest({
     filename: "foo.mjs",
     input: `module.exports.create = confettiCannon;
