@@ -15,6 +15,22 @@ export function devServer(): Plugin[] {
       configureServer(server) {
         const IGNORE_URLS = /^\/(@(vite|fs|id)|\.vite)\//;
 
+        server.httpServer?.on("deno:request", (ev) => {
+          const { headers } = ev.req;
+          if (
+            headers.get("upgrade") !== "websocket" ||
+            // Vite uses websockets with protocol set to vite-hmr, vite-ping
+            headers.get("sec-websocket-protocol")?.startsWith("vite-")
+          ) {
+            return;
+          }
+          // When pendingResponse is set, rest of the handlers won't fire for any request, so websocket requests
+          // are going straight to the fresh server.
+          ev.pendingResponse = server.ssrLoadModule("fresh:server_entry").then(
+            (mod) => mod.default.fetch(ev.req) as Promise<Response>,
+          );
+        });
+
         server.middlewares.use(async (nodeReq, nodeRes, next) => {
           const serverCfg = server.config.server;
 
