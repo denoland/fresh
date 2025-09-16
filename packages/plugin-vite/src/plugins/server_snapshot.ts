@@ -66,7 +66,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
           config.root,
         );
 
-        options.islandSpecifiers.forEach((name, spec) => {
+        options.islandSpecByName.forEach((name, spec) => {
           islands.set(spec, { name, chunk: null });
           islandSpecByName.set(name, spec);
           // islandsByFile.add(spec);
@@ -198,7 +198,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
             ) as Manifest;
             const resolvedIslandSpecs = new Map<string, string>();
 
-            for (const spec of options.islandSpecifiers.keys()) {
+            for (const spec of options.islandSpecByName.keys()) {
               const resolved = await this.resolve(spec);
 
               if (resolved === null) continue;

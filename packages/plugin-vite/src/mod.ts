@@ -15,6 +15,7 @@ import { serverSnapshot } from "./plugins/server_snapshot.ts";
 import { patches } from "./plugins/patches.ts";
 import process from "node:process";
 import {
+  crawlFsItem,
   specToName,
   UniqueNamer,
   UPDATE_INTERVAL,
@@ -24,20 +25,23 @@ import { checkImports } from "./plugins/verify_imports.ts";
 import { isBuiltin } from "node:module";
 import { load as stdLoadEnv } from "@std/dotenv";
 import path from "node:path";
+import { islandPlugin } from "./plugins/islands.ts";
 
 export function fresh(config?: FreshViteConfig): Plugin[] {
-  const fConfig: ResolvedFreshViteConfig = {
+  const state: ResolvedFreshViteConfig = {
     serverEntry: config?.serverEntry ?? "main.ts",
     clientEntry: config?.clientEntry ?? "client.ts",
     islandsDir: config?.islandsDir ?? "islands",
     routeDir: config?.routeDir ?? "routes",
     ignore: config?.ignore ?? [],
-    islandSpecifiers: new Map(),
+    islandSpecByName: new Map(),
+    islandNameBySpec: new Map(),
     namer: new UniqueNamer(),
     checkImports: config?.checkImports ?? [],
+    isDev: false,
   };
 
-  fConfig.checkImports.push((id, env) => {
+  state.checkImports.push((id, env) => {
     if (env === "client") {
       if (isBuiltin(id)) {
         return {
@@ -50,14 +54,12 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
     }
   });
 
-  let isDev = false;
-
   const plugins: Plugin[] = [
     {
       name: "fresh",
       sharedDuringBuild: true,
       config(config, env) {
-        isDev = env.command === "serve";
+        state.isDev = env.command === "serve";
 
         return {
           esbuild: {
@@ -161,14 +163,32 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
         // Run update check in background
         updateCheck(UPDATE_INTERVAL).catch(() => {});
 
-        fConfig.islandsDir = pathWithRoot(fConfig.islandsDir, vConfig.root);
-        fConfig.routeDir = pathWithRoot(fConfig.routeDir, vConfig.root);
+        state.islandsDir = pathWithRoot(state.islandsDir, vConfig.root);
+        state.routeDir = pathWithRoot(state.routeDir, vConfig.root);
+        state.clientEntry = pathWithRoot(state.clientEntry, vConfig.root);
 
         config?.islandSpecifiers?.map((spec) => {
           const specName = specToName(spec);
-          const name = fConfig.namer.getUniqueName(specName);
-          fConfig.islandSpecifiers.set(spec, name);
+          const name = state.namer.getUniqueName(specName);
+          state.islandSpecByName.set(spec, name);
+          state.islandSpecByName.set(name, spec);
         });
+
+        const result = await crawlFsItem({
+          islandDir: state.islandsDir,
+          routeDir: state.routeDir,
+          ignore: state.ignore,
+        });
+
+        for (let i = 0; i < result.islands.length; i++) {
+          const filePath = result.islands[i];
+
+          const specName = specToName(filePath);
+          const name = state.namer.getUniqueName(specName);
+
+          state.islandSpecByName.set(filePath, name);
+          state.islandSpecByName.set(name, filePath);
+        }
 
         const envDir = pathWithRoot(
           vConfig.envDir || vConfig.root,
@@ -177,18 +197,20 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
 
         await loadEnvFile(path.join(envDir, ".env"));
         await loadEnvFile(path.join(envDir, ".env.local"));
-        const mode = isDev ? "development" : "production";
+        const mode = state.isDev ? "development" : "production";
         await loadEnvFile(path.join(envDir, `.env.${mode}`));
         await loadEnvFile(path.join(envDir, `.env.${mode}.local`));
       },
     },
-    serverEntryPlugin(fConfig),
+
+    serverEntryPlugin(state),
     patches(),
-    ...serverSnapshot(fConfig),
-    clientEntryPlugin(fConfig),
-    ...clientSnapshot(fConfig),
+    ...serverSnapshot(state),
+    clientEntryPlugin(state),
+    clientSnapshot(state),
+    islandPlugin(state),
     buildIdPlugin(),
-    ...devServer(),
+    ...devServer(state),
     prefresh({
       include: [/\.[cm]?[tj]sx?$/],
       exclude: [/node_modules/, /[\\/]+deno[\\/]+npm[\\/]+/],
@@ -198,7 +220,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
         "topLevelAwait",
       ],
     }),
-    checkImports({ checks: fConfig.checkImports }),
+    checkImports({ checks: state.checkImports }),
   ];
 
   if (typeof process.versions.deno === "string") {

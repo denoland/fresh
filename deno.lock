@@ -66,11 +66,12 @@
     "npm:@opentelemetry/api@^1.9.0": "1.9.0",
     "npm:@preact/signals@2": "2.3.1_preact@10.27.2",
     "npm:@preact/signals@^2.2.1": "2.3.1_preact@10.27.2",
-    "npm:@prefresh/vite@^2.4.8": "2.4.10_preact@10.27.2_vite@7.1.5__@types+node@24.3.3__picomatch@4.0.3_@types+node@24.3.3",
+    "npm:@prefresh/vite@^2.4.8": "2.4.10_preact@10.27.2_vite@7.1.5__@types+node@24.3.3__picomatch@4.0.3_@types+node@24.3.3_@types+node@24.2.0",
     "npm:@radix-ui/themes@^3.2.1": "3.2.1_react@19.1.1_react-dom@19.1.1__react@19.1.1",
     "npm:@tailwindcss/postcss@^4.1.10": "4.1.13",
-    "npm:@tailwindcss/vite@^4.1.12": "4.1.13_vite@7.1.5__@types+node@24.3.3__picomatch@4.0.3_@types+node@24.3.3",
+    "npm:@tailwindcss/vite@^4.1.12": "4.1.13_vite@7.1.5__@types+node@24.3.3__picomatch@4.0.3_@types+node@24.3.3_@types+node@24.2.0",
     "npm:@types/babel__core@^7.20.5": "7.20.5",
+    "npm:@types/node@*": "24.2.0",
     "npm:@types/node@^24.1.0": "24.3.3",
     "npm:@types/node@^24.2.1": "24.3.3",
     "npm:@types/node@^24.3.0": "24.3.3",
@@ -99,10 +100,10 @@
     "npm:tailwindcss@^3.4.17": "3.4.17_postcss@8.5.6",
     "npm:tailwindcss@^4.1.10": "4.1.13",
     "npm:ts-morph@26": "26.0.0",
-    "npm:vite-plugin-inspect@^11.3.2": "11.3.3_vite@7.1.5__@types+node@24.3.3__picomatch@4.0.3_@types+node@24.3.3",
-    "npm:vite@*": "7.1.5_@types+node@24.3.3_picomatch@4.0.3",
-    "npm:vite@^7.1.4": "7.1.5_@types+node@24.3.3_picomatch@4.0.3",
-    "npm:vite@^7.1.5": "7.1.5_@types+node@24.3.3_picomatch@4.0.3"
+    "npm:vite-plugin-inspect@^11.3.2": "11.3.3_vite@7.1.5__@types+node@24.3.3__picomatch@4.0.3_@types+node@24.3.3_@types+node@24.2.0",
+    "npm:vite@*": "7.1.5_@types+node@24.3.3_picomatch@4.0.3_@types+node@24.2.0",
+    "npm:vite@^7.1.4": "7.1.5_@types+node@24.3.3_picomatch@4.0.3_@types+node@24.2.0",
+    "npm:vite@^7.1.5": "7.1.5_@types+node@24.3.3_picomatch@4.0.3_@types+node@24.2.0"
   },
   "jsr": {
     "@astral/astral@0.5.4": {
@@ -780,7 +781,19 @@
         "@prefresh/utils",
         "@rollup/pluginutils",
         "preact",
-        "vite"
+        "vite@7.1.5_@types+node@24.3.3_picomatch@4.0.3"
+      ]
+    },
+    "@prefresh/vite@2.4.10_preact@10.27.2_vite@7.1.5__@types+node@24.3.3__picomatch@4.0.3_@types+node@24.3.3_@types+node@24.2.0": {
+      "integrity": "sha512-lt+ODASOtXRWaPplp7/DlrgAaInnQYNvcpCglQBMx2OeJPyZ4IqPRaxsK77w96mWshjYwkqTsRSHoAM7aAn0ow==",
+      "dependencies": [
+        "@babel/core",
+        "@prefresh/babel-plugin",
+        "@prefresh/core",
+        "@prefresh/utils",
+        "@rollup/pluginutils",
+        "preact",
+        "vite@7.1.5_@types+node@24.3.3_picomatch@4.0.3_@types+node@24.2.0"
       ]
     },
     "@radix-ui/colors@3.0.0": {
@@ -1726,7 +1739,16 @@
         "@tailwindcss/node",
         "@tailwindcss/oxide",
         "tailwindcss@4.1.13",
-        "vite"
+        "vite@7.1.5_@types+node@24.3.3_picomatch@4.0.3"
+      ]
+    },
+    "@tailwindcss/vite@4.1.13_vite@7.1.5__@types+node@24.3.3__picomatch@4.0.3_@types+node@24.3.3_@types+node@24.2.0": {
+      "integrity": "sha512-0PmqLQ010N58SbMTJ7BVJ4I2xopiQn/5i6nlb4JmxzQf8zcS5+m2Cv6tqh+sfDwtIdjoEnOvwsGQ1hkUi8QEHQ==",
+      "dependencies": [
+        "@tailwindcss/node",
+        "@tailwindcss/oxide",
+        "tailwindcss@4.1.13",
+        "vite@7.1.5_@types+node@24.3.3_picomatch@4.0.3_@types+node@24.2.0"
       ]
     },
     "@trysound/sax@0.2.0": {
@@ -1771,6 +1793,12 @@
     },
     "@types/estree@1.0.8": {
       "integrity": "sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w=="
+    },
+    "@types/node@24.2.0": {
+      "integrity": "sha512-3xyG3pMCq3oYCNg7/ZP+E1ooTaGB4cG8JWRsqqOYQdbWNY4zbaV0Ennrd7stjiJEFZCaybcIgpTjJWHRfBSIDw==",
+      "dependencies": [
+        "undici-types"
+      ]
     },
     "@types/node@24.3.3": {
       "integrity": "sha512-GKBNHjoNw3Kra1Qg5UXttsY5kiWMEfoHq2TmXb+b1rcm6N7B3wTrFYIf/oSZ1xNQ+hVVijgLkiDZh7jRRsh+Gw==",
@@ -3418,14 +3446,28 @@
       "integrity": "sha512-pKXZlgoXGoE8sEKiKJSng4hI1sQ4wi5YT24FCrwrLt6opmkjlqPPVmiPWWJn8M8byMxRGzp1CrFuqQs4M/Z39A==",
       "dependencies": [
         "birpc",
-        "vite",
-        "vite-hot-client"
+        "vite@7.1.5_@types+node@24.3.3_picomatch@4.0.3",
+        "vite-hot-client@2.1.0_vite@7.1.5__@types+node@24.3.3__picomatch@4.0.3_@types+node@24.3.3"
+      ]
+    },
+    "vite-dev-rpc@1.1.0_vite@7.1.5__@types+node@24.3.3__picomatch@4.0.3_@types+node@24.3.3_@types+node@24.2.0": {
+      "integrity": "sha512-pKXZlgoXGoE8sEKiKJSng4hI1sQ4wi5YT24FCrwrLt6opmkjlqPPVmiPWWJn8M8byMxRGzp1CrFuqQs4M/Z39A==",
+      "dependencies": [
+        "birpc",
+        "vite@7.1.5_@types+node@24.3.3_picomatch@4.0.3_@types+node@24.2.0",
+        "vite-hot-client@2.1.0_vite@7.1.5__@types+node@24.3.3__picomatch@4.0.3_@types+node@24.3.3_@types+node@24.2.0"
       ]
     },
     "vite-hot-client@2.1.0_vite@7.1.5__@types+node@24.3.3__picomatch@4.0.3_@types+node@24.3.3": {
       "integrity": "sha512-7SpgZmU7R+dDnSmvXE1mfDtnHLHQSisdySVR7lO8ceAXvM0otZeuQQ6C8LrS5d/aYyP/QZ0hI0L+dIPrm4YlFQ==",
       "dependencies": [
-        "vite"
+        "vite@7.1.5_@types+node@24.3.3_picomatch@4.0.3"
+      ]
+    },
+    "vite-hot-client@2.1.0_vite@7.1.5__@types+node@24.3.3__picomatch@4.0.3_@types+node@24.3.3_@types+node@24.2.0": {
+      "integrity": "sha512-7SpgZmU7R+dDnSmvXE1mfDtnHLHQSisdySVR7lO8ceAXvM0otZeuQQ6C8LrS5d/aYyP/QZ0hI0L+dIPrm4YlFQ==",
+      "dependencies": [
+        "vite@7.1.5_@types+node@24.3.3_picomatch@4.0.3_@types+node@24.2.0"
       ]
     },
     "vite-plugin-inspect@11.3.3_vite@7.1.5__@types+node@24.3.3__picomatch@4.0.3_@types+node@24.3.3": {
@@ -3439,14 +3481,29 @@
         "perfect-debounce",
         "sirv",
         "unplugin-utils",
-        "vite",
-        "vite-dev-rpc"
+        "vite@7.1.5_@types+node@24.3.3_picomatch@4.0.3",
+        "vite-dev-rpc@1.1.0_vite@7.1.5__@types+node@24.3.3__picomatch@4.0.3_@types+node@24.3.3"
+      ]
+    },
+    "vite-plugin-inspect@11.3.3_vite@7.1.5__@types+node@24.3.3__picomatch@4.0.3_@types+node@24.3.3_@types+node@24.2.0": {
+      "integrity": "sha512-u2eV5La99oHoYPHE6UvbwgEqKKOQGz86wMg40CCosP6q8BkB6e5xPneZfYagK4ojPJSj5anHCrnvC20DpwVdRA==",
+      "dependencies": [
+        "ansis",
+        "debug",
+        "error-stack-parser-es",
+        "ohash",
+        "open@10.2.0",
+        "perfect-debounce",
+        "sirv",
+        "unplugin-utils",
+        "vite@7.1.5_@types+node@24.3.3_picomatch@4.0.3_@types+node@24.2.0",
+        "vite-dev-rpc@1.1.0_vite@7.1.5__@types+node@24.3.3__picomatch@4.0.3_@types+node@24.3.3_@types+node@24.2.0"
       ]
     },
     "vite@7.1.5_@types+node@24.3.3_picomatch@4.0.3": {
       "integrity": "sha512-4cKBO9wR75r0BeIWWWId9XK9Lj6La5X846Zw9dFfzMRw38IlTk2iCcUt6hsyiDRcPidc55ZParFYDXi0nXOeLQ==",
       "dependencies": [
-        "@types/node",
+        "@types/node@24.3.3",
         "esbuild",
         "fdir",
         "picomatch@4.0.3",
@@ -3458,7 +3515,26 @@
         "fsevents"
       ],
       "optionalPeers": [
-        "@types/node"
+        "@types/node@24.3.3"
+      ],
+      "bin": true
+    },
+    "vite@7.1.5_@types+node@24.3.3_picomatch@4.0.3_@types+node@24.2.0": {
+      "integrity": "sha512-4cKBO9wR75r0BeIWWWId9XK9Lj6La5X846Zw9dFfzMRw38IlTk2iCcUt6hsyiDRcPidc55ZParFYDXi0nXOeLQ==",
+      "dependencies": [
+        "@types/node@24.2.0",
+        "esbuild",
+        "fdir",
+        "picomatch@4.0.3",
+        "postcss",
+        "rollup",
+        "tinyglobby"
+      ],
+      "optionalDependencies": [
+        "fsevents"
+      ],
+      "optionalPeers": [
+        "@types/node@24.2.0"
       ],
       "bin": true
     },

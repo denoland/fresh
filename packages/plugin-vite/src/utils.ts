@@ -1,6 +1,12 @@
 import * as path from "@std/path";
 import type { FsRouteFileNoMod, UniqueNamer } from "fresh/internal-dev";
 import type { ImportCheck } from "./plugins/verify_imports.ts";
+import type { Plugin } from "vite";
+import type {
+  CustomPluginOptions,
+  PluginContext,
+  ResolveIdResult,
+} from "rollup";
 
 export const JS_REG = /\.([tj]sx?|[mc]?[tj]s)(\?.*)?$/;
 export const JSX_REG = /\.[tj]sx(\?.*)?$/;
@@ -61,4 +67,97 @@ export type ResolvedFreshViteConfig =
   & Required<
     Omit<FreshViteConfig, "islandSpecifiers">
   >
-  & { islandSpecifiers: Map<string, string>; namer: UniqueNamer };
+  & {
+    islandSpecByName: Map<string, string>;
+    islandNameBySpec: Map<string, string>;
+    namer: UniqueNamer;
+    isDev: boolean;
+  };
+
+export type Filter = {
+  id: RegExp | RegExp[];
+  env?: "ssr" | "client";
+};
+
+export interface PluginBuilder {
+  resolve(
+    filter: Filter,
+    handler: (
+      ctx: PluginContext,
+      source: string,
+      importer: string | undefined,
+      options: {
+        attributes: Record<string, string>;
+        custom?: CustomPluginOptions;
+        isEntry: boolean;
+      },
+    ) => Promise<ResolveIdResult | void> | ResolveIdResult,
+  ): void;
+  load(id: Filter, handler: Plugin["load"]): void;
+  transform(id: Filter, handler: Plugin["transform"]): void;
+}
+
+export function newPlugin(
+  name: string,
+  fn: (builder: PluginBuilder) => void,
+): Plugin {
+  const state = {
+    client: {
+      resolve: {
+        // filter:
+      },
+    },
+  };
+
+  const clientPlugin: Plugin = {
+    name: `${name}:client`,
+    sharedDuringBuild: true,
+    applyToEnvironment(env) {
+      return env.name === "client";
+    },
+  };
+  const ssrPlugin: Plugin = {
+    name: `${name}:ssr`,
+    sharedDuringBuild: true,
+    applyToEnvironment(env) {
+      return env.name === "ssr";
+    },
+  };
+
+  fn({
+    resolve(filter, fn) {
+      clientPlugin.resolveId = {
+        filter: {
+          id: filter.id,
+        },
+        handler: async function (id, importer, options) {
+          if (filter.env && !(filter.env === "ssr" && options.ssr)) {
+            return;
+          }
+
+          return await fn(this, id, importer, options);
+        },
+      };
+    },
+    load(filter, fn) {
+      clientPlugin.load = {
+        filter: {
+          id: filter,
+        },
+        // deno-lint-ignore no-explicit-any
+        handler: fn as any,
+      };
+    },
+    transform(filter, fn) {
+      clientPlugin.transform = {
+        filter: {
+          id: filter,
+        },
+        // deno-lint-ignore no-explicit-any
+        handler: fn as any,
+      };
+    },
+  });
+
+  return clientPlugin;
+}

@@ -1,11 +1,13 @@
-import type { DevEnvironment, Plugin } from "vite";
+import type { DevEnvironment, Plugin, ViteDevServer } from "vite";
 import * as path from "@std/path";
 import { ASSET_CACHE_BUST_KEY } from "fresh/internal";
 import { createRequest, sendResponse } from "@mjackson/node-fetch-server";
 import { hashCode } from "../shared.ts";
+import type { ResolvedFreshViteConfig } from "../utils.ts";
 
-export function devServer(): Plugin[] {
+export function devServer(state: ResolvedFreshViteConfig): Plugin[] {
   let publicDir = "";
+
   return [
     {
       name: "fresh:dev_server",
@@ -15,6 +17,35 @@ export function devServer(): Plugin[] {
       },
       configureServer(server) {
         const IGNORE_URLS = /^\/(@(vite|fs|id)|\.vite)\//;
+
+        server.watcher.on("add", (filePath) => {
+          if (!isIslandPath(state, filePath)) return;
+
+          let name = state.islandNameBySpec.get(filePath);
+          if (name === undefined) {
+            
+          }
+          if (filePath.)
+          if (name !== undefined) {
+            state.islandNameBySpec.delete(filePath);
+            state.islandSpecByName.delete(name);
+          }
+
+          // islands.add(filePath);
+
+          invalidateSnapshots(server!);
+        });
+        server.watcher.on("unlink", (filePath) => {
+          if (!isIslandPath(state, filePath)) return;
+
+          const name = state.islandNameBySpec.get(filePath);
+          if (name !== undefined) {
+            state.islandNameBySpec.delete(filePath);
+            state.islandSpecByName.delete(name);
+          }
+
+          invalidateSnapshots(server!);
+        });
 
         server.middlewares.use(async (nodeReq, nodeRes, next) => {
           const serverCfg = server.config.server;
@@ -184,4 +215,35 @@ async function collectCss(
   }
 
   return out;
+}
+
+function invalidateSnapshots(server: ViteDevServer) {
+  const client = server.environments.client.moduleGraph.getModuleById(
+    "\0fresh:client-snapshot",
+  );
+  if (client !== undefined) {
+    server.environments.client.moduleGraph.invalidateModule(client);
+  }
+
+  const ssr = server.environments.ssr.moduleGraph.getModuleById(
+    "\0fresh:server-snapshot",
+  );
+  if (ssr !== undefined) {
+    server.environments.ssr.moduleGraph.invalidateModule(ssr);
+  }
+}
+
+function isIslandPath(
+  options: ResolvedFreshViteConfig,
+  filePath: string,
+): boolean {
+  const relIsland = path.relative(options.islandsDir, filePath);
+  if (!relIsland.startsWith("..")) return true;
+
+  const relRoutes = path.relative(options.routeDir, filePath);
+
+  if (!relIsland.startsWith("..") && relRoutes.includes("(_islands)")) {
+    return true;
+  }
+  return false;
 }
