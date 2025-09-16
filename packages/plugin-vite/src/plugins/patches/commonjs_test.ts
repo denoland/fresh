@@ -609,3 +609,15 @@ export {};`,
 export {};`,
   });
 });
+
+Deno.test("commonjs - CJS turned ESM module", () => {
+  runTest({
+    filename: "foo.mjs",
+    input: `module.exports.create = confettiCannon;
+export default module.exports;
+export var create = module.exports.create;`,
+    expected: `module.exports.create = confettiCannon;
+export default module.exports;
+export var create = module.exports.create;`,
+  });
+});
