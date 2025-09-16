@@ -637,6 +637,50 @@ Deno.test("App - .route() with *", async () => {
   expect(await res.text()).toEqual("ok");
 });
 
+Deno.test("App - .route() handler returns headers", async () => {
+  const app = new App()
+    .route("/", {
+      handler: () => {
+        const headers = new Headers();
+        headers.set("X-Foo", "foo");
+        return { data: {}, headers };
+      },
+      component() {
+        return <h1>foo</h1>;
+      },
+    })
+    .route("/obj", {
+      handler: () => {
+        return { data: {}, headers: { "X-Foo": "foo" } };
+      },
+      component() {
+        return <h1>foo</h1>;
+      },
+    })
+    .route("/arr", {
+      handler: () => {
+        return { data: {}, headers: [["X-Foo", "foo"]] };
+      },
+      component() {
+        return <h1>foo</h1>;
+      },
+    });
+
+  const server = new FakeServer(app.handler());
+
+  let res = await server.get("/");
+  expect(await res.text()).toContain("<h1>foo</h1>");
+  expect(res.headers.get("X-Foo")).toEqual("foo");
+
+  res = await server.get("/obj");
+  expect(await res.text()).toContain("<h1>foo</h1>");
+  expect(res.headers.get("X-Foo")).toEqual("foo");
+
+  res = await server.get("/arr");
+  expect(await res.text()).toContain("<h1>foo</h1>");
+  expect(res.headers.get("X-Foo")).toEqual("foo");
+});
+
 Deno.test("App - .use() - lazy", async () => {
   const app = new App<{ text: string }>()
     // deno-lint-ignore require-await
