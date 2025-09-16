@@ -15,6 +15,7 @@ export function clientSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
   return [
     {
       name: "fresh:client-snapshot",
+      sharedDuringBuild: true,
       applyToEnvironment(env) {
         return env.name === "client";
       },
@@ -142,6 +143,7 @@ if (import.meta.hot) {
     },
     {
       name: "fresh:client-island",
+      sharedDuringBuild: true,
       resolveId: {
         filter: {
           id: /^fresh-client-island::/,

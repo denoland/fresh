@@ -32,6 +32,7 @@ export function serverEntryPlugin(
 
   return {
     name: "fresh:server_entry",
+    sharedDuringBuild: true,
     applyToEnvironment(env) {
       return env.name === "ssr";
     },

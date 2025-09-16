@@ -7,6 +7,7 @@ export function buildIdPlugin(): Plugin {
 
   return {
     name: "fresh:build-id",
+    sharedDuringBuild: true,
     async config(_, env) {
       const isDev = env.command === "serve";
 

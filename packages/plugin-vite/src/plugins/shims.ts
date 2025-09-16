@@ -19,6 +19,7 @@ const SHIMS: Record<string, string> = {
 export function shims(): Plugin {
   return {
     name: "fresh:shims",
+    sharedDuringBuild: true,
     resolveId: {
       filter: {
         id: /(object\.entries|supports-color)/,
