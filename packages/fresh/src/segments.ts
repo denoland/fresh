@@ -189,9 +189,20 @@ export async function renderRoute<State>(
   if (typeof res.status === "number") {
     status = res.status;
   }
-  if (res.headers) {
-    for (const [name, value] of Object.entries(res.headers)) {
-      headers.set(name, value);
+  if (res.headers !== undefined) {
+    if (res.headers instanceof Headers) {
+      res.headers.forEach((value, key) => {
+        headers.set(key, value);
+      });
+    } else if (Array.isArray(res.headers)) {
+      for (let i = 0; i < res.headers.length; i++) {
+        const entry = res.headers[i];
+        headers.set(entry[0], entry[1]);
+      }
+    } else {
+      for (const [name, value] of Object.entries(res.headers)) {
+        headers.set(name, value);
+      }
     }
   }
 
