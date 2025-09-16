@@ -9,36 +9,41 @@ import type {
   TransformFn,
 } from "./plugin.ts";
 import type { RunnerHost } from "./runner/connection.ts";
+import type { ModuleId } from "./runner/shared.ts";
 
-export interface ModuleNode {
-  type: "module";
-  id: string;
-  environment: string;
+export class ModuleNode {
   file: string | undefined;
-  content: unknown;
-  loader: Loader;
-  importers: Set<ModuleNode>;
-  dynamicImporters: Set<ModuleNode>;
-  imports: Set<ModuleNode>;
-  dynamicImports: Set<ModuleNode>;
+
+  constructor(
+    public id: string,
+    public environment: string,
+    public content: unknown,
+    public loader: Loader,
+  ) {}
+
+  importers = new Set<ModuleNode>();
+  dynamicImporters = new Set<ModuleNode>();
+  imports = new Set<ModuleNode>();
+  dynamicImports = new Set<ModuleNode>();
 }
 
-export interface ExternalNode {
-  type: "external";
-  id: string;
-  environment: string;
-  importers: Set<ModuleNode>;
-  dynamicImporters: Set<ModuleNode>;
-}
-
-export type AllModuleNode = ModuleNode | ExternalNode;
+export type AllModuleNode = ModuleNode;
 
 export class ModuleGraph {
-  byId(env: string, id: string): ModuleNode | ExternalNode | undefined {
+  #byId = new Map<ModuleId, ModuleNode>();
+  #byUrl = new Map<string, ModuleNode>();
+
+  byId(env: string, id: string): ModuleNode | undefined {
     return undefined;
   }
-  byUrl(env: string, id: string): ModuleNode | ExternalNode | undefined {
+  byUrl(env: string, id: string): ModuleNode | undefined {
     return undefined;
+  }
+
+  add(env: string, mod: ModuleNode): void {
+  }
+
+  delete(env: string, id: string): void {
   }
 }
 

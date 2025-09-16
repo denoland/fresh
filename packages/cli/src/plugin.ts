@@ -31,6 +31,7 @@ export type FilterId = string | RegExp | RegExp[];
 export interface HookFilter {
   id?: FilterId;
   loader?: Loader;
+  env?: string;
 }
 
 export interface ResolveResult {
@@ -55,7 +56,7 @@ export interface HookWithFilter<T> {
 
 export interface LoadResult {
   code: string | Uint8Array;
-  loader?: Loader;
+  loader: Loader;
 }
 
 export interface LoaderArgs {
@@ -68,7 +69,7 @@ export type LoadFn = (
 ) => Promise<LoadResult | void> | LoadResult | void;
 
 export interface TransformResult {
-  code: unknown;
+  code: string | Uint8Array;
   loader?: Loader;
 }
 
@@ -116,10 +117,6 @@ export interface DevServer {
 export interface Plugin {
   name: string;
   enforce?: "pre" | "post";
-  apply?: (
-    config: Config,
-    opts: { command: Command; env: string; mode: Mode },
-  ) => boolean;
   config?(
     config: Config,
     env: ConfigEnv,

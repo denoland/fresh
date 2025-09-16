@@ -4,5 +4,8 @@
   "license": "MIT",
   "exports": {
     ".": "./src/mod.ts"
+  },
+  "tasks": {
+    "dev": "deno run -A src/bin.ts"
   }
 }

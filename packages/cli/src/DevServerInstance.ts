@@ -2,9 +2,11 @@ import type { DevServer, Loader, Middleware } from "./plugin.ts";
 import {
   finalizeModule,
   loadAndTransform,
+  processEntries,
+  processId,
   resolveId,
 } from "./plugin_container.ts";
-import type { ModuleNode, State } from "./state.ts";
+import { ModuleNode, State } from "./state.ts";
 
 const NOT_FOUND = () =>
   Promise.resolve(new Response("Not Found", { status: 404 }));
@@ -43,21 +45,9 @@ export class DevServerInstance implements DevServer {
       throw new Error(`Unknown environment: ${envName}`);
     }
 
-    const resolved = await resolveId(env, id, null);
-
-    if (!resolved) {
-      throw new Error(`Could not resolve ${id}`);
-    }
-
-    if (resolved.external) {
-      throw new Error(`External module: ${id}`);
-    }
-
-    const loaded = await loadAndTransform(env, resolved.id);
-
-    const finalized = await finalizeModule(this.#state, env, loaded);
-
-    return finalized;
+    const mod = await processEntries(this.#state.moduleGraph, env, [id]);
+    console.log("FETCH", mod);
+    return mod;
   }
 
   fetch(): (req: Request) => Promise<Response> {
@@ -71,13 +61,13 @@ export class DevServerInstance implements DevServer {
 
       let mod = this.moduleGraph.byUrl("client", urlId);
       if (mod === undefined) {
+        console.log(this.moduleGraph.byId);
+
         mod = await this.fetchModule("client", "");
       }
 
       console.log({ mod });
       if (mod !== undefined) {
-        if (mod.type === "external") return next();
-
         const headers = new Headers();
         headers.set("Content-Type", toMime(mod.loader));
 
@@ -111,7 +101,25 @@ export class DevServerInstance implements DevServer {
 
     const composed = compose(this.#middlewares);
 
+    let processed = false;
+    let processPending = false;
+    let processing = Promise.withResolvers<void>();
     return async (req) => {
+      // Initial transform
+      if (!processed) {
+        if (!processPending) {
+          processPending = true;
+
+          const graph = this.#state.moduleGraph;
+          for (const env of this.#state.environments.values()) {
+            const entries = env.config.build.input;
+            await processEntries(graph, env, entries);
+          }
+        } else {
+          await processing.promise;
+        }
+      }
+
       return await composed(req, NOT_FOUND);
     };
   }
