@@ -132,7 +132,7 @@ export async function updateCheck(
     );
     // deno-lint-ignore no-console
     console.log(
-      `    To upgrade, run: deno run -A -r https://fresh.deno.dev/update`,
+      `    To upgrade, run: deno run -A -r jsr:@fresh/update`,
     );
     // deno-lint-ignore no-console
     console.log();
