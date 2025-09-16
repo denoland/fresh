@@ -137,9 +137,9 @@ export async function buildVite(
 ) {
   const tmp = Deno.build.os === "windows"
     ? await withTmpDir({
-        dir: path.join(import.meta.dirname!, ".."),
-        prefix: "tmp_vite_",
-      })
+      dir: path.join(import.meta.dirname!, ".."),
+      prefix: "tmp_vite_",
+    })
     : await withTmpDir();
 
   const builder = await createBuilder({
