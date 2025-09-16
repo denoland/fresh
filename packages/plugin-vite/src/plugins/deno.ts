@@ -24,6 +24,7 @@ export function deno(): Plugin {
 
   return {
     name: "deno",
+    sharedDuringBuild: true,
     // We must be first to be able to resolve before the
     // Vite's own`vite:resolve` plugin. It always treats bare
     // specifiers as external during SSR.

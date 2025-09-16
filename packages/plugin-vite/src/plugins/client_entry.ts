@@ -10,6 +10,7 @@ export function clientEntryPlugin(options: ResolvedFreshViteConfig): Plugin {
 
   return {
     name: "fresh:client-entry",
+    sharedDuringBuild: true,
     config(_, env) {
       isDev = env.command === "serve";
     },

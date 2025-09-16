@@ -41,6 +41,7 @@ export function checkImports(pluginOptions: CheckImportOptions): Plugin {
 
   return {
     name: "fresh:check-imports",
+    sharedDuringBuild: true,
     enforce: "pre",
     applyToEnvironment() {
       return true;

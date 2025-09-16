@@ -55,6 +55,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
   const plugins: Plugin[] = [
     {
       name: "fresh",
+      sharedDuringBuild: true,
       config(config, env) {
         isDev = env.command === "serve";
 
