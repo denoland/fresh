@@ -135,8 +135,6 @@ class DefaultRenderer extends Marked.Renderer {
       slugInput = slugInput.slice(1, -2);
     }
 
-    console.log({ slugInput });
-
     const slug = this.slugger.slug(slugInput);
     const text = this.parser.parseInline(tokens);
     this.headings.push({ id: slug, html: text, level: depth });
