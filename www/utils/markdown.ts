@@ -8,8 +8,6 @@ import { mangle } from "marked-mangle";
 import GitHubSlugger from "github-slugger";
 import { Prism } from "./prism.ts";
 
-const slugger = new GitHubSlugger();
-
 Marked.marked.use(mangle());
 
 const ADMISSION_REG = /^\[(info|warn|tip)\]:\s/;
@@ -85,6 +83,7 @@ export interface MarkdownHeading {
 
 class DefaultRenderer extends Marked.Renderer {
   headings: MarkdownHeading[] = [];
+  slugger = new GitHubSlugger();
 
   override text(
     token: Marked.Tokens.Text | Marked.Tokens.Escape | Marked.Tokens.Tag,
@@ -136,7 +135,7 @@ class DefaultRenderer extends Marked.Renderer {
       slugInput = slugInput.slice(1, -2);
     }
 
-    const slug = slugger.slug(slugInput);
+    const slug = this.slugger.slug(slugInput);
     const text = this.parser.parseInline(tokens);
     this.headings.push({ id: slug, html: text, level: depth });
     return `<h${depth} id="${slug}"><a class="md-anchor" tabindex="-1" href="#${slug}">${text}<span aria-hidden="true">#</span></a></h${depth}>`;
