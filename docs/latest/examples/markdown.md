@@ -46,7 +46,7 @@ export default define.page(async () => {
 ## More complex examples
 
 For building a full markdown blog see this
-[tutorial](https://www.jackfiszr.eu/how-to-build-a-blog-with-fresh-2.0) or have
+[tutorial](https://www.jackfiszr.eu/how-to-build-a-blog-with-fresh-2.0) or take
 a look at the [source code](https://github.com/denoland/fresh/tree/main/www) for
 this documentation website.
 
