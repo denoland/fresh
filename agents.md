@@ -5,7 +5,8 @@ reliable, and simple.
 
 Remember this is Fresh 2, which uses Vite by default.
 
-Please make yourself familiar with Fresh 2 and the changes compared to Fresh 1 here: https://fresh.deno.dev/docs/latest/examples/migration-guide
+Please make yourself familiar with Fresh 2 and the changes compared to Fresh 1
+here: https://fresh.deno.dev/docs/latest/examples/migration-guide
 
 ## Project Overview
 

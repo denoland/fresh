@@ -6,7 +6,7 @@ import { expect, fn } from "@std/expect";
 import { stub } from "@std/testing/mock";
 import { type HandlerByMethod, type HandlerFn, page } from "./handlers.ts";
 import type { Method } from "./router.ts";
-import { parseHtml } from "../tests/test_utils.tsx";
+import { parseHtml } from "@fresh/test-utils";
 import type { Context } from "./context.ts";
 import { HttpError } from "./error.ts";
 import { crawlRouteDir } from "./dev/fs_crawl.ts";

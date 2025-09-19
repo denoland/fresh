@@ -1,8 +1,11 @@
 import { createBuilder } from "vite";
 import * as path from "@std/path";
 import { walk } from "@std/fs/walk";
-import { withTmpDir } from "../../fresh/src/test_utils.ts";
-import { withChildProcessServer } from "../../fresh/tests/test_utils.tsx";
+import {
+  usingEnv,
+  withChildProcessServer,
+  withTmpDir,
+} from "@fresh/test-utils";
 
 export const DEMO_DIR = path.join(import.meta.dirname!, "..", "demo");
 export const FIXTURE_DIR = path.join(import.meta.dirname!, "fixtures");
@@ -170,19 +173,7 @@ export async function buildVite(
   };
 }
 
-export function usingEnv(name: string, value: string) {
-  const prev = Deno.env.get(name);
-  Deno.env.set(name, value);
-  return {
-    [Symbol.dispose]: () => {
-      if (prev === undefined) {
-        Deno.env.delete(name);
-      } else {
-        Deno.env.set(name, prev);
-      }
-    },
-  };
-}
+export { usingEnv };
 
 export interface ProdOptions {
   cwd: string;

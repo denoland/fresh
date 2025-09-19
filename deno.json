@@ -39,6 +39,7 @@
     "exclude": ["**/*_test.*", "src/__OLD/**", "*.todo", "**/tests/**"]
   },
   "imports": {
+    "@fresh/test-utils": "./packages/test-utils/src/mod.ts",
     "@deno/doc": "jsr:@deno/doc@^0.172.0",
     "@deno/esbuild-plugin": "jsr:@deno/esbuild-plugin@^1.2.0",
     "@fresh/build-id": "jsr:@fresh/build-id@^1.0.0",

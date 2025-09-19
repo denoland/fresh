@@ -1,13 +1,9 @@
 import { App, staticFiles } from "fresh";
 import { Head } from "fresh/runtime";
-import {
-  buildProd,
-  parseHtml,
-  waitFor,
-  withBrowserApp,
-} from "./test_utils.tsx";
+import { parseHtml, waitFor, withBrowserApp } from "@fresh/test-utils";
+import { buildProd } from "./test_utils.tsx";
 import { expect } from "@std/expect";
-import { FakeServer } from "../src/test_utils.ts";
+import { FakeServer } from "@fresh/test-utils";
 import * as path from "@std/path";
 
 Deno.test("Head - ssr - updates title", async () => {
@@ -165,7 +161,7 @@ Deno.test({
 
     applyCache(app);
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(`${address}/title`);
 
       await page.locator(".ready").wait();
@@ -195,7 +191,7 @@ Deno.test({
 
     applyCache(app);
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(`${address}/meta`);
       await page.locator(".ready").wait();
 
@@ -240,7 +236,7 @@ Deno.test({
 
     applyCache(app);
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(`${address}/id`);
       await page.locator(".ready").wait();
 
@@ -285,7 +281,7 @@ Deno.test({
 
     applyCache(app);
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(`${address}/key`);
       await page.locator(".ready").wait();
 

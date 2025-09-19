@@ -5,7 +5,7 @@ import * as Marked from "marked";
 import { ensureDir, walk } from "@std/fs";
 import { dirname, join, relative } from "@std/path";
 // import { expect } from "@std/expect/expect";
-import { withTmpDir } from "../src/test_utils.ts";
+import { withTmpDir } from "@fresh/test-utils";
 import { FRESH_VERSION, PREACT_VERSION } from "../../update/src/update.ts";
 
 Deno.test("Docs Code example checks", async () => {
