@@ -3,6 +3,7 @@ import type { FsRouteFileNoMod, UniqueNamer } from "fresh/internal-dev";
 import type { ImportCheck } from "./plugins/verify_imports.ts";
 
 export const JS_REG = /\.([tj]sx?|[mc]?[tj]s)(\?.*)?$/;
+export const JSON_REG = /\.(json)(\?.*)?$/;
 export const JSX_REG = /\.[tj]sx(\?.*)?$/;
 
 export function pathWithRoot(fileOrDir: string, root?: string): string {

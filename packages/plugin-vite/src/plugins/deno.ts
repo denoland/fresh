@@ -10,10 +10,11 @@ import * as path from "@std/path";
 import * as babel from "@babel/core";
 import babelReact from "@babel/preset-react";
 import { httpAbsolute } from "./patches/http_absolute.ts";
-import { JS_REG, JSX_REG } from "../utils.ts";
+import { JS_REG, JSON_REG, JSX_REG } from "../utils.ts";
 import { builtinModules } from "node:module";
 
 const BUILTINS = new Set(builtinModules);
+const DENO_PREFIX = /^\0?(file|https?|jsr|npm):/;
 
 interface DenoState {
   type: RequestedModuleType;
@@ -71,12 +72,17 @@ export function deno(): Plugin {
         id = id.slice("deno-http::".length);
       }
 
-      importer = isDenoSpecifier(importer)
-        ? parseDenoSpecifier(importer).specifier
-        : importer;
+      if (importer) {
+        if (DENO_PREFIX.test(importer)) {
+          if (importer.startsWith("\0")) {
+            importer = importer.slice(1);
+          }
+        }
+      }
 
-      if (id.startsWith("/") && importer && /^https?:\/\//g.test(importer)) {
-        const url = new URL(importer);
+      console.log({ id, importer });
+      if (id.startsWith("/") && importer && DENO_PREFIX.test(importer)) {
+        const url = new URL(importer.slice(0));
         id = `${url.origin}${id}`;
       }
 
@@ -84,6 +90,7 @@ export function deno(): Plugin {
       // resolution, with us being in front due to `enforce: "pre"`.
       // But we still want to ignore everything `vite:resolve` does
       // because we're kinda replacing that plugin here.
+      console.log("2nd", { id, importer });
       const tmp = await this.resolve(id, importer, options);
       if (tmp && tmp.resolvedBy !== "vite:resolve") {
         if (tmp.external && !/^https?:\/\//.test(tmp.id)) {
@@ -116,6 +123,8 @@ export function deno(): Plugin {
           ResolutionMode.Import,
         );
 
+        console.log("DENO res", { resolved, id, denoImporter });
+
         if (resolved.startsWith("node:")) {
           return {
             id: resolved,
@@ -132,7 +141,14 @@ export function deno(): Plugin {
           type !== RequestedModuleType.Default ||
           /^(https?|jsr|npm):/.test(resolved)
         ) {
-          return toDenoSpecifier(resolved, type);
+          return {
+            id: `\0${resolved}`,
+            meta: {
+              deno: {
+                type,
+              },
+            },
+          };
         }
 
         if (resolved.startsWith("file://")) {
@@ -152,56 +168,46 @@ export function deno(): Plugin {
       }
     },
     async load(id, options) {
+      console.log("LOAD", JSON.stringify(id));
       const loader = options?.ssr ? ssrLoader : browserLoader;
 
-      if (isDenoSpecifier(id)) {
-        const { type, specifier } = parseDenoSpecifier(id);
-
-        const result = await loader.load(specifier, type);
-        if (result.kind === "external") {
-          return null;
-        }
-
-        const code = new TextDecoder().decode(result.code);
-
-        const maybeJsx = babelTransform({
-          ssr: !!options?.ssr,
-          media: result.mediaType,
-          code,
-          id: specifier,
-          isDev,
-        });
-        if (maybeJsx !== null) {
-          return maybeJsx;
-        }
-
-        return {
-          code,
-        };
-      }
-
+      const isDeno = DENO_PREFIX.test(id);
       if (id.startsWith("\0")) {
-        id = id.slice(1);
+        id = id.slice(1).replace(
+          /^(https?:)\/+/,
+          (_m, prefix) => prefix + "//",
+        ).replace(/^(file:)\/+/, (_m, prefix) => prefix + "///");
       }
 
       const meta = this.getModuleInfo(id)?.meta.deno as
         | DenoState
         | undefined
         | null;
+      console.log(JSON.stringify(id));
 
-      if (meta === null || meta === undefined) return;
-
-      // Skip for non-js files like `.css`
-      if (
-        meta.type === RequestedModuleType.Default &&
-        !JS_REG.test(id)
-      ) {
+      if (!isDeno) {
+        console.log("no deno");
         return;
       }
 
-      const url = path.toFileUrl(id);
+      let reqType = meta?.type ?? RequestedModuleType.Default;
+      if (JSON_REG.test(id)) {
+        reqType = RequestedModuleType.Json;
+      }
 
-      const result = await loader.load(url.href, meta.type);
+      // Skip for non-js files like `.css`
+      if (
+        reqType === RequestedModuleType.Default &&
+        !JS_REG.test(id)
+      ) {
+        console.log("NO", id);
+        return;
+      }
+
+      const url = !URL.canParse(id) ? path.toFileUrl(id) : new URL(id);
+      console.log({ url });
+      const result = await loader.load(url.href, reqType);
+      console.log("GOGO", id, result, url);
       if (result.kind === "external") {
         return null;
       }
