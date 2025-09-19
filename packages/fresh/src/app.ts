@@ -30,14 +30,43 @@ import {
   newRouteCmd,
 } from "./commands.ts";
 // Minimal fallback BuildCache for handler() when no build cache is present in dev/test.
-class __InlineFallbackBuildCache implements BuildCache<unknown> {
+//
+// Why this exists
+// - In normal operation, a Builder populates a BuildCache and associates it
+//   with an App via setBuildCache(app, cache, mode). That cache powers features
+//   like island discovery, client entry resolution, entry assets, and the dev
+//   error overlay toggle.
+// - In unit tests or simple dev scenarios where an App is constructed directly
+//   and no Builder is involved, getBuildCache() returns null. Historically some
+//   tests relied on a MockBuildCache from test utils. We removed that runtime
+//   dependency from this module, so we provide a tiny internal fallback here to
+//   keep App.handler() usable without requiring test utilities.
+//
+// Behavior
+// - The fallback aims to be minimal and safe: it does not provide client assets
+//   or islands (no hydration). It only exposes empty registries/arrays and a
+//   features flag for the dev error overlay. This is sufficient for server-side
+//   tests and middleware behavior checks.
+// - To preserve previous dev/test behavior, the error overlay is enabled when
+//   the app runs in "development" mode. In production with a deployment id
+//   (i.e. on Deploy), we never use this fallback (see handler()) and instead
+//   throw with guidance to run a build.
+class __InlineFallbackBuildCache<State> implements BuildCache<State> {
   root = "";
   clientEntry = "";
   islandRegistry: ServerIslandRegistry = new Map();
-  features = { errorOverlay: false };
-  getEntryAssets(): string[] { return []; }
-  // deno-lint-ignore no-explicit-any
-  getFsRoutes(): Command<any>[] { return []; }
+  features: { errorOverlay: boolean };
+
+  constructor(mode: "development" | "production" = "production") {
+    this.features = { errorOverlay: mode === "development" };
+  }
+
+  getEntryAssets(): string[] {
+    return [];
+  }
+  getFsRoutes(): Command<State>[] {
+    return [];
+  }
   readFile(): Promise<import("./build_cache.ts").StaticFile | null> {
     return Promise.resolve(null);
   }
@@ -384,7 +413,9 @@ export class App<State> {
           `Could not find _fresh directory. Maybe you forgot to run "deno task build" or maybe you're trying to run "main.ts" directly instead of "_fresh/server.js"?`,
         );
       } else {
-  buildCache = new __InlineFallbackBuildCache();
+        // In dev/test fallback, enable error overlay feature to keep behavior
+        // consistent with MockBuildCache used in tests.
+        buildCache = new __InlineFallbackBuildCache<State>(this.config.mode);
       }
     }
 
