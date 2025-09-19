@@ -19,6 +19,24 @@ export async function writeFiles(dir: string, files: Record<string, string>) {
 export const delay = (ms: number): Promise<void> =>
   new Promise((r) => setTimeout(r, ms));
 
+/**
+ * Update a text file and return an async disposable to restore its original content.
+ */
+export async function updateFile(
+  filePath: string,
+  fn: (text: string) => string | Promise<string>,
+): Promise<AsyncDisposable> {
+  const original = await Deno.readTextFile(filePath);
+  const result = await fn(original);
+  await Deno.writeTextFile(filePath, result);
+
+  return {
+    async [Symbol.asyncDispose]() {
+      await Deno.writeTextFile(filePath, original);
+    },
+  };
+}
+
 export async function withTmpDir(
   options?: Deno.MakeTempOptions,
 ): Promise<{ dir: string } & AsyncDisposable> {

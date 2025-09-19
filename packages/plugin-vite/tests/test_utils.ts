@@ -2,6 +2,7 @@ import { createBuilder } from "vite";
 import * as path from "@std/path";
 import { walk } from "@std/fs/walk";
 import {
+  updateFile,
   usingEnv,
   withChildProcessServer,
   withTmpDir,
@@ -10,20 +11,7 @@ import {
 export const DEMO_DIR = path.join(import.meta.dirname!, "..", "demo");
 export const FIXTURE_DIR = path.join(import.meta.dirname!, "fixtures");
 
-export async function updateFile(
-  filePath: string,
-  fn: (text: string) => string | Promise<string>,
-) {
-  const original = await Deno.readTextFile(filePath);
-  const result = await fn(original);
-  await Deno.writeTextFile(filePath, result);
-
-  return {
-    async [Symbol.asyncDispose]() {
-      await Deno.writeTextFile(filePath, original);
-    },
-  };
-}
+// updateFile is now provided by @fresh/test-utils
 
 async function copyDir(from: string, to: string) {
   const entries = walk(from, {
@@ -173,7 +161,7 @@ export async function buildVite(
   };
 }
 
-export { usingEnv };
+export { updateFile, usingEnv };
 
 export interface ProdOptions {
   cwd: string;
