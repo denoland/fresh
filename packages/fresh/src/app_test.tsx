@@ -1,6 +1,6 @@
 import { expect } from "@std/expect";
 import { App } from "./app.ts";
-import { FakeServer } from "./test_utils.ts";
+import { FakeServer } from "@fresh/internal/test-utils";
 import { HttpError } from "./error.ts";
 
 Deno.test("App - .use()", async () => {

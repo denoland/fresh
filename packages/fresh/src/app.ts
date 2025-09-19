@@ -8,6 +8,7 @@ import {
   runMiddlewares,
 } from "./middlewares/mod.ts";
 import { Context } from "./context.ts";
+import type { ServerIslandRegistry } from "./context.ts";
 import { mergePath, type Method, UrlPatternRouter } from "./router.ts";
 import type { FreshConfig, ResolvedFreshConfig } from "./config.ts";
 import type { BuildCache } from "./build_cache.ts";
@@ -28,7 +29,19 @@ import {
   newNotFoundCmd,
   newRouteCmd,
 } from "./commands.ts";
-import { MockBuildCache } from "./test_utils.ts";
+// Minimal fallback BuildCache for handler() when no build cache is present in dev/test.
+class __InlineFallbackBuildCache implements BuildCache<unknown> {
+  root = "";
+  clientEntry = "";
+  islandRegistry: ServerIslandRegistry = new Map();
+  features = { errorOverlay: false };
+  getEntryAssets(): string[] { return []; }
+  // deno-lint-ignore no-explicit-any
+  getFsRoutes(): Command<any>[] { return []; }
+  readFile(): Promise<import("./build_cache.ts").StaticFile | null> {
+    return Promise.resolve(null);
+  }
+}
 
 // TODO: Completed type clashes in older Deno versions
 // deno-lint-ignore no-explicit-any
@@ -371,7 +384,7 @@ export class App<State> {
           `Could not find _fresh directory. Maybe you forgot to run "deno task build" or maybe you're trying to run "main.ts" directly instead of "_fresh/server.js"?`,
         );
       } else {
-        buildCache = new MockBuildCache([], this.config.mode);
+  buildCache = new __InlineFallbackBuildCache();
       }
     }
 

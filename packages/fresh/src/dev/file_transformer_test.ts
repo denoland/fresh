@@ -1,7 +1,7 @@
 import { expect } from "@std/expect";
 import type { FsAdapter } from "../fs.ts";
 import { FileTransformer, type ProcessedFile } from "./file_transformer.ts";
-import { delay } from "../test_utils.ts";
+import { delay } from "@fresh/internal/test-utils";
 
 function testTransformer(files: Record<string, string>, root = "/") {
   const mockFs: FsAdapter = {
