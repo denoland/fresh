@@ -1,4 +1,7 @@
 import type { NodePath, PluginObj, types } from "@babel/core";
+import { builtinModules } from "node:module";
+
+const BUILTINS = new Set(builtinModules);
 
 export function cjsPlugin(
   { types: t }: { types: typeof types },
@@ -74,6 +77,7 @@ export function cjsPlugin(
           const exported = state.get(EXPORTED);
           const exportedNs = state.get(EXPORTED_NAMESPACES);
           const needsRequireImport = state.get(NEEDS_REQUIRE_IMPORT);
+          const hasEsModule = state.get(HAS_ES_MODULE);
 
           if (needsRequireImport) {
             // Inject:
@@ -223,7 +227,7 @@ export function cjsPlugin(
             );
           }
 
-          if (exportNamed.size > 0 || exportedNs.size > 0) {
+          if (exportNamed.size > 0 || exportedNs.size > 0 || hasEsModule) {
             const id = path.scope.generateUidIdentifier("__default");
 
             path.pushContainer(
@@ -260,15 +264,60 @@ export function cjsPlugin(
 
             for (let i = 0; i < mappedNs.length; i++) {
               const mapped = mappedNs[i];
+
+              const key = path.scope.generateUid("k");
               path.pushContainer(
                 "body",
-                t.expressionStatement(
-                  t.callExpression(
-                    t.memberExpression(
-                      t.identifier("Object"),
-                      t.identifier("assign"),
+                t.forInStatement(
+                  t.variableDeclaration("var", [
+                    t.variableDeclarator(t.identifier(key)),
+                  ]),
+                  t.identifier(mapped),
+                  t.ifStatement(
+                    t.logicalExpression(
+                      "&&",
+                      t.logicalExpression(
+                        "&&",
+                        t.binaryExpression(
+                          "!==",
+                          t.identifier(key),
+                          t.stringLiteral("default"),
+                        ),
+                        t.binaryExpression(
+                          "!==",
+                          t.identifier(key),
+                          t.stringLiteral("__esModule"),
+                        ),
+                      ),
+                      t.callExpression(
+                        t.memberExpression(
+                          t.memberExpression(
+                            t.memberExpression(
+                              t.identifier("Object"),
+                              t.identifier("prototype"),
+                            ),
+                            t.identifier("hasOwnProperty"),
+                          ),
+                          t.identifier("call"),
+                        ),
+                        [t.identifier(mapped), t.identifier(key)],
+                      ),
                     ),
-                    [t.cloneNode(id, true), t.identifier(mapped)],
+                    t.expressionStatement(
+                      t.assignmentExpression(
+                        "=",
+                        t.memberExpression(
+                          t.cloneNode(id, true),
+                          t.identifier(key),
+                          true,
+                        ),
+                        t.memberExpression(
+                          t.identifier(mapped),
+                          t.identifier(key),
+                          true,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               );
@@ -288,8 +337,24 @@ export function cjsPlugin(
             );
           }
 
-          if (body.length === 0 && state.get(HAS_ES_MODULE)) {
+          if (body.length === 0 && hasEsModule) {
             path.pushContainer("body", t.exportNamedDeclaration(null));
+          } else if (hasEsModule) {
+            path.pushContainer(
+              "body",
+              t.exportNamedDeclaration(
+                t.variableDeclaration(
+                  "var",
+                  [t.variableDeclarator(
+                    t.identifier("__esModule"),
+                    t.memberExpression(
+                      t.identifier("exports"),
+                      t.identifier("__esModule"),
+                    ),
+                  )],
+                ),
+              ),
+            );
           }
         },
       },
@@ -299,7 +364,6 @@ export function cjsPlugin(
 
         if (isObjEsModuleFlag(t, path.node)) {
           state.set(HAS_ES_MODULE, true);
-          path.remove();
           return;
         }
 
@@ -313,7 +377,8 @@ export function cjsPlugin(
           const mods = state.get(REQUIRE_CALLS) ?? [];
           state.set(REQUIRE_CALLS, mods);
 
-          if (t.isStringLiteral(path.node.arguments[0])) {
+          const source = path.node.arguments[0];
+          if (t.isStringLiteral(source)) {
             // Check if we can hoist it or if we need to keep it.
             let canImport = true;
             let parent: NodePath | null = path.parentPath;
@@ -343,13 +408,9 @@ export function cjsPlugin(
                 path.parentPath?.get("id").isIdentifier() ||
               path.parentPath?.isCallExpression()
             ) {
-              path.replaceWith(
-                t.logicalExpression(
-                  "??",
-                  t.memberExpression(
-                    t.cloneNode(id, true),
-                    t.identifier("__require"),
-                  ),
+              // Vite json processing always adds a default property.
+              if (source.value.endsWith(".json")) {
+                path.replaceWith(
                   t.logicalExpression(
                     "??",
                     t.memberExpression(
@@ -358,8 +419,48 @@ export function cjsPlugin(
                     ),
                     t.cloneNode(id, true),
                   ),
-                ),
-              );
+                );
+              } else if (
+                path.parentPath?.isCallExpression() &&
+                t.isIdentifier(path.parentPath.node.callee) &&
+                path.parentPath.node.callee.name === "__importDefault"
+              ) {
+                if (
+                  BUILTINS.has(source.value) ||
+                    source.value.startsWith("node:")
+                    ? BUILTINS.has(source.value.slice("node:".length))
+                    : BUILTINS.has(`node:${source.value}`)
+                ) {
+                  path.replaceWith(t.logicalExpression(
+                    "??",
+                    t.memberExpression(
+                      t.cloneNode(id, true),
+                      t.identifier("default"),
+                    ),
+                    t.cloneNode(id, true),
+                  ));
+                } else {
+                  path.replaceWith(t.cloneNode(id, true));
+                }
+              } else {
+                path.replaceWith(
+                  t.logicalExpression(
+                    "??",
+                    t.memberExpression(
+                      t.cloneNode(id, true),
+                      t.identifier("__require"),
+                    ),
+                    t.logicalExpression(
+                      "??",
+                      t.memberExpression(
+                        t.cloneNode(id, true),
+                        t.identifier("default"),
+                      ),
+                      t.cloneNode(id, true),
+                    ),
+                  ),
+                );
+              }
               return;
             }
 
@@ -406,19 +507,14 @@ export function cjsPlugin(
           if (state.get(IS_ESM)) return;
           // Check: Object.defineProperty(module.exports) "__esModule" ...)
           // Check: Object.defineProperty(exports) "__esModule" ...)
+          // Check: a({}, "__esModule", ...)
           if (
             t.isCallExpression(path.node.expression) &&
-            t.isMemberExpression(path.node.expression.callee) &&
-            t.isIdentifier(path.node.expression.callee.object) &&
-            t.isIdentifier(path.node.expression.callee.property) &&
-            path.node.expression.callee.object.name === "Object" &&
-            path.node.expression.callee.property.name === "defineProperty" &&
-            path.node.expression.arguments.length >= 2 &&
+            path.node.expression.arguments.length === 3 &&
             t.isStringLiteral(path.node.expression.arguments[1]) &&
             path.node.expression.arguments[1].value === "__esModule"
           ) {
             state.set(HAS_ES_MODULE, true);
-            path.remove();
             return;
           }
 
@@ -565,7 +661,6 @@ export function cjsPlugin(
 
             if (isEsModuleFlag(t, expr.node)) {
               state.set(HAS_ES_MODULE, true);
-              path.remove();
             } else if (left.isMemberExpression()) {
               if (isModuleExports(t, left.node)) {
                 exported.add("default");
@@ -594,7 +689,6 @@ export function cjsPlugin(
           } else if (expr.isCallExpression()) {
             if (isObjEsModuleFlag(t, expr.node)) {
               state.set(HAS_ES_MODULE, true);
-              path.remove();
             }
           }
         },
@@ -687,16 +781,7 @@ function isObjEsModuleFlag(
   t: typeof types,
   node: types.CallExpression,
 ): boolean {
-  return t.isMemberExpression(node.callee) &&
-    t.isIdentifier(node.callee.object) &&
-    node.callee.object.name === "Object" &&
-    t.isIdentifier(node.callee.property) &&
-    node.callee.property.name === "defineProperty" &&
-    node.arguments.length === 3 &&
-    (t.isMemberExpression(node.arguments[0]) &&
-        isModuleExports(t, node.arguments[0]) ||
-      t.isIdentifier(node.arguments[0]) &&
-        node.arguments[0].name === "exports") &&
+  return node.arguments.length === 3 &&
     t.isStringLiteral(node.arguments[1]) &&
     node.arguments[1].value === "__esModule" &&
     t.isObjectExpression(node.arguments[2]);

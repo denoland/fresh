@@ -34,32 +34,6 @@ export function codeEvalPlugin(
             }
           },
         },
-        CallExpression: {
-          enter(path) {
-            if (
-              t.isMemberExpression(path.node.callee) &&
-              t.isIdentifier(path.node.callee.object) &&
-              t.isIdentifier(path.node.callee.property) &&
-              path.node.callee.object.name === "Object" &&
-              path.node.callee.property.name === "defineProperty" &&
-              path.node.arguments.length >= 2
-            ) {
-              const args = path.node.arguments;
-
-              if (
-                t.isIdentifier(args[0]) && args[0].name === "exports" ||
-                t.isMemberExpression(args[0]) &&
-                  t.isIdentifier(args[0].object) &&
-                  t.isIdentifier(args[0].property) &&
-                  args[0].object.name === "module" &&
-                  args[0].property.name === "exports" &&
-                  t.isStringLiteral(args[1]) && args[1].value === "native"
-              ) {
-                path.remove();
-              }
-            }
-          },
-        },
       },
     };
   };

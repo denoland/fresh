@@ -53,7 +53,8 @@ export function deno(): Plugin {
     },
     async resolveId(id, importer, options) {
       if (BUILTINS.has(id)) {
-        if (!id.startsWith("node:") && BUILTINS.has(`node:${id}`)) {
+        // `node:` prefix is not included in builtins list.
+        if (!id.startsWith("node:")) {
           id = `node:${id}`;
         }
         return {

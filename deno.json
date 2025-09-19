@@ -47,6 +47,7 @@
     "@std/dotenv": "jsr:@std/dotenv@^0.225.5",
     "@std/http": "jsr:@std/http@^1.0.15",
     "@std/uuid": "jsr:@std/uuid@^1.0.7",
+    "@supabase/postgrest-js": "npm:@supabase/postgrest-js@^1.21.4",
     "@types/node": "npm:@types/node@^24.3.0",
     "docsearch": "https://esm.sh/@docsearch/js@3.5.2?target=es2020",
     "esbuild": "npm:esbuild@0.25.7",
@@ -76,6 +77,7 @@
     "@std/testing": "jsr:@std/testing@^1.0.12",
 
     "@tailwindcss/postcss": "npm:@tailwindcss/postcss@^4.1.10",
+    "redis": "npm:redis@^5.8.2",
     "rollup": "npm:rollup@^4.50.0",
     "tailwindcss": "npm:tailwindcss@^4.1.10",
     "postcss": "npm:postcss@8.5.6",
