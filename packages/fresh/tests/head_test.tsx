@@ -1,9 +1,13 @@
 import { App, staticFiles } from "fresh";
 import { Head } from "fresh/runtime";
-import { parseHtml, waitFor, withBrowserApp } from "@fresh/internal/test-utils";
+import {
+  FakeServer,
+  parseHtml,
+  waitFor,
+  withBrowserApp,
+} from "@fresh/internal/test-utils";
 import { buildProd } from "./test_utils.tsx";
 import { expect } from "@std/expect";
-import { FakeServer } from "@fresh/internal/test-utils";
 import * as path from "@std/path";
 
 Deno.test("Head - ssr - updates title", async () => {

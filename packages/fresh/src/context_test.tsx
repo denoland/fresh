@@ -2,9 +2,8 @@ import { expect } from "@std/expect";
 import { Context } from "./context.ts";
 import { App } from "fresh";
 import { asset } from "fresh/runtime";
-import { FakeServer } from "@fresh/internal/test-utils";
+import { FakeServer, parseHtml } from "@fresh/internal/test-utils";
 import { BUILD_ID } from "@fresh/build-id";
-import { parseHtml } from "@fresh/internal/test-utils";
 
 Deno.test("FreshReqContext.prototype.redirect", () => {
   let res = Context.prototype.redirect("/");

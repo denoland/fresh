@@ -2,11 +2,11 @@ import { App, staticFiles } from "fresh";
 import {
   assertNotSelector,
   assertSelector,
+  FakeServer,
   parseHtml,
   withBrowserApp,
 } from "@fresh/internal/test-utils";
 import { ALL_ISLAND_DIR, buildProd, Doc } from "./test_utils.tsx";
-import { FakeServer } from "@fresh/internal/test-utils";
 import { Partial } from "fresh/runtime";
 
 const allIslandCache = await buildProd({ islandDir: ALL_ISLAND_DIR });
