@@ -53,6 +53,12 @@ export function deno(): Plugin {
         platform: "browser",
         preserveJsx: true,
         cachedOnly: true,
+        nodeConditions: [
+          "import",
+          "module",
+          "browser",
+          "default",
+        ],
       })
         .createLoader();
     },
@@ -123,10 +129,6 @@ export function deno(): Plugin {
           denoImporter,
           ResolutionMode.Import,
         );
-
-        if (original.includes("supabas")) {
-          console.log({ original, id, resolved });
-        }
 
         if (resolved.startsWith("node:")) {
           return {
