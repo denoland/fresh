@@ -27,22 +27,28 @@ The core of the testing strategy revolves around:
   - `@fresh/internal/test-utils` (from `packages/internal/src/*`)
     - Provides shared helpers used across the monorepo:
       - Browser helpers: `withBrowser`, `withBrowserApp`
-      - DOM helpers: `parseHtml`, `assertSelector`, `assertNotSelector`, `assertMetaContent`
+      - DOM helpers: `parseHtml`, `assertSelector`, `assertNotSelector`,
+        `assertMetaContent`
       - Process helpers: `withChildProcessServer`, `getStdOutput`
-      - Server helpers: `FakeServer`, `serveMiddleware`, `MockBuildCache`, `createFakeFs`
+      - Server helpers: `FakeServer`, `serveMiddleware`, `MockBuildCache`,
+        `createFakeFs`
       - FS helpers: `withTmpDir`, `writeFiles`, `delay`, `updateFile`
       - Misc: `waitFor`, `usingEnv`
   - `@fresh/internal/versions`
     - Centralized version constants used in tests/docs.
 
-- `packages/fresh/tests/test_utils.tsx`: Now only contains Fresh-specific test bits:
+- `packages/fresh/tests/test_utils.tsx`: Now only contains Fresh-specific test
+  bits:
   - JSX-based helpers used within Fresh tests (`Doc`, `charset`, `favicon`).
-  - Build and fixtures helpers (`buildProd`, `ALL_ISLAND_DIR`, `ISLAND_GROUP_DIR`).
-  - All generic utilities were removed and should be imported from `@fresh/internal/test-utils`.
+  - Build and fixtures helpers (`buildProd`, `ALL_ISLAND_DIR`,
+    `ISLAND_GROUP_DIR`).
+  - All generic utilities were removed and should be imported from
+    `@fresh/internal/test-utils`.
 
 - `packages/plugin-vite/tests/test_utils.ts`: Thin wrappers for plugin-vite:
   - Uses `@fresh/internal/test-utils` primitives under the hood.
-  - Adds Vite-specific helpers like `prepareDevServer`, `launchDevServer`, `spawnDevServer`, and `buildVite`.
+  - Adds Vite-specific helpers like `prepareDevServer`, `launchDevServer`,
+    `spawnDevServer`, and `buildVite`.
 
 - **Fixture Directories**:
   - `packages/fresh/tests/fixtures_islands/`
@@ -95,14 +101,15 @@ The core of the testing strategy revolves around:
 
 ### 3.4. Cross-Package Dependencies
 
-- Pre-refactor, `plugin-vite` imported helpers from `fresh/tests/test_utils.tsx`.
-  This tight coupling has been removed by introducing `@fresh/internal/test-utils`.
+- Pre-refactor, `plugin-vite` imported helpers from
+  `fresh/tests/test_utils.tsx`. This tight coupling has been removed by
+  introducing `@fresh/internal/test-utils`.
 
 ### 3.5. JSX in Utility Files
 
-- Generic utilities were moved out into `@fresh/internal/test-utils`.
-  The remaining `.tsx` file is intentionally limited to JSX-only test helpers
-  used by the Fresh tests (e.g., `Doc`, `favicon`).
+- Generic utilities were moved out into `@fresh/internal/test-utils`. The
+  remaining `.tsx` file is intentionally limited to JSX-only test helpers used
+  by the Fresh tests (e.g., `Doc`, `favicon`).
 
 ### 3.6. Lack of Abstraction
 
@@ -122,8 +129,9 @@ The core of the testing strategy revolves around:
 - `packages/fresh/src/test_utils.ts` has been removed; runtime code no longer
   imports test utilities. Where a fallback is needed (e.g., in `app.ts`), an
   inline minimal `BuildCache` is used.
-- `plugin-vite` tests consume shared primitives from `@fresh/internal/test-utils`
-  and wrap them with Vite-specific helpers where appropriate.
+- `plugin-vite` tests consume shared primitives from
+  `@fresh/internal/test-utils` and wrap them with Vite-specific helpers where
+  appropriate.
 
 This layout removes cross-package coupling, eliminates duplicated helpers, and
 keeps the repo green under `deno lint` and `deno check`.
