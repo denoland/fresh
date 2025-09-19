@@ -4,9 +4,9 @@ import {
   assertSelector,
   parseHtml,
   withBrowserApp,
-} from "@fresh/test-utils";
+} from "@fresh/internal/test-utils";
 import { ALL_ISLAND_DIR, buildProd, Doc } from "./test_utils.tsx";
-import { FakeServer } from "@fresh/test-utils";
+import { FakeServer } from "@fresh/internal/test-utils";
 import { Partial } from "fresh/runtime";
 
 const allIslandCache = await buildProd({ islandDir: ALL_ISLAND_DIR });

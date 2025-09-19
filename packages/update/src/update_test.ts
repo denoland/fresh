@@ -8,7 +8,7 @@ import {
 import { expect } from "@std/expect";
 import { spy, type SpyCall } from "@std/testing/mock";
 import { walk } from "@std/fs/walk";
-import { withTmpDir, writeFiles } from "@fresh/test-utils";
+import { withTmpDir, writeFiles } from "@fresh/internal/test-utils";
 
 async function readFiles(dir: string): Promise<Record<string, string>> {
   const files: Record<string, string> = {};

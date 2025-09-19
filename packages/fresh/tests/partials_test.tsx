@@ -5,7 +5,7 @@ import {
   waitFor,
   waitForText,
   withBrowserApp,
-} from "@fresh/test-utils";
+} from "@fresh/internal/test-utils";
 import { App, staticFiles } from "fresh";
 import { Partial } from "fresh/runtime";
 // (all generic test utils are imported above)
@@ -19,7 +19,7 @@ import {
 import { SelfCounter } from "./fixtures_islands/SelfCounter.tsx";
 import { expect } from "@std/expect";
 import { PartialInIsland } from "./fixtures_islands/PartialInIsland.tsx";
-import { FakeServer } from "@fresh/test-utils";
+import { FakeServer } from "@fresh/internal/test-utils";
 import { JsonIsland } from "./fixtures_islands/JsonIsland.tsx";
 import { OptOutPartialLink } from "./fixtures_islands/OptOutPartialLink.tsx";
 import * as path from "@std/path";

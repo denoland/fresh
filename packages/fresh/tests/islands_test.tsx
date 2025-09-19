@@ -11,7 +11,7 @@ import { JsxIsland } from "./fixtures_islands/JsxIsland.tsx";
 import { JsxChildrenIsland } from "./fixtures_islands/JsxChildrenIsland.tsx";
 import { NodeProcess } from "./fixtures_islands/NodeProcess.tsx";
 import { signal } from "@preact/signals";
-import { parseHtml, waitForText, withBrowserApp } from "@fresh/test-utils";
+import { parseHtml, waitForText, withBrowserApp } from "@fresh/internal/test-utils";
 import {
   ALL_ISLAND_DIR,
   buildProd,
@@ -24,7 +24,7 @@ import { FnIsland } from "./fixtures_islands/FnIsland.tsx";
 import { EscapeIsland } from "./fixtures_islands/EscapeIsland.tsx";
 import type { FreshConfig } from "../src/config.ts";
 import { FreshAttrs } from "./fixtures_islands/FreshAttrs.tsx";
-import { FakeServer } from "@fresh/test-utils";
+import { FakeServer } from "@fresh/internal/test-utils";
 import { PARTIAL_SEARCH_PARAM } from "../src/constants.ts";
 import { ComputedSignal } from "./fixtures_islands/Computed.tsx";
 import { EnvIsland } from "./fixtures_islands/EnvIsland.tsx";

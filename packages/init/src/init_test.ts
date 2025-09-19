@@ -12,8 +12,8 @@ import {
   waitForText,
   withBrowser,
   withChildProcessServer,
-} from "@fresh/test-utils";
-import { withTmpDir as withTmpDirBase } from "@fresh/test-utils";
+} from "@fresh/internal/test-utils";
+import { withTmpDir as withTmpDirBase } from "@fresh/internal/test-utils";
 import { stub } from "@std/testing/mock";
 
 // deno-lint-ignore no-explicit-any

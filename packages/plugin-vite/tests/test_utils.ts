@@ -6,7 +6,7 @@ import {
   usingEnv,
   withChildProcessServer,
   withTmpDir,
-} from "@fresh/test-utils";
+} from "@fresh/internal/test-utils";
 
 export const DEMO_DIR = path.join(import.meta.dirname!, "..", "demo");
 export const FIXTURE_DIR = path.join(import.meta.dirname!, "fixtures");

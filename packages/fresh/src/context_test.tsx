@@ -4,7 +4,7 @@ import { App } from "fresh";
 import { asset } from "fresh/runtime";
 import { FakeServer } from "./test_utils.ts";
 import { BUILD_ID } from "@fresh/build-id";
-import { parseHtml } from "@fresh/test-utils";
+import { parseHtml } from "@fresh/internal/test-utils";
 
 Deno.test("FreshReqContext.prototype.redirect", () => {
   let res = Context.prototype.redirect("/");

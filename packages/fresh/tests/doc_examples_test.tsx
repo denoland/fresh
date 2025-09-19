@@ -1,14 +1,14 @@
-// Versions and plugin-tailwind version are provided via @fresh/test-utils
+// Versions and plugin-tailwind version are provided via @fresh/internal
 import * as Marked from "marked";
 import { ensureDir, walk } from "@std/fs";
 import { dirname, join, relative } from "@std/path";
 // import { expect } from "@std/expect/expect";
+import { withTmpDir } from "@fresh/internal/test-utils";
 import {
-  withTmpDir,
   FRESH_VERSION,
   PREACT_VERSION,
   TAILWIND_PLUGIN_VERSION,
-} from "@fresh/test-utils";
+} from "@fresh/internal/versions";
 
 Deno.test("Docs Code example checks", async () => {
   await using tmp = await withTmpDir();
