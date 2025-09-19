@@ -40,25 +40,11 @@ export function deno(): Plugin {
       ssrLoader = await new Workspace({
         platform: "node",
         cachedOnly: true,
-        nodeConditions: [
-          "deno",
-          "node",
-          "import",
-          "module",
-          "default",
-          "require",
-        ],
       }).createLoader();
       browserLoader = await new Workspace({
         platform: "browser",
         preserveJsx: true,
         cachedOnly: true,
-        nodeConditions: [
-          "import",
-          "module",
-          "browser",
-          "default",
-        ],
       })
         .createLoader();
     },
@@ -67,7 +53,8 @@ export function deno(): Plugin {
     },
     async resolveId(id, importer, options) {
       if (BUILTINS.has(id)) {
-        if (!id.startsWith("node:") && BUILTINS.has(`node:${id}`)) {
+        // `node:` prefix is not included in builtins list.
+        if (!id.startsWith("node:")) {
           id = `node:${id}`;
         }
         return {

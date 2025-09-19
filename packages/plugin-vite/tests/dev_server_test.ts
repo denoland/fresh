@@ -421,6 +421,28 @@ Deno.test({
 });
 
 Deno.test({
+  name: "vite dev - redis",
+  fn: async () => {
+    const res = await fetch(`${demoServer.address()}/tests/redis`);
+    const text = await res.text();
+    expect(text).toContain("<h1>redis</h1>");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite dev - @supabase/postgres-js",
+  fn: async () => {
+    const res = await fetch(`${demoServer.address()}/tests/supabase_pg`);
+    const text = await res.text();
+    expect(text).toContain("<h1>supabase</h1>");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
   name: "vite dev - radix",
   fn: async () => {
     const res = await fetch(`${demoServer.address()}/tests/radix`);

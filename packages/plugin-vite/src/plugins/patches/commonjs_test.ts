@@ -375,7 +375,7 @@ Deno.test("commonjs - detect esbuild shims", () => {
 import * as _ns from "./globalThis";
 export * from "./globalThis";
 ${DEFAULT_EXPORT}
-Object.assign(_default, _ns);
+for (var _k in _ns) if (_k !== "default" && _k !== "__esModule" && Object.prototype.hasOwnProperty.call(_ns, _k)) _default[_k] = _ns[_k];
 ${DEFAULT_EXPORT_END}`,
   });
 });
@@ -521,7 +521,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 export * from "./node";
 ${DEFAULT_EXPORT}
-Object.assign(_default, _ns);
+for (var _k in _ns) if (_k !== "default" && _k !== "__esModule" && Object.prototype.hasOwnProperty.call(_ns, _k)) _default[_k] = _ns[_k];
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -639,7 +639,7 @@ ${DEFAULT_EXPORT_END}`,
   });
 });
 
-Deno.test("commonjs - re-export", () => {
+Deno.test("commonjs - re-export #2", () => {
   runTest({
     input: `module.exports = require("foo");`,
     expected: `${INIT}
@@ -700,5 +700,22 @@ a(m, "__esModule", {
 ${DEFAULT_EXPORT}
 ${DEFAULT_EXPORT_END}
 export var __esModule = exports.__esModule;`,
+  });
+});
+
+Deno.test("commonjs - esbuild __importDefault", () => {
+  runTest({
+    input:
+      `var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+const node_events_1 = __importDefault(require("node:events"));`,
+    expected: `import * as _mod from "node:events";
+var __importDefault = this && this.__importDefault || function (mod) {
+  return mod && mod.__esModule ? mod : {
+    "default": mod
+  };
+};
+const node_events_1 = __importDefault(_mod.default ?? _mod);`,
   });
 });

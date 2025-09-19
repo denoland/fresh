@@ -1,4 +1,7 @@
 import type { NodePath, PluginObj, types } from "@babel/core";
+import { builtinModules } from "node:module";
+
+const BUILTINS = new Set(builtinModules);
 
 export function cjsPlugin(
   { types: t }: { types: typeof types },
@@ -261,15 +264,60 @@ export function cjsPlugin(
 
             for (let i = 0; i < mappedNs.length; i++) {
               const mapped = mappedNs[i];
+
+              const key = path.scope.generateUid("k");
               path.pushContainer(
                 "body",
-                t.expressionStatement(
-                  t.callExpression(
-                    t.memberExpression(
-                      t.identifier("Object"),
-                      t.identifier("assign"),
+                t.forInStatement(
+                  t.variableDeclaration("var", [
+                    t.variableDeclarator(t.identifier(key)),
+                  ]),
+                  t.identifier(mapped),
+                  t.ifStatement(
+                    t.logicalExpression(
+                      "&&",
+                      t.logicalExpression(
+                        "&&",
+                        t.binaryExpression(
+                          "!==",
+                          t.identifier(key),
+                          t.stringLiteral("default"),
+                        ),
+                        t.binaryExpression(
+                          "!==",
+                          t.identifier(key),
+                          t.stringLiteral("__esModule"),
+                        ),
+                      ),
+                      t.callExpression(
+                        t.memberExpression(
+                          t.memberExpression(
+                            t.memberExpression(
+                              t.identifier("Object"),
+                              t.identifier("prototype"),
+                            ),
+                            t.identifier("hasOwnProperty"),
+                          ),
+                          t.identifier("call"),
+                        ),
+                        [t.identifier(mapped), t.identifier(key)],
+                      ),
                     ),
-                    [t.cloneNode(id, true), t.identifier(mapped)],
+                    t.expressionStatement(
+                      t.assignmentExpression(
+                        "=",
+                        t.memberExpression(
+                          t.cloneNode(id, true),
+                          t.identifier(key),
+                          true,
+                        ),
+                        t.memberExpression(
+                          t.identifier(mapped),
+                          t.identifier(key),
+                          true,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               );
@@ -329,7 +377,8 @@ export function cjsPlugin(
           const mods = state.get(REQUIRE_CALLS) ?? [];
           state.set(REQUIRE_CALLS, mods);
 
-          if (t.isStringLiteral(path.node.arguments[0])) {
+          const source = path.node.arguments[0];
+          if (t.isStringLiteral(source)) {
             // Check if we can hoist it or if we need to keep it.
             let canImport = true;
             let parent: NodePath | null = path.parentPath;
@@ -359,12 +408,40 @@ export function cjsPlugin(
                 path.parentPath?.get("id").isIdentifier() ||
               path.parentPath?.isCallExpression()
             ) {
-              if (
+              // Vite json processing always adds a default property.
+              if (source.value.endsWith(".json")) {
+                path.replaceWith(
+                  t.logicalExpression(
+                    "??",
+                    t.memberExpression(
+                      t.cloneNode(id, true),
+                      t.identifier("default"),
+                    ),
+                    t.cloneNode(id, true),
+                  ),
+                );
+              } else if (
                 path.parentPath?.isCallExpression() &&
                 t.isIdentifier(path.parentPath.node.callee) &&
                 path.parentPath.node.callee.name === "__importDefault"
               ) {
-                path.replaceWith(t.cloneNode(id, true));
+                if (
+                  BUILTINS.has(source.value) ||
+                    source.value.startsWith("node:")
+                    ? BUILTINS.has(source.value.slice("node:".length))
+                    : BUILTINS.has(`node:${source.value}`)
+                ) {
+                  path.replaceWith(t.logicalExpression(
+                    "??",
+                    t.memberExpression(
+                      t.cloneNode(id, true),
+                      t.identifier("default"),
+                    ),
+                    t.cloneNode(id, true),
+                  ));
+                } else {
+                  path.replaceWith(t.cloneNode(id, true));
+                }
               } else {
                 path.replaceWith(
                   t.logicalExpression(
