@@ -1,15 +1,16 @@
-import { App, staticFiles } from "fresh";
-import { Partial } from "fresh/runtime";
 import {
+  assertMetaContent,
   assertNotSelector,
   parseHtml,
   waitFor,
   waitForText,
   withBrowserApp,
 } from "@fresh/test-utils";
+import { App, staticFiles } from "fresh";
+import { Partial } from "fresh/runtime";
+// (all generic test utils are imported above)
 import {
   ALL_ISLAND_DIR,
-  assertMetaContent,
   buildProd,
   charset,
   Doc,

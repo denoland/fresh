@@ -96,6 +96,40 @@ export function assertNotSelector(doc: Document, selector: string) {
   }
 }
 
+/**
+ * Assert that a <meta> tag exists whose name or property equals `nameOrProperty`,
+ * and that its content equals `expected`.
+ */
+export function assertMetaContent(
+  doc: Document,
+  nameOrProperty: string,
+  expected: string,
+): void {
+  let el = doc.querySelector(`meta[name="${nameOrProperty}"]`) as
+    | HTMLMetaElement
+    | null;
+
+  if (el === null) {
+    el = doc.querySelector(`meta[property="${nameOrProperty}"]`) as
+      | HTMLMetaElement
+      | null;
+  }
+
+  if (el === null) {
+    const html = prettyDom(doc);
+    throw new Error(
+      `No <meta> tag found with name/property "${nameOrProperty}".\n\n${html}`,
+    );
+  }
+
+  if (el.content !== expected) {
+    const html = prettyDom(doc);
+    throw new Error(
+      `Meta content mismatch for "${nameOrProperty}": expected "${expected}", got "${el.content}".\n\n${html}`,
+    );
+  }
+}
+
 export async function waitForText(
   page: Page,
   selector: string,
