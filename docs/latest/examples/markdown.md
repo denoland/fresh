@@ -11,7 +11,7 @@ browser.
 First, let's install the [`@deno/gfm`](https://jsr.io/@deno/gfm) package that
 can transform markdown to html.
 
-1. Run `deno install --allow-scripts jsr:@deno/gfm`
+1. Run `deno install jsr:@deno/gfm`
 2. Create a markdown file like `content/example.md`:
 
 ```md content/example.md
