@@ -11,7 +11,11 @@ import { JsxIsland } from "./fixtures_islands/JsxIsland.tsx";
 import { JsxChildrenIsland } from "./fixtures_islands/JsxChildrenIsland.tsx";
 import { NodeProcess } from "./fixtures_islands/NodeProcess.tsx";
 import { signal } from "@preact/signals";
-import { parseHtml, waitForText, withBrowserApp } from "@fresh/internal/test-utils";
+import {
+  parseHtml,
+  waitForText,
+  withBrowserApp,
+} from "@fresh/internal/test-utils";
 import {
   ALL_ISLAND_DIR,
   buildProd,

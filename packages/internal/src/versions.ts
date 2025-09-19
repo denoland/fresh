@@ -1,1 +1,8 @@
-export * from "../../test-utils/src/versions.ts";
+export { FRESH_VERSION, PREACT_VERSION } from "../../update/src/update.ts";
+
+// Read plugin-tailwindcss version from its deno.json
+// This is safe as @fresh/internal is internal to the monorepo.
+import twDenoJson from "../../plugin-tailwindcss/deno.json" with {
+  type: "json",
+};
+export const TAILWIND_PLUGIN_VERSION: string = String(twDenoJson.version);

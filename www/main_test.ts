@@ -1,4 +1,7 @@
-import { withBrowser, withChildProcessServer } from "@fresh/internal/test-utils";
+import {
+  withBrowser,
+  withChildProcessServer,
+} from "@fresh/internal/test-utils";
 import { expect } from "@std/expect";
 import { retry } from "@std/async/retry";
 import {

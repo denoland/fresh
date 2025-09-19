@@ -11,7 +11,7 @@ import {
 export const DEMO_DIR = path.join(import.meta.dirname!, "..", "demo");
 export const FIXTURE_DIR = path.join(import.meta.dirname!, "fixtures");
 
-// updateFile is now provided by @fresh/test-utils
+// updateFile is now provided by @fresh/internal/test-utils
 
 async function copyDir(from: string, to: string) {
   const entries = walk(from, {
