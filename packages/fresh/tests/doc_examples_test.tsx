@@ -1,12 +1,14 @@
-import twDenoJson from "../../plugin-tailwindcss/deno.json" with {
-  type: "json",
-};
+// Versions and plugin-tailwind version are provided via @fresh/test-utils
 import * as Marked from "marked";
 import { ensureDir, walk } from "@std/fs";
 import { dirname, join, relative } from "@std/path";
 // import { expect } from "@std/expect/expect";
-import { withTmpDir } from "@fresh/test-utils";
-import { FRESH_VERSION, PREACT_VERSION } from "../../update/src/update.ts";
+import {
+  withTmpDir,
+  FRESH_VERSION,
+  PREACT_VERSION,
+  TAILWIND_PLUGIN_VERSION,
+} from "@fresh/test-utils";
 
 Deno.test("Docs Code example checks", async () => {
   await using tmp = await withTmpDir();
@@ -22,9 +24,9 @@ Deno.test("Docs Code example checks", async () => {
     imports: {
       fresh: `jsr:@fresh/core@${FRESH_VERSION}`,
       "@fresh/plugin-tailwind-v3":
-        `jsr:@fresh/plugin-tailwind@^${twDenoJson.version}`,
+        `jsr:@fresh/plugin-tailwind@^${TAILWIND_PLUGIN_VERSION}`,
       "@fresh/plugin-tailwind":
-        `jsr:@fresh/plugin-tailwind@^${twDenoJson.version}`,
+        `jsr:@fresh/plugin-tailwind@^${TAILWIND_PLUGIN_VERSION}`,
       preact: `npm:preact@^${PREACT_VERSION}`,
       "@deno/gfm": "jsr:@deno/gfm@^0.11.0",
       "@std/expect": "jsr:@std/expect@^1.0.16",
