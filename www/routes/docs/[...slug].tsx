@@ -1,5 +1,4 @@
-import { HttpError, page } from "fresh";
-import { asset, Partial } from "fresh/runtime";
+import { asset, HttpError, page, Partial } from "fresh";
 import { SidebarCategory } from "../../components/DocsSidebar.tsx";
 import Footer from "../../components/Footer.tsx";
 import Header from "../../components/Header.tsx";
