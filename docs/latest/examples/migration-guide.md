@@ -155,6 +155,22 @@ accordingly.
   }
 ```
 
+## Update imports
+
+Add `jsr:@fresh/plugin-vite` and `npm:vite` to `imports` in your `deno.json`
+file, either manually or with this command:
+
+```shell
+deno install npm:vite jsr:@fresh/plugin-vite
+```
+
+This should be enough in most cases. If you still encounter problems, you may
+also need to update `compilerOptions` and other parts. For a complete,
+up‑to‑date example, generate a new app (“Migrate by example” below) and compare.
+
+> Note: With Vite, Fresh’s Tailwind plugin (`jsr:@fresh/plugin-tailwindcss*`) is
+> not needed; use the Vite integration instead (e.g. `npm:@tailwindcss/vite`).
+
 ## Update deployment settings
 
 Fresh 2 requires assets to be built during deployment instead of building them
