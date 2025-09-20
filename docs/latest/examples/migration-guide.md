@@ -157,14 +157,19 @@ accordingly.
 
 ## Update `deno.json`
 
-Update your `deno.json` to use Vite for development and builds, and add
-`@fresh/plugin-vite` and `vite` to `imports`.
+Add `jsr:@fresh/plugin-vite` and `npm:vite` to `imports` in your `deno.json`
+file, either manually or with this command:
 
-> Note: With Vite, Fresh’s Tailwind plugin (`@fresh/plugin-tailwindcss*`) is not
-> needed; use the Vite integration instead (e.g. `@tailwindcss/vite`).
+```shell
+deno install npm:vite jsr:@fresh/plugin-vite
+```
 
-You may also need to update `compilerOptions` and other parts. For a complete,
+This should be enough in most cases. If you still encounter problems, you may
+also need to update `compilerOptions` and other parts. For a complete,
 up‑to‑date example, generate a new app (“Migrate by example” below) and compare.
+
+> Note: With Vite, Fresh’s Tailwind plugin (`jsr:@fresh/plugin-tailwindcss*`) is
+> not needed; use the Vite integration instead (e.g. `npm:@tailwindcss/vite`).
 
 ## Update deployment settings
 
