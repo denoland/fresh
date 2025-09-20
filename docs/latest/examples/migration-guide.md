@@ -155,7 +155,7 @@ accordingly.
   }
 ```
 
-## Update `deno.json`
+## Update imports
 
 Add `jsr:@fresh/plugin-vite` and `npm:vite` to `imports` in your `deno.json`
 file, either manually or with this command:
