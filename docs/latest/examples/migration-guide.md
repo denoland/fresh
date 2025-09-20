@@ -155,6 +155,17 @@ accordingly.
   }
 ```
 
+## Update `deno.json`
+
+Update your `deno.json` to use Vite for development and builds, and add
+`@fresh/plugin-vite` and `vite` to `imports`.
+
+> Note: With Vite, Fresh’s Tailwind plugin (`@fresh/plugin-tailwindcss*`) is not
+> needed; use the Vite integration instead (e.g. `@tailwindcss/vite`).
+
+You may also need to update `compilerOptions` and other parts. For a complete,
+up‑to‑date example, generate a new app (“Migrate by example” below) and compare.
+
 ## Update deployment settings
 
 Fresh 2 requires assets to be built during deployment instead of building them
