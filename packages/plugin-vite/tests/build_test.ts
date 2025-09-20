@@ -542,3 +542,47 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "vite build - basePath asset links are correctly prefixed",
+  fn: async () => {
+    await using res = await buildVite(DEMO_DIR, { base: "/ui/" });
+
+    await launchProd(
+      { cwd: res.tmp },
+      async (address) => {
+        await withBrowser(async (page) => {
+          await page.goto(`${address}/ui/tests/css_modules`, {
+            waitUntil: "networkidle2",
+          });
+
+          // Test CSS links are prefixed correctly
+          const stylesheetHrefs = await page.evaluate(() => {
+            const links = Array.from(
+              document.querySelectorAll('link[rel="stylesheet"]'),
+            );
+            return links.map((link) => (link as HTMLLinkElement).href);
+          });
+
+          stylesheetHrefs.forEach((href) => {
+            expect(href).toMatch(/\/ui\/assets\/.*\.css/);
+          });
+
+          // Test image links are prefixed correctly
+          const imageSrcs = await page.evaluate(() => {
+            const images = Array.from(document.querySelectorAll("img"));
+            return images.map((img) => img.src).filter((src) =>
+              src.includes("/assets/")
+            );
+          });
+
+          imageSrcs.forEach((src) => {
+            expect(src).toMatch(/\/ui\/assets\//);
+          });
+        });
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
