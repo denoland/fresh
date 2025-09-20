@@ -1,5 +1,5 @@
 import { staticFiles } from "./static_files.ts";
-import { serveMiddleware } from "../test_utils.ts";
+import { serveMiddleware } from "@fresh/internal/test-utils";
 import type { BuildCache, StaticFile } from "../build_cache.ts";
 import { expect } from "@std/expect";
 import { ASSET_CACHE_BUST_KEY } from "../constants.ts";

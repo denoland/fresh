@@ -1,26 +1,17 @@
 import { createBuilder } from "vite";
 import * as path from "@std/path";
 import { walk } from "@std/fs/walk";
-import { withTmpDir } from "../../fresh/src/test_utils.ts";
-import { withChildProcessServer } from "../../fresh/tests/test_utils.tsx";
+import {
+  updateFile,
+  usingEnv,
+  withChildProcessServer,
+  withTmpDir,
+} from "@fresh/internal/test-utils";
 
 export const DEMO_DIR = path.join(import.meta.dirname!, "..", "demo");
 export const FIXTURE_DIR = path.join(import.meta.dirname!, "fixtures");
 
-export async function updateFile(
-  filePath: string,
-  fn: (text: string) => string | Promise<string>,
-) {
-  const original = await Deno.readTextFile(filePath);
-  const result = await fn(original);
-  await Deno.writeTextFile(filePath, result);
-
-  return {
-    async [Symbol.asyncDispose]() {
-      await Deno.writeTextFile(filePath, original);
-    },
-  };
-}
+// updateFile is now provided by @fresh/internal/test-utils
 
 async function copyDir(from: string, to: string) {
   const entries = walk(from, {
@@ -170,19 +161,7 @@ export async function buildVite(
   };
 }
 
-export function usingEnv(name: string, value: string) {
-  const prev = Deno.env.get(name);
-  Deno.env.set(name, value);
-  return {
-    [Symbol.dispose]: () => {
-      if (prev === undefined) {
-        Deno.env.delete(name);
-      } else {
-        Deno.env.set(name, prev);
-      }
-    },
-  };
-}
+export { updateFile, usingEnv };
 
 export interface ProdOptions {
   cwd: string;

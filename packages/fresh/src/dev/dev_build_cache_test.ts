@@ -1,7 +1,7 @@
 import { expect } from "@std/expect";
 import { MemoryBuildCache } from "./dev_build_cache.ts";
 import { FileTransformer } from "./file_transformer.ts";
-import { createFakeFs, withTmpDir } from "../test_utils.ts";
+import { createFakeFs, withTmpDir } from "@fresh/internal/test-utils";
 import type { ResolvedBuildConfig } from "./builder.ts";
 
 Deno.test({
