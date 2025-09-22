@@ -21,6 +21,8 @@ Fresh supports two kind of error pages:
 To add an error page use [`app.onError()`](/docs/concepts/app#onerror).
 
 ```ts main.ts
+import { App } from "fresh";
+
 const app = new App()
   .onError("*", (ctx) => {
     console.log(`Error: ${ctx.error}`);
@@ -36,7 +38,7 @@ will be invoked.
 
 You can also nest error pages:
 
-```ts main.ts
+```ts
 const app = new App()
   // Top level error page
   .onError("*", (ctx) => {
@@ -56,7 +58,7 @@ Not found errors are often treated differently than generic errors. You can both
 treat them with the `.onError()` way, but by adding a specific `.notFound()`
 handler, Fresh ensures that every 404 error will invoke this callback.
 
-```ts main.ts
+```ts
 const app = new App()
   // Top level error page
   .notFound((ctx) => {
@@ -90,7 +92,7 @@ async function authMiddleware(ctx) {
 
 You can check the status code of the thrown `HttpError` in your error handler:
 
-```ts main.ts
+```ts
 app.onError((ctx) => {
   if (ctx.error instanceof HttpError) {
     const status = ctx.error.status;
