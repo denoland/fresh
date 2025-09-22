@@ -45,8 +45,12 @@ export class DevServerInstance implements DevServer {
       throw new Error(`Unknown environment: ${envName}`);
     }
 
-    const mod = await processEntries(this.#state.moduleGraph, env, [id]);
-    console.log("FETCH", mod);
+    const graph = this.#state.moduleGraph;
+    await processEntries(graph, env, [id]);
+
+    const mod = graph.byId(envName, id);
+
+    console.log("FETCH", mod, env.name, id);
     return mod;
   }
 
@@ -63,7 +67,7 @@ export class DevServerInstance implements DevServer {
       if (mod === undefined) {
         console.log(this.moduleGraph.byId);
 
-        mod = await this.fetchModule("client", "");
+        // mod = await this.fetchModule("client", "");
       }
 
       console.log({ mod });

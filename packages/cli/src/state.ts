@@ -30,20 +30,35 @@ export class ModuleNode {
 export type AllModuleNode = ModuleNode;
 
 export class ModuleGraph {
-  #byId = new Map<ModuleId, ModuleNode>();
-  #byUrl = new Map<string, ModuleNode>();
+  byEnv = new Map<string, Map<ModuleId, ModuleNode>>();
 
   byId(env: string, id: string): ModuleNode | undefined {
-    return undefined;
+    const graph = this.#getEnvGraph(env);
+    return graph.get(id);
   }
+
   byUrl(env: string, id: string): ModuleNode | undefined {
     return undefined;
   }
 
   add(env: string, mod: ModuleNode): void {
+    const graph = this.#getEnvGraph(env);
+    graph.set(mod.id, mod);
   }
 
   delete(env: string, id: string): void {
+    const graph = this.#getEnvGraph(env);
+    graph.delete(id);
+  }
+
+  #getEnvGraph(name: string): Map<ModuleId, ModuleNode> {
+    let graph = this.byEnv.get(name);
+    if (graph === undefined) {
+      graph = new Map();
+      this.byEnv.set(name, graph);
+    }
+
+    return graph;
   }
 }
 

@@ -10,6 +10,7 @@ export class ModuleRunner {
     code: string,
     fetchModule: (id: string) => Promise<{ id: string; code: string }>,
   ): Promise<ModuleInstance> {
+    console.log("INST");
     const registry = this.#registry;
     const fn = new AsyncFunction("", code);
 

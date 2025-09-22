@@ -19,6 +19,7 @@ export function newServerRunner(
 
   return {
     async instantiateModule(id, code) {
+      console.log("INST", code);
       await runner.instantiate(id, code, fetcher);
     },
     async loadModule(id: string): Promise<ModuleInstance> {

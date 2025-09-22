@@ -1,3 +1,4 @@
+import { finalizeModTransform } from "./ast/finalize.ts";
 import type {
   HookFilter,
   LoadResult,
@@ -13,6 +14,7 @@ import {
   ResolvedEnvironment,
   State,
 } from "./state.ts";
+import * as babel from "@babel/core";
 
 export interface PluginPassCtx {
   environment: string;
@@ -67,7 +69,7 @@ export async function loadAndTransform(
     }
   }
 
-  console.log("LOAD", id);
+  console.log("LOAD", id, env);
   throw new Error(`Could not load: "${id}"`);
 }
 
@@ -99,19 +101,31 @@ export async function transform(
   return current;
 }
 
-export function finalizeModule(
+export async function finalizeModule(
   graph: ModuleGraph,
   env: ResolvedEnvironment,
   mod: ModuleNode,
 ): Promise<ModuleNode> {
-  graph.add();
+  console.log({ graph, env, mod });
+
+  // FIXME
+  const res = babel.transformSync(mod.content as string, {
+    filename: mod.id,
+    plugins: [finalizeModTransform],
+  });
+
+  console.log({ transformed: res?.code });
+
+  graph.add(env.name, mod);
+
+  return mod;
 }
 
 export async function processEntries(
   graph: ModuleGraph,
   env: ResolvedEnvironment,
   ids: ModuleId[],
-) {
+): Promise<void> {
   const queue = ids.slice();
 
   let current: ModuleId | undefined;
@@ -145,6 +159,7 @@ export async function processId(
     loaded.loader,
   );
   const finalized = await finalizeModule(graph, env, mod);
+  console.log("process", graph, env.name);
 
   console.log({ finalized });
 

@@ -13,6 +13,7 @@ export function newServerRunner(
     instantiateModule(id, code) {
     },
     async loadModule(id: string): Promise<ModuleInstance> {
+      console.log("Load server", id);
       const mod = await ctx.fetchModule(envName, id);
       if (mod === undefined) {
         throw new Error(`Could not instantiate ${id}`);

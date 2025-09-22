@@ -7,7 +7,7 @@ const fetcher = await serve({
   environments: {
     ssr: {
       build: {
-        input: ["fresh:server-entry"],
+        input: ["fresh:ssr-entry"],
         outDir: "dist/server",
       },
       plugins: [
@@ -23,6 +23,8 @@ const fetcher = await serve({
                   "fresh:ssr-entry",
                 );
 
+                console.log("SSR", mod);
+
                 return mod.fetch(req);
               }
 
@@ -37,7 +39,13 @@ const fetcher = await serve({
 
             ctx.onLoad({ id: "/fresh:ssr-entry/" }, (args) => {
               return {
-                code: `console.log("hello")`,
+                code: `export default {
+                async fetch(req) {
+                  console.log("hello")
+                  return new Response("ok")
+                }
+              }`,
+                loader: "js",
               };
             });
           },
@@ -57,6 +65,13 @@ const fetcher = await serve({
               console.log("client resolve", args);
               return {
                 id: args.id,
+              };
+            });
+
+            ctx.onLoad({ id: /fresh:client-entry/ }, (args) => {
+              return {
+                code: "console.log('client')",
+                loader: "js",
               };
             });
           },
