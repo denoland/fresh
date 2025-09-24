@@ -74,7 +74,10 @@ export async function denoVersionWarning(options: CheckOptions = {}) {
 
   const currentSemver = semver.parse(current);
   const latestSemver = semver.parse(latest);
-  if (currentSemver && latestSemver && semver.lessThan(currentSemver, latestSemver)) {
+  if (
+    currentSemver && latestSemver &&
+    semver.lessThan(currentSemver, latestSemver)
+  ) {
     logger.warn(
       "🍋 %c[WARNING] Outdated Deno version detected: %s (latest %s). Please re-test with the latest Deno before reporting issues to Fresh. Upgrade by running: deno upgrade",
       "color:rgb(251, 184, 0)",
