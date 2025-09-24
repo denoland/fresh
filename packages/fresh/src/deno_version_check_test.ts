@@ -26,7 +26,7 @@ Deno.test("denoVersionWarning - no warn when up to date", async () => {
   expect(warnSpy.fake).not.toHaveBeenCalled();
 });
 
-Deno.test("denoVersionWarning - friendly canary message", async () => {
+Deno.test("denoVersionWarning - friendly canary message (one-time)", async () => {
   // deno-lint-ignore no-explicit-any
   using warnSpy = stub(console, "warn", fn(() => {}) as any);
   await denoVersionWarning({
@@ -38,6 +38,14 @@ Deno.test("denoVersionWarning - friendly canary message", async () => {
   expect(warnSpy.fake).toHaveBeenCalled();
   const call = warnSpy.calls[0].args[0];
   expect(call).toContain("Canary Deno version detected");
+
+  // Second invocation should not duplicate the message
+  await denoVersionWarning({
+    force: true,
+    getCurrentVersion: () => "2.5.1+e7f1793",
+    getLatestStable: () => Promise.resolve("2.5.1"),
+  });
+  expect(warnSpy.calls.length).toBe(1);
 });
 
 Deno.test("denoVersionWarning - respects disable env var", async () => {

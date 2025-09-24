@@ -16,6 +16,7 @@ import * as semver from "@std/semver";
 let scheduled = false; // Ensure we only schedule once.
 let fetched = false; // Prevent repeated network fetch within same process.
 let latestStableCache: string | null = null;
+let canaryWarned = false; // Private process-local guard.
 
 async function fetchLatestStableVersion(): Promise<string | null> {
   if (fetched) return latestStableCache; // Already attempted.
@@ -73,10 +74,8 @@ export async function denoVersionWarning(options: CheckOptions = {}) {
 
   // Canary: friendly info (only once per process; no network fetch).
   if (isCanary(current)) {
-    // For unit tests we always log. In production limit to once.
-    const marker = denoVersionWarning as unknown as { _canaryShown: boolean };
-    if (!marker._canaryShown) {
-      marker._canaryShown = true;
+    if (!canaryWarned) {
+      canaryWarned = true;
       logger.warn(
         "🍋 %c[INFO] Canary Deno version detected: %s – If you encounter issues please open an issue at https://github.com/denoland/deno or https://github.com/denoland/fresh",
         "color:rgb(121, 200, 121)",
@@ -101,9 +100,6 @@ export async function denoVersionWarning(options: CheckOptions = {}) {
   }
 }
 
-// For testing – track whether canary message has been shown.
-(denoVersionWarning as unknown as { _canaryShown: boolean })._canaryShown = false;
-
 /** Schedule the warning logic to run without blocking startup. */
 export function scheduleFreshDenoVersionWarning() {
   if (scheduled) return;
@@ -115,6 +111,4 @@ export function scheduleFreshDenoVersionWarning() {
   });
 }
 
-// Internal state property declaration for TypeScript.
-// Re-export the marker property type for tests without using namespaces.
-export const _internal = { get canaryShown() { return (denoVersionWarning as unknown as { _canaryShown: boolean })._canaryShown; } };
+// No test-specific exports – behavior is observable only through console output.
