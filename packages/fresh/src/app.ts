@@ -29,6 +29,7 @@ import {
   newRouteCmd,
 } from "./commands.ts";
 import { MockBuildCache } from "./test_utils.ts";
+import { scheduleFreshDenoVersionWarning } from "./dev/deno_version_check.ts";
 
 // TODO: Completed type clashes in older Deno versions
 // deno-lint-ignore no-explicit-any
@@ -453,6 +454,13 @@ export class App<State> {
   async listen(options: ListenOptions = {}): Promise<void> {
     if (!options.onListen) {
       options.onListen = createOnListen(this.config.basePath, options);
+    }
+
+    // Schedule a (non-blocking) Deno version warning check once per process.
+    try {
+      scheduleFreshDenoVersionWarning();
+    } catch (_) {
+      // Ignore – purely advisory.
     }
 
     const handler = this.handler();
