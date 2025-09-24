@@ -12,7 +12,7 @@ Deno.test("denoVersionWarning - warns on outdated stable", async () => {
   });
   expect(warnSpy.fake).toHaveBeenCalled();
   const call = warnSpy.calls[0].args[0];
-  expect(call).toContain("Outdated Deno version");
+  expect(call).toContain("Outdated Deno version:");
 });
 
 Deno.test("denoVersionWarning - no warn when up to date", async () => {

@@ -5,6 +5,16 @@ let fetched = false;
 let latestStableCache: string | null = null;
 let canaryWarned = false;
 
+function logWarning(message: string) {
+  // deno-lint-ignore no-console
+  console.warn(`🍋 %c[WARNING] ${message}`, "color:rgb(251, 184, 0)");
+}
+
+function logInfo(message: string) {
+  // deno-lint-ignore no-console
+  console.warn(`🍋 %c[INFO] ${message}`, "color:rgb(121, 200, 121)");
+}
+
 async function fetchLatestStableVersion(): Promise<string | null> {
   if (fetched) return latestStableCache;
   fetched = true;
@@ -41,7 +51,6 @@ export async function denoVersionWarning(options: CheckOptions = {}) {
   const {
     getLatestStable = fetchLatestStableVersion,
     getCurrentVersion = parseCurrentVersion,
-    logger = console,
     force = false,
   } = options;
 
@@ -60,10 +69,9 @@ export async function denoVersionWarning(options: CheckOptions = {}) {
   if (isCanary(current)) {
     if (!canaryWarned) {
       canaryWarned = true;
-      logger.warn(
-        "🍋 %c[INFO] Canary Deno version detected: %s – If you encounter issues please open an issue at https://github.com/denoland/deno or https://github.com/denoland/fresh",
-        "color:rgb(121, 200, 121)",
-        current,
+      // Use same console styling pattern as other Fresh warnings.
+      logInfo(
+        `Canary Deno version detected (${current}). Feedback welcome at https://github.com/denoland/deno or https://github.com/denoland/fresh`,
       );
     }
     return;
@@ -78,11 +86,8 @@ export async function denoVersionWarning(options: CheckOptions = {}) {
     currentSemver && latestSemver &&
     semver.lessThan(currentSemver, latestSemver)
   ) {
-    logger.warn(
-      "🍋 %c[WARNING] Outdated Deno version detected: %s (latest %s). Please re-test with the latest Deno before reporting issues to Fresh. Upgrade by running: deno upgrade",
-      "color:rgb(251, 184, 0)",
-      current,
-      latest,
+    logWarning(
+      `Outdated Deno version: ${current} (latest ${latest}). Re-test with latest before reporting issues. Run: deno upgrade`,
     );
   }
 }
