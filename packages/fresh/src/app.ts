@@ -456,11 +456,11 @@ export class App<State> {
       options.onListen = createOnListen(this.config.basePath, options);
     }
 
-    // Schedule a (non-blocking) Deno version warning check once per process.
+    // Version warning (non-blocking).
     try {
       scheduleFreshDenoVersionWarning();
     } catch (_) {
-      // Ignore – purely advisory.
+      // ignore
     }
 
     const handler = this.handler();

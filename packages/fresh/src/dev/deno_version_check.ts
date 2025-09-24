@@ -1,25 +1,12 @@
 import * as semver from "@std/semver";
 
-/**
- * Lightweight Deno version warning facility for Fresh (stateless).
- *
- * Scenarios:
- *  1. Outdated stable build → warn to re-test with latest Deno before
- *     reporting issues.
- *  2. Canary build → friendly info inviting feedback.
- *
- * No filesystem cache (edge / ephemeral FS friendly). We attempt a single
- * network fetch per process (first schedule) and swallow all errors (missing
- * net perms, offline, etc.).
- */
-
-let scheduled = false; // Ensure we only schedule once.
-let fetched = false; // Prevent repeated network fetch within same process.
+let scheduled = false;
+let fetched = false;
 let latestStableCache: string | null = null;
-let canaryWarned = false; // Private process-local guard.
+let canaryWarned = false;
 
 async function fetchLatestStableVersion(): Promise<string | null> {
-  if (fetched) return latestStableCache; // Already attempted.
+  if (fetched) return latestStableCache;
   fetched = true;
   try {
     const res = await fetch("https://dl.deno.land/release-latest.txt");
@@ -27,7 +14,6 @@ async function fetchLatestStableVersion(): Promise<string | null> {
     latestStableCache = (await res.text()).trim().replace(/^v/, "");
     return latestStableCache;
   } catch (_) {
-    // Network disallowed or offline – ignore.
     return null;
   }
 }
@@ -36,7 +22,6 @@ function parseCurrentVersion(): string {
   return Deno.version.deno;
 }
 
-/** Detect if current version is canary. Canary builds have build metadata suffix like 2.x.y+<hash>. */
 function isCanary(version: string): boolean {
   return version.includes("+");
 }
@@ -45,7 +30,7 @@ interface CheckOptions {
   getLatestStable?: () => Promise<string | null>;
   getCurrentVersion?: () => string;
   logger?: Pick<typeof console, "warn">;
-  force?: boolean; // run even if env vars would normally skip
+  force?: boolean;
 }
 
 /**
@@ -72,7 +57,6 @@ export async function denoVersionWarning(options: CheckOptions = {}) {
 
   const current = getCurrentVersion();
 
-  // Canary: friendly info (only once per process; no network fetch).
   if (isCanary(current)) {
     if (!canaryWarned) {
       canaryWarned = true;
@@ -86,7 +70,7 @@ export async function denoVersionWarning(options: CheckOptions = {}) {
   }
 
   const latest = await getLatestStable();
-  if (!latest) return; // Couldn't determine latest – stay silent.
+  if (!latest) return;
 
   const currentSemver = semver.parse(current);
   const latestSemver = semver.parse(latest);
@@ -100,15 +84,10 @@ export async function denoVersionWarning(options: CheckOptions = {}) {
   }
 }
 
-/** Schedule the warning logic to run without blocking startup. */
 export function scheduleFreshDenoVersionWarning() {
   if (scheduled) return;
   scheduled = true;
-  // Fire and forget – keep micro delay to avoid impacting synchronous startup logs.
   queueMicrotask(() => {
-    // Deliberately not awaited.
     denoVersionWarning().catch(() => {});
   });
 }
-
-// No test-specific exports – behavior is observable only through console output.
