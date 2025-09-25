@@ -23,6 +23,9 @@ jobs:
         with:
           cache: true
 
+      - name: Run install step
+        run: "deno install"
+
       - name: Build step
         working-directory: ./www
         run: "deno task build"

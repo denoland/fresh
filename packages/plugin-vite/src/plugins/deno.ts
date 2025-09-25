@@ -8,10 +8,12 @@ import {
 } from "@deno/loader";
 import * as path from "@std/path";
 import * as babel from "@babel/core";
-import babelReact from "@babel/preset-react";
 import { httpAbsolute } from "./patches/http_absolute.ts";
 import { JS_REG, JSX_REG } from "../utils.ts";
 import { builtinModules } from "node:module";
+
+// @ts-ignore Workaround for https://github.com/denoland/deno/issues/30850
+const { default: babelReact } = await import("@babel/preset-react");
 
 const BUILTINS = new Set(builtinModules);
 
