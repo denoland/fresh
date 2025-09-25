@@ -707,50 +707,18 @@ const node_events_1 = __importDefault(_mod.default ?? _mod);`,
 
 Deno.test("commonjs imitating esm - default export exists", () => {
   runTest({
-    input: `var replace = String.prototype.replace;
-var percentTwenties = /%20/g;
-
-var Format = {
-RFC3986: 'RFC3986'
-};
-
-module.exports = {
-'default': Format.RFC3986,
-formatters: {
-RFC3986: function (value) {
-return String(value);
-}
-},
-  RFC3986: Format.RFC3986
+    input: `module.exports = {
+  'default': 'string',
+  otherExport: 1
 };
 `,
-    expected: `var exports = {},
-  module = {};
-Object.defineProperty(module, "exports", {
-  get() {
-    return exports;
-  },
-  set(value) {
-    exports = value;
-  }
-});
-var replace = String.prototype.replace;
-var percentTwenties = /%20/g;
-var Format = {
-  RFC3986: 'RFC3986'
-};
+    expected: `${INIT}
 module.exports = {
-  'default': Format.RFC3986,
-  formatters: {
-    RFC3986: function (value) {
-      return String(value);
-    }
-  },
-  RFC3986: Format.RFC3986
+  'default': 'string',
+  otherExport: 1
 };
-var _formatters = exports.formatters;
-var _RFC = exports.RFC3986;
-export { _formatters as formatters, _RFC as RFC3986 };
+var _otherExport = exports.otherExport;
+export { _otherExport as otherExport };
 ${DEFAULT_EXPORT}
 ${DEFAULT_EXPORT_END}`,
   });
