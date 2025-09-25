@@ -232,35 +232,51 @@ export function cjsPlugin(
 
             path.pushContainer(
               "body",
-              t.variableDeclaration("const", [
+              t.variableDeclaration("let", [
                 t.variableDeclarator(
                   id,
-                  t.logicalExpression(
-                    "??",
-                    t.memberExpression(
-                      t.identifier("exports"),
-                      t.identifier("default"),
-                    ),
-                    t.identifier("exports"),
-                  ),
                 ),
               ]),
             );
 
-            for (const [local, exported] of exportNamed.entries()) {
-              if (exported === "default") continue;
-
-              path.pushContainer(
-                "body",
-                t.expressionStatement(
-                  t.assignmentExpression(
-                    "=",
-                    t.memberExpression(id, t.identifier(exported)),
-                    t.identifier(local),
-                  ),
+            path.pushContainer(
+              "body",
+              t.ifStatement(
+                t.binaryExpression(
+                  "in",
+                  t.stringLiteral("default"),
+                  t.identifier("exports"),
                 ),
-              );
-            }
+                t.blockStatement([
+                  t.expressionStatement(
+                    t.assignmentExpression(
+                      "=",
+                      id,
+                      t.memberExpression(
+                        t.identifier("exports"),
+                        t.identifier("default"),
+                      ),
+                    ),
+                  ),
+                ]),
+                t.blockStatement([
+                  t.expressionStatement(
+                    t.assignmentExpression("=", id, t.identifier("exports")),
+                  ),
+                  ...exportNamed.entries().filter(([_, exported]) =>
+                    exported != "default"
+                  ).map(([local, exported]) =>
+                    t.expressionStatement(
+                      t.assignmentExpression(
+                        "=",
+                        t.memberExpression(id, t.identifier(exported)),
+                        t.identifier(local),
+                      ),
+                    )
+                  ),
+                ]),
+              ),
+            );
 
             for (let i = 0; i < mappedNs.length; i++) {
               const mapped = mappedNs[i];
@@ -268,53 +284,63 @@ export function cjsPlugin(
               const key = path.scope.generateUid("k");
               path.pushContainer(
                 "body",
-                t.forInStatement(
-                  t.variableDeclaration("var", [
-                    t.variableDeclarator(t.identifier(key)),
-                  ]),
-                  t.identifier(mapped),
-                  t.ifStatement(
-                    t.logicalExpression(
-                      "&&",
+                t.ifStatement(
+                  t.unaryExpression(
+                    "!",
+                    t.binaryExpression(
+                      "in",
+                      t.stringLiteral("default"),
+                      t.identifier("exports"),
+                    ),
+                  ),
+                  t.forInStatement(
+                    t.variableDeclaration("var", [
+                      t.variableDeclarator(t.identifier(key)),
+                    ]),
+                    t.identifier(mapped),
+                    t.ifStatement(
                       t.logicalExpression(
                         "&&",
-                        t.binaryExpression(
-                          "!==",
-                          t.identifier(key),
-                          t.stringLiteral("default"),
+                        t.logicalExpression(
+                          "&&",
+                          t.binaryExpression(
+                            "!==",
+                            t.identifier(key),
+                            t.stringLiteral("default"),
+                          ),
+                          t.binaryExpression(
+                            "!==",
+                            t.identifier(key),
+                            t.stringLiteral("__esModule"),
+                          ),
                         ),
-                        t.binaryExpression(
-                          "!==",
-                          t.identifier(key),
-                          t.stringLiteral("__esModule"),
-                        ),
-                      ),
-                      t.callExpression(
-                        t.memberExpression(
+                        t.callExpression(
                           t.memberExpression(
                             t.memberExpression(
-                              t.identifier("Object"),
-                              t.identifier("prototype"),
+                              t.memberExpression(
+                                t.identifier("Object"),
+                                t.identifier("prototype"),
+                              ),
+                              t.identifier("hasOwnProperty"),
                             ),
-                            t.identifier("hasOwnProperty"),
+                            t.identifier("call"),
                           ),
-                          t.identifier("call"),
+                          [t.identifier(mapped), t.identifier(key)],
                         ),
-                        [t.identifier(mapped), t.identifier(key)],
                       ),
-                    ),
-                    t.expressionStatement(
-                      t.assignmentExpression(
-                        "=",
-                        t.memberExpression(
-                          t.cloneNode(id, true),
-                          t.identifier(key),
-                          true,
-                        ),
-                        t.memberExpression(
-                          t.identifier(mapped),
-                          t.identifier(key),
-                          true,
+                      t.expressionStatement(
+                        t.assignmentExpression(
+                          "=",
+                          t.memberExpression(
+                            t.cloneNode(id, true),
+                            t.identifier(key),
+                            true,
+                          ),
+                          t.memberExpression(
+                            t.identifier(mapped),
+                            t.identifier(key),
+                            true,
+                          ),
                         ),
                       ),
                     ),
