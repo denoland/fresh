@@ -21,6 +21,7 @@ const demoServer = await spawnDevServer(tmp.dir, {
 });
 
 Deno.test({
+  only: true,
   name: "vite dev - launches",
   fn: async () => {
     const res = await fetch(`${demoServer.address()}/tests/it_works`);

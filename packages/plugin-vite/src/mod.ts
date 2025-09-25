@@ -1,4 +1,4 @@
-import type { Plugin } from "vite";
+import { createFetchableDevEnvironment, type Plugin } from "vite";
 import {
   type FreshViteConfig,
   pathWithRoot,
@@ -59,6 +59,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
         isDev = env.command === "serve";
 
         return {
+          appType: "custom",
           esbuild: {
             jsx: "automatic",
             jsxImportSource: "preact",
@@ -73,7 +74,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
             // Disallow externals, because it leads to duplicate
             // modules with `preact` vs `npm:preact@*` in the server
             // environment.
-            noExternal: true,
+            // noExternal: true,
           },
           optimizeDeps: {
             // Optimize deps somehow leads to duplicate modules or them
@@ -116,6 +117,19 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
               },
             },
             ssr: {
+              dev: {
+                createEnvironment: async (name, config, context) => {
+                  console.log("CREATING");
+                  return createFetchableDevEnvironment(name, config, {
+                    hot: true,
+                    async handleRequest(req) {
+                      console.log("req", req);
+                      return new Response("ok");
+                    },
+                  });
+                  //
+                },
+              },
               build: {
                 manifest: true,
                 emitAssets: true,
