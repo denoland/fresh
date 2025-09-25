@@ -189,18 +189,13 @@ export function cjsPlugin(
             );
           }
 
-          const exportNamed = new Map<string, string>();
-
           const idExports: types.ExportSpecifier[] = [];
           for (const name of exported) {
             if (name === "default") {
-              exportNamed.set(name, name);
               continue;
             }
 
             const id = path.scope.generateUidIdentifier(name);
-
-            exportNamed.set(id.name, name);
 
             path.pushContainer(
               "body",
@@ -227,7 +222,7 @@ export function cjsPlugin(
             );
           }
 
-          if (exportNamed.size > 0 || exportedNs.size > 0 || hasEsModule) {
+          if (exported.size > 0 || exportedNs.size > 0 || hasEsModule) {
             const id = path.scope.generateUidIdentifier("__default");
 
             path.pushContainer(
@@ -244,10 +239,18 @@ export function cjsPlugin(
               t.ifStatement(
                 t.logicalExpression(
                   "&&",
-                  t.binaryExpression(
-                    "===",
-                    t.unaryExpression("typeof", t.identifier("exports")),
-                    t.stringLiteral("object"),
+                  t.logicalExpression(
+                    "&&",
+                    t.binaryExpression(
+                      "===",
+                      t.unaryExpression("typeof", t.identifier("exports")),
+                      t.stringLiteral("object"),
+                    ),
+                    t.binaryExpression(
+                      "!==",
+                      t.identifier("exports"),
+                      t.nullLiteral(),
+                    ),
                   ),
                   t.binaryExpression(
                     "in",
@@ -284,10 +287,18 @@ export function cjsPlugin(
                 t.ifStatement(
                   t.logicalExpression(
                     "&&",
-                    t.binaryExpression(
-                      "===",
-                      t.unaryExpression("typeof", t.identifier("exports")),
-                      t.stringLiteral("object"),
+                    t.logicalExpression(
+                      "&&",
+                      t.binaryExpression(
+                        "===",
+                        t.unaryExpression("typeof", t.identifier("exports")),
+                        t.stringLiteral("object"),
+                      ),
+                      t.binaryExpression(
+                        "!==",
+                        t.identifier("exports"),
+                        t.nullLiteral(),
+                      ),
                     ),
                     t.unaryExpression(
                       "!",
@@ -694,6 +705,7 @@ export function cjsPlugin(
               state.set(HAS_ES_MODULE, true);
             } else if (left.isMemberExpression()) {
               if (isModuleExports(t, left.node)) {
+                // Should always try to create synthetic default export in this case.
                 exported.add("default");
 
                 if (t.isObjectExpression(expr.node.right)) {

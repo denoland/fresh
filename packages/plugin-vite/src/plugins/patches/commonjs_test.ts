@@ -27,7 +27,7 @@ Object.defineProperty(module, "exports", {
 });`;
 
 const DEFAULT_EXPORT = `let _default;
-if (typeof exports === "object" && "default" in exports) {
+if (typeof exports === "object" && exports !== null && "default" in exports) {
   _default = exports.default;
 } else {
   _default = exports;
@@ -366,7 +366,7 @@ Deno.test("commonjs - detect esbuild shims", () => {
 import * as _ns from "./globalThis";
 export * from "./globalThis";
 ${DEFAULT_EXPORT}
-if (typeof exports === "object" && !("default" in exports)) for (var _k in _ns) if (_k !== "default" && _k !== "__esModule" && Object.prototype.hasOwnProperty.call(_ns, _k)) _default[_k] = _ns[_k];
+if (typeof exports === "object" && exports !== null && !("default" in exports)) for (var _k in _ns) if (_k !== "default" && _k !== "__esModule" && Object.prototype.hasOwnProperty.call(_ns, _k)) _default[_k] = _ns[_k];
 ${DEFAULT_EXPORT_END}`,
   });
 });
@@ -508,7 +508,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 export * from "./node";
 ${DEFAULT_EXPORT}
-if (typeof exports === "object" && !("default" in exports)) for (var _k in _ns) if (_k !== "default" && _k !== "__esModule" && Object.prototype.hasOwnProperty.call(_ns, _k)) _default[_k] = _ns[_k];
+if (typeof exports === "object" && exports !== null && !("default" in exports)) for (var _k in _ns) if (_k !== "default" && _k !== "__esModule" && Object.prototype.hasOwnProperty.call(_ns, _k)) _default[_k] = _ns[_k];
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
