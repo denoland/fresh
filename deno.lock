@@ -72,9 +72,12 @@
     "npm:@tailwindcss/postcss@^4.1.10": "4.1.13",
     "npm:@tailwindcss/vite@^4.1.12": "4.1.13_vite@7.1.5__@types+node@24.3.3__picomatch@4.0.3_@types+node@24.3.3",
     "npm:@types/babel__core@^7.20.5": "7.20.5",
+    "npm:@types/mime-db@^1.43.6": "1.43.6",
     "npm:@types/node@^24.1.0": "24.3.3",
     "npm:@types/node@^24.2.1": "24.3.3",
     "npm:@types/node@^24.3.0": "24.3.3",
+    "npm:@types/pg@^8.15.5": "8.15.5",
+    "npm:@types/prismjs@^1.26.5": "1.26.5",
     "npm:autoprefixer@^10.4.21": "10.4.21_postcss@8.5.6",
     "npm:cssnano@^6.1.2": "6.1.2_postcss@8.5.6",
     "npm:esbuild-wasm@0.25.7": "0.25.7",
@@ -1817,11 +1820,31 @@
     "@types/estree@1.0.8": {
       "integrity": "sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w=="
     },
+    "@types/mime-db@1.43.6": {
+      "integrity": "sha512-r2cqxAt/Eo5yWBOQie1lyM1JZFCiORa5xtLlhSZI0w8RJggBPKw8c4g/fgQCzWydaDR5bL4imnmix2d1n52iBw=="
+    },
+    "@types/node@24.2.0": {
+      "integrity": "sha512-3xyG3pMCq3oYCNg7/ZP+E1ooTaGB4cG8JWRsqqOYQdbWNY4zbaV0Ennrd7stjiJEFZCaybcIgpTjJWHRfBSIDw==",
+      "dependencies": [
+        "undici-types"
+      ]
+    },
     "@types/node@24.3.3": {
       "integrity": "sha512-GKBNHjoNw3Kra1Qg5UXttsY5kiWMEfoHq2TmXb+b1rcm6N7B3wTrFYIf/oSZ1xNQ+hVVijgLkiDZh7jRRsh+Gw==",
       "dependencies": [
         "undici-types"
       ]
+    },
+    "@types/pg@8.15.5": {
+      "integrity": "sha512-LF7lF6zWEKxuT3/OR8wAZGzkg4ENGXFNyiV/JeOt9z5B+0ZVwbql9McqX5c/WStFq1GaGso7H1AzP/qSzmlCKQ==",
+      "dependencies": [
+        "@types/node@24.2.0",
+        "pg-protocol",
+        "pg-types"
+      ]
+    },
+    "@types/prismjs@1.26.5": {
+      "integrity": "sha512-AUZTa7hQ2KY5L7AmtSiqxlhWxb4ina0yd8hNbl4TWuqnv/pFP0nDMb3YrfSBf4hJVGLh2YEIBfKaBW/9UEl6IQ=="
     },
     "ansi-regex@5.0.1": {
       "integrity": "sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ=="
@@ -3504,7 +3527,7 @@
     "vite@7.1.5_@types+node@24.3.3_picomatch@4.0.3": {
       "integrity": "sha512-4cKBO9wR75r0BeIWWWId9XK9Lj6La5X846Zw9dFfzMRw38IlTk2iCcUt6hsyiDRcPidc55ZParFYDXi0nXOeLQ==",
       "dependencies": [
-        "@types/node",
+        "@types/node@24.3.3",
         "esbuild",
         "fdir",
         "picomatch@4.0.3",
@@ -3516,7 +3539,7 @@
         "fsevents"
       ],
       "optionalPeers": [
-        "@types/node"
+        "@types/node@24.3.3"
       ],
       "bin": true
     },
@@ -3689,7 +3712,10 @@
       "npm:@preact/signals@^2.2.1",
       "npm:@supabase/postgrest-js@^1.21.4",
       "npm:@tailwindcss/postcss@^4.1.10",
+      "npm:@types/mime-db@^1.43.6",
       "npm:@types/node@^24.3.0",
+      "npm:@types/pg@^8.15.5",
+      "npm:@types/prismjs@^1.26.5",
       "npm:esbuild-wasm@0.25.7",
       "npm:esbuild@0.25.7",
       "npm:github-slugger@2",
@@ -3711,6 +3737,13 @@
       "packages/build-id": {
         "dependencies": [
           "jsr:@std/encoding@^1.0.10"
+        ]
+      },
+      "packages/examples": {
+        "dependencies": [
+          "jsr:@fresh/core@2",
+          "npm:@preact/signals@^2.2.1",
+          "npm:preact@^10.27.0"
         ]
       },
       "packages/fresh": {

@@ -23,5 +23,8 @@ jobs:
         with:
           cache: true
 
+      - name: Install dependencies
+        run: deno install
+
       - name: Publish
         run: deno publish
