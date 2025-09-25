@@ -438,5 +438,11 @@
     "link": "https://moatez-bejaoui.deno.dev",
     "github": "https://github.com/MoatezNG",
     "image": "moatez-desktop"
+  },
+  {
+    "title": "Retro Ranker",
+    "link": "https://retroranker.site",
+    "github": "https://github.com/Nergy101/retro-ranker",
+    "image": "retro-ranker"
   }
 ]
