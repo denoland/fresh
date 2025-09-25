@@ -1,5 +1,5 @@
 {
-  "nodeModulesDir": "auto",
+  "nodeModulesDir": "manual",
   "workspace": [
     "./packages/*",
     "./www"
