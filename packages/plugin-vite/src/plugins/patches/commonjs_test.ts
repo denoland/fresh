@@ -26,15 +26,13 @@ Object.defineProperty(module, "exports", {
   }
 });`;
 
-const defaultExportWith = (w: string[]) =>
-  `let _default;
-if ("default" in exports) {
+const DEFAULT_EXPORT = `let _default;
+if (typeof exports === "object" && "default" in exports) {
   _default = exports.default;
 } else {
-  _default = exports;${w.map((v) => `\n  ${v};`).join("")}
+  _default = exports;
 }`;
 
-const DEFAULT_EXPORT = defaultExportWith([]);
 const DEFAULT_EXPORT_END = `export default _default;
 export var __require = exports;`;
 const IMPORT_REQUIRE = `import { createRequire } from "node:module";
@@ -72,7 +70,7 @@ exports.default = 'x';
 exports.foo = 'foo';
 var _foo = exports.foo;
 export { _foo as foo };
-${defaultExportWith(["_default.foo = _foo"])}
+${DEFAULT_EXPORT}
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -89,7 +87,7 @@ module.exports.default = 'x';
 module.exports.foo = 'foo';
 var _foo = exports.foo;
 export { _foo as foo };
-${defaultExportWith(["_default.foo = _foo"])}
+${DEFAULT_EXPORT}
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -109,7 +107,7 @@ exports.foo = 'bar';
 const foo = 'also bar';
 var _foo = exports.foo;
 export { _foo as foo };
-${defaultExportWith(["_default.foo = _foo"])}
+${DEFAULT_EXPORT}
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -129,7 +127,7 @@ exports.default = 'foo';
 exports.foo = 'bar';
 var _foo = exports.foo;
 export { _foo as foo };
-${defaultExportWith(["_default.foo = _foo"])}
+${DEFAULT_EXPORT}
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -187,7 +185,7 @@ exports.bar = 'foo';
 var _foo = exports.foo;
 var _bar = exports.bar;
 export { _foo as foo, _bar as bar };
-${defaultExportWith(["_default.foo = _foo", "_default.bar = _bar"])}
+${DEFAULT_EXPORT}
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -269,7 +267,7 @@ exports.trace = void 0;
 exports.trace = 'foo';
 var _trace = exports.trace;
 export { _trace as trace };
-${defaultExportWith(["_default.trace = _trace"])}
+${DEFAULT_EXPORT}
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -287,7 +285,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.foo = 'foo';
 var _foo = exports.foo;
 export { _foo as foo };
-${defaultExportWith(["_default.foo = _foo"])}
+${DEFAULT_EXPORT}
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -303,7 +301,7 @@ var utils_1 = _mod.__require ?? _mod.default ?? _mod;
 exports.foo = utils_1.foo;
 var _foo = exports.foo;
 export { _foo as foo };
-${defaultExportWith(["_default.foo = _foo"])}
+${DEFAULT_EXPORT}
 ${DEFAULT_EXPORT_END}`,
   });
 });
@@ -318,7 +316,7 @@ var utils_1 = _mod.__require ?? _mod.default ?? _mod;
 exports.foo = utils_1.foo;
 var _foo = exports.foo;
 export { _foo as foo };
-${defaultExportWith(["_default.foo = _foo"])}
+${DEFAULT_EXPORT}
 ${DEFAULT_EXPORT_END}`,
   });
 });
@@ -336,7 +334,7 @@ exports._globalThis = void 0;
 exports._globalThis = typeof globalThis === 'object' ? globalThis : global;
 var _globalThis = exports._globalThis;
 export { _globalThis };
-${defaultExportWith(["_default._globalThis = _globalThis"])}
+${DEFAULT_EXPORT}
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -355,7 +353,7 @@ function foo() {}
 exports.foo = foo;
 var _foo = exports.foo;
 export { _foo as foo };
-${defaultExportWith(["_default.foo = _foo"])}
+${DEFAULT_EXPORT}
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -368,7 +366,7 @@ Deno.test("commonjs - detect esbuild shims", () => {
 import * as _ns from "./globalThis";
 export * from "./globalThis";
 ${DEFAULT_EXPORT}
-if (!("default" in exports)) for (var _k in _ns) if (_k !== "default" && _k !== "__esModule" && Object.prototype.hasOwnProperty.call(_ns, _k)) _default[_k] = _ns[_k];
+if (typeof exports === "object" && !("default" in exports)) for (var _k in _ns) if (_k !== "default" && _k !== "__esModule" && Object.prototype.hasOwnProperty.call(_ns, _k)) _default[_k] = _ns[_k];
 ${DEFAULT_EXPORT_END}`,
   });
 });
@@ -392,7 +390,7 @@ exports.VERSION = void 0;
 exports.VERSION = '1.9.0';
 var _VERSION = exports.VERSION;
 export { _VERSION as VERSION };
-${defaultExportWith(["_default.VERSION = _VERSION"])}
+${DEFAULT_EXPORT}
 ${DEFAULT_EXPORT_END}`,
   });
 });
@@ -416,7 +414,7 @@ var DiagLogLevel;
 })(DiagLogLevel = exports.DiagLogLevel || (exports.DiagLogLevel = {}));
 var _DiagLogLevel = exports.DiagLogLevel;
 export { _DiagLogLevel as DiagLogLevel };
-${defaultExportWith(["_default.DiagLogLevel = _DiagLogLevel"])}
+${DEFAULT_EXPORT}
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -451,7 +449,7 @@ module.exports = {
 };
 var _foo = exports.foo;
 export { _foo as foo };
-${defaultExportWith(["_default.foo = _foo"])}
+${DEFAULT_EXPORT}
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -468,7 +466,7 @@ Deno.test("commonjs - detect iife wrapper", () => {
 })(exports);
 var _foo = exports.foo;
 export { _foo as foo };
-${defaultExportWith(["_default.foo = _foo"])}
+${DEFAULT_EXPORT}
 ${DEFAULT_EXPORT_END}`,
   });
 });
@@ -510,7 +508,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 export * from "./node";
 ${DEFAULT_EXPORT}
-if (!("default" in exports)) for (var _k in _ns) if (_k !== "default" && _k !== "__esModule" && Object.prototype.hasOwnProperty.call(_ns, _k)) _default[_k] = _ns[_k];
+if (typeof exports === "object" && !("default" in exports)) for (var _k in _ns) if (_k !== "default" && _k !== "__esModule" && Object.prototype.hasOwnProperty.call(_ns, _k)) _default[_k] = _ns[_k];
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -525,7 +523,7 @@ module.exports = {
 };
 var _foo = exports.foo;
 export { _foo as foo };
-${defaultExportWith(["_default.foo = _foo"])}
+${DEFAULT_EXPORT}
 ${DEFAULT_EXPORT_END}`,
   });
 });
@@ -621,7 +619,7 @@ Deno.test("commonjs - wrapped iife binding", () => {
 }();
 var _foo = exports.foo;
 export { _foo as foo };
-${defaultExportWith(["_default.foo = _foo"])}
+${DEFAULT_EXPORT}
 ${DEFAULT_EXPORT_END}`,
   });
 });
@@ -753,15 +751,7 @@ module.exports = {
 var _formatters = exports.formatters;
 var _RFC = exports.RFC3986;
 export { _formatters as formatters, _RFC as RFC3986 };
-let _default;
-if ("default" in exports) {
-  _default = exports.default;
-} else {
-  _default = exports;
-  _default.formatters = _formatters;
-  _default.RFC3986 = _RFC;
-}
-export default _default;
-export var __require = exports;`,
+${DEFAULT_EXPORT}
+${DEFAULT_EXPORT_END}`,
   });
 });

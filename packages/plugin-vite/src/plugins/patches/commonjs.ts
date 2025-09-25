@@ -242,10 +242,18 @@ export function cjsPlugin(
             path.pushContainer(
               "body",
               t.ifStatement(
-                t.binaryExpression(
-                  "in",
-                  t.stringLiteral("default"),
-                  t.identifier("exports"),
+                t.logicalExpression(
+                  "&&",
+                  t.binaryExpression(
+                    "===",
+                    t.unaryExpression("typeof", t.identifier("exports")),
+                    t.stringLiteral("object"),
+                  ),
+                  t.binaryExpression(
+                    "in",
+                    t.stringLiteral("default"),
+                    t.identifier("exports"),
+                  ),
                 ),
                 t.blockStatement([
                   t.expressionStatement(
@@ -263,17 +271,6 @@ export function cjsPlugin(
                   t.expressionStatement(
                     t.assignmentExpression("=", id, t.identifier("exports")),
                   ),
-                  ...exportNamed.entries().filter(([_, exported]) =>
-                    exported != "default"
-                  ).map(([local, exported]) =>
-                    t.expressionStatement(
-                      t.assignmentExpression(
-                        "=",
-                        t.memberExpression(id, t.identifier(exported)),
-                        t.identifier(local),
-                      ),
-                    )
-                  ),
                 ]),
               ),
             );
@@ -285,12 +282,20 @@ export function cjsPlugin(
               path.pushContainer(
                 "body",
                 t.ifStatement(
-                  t.unaryExpression(
-                    "!",
+                  t.logicalExpression(
+                    "&&",
                     t.binaryExpression(
-                      "in",
-                      t.stringLiteral("default"),
-                      t.identifier("exports"),
+                      "===",
+                      t.unaryExpression("typeof", t.identifier("exports")),
+                      t.stringLiteral("object"),
+                    ),
+                    t.unaryExpression(
+                      "!",
+                      t.binaryExpression(
+                        "in",
+                        t.stringLiteral("default"),
+                        t.identifier("exports"),
+                      ),
                     ),
                   ),
                   t.forInStatement(
