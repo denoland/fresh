@@ -8,6 +8,7 @@ import {
 } from "@deno/loader";
 import * as path from "@std/path";
 import * as babel from "@babel/core";
+// @ts-ignore No types available
 import babelReact from "@babel/preset-react";
 import { httpAbsolute } from "./patches/http_absolute.ts";
 import { JS_REG, JSX_REG } from "../utils.ts";
