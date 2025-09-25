@@ -77,6 +77,7 @@
     "npm:@types/node@^24.2.1": "24.3.3",
     "npm:@types/node@^24.3.0": "24.3.3",
     "npm:@types/pg@^8.15.5": "8.15.5",
+    "npm:@types/prismjs@^1.26.5": "1.26.5",
     "npm:autoprefixer@^10.4.21": "10.4.21_postcss@8.5.6",
     "npm:cssnano@^6.1.2": "6.1.2_postcss@8.5.6",
     "npm:esbuild-wasm@0.25.7": "0.25.7",
@@ -1841,6 +1842,9 @@
         "pg-protocol",
         "pg-types"
       ]
+    },
+    "@types/prismjs@1.26.5": {
+      "integrity": "sha512-AUZTa7hQ2KY5L7AmtSiqxlhWxb4ina0yd8hNbl4TWuqnv/pFP0nDMb3YrfSBf4hJVGLh2YEIBfKaBW/9UEl6IQ=="
     },
     "ansi-regex@5.0.1": {
       "integrity": "sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ=="
@@ -3711,6 +3715,7 @@
       "npm:@types/mime-db@^1.43.6",
       "npm:@types/node@^24.3.0",
       "npm:@types/pg@^8.15.5",
+      "npm:@types/prismjs@^1.26.5",
       "npm:esbuild-wasm@0.25.7",
       "npm:esbuild@0.25.7",
       "npm:github-slugger@2",

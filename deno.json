@@ -51,6 +51,7 @@
     "@types/mime-db": "npm:@types/mime-db@^1.43.6",
     "@types/node": "npm:@types/node@^24.3.0",
     "@types/pg": "npm:@types/pg@^8.15.5",
+    "@types/prismjs": "npm:@types/prismjs@^1.26.5",
     "docsearch": "https://esm.sh/@docsearch/js@3.5.2?target=es2020",
     "esbuild": "npm:esbuild@0.25.7",
     "esbuild-wasm": "npm:esbuild-wasm@0.25.7",
