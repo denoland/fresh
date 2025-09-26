@@ -261,7 +261,7 @@ generalized to render JSX, so it's no longer needed.
 Fresh 1.x:
 
 ```ts
-export const handlers = {
+export const handler = {
   async GET(req, ctx) {
     const data = await Query();
     await ctx.render({ value: data });
@@ -276,7 +276,7 @@ export default function Page({ data }) {
 Fresh 2 (removed):
 
 ```ts
-export const handlers = {
+export const handler = {
   async GET(ctx) {
     const data = await Query();
     return { data: { value: data } };
