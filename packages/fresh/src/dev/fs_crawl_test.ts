@@ -1,5 +1,5 @@
 import { expect } from "@std/expect/expect";
-import { createFakeFs } from "../test_utils.ts";
+import { createFakeFs } from "@fresh/internal/test-utils";
 import { walkDir } from "./fs_crawl.ts";
 
 Deno.test("walkDir - ", async () => {

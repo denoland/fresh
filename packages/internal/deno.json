@@ -1,0 +1,7 @@
+{
+  "name": "@fresh/internal",
+  "exports": {
+    "./test-utils": "./src/test-utils.ts",
+    "./versions": "./src/versions.ts"
+  }
+}

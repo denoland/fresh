@@ -1,22 +1,25 @@
-import { App, staticFiles } from "fresh";
-import { Partial } from "fresh/runtime";
 import {
-  ALL_ISLAND_DIR,
   assertMetaContent,
   assertNotSelector,
-  buildProd,
-  charset,
-  Doc,
-  favicon,
+  FakeServer,
   parseHtml,
   waitFor,
   waitForText,
   withBrowserApp,
+} from "@fresh/internal/test-utils";
+import { App, staticFiles } from "fresh";
+import { Partial } from "fresh/runtime";
+// (all generic test utils are imported above)
+import {
+  ALL_ISLAND_DIR,
+  buildProd,
+  charset,
+  Doc,
+  favicon,
 } from "./test_utils.tsx";
 import { SelfCounter } from "./fixtures_islands/SelfCounter.tsx";
 import { expect } from "@std/expect";
 import { PartialInIsland } from "./fixtures_islands/PartialInIsland.tsx";
-import { FakeServer } from "../src/test_utils.ts";
 import { JsonIsland } from "./fixtures_islands/JsonIsland.tsx";
 import { OptOutPartialLink } from "./fixtures_islands/OptOutPartialLink.tsx";
 import * as path from "@std/path";
@@ -63,7 +66,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator(".update").click();
       await waitForText(page, ".output", "partial update");
@@ -99,7 +102,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator(".update").click();
       await page.locator(".ready").wait();
@@ -141,7 +144,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       const logs: string[] = [];
       page.addEventListener("console", (msg) => logs.push(msg.detail.text));
 
@@ -225,7 +228,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       let didError = false;
       page.addEventListener("pageerror", () => {
         didError = true;
@@ -272,7 +275,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator(".update").click();
       await page.locator(".ready").wait();
@@ -341,7 +344,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator(".ready").wait();
       await page.locator(".update").click();
@@ -385,7 +388,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator(".ready").wait();
       await page.locator(".increment").click();
@@ -431,7 +434,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator(".ready").wait();
       await page.locator(".increment").click();
@@ -480,7 +483,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator(".inner").wait();
 
@@ -531,7 +534,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator(".sib-3").wait();
       await page.locator(".update").click();
@@ -577,7 +580,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator(".ready").wait();
 
@@ -651,7 +654,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator(".ready").wait();
 
@@ -725,7 +728,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator(".ready").wait();
 
@@ -791,7 +794,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator(".ready").wait();
 
@@ -872,7 +875,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator(".init").wait();
       await page.locator(".update").click();
@@ -922,7 +925,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator(".init").wait();
       await page.locator(".update").click();
@@ -970,7 +973,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator(".init").wait();
       await page.locator(".update").click();
@@ -1022,7 +1025,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator(".init").wait();
       await page.locator(".update").click();
@@ -1069,7 +1072,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator(".init").wait();
       await page.locator(".update").click();
@@ -1120,7 +1123,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator(".init").wait();
       await page.locator(".update").click();
@@ -1163,7 +1166,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator(".ready").wait();
 
@@ -1219,7 +1222,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator(".ready").wait();
 
@@ -1311,7 +1314,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator(".ready").wait();
 
@@ -1395,7 +1398,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator(".ready").wait();
 
@@ -1458,7 +1461,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await retry(async () => {
         await page.goto(address, { waitUntil: "load" });
         await page.locator(".ready").wait();
@@ -1527,7 +1530,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await retry(async () => {
         await page.goto(address, { waitUntil: "load" });
         await page.locator(".ready").wait();
@@ -1584,7 +1587,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await retry(async () => {
         await page.goto(address, { waitUntil: "load" });
         await page.locator(".ready").wait();
@@ -1642,7 +1645,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.evaluate(() => {
         document.querySelector(".update")?.scrollIntoView({
@@ -1701,7 +1704,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator(".ready").wait();
 
@@ -1753,7 +1756,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator(".ready").wait();
 
@@ -1809,7 +1812,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator(".ready").wait();
 
@@ -1848,7 +1851,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator(".ready").wait();
 
@@ -1902,7 +1905,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator(".ready").wait();
 
@@ -1961,7 +1964,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator(".ready").wait();
 
@@ -2021,7 +2024,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator(".ready").wait();
 
@@ -2083,7 +2086,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator(".ready").wait();
 
@@ -2137,7 +2140,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator(".ready").wait();
 
@@ -2175,7 +2178,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       const logs: string[] = [];
       page.addEventListener("console", (msg) => logs.push(msg.detail.text));
 
@@ -2211,7 +2214,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
 
       await page.locator("a").click();
@@ -2252,7 +2255,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       const logs: string[] = [];
       page.addEventListener("pageerror", (msg) => {
@@ -2329,7 +2332,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
 
       await page.locator(".update").click();
@@ -2435,7 +2438,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator(".update").click();
       await page.locator(".updated").wait();
@@ -2487,7 +2490,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator(".status-initial").wait();
 
@@ -2530,7 +2533,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator(".ready").wait();
       await page.locator("#outer .increment").click();
@@ -2579,7 +2582,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator("h1").wait();
       await page.locator(".update").click();
@@ -2616,7 +2619,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator("h1").wait();
       await page.locator(".update").click();
@@ -2653,7 +2656,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator("h1").wait();
       await page.locator(".update").click();
@@ -2693,7 +2696,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator(".ready").wait();
       await page.locator("a").click();
@@ -2721,7 +2724,7 @@ Deno.test({
         );
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(address, { waitUntil: "load" });
       await page.locator<HTMLDivElement>(".container").evaluate((el) => {
         const dynamicContent = document.createElement("span");

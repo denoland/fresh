@@ -1,7 +1,7 @@
 // deno-lint-ignore-file require-await
 import { trailingSlashes } from "./trailing_slashes.ts";
 import { expect } from "@std/expect";
-import { serveMiddleware } from "../test_utils.ts";
+import { serveMiddleware } from "@fresh/internal/test-utils";
 
 Deno.test("trailingSlashes - always", async () => {
   const middleware = trailingSlashes("always");
