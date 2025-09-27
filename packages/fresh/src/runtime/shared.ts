@@ -25,13 +25,13 @@ export const IS_BROWSER = typeof document !== "undefined";
  * specific to the current version of the application, and as such can be safely
  * served with a very long cache lifetime (1 year).
  */
-export function asset(path: string): string {
-  return assetInternal(path, BUILD_ID);
+export function asset(path: string, basePath?: string): string {
+  return assetInternal(path, BUILD_ID, basePath);
 }
 
 /** Apply the `asset` function to urls in a `srcset` attribute. */
-export function assetSrcSet(srcset: string): string {
-  return assetSrcSetInternal(srcset, BUILD_ID);
+export function assetSrcSet(srcset: string, basePath?: string): string {
+  return assetSrcSetInternal(srcset, BUILD_ID, basePath);
 }
 
 export interface PartialProps {
