@@ -438,5 +438,11 @@
     "link": "https://moatez-bejaoui.deno.dev",
     "github": "https://github.com/MoatezNG",
     "image": "moatez-desktop"
+  },
+  {
+    "title": "boxdgrid",
+    "link": "https://boxdgrid.deno.dev",
+    "github": "wfrancescons/boxdgrid",
+    "image": "boxdgrid"
   }
 ]
