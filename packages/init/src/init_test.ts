@@ -57,6 +57,11 @@ async function patchProject(dir: string): Promise<void> {
   // assert with this stricter rule, before adding it to initialized projects
   json.lint.rules.include = ["verbatim-module-syntax"];
 
+  if (json.tasks && typeof json.tasks.start === "string") {
+    json.tasks.start =
+      "deno serve -A --host=127.0.0.1 --port=0 _fresh/server.js";
+  }
+
   await Deno.writeTextFile(jsonPath, JSON.stringify(json, null, 2) + "\n");
 }
 
@@ -255,7 +260,10 @@ Deno.test("init - can start built project", async () => {
   }).output();
 
   await withChildProcessServer(
-    { cwd: dir, env: { PORT: "0" }, args: ["task", "start"] },
+    {
+      cwd: dir,
+      args: ["task", "start"],
+    },
     async (address) => {
       await withBrowser(async (page) => {
         await page.goto(address);
@@ -338,7 +346,10 @@ Deno.test.ignore("init - vite build", async () => {
   }).output();
 
   await withChildProcessServer(
-    { cwd: dir, env: { PORT: "0" }, args: ["task", "start"] },
+    {
+      cwd: dir,
+      args: ["task", "start"],
+    },
     async (address) => {
       await withBrowser(async (page) => {
         await page.goto(address);
