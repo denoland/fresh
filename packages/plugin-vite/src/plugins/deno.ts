@@ -1,4 +1,4 @@
-import type { Plugin } from "vite";
+import type { Plugin, Rolldown } from "vite";
 import {
   type Loader,
   MediaType,
@@ -180,6 +180,7 @@ export function deno(): Plugin {
 
         return {
           code,
+          moduleType: mediaToModuleType(result.mediaType),
         };
       }
 
@@ -210,7 +211,7 @@ export function deno(): Plugin {
       }
 
       const code = new TextDecoder().decode(result.code);
-
+      const moduleType = mediaToModuleType(result.mediaType);
       const maybeJsx = babelTransform({
         ssr: !!options?.ssr,
         media: result.mediaType,
@@ -219,7 +220,11 @@ export function deno(): Plugin {
         isDev,
       });
       if (maybeJsx) {
-        return maybeJsx;
+        return {
+          code: maybeJsx.code,
+          map: maybeJsx.map,
+          moduleType,
+        };
       }
 
       return {
@@ -268,10 +273,42 @@ export function deno(): Plugin {
 
         return {
           code,
+          moduleType: mediaToModuleType(result.mediaType),
         };
       },
     },
   };
+}
+
+function mediaToModuleType(media: MediaType): Rolldown.ModuleType {
+  switch (media) {
+    case MediaType.Cjs:
+    case MediaType.Mjs:
+    case MediaType.JavaScript:
+      return "js";
+    case MediaType.Jsx:
+      return "jsx";
+    case MediaType.TypeScript:
+    case MediaType.Mts:
+    case MediaType.Cts:
+    case MediaType.Dts:
+    case MediaType.Dmts:
+    case MediaType.Dcts:
+      return "ts";
+    case MediaType.Tsx:
+      return "tsx";
+    case MediaType.Html:
+    case MediaType.Sql:
+    case MediaType.Css:
+      return "text";
+    case MediaType.Json:
+      return "json";
+    case MediaType.SourceMap:
+      return "json";
+    case MediaType.Unknown:
+    case MediaType.Wasm:
+      return "empty";
+  }
 }
 
 function isJsMediaType(media: MediaType): boolean {

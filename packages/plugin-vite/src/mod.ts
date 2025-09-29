@@ -1,4 +1,4 @@
-import type { Plugin } from "vite";
+import { esmExternalRequirePlugin, type Plugin } from "rolldown-vite";
 import {
   type FreshViteConfig,
   pathWithRoot,
@@ -184,6 +184,9 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
     },
     serverEntryPlugin(fConfig),
     patches(),
+    esmExternalRequirePlugin({
+      external: ["preact", /^node:/],
+    }),
     ...serverSnapshot(fConfig),
     clientEntryPlugin(fConfig),
     ...clientSnapshot(fConfig),
