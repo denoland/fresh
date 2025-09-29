@@ -1,4 +1,4 @@
-import type { Plugin } from "vite";
+import type { Plugin, ResolvedConfig } from "vite";
 import {
   type FreshViteConfig,
   pathWithRoot,
@@ -51,6 +51,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
   });
 
   let isDev = false;
+  let resolvedConfig: ResolvedConfig = {} as any;
 
   const plugins: Plugin[] = [
     {
@@ -74,12 +75,12 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
             // Disallow externals, because it leads to duplicate
             // modules with `preact` vs `npm:preact@*` in the server
             // environment.
-            noExternal: true,
+            // noExternal: true,
           },
           optimizeDeps: {
             // Optimize deps somehow leads to duplicate modules or them
             // being placed in the wrong chunks...
-            noDiscovery: true,
+            // noDiscovery: true,
           },
 
           publicDir: pathWithRoot("static", config.root),
@@ -116,6 +117,42 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
               },
             },
             ssr: {
+              optimizeDeps: {
+                include: [
+                  "feed",
+                  "mime-db",
+                  "io-redis",
+                  "pg",
+                  "@radix-ui/themes",
+                ],
+                esbuildOptions: {
+                  plugins: [
+                    {
+                      name: "deno:optimizer",
+                      setup(ctx) {
+                        ctx.onResolve({ filter: /^[^.].*/ }, (args) => {
+                          for (
+                            let i = 0;
+                            i < resolvedConfig.resolve.alias.length;
+                            i++
+                          ) {
+                            const alias = resolvedConfig.resolve.alias[i];
+
+                            if (typeof alias.find === "string") {
+                              if (args.path === alias.find) {
+                                return { path: alias.replacement };
+                              }
+                            } else if (alias.find.test(args.path)) {
+                              return { path: alias.replacement };
+                            }
+                          }
+                          console.log("optimize", args.path);
+                        });
+                      },
+                    },
+                  ],
+                },
+              },
               build: {
                 manifest: true,
                 emitAssets: true,
@@ -158,6 +195,8 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
         };
       },
       async configResolved(vConfig) {
+        resolvedConfig = vConfig;
+
         // Run update check in background
         updateCheck(UPDATE_INTERVAL).catch(() => {});
 

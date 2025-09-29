@@ -1,4 +1,4 @@
-import type { Plugin } from "vite";
+import type { Plugin, ResolvedConfig } from "vite";
 import {
   type Loader,
   MediaType,
@@ -26,6 +26,8 @@ export function deno(): Plugin {
   let browserLoader: Loader;
 
   let isDev = false;
+  // deno-lint-ignore no-explicit-any
+  let resolvedConfig: ResolvedConfig = {} as any;
 
   return {
     name: "deno",
@@ -36,8 +38,68 @@ export function deno(): Plugin {
     enforce: "pre",
     config(_, env) {
       isDev = env.command === "serve";
+
+      return {
+        optimizeDeps: {
+          esbuildOptions: {
+            plugins: [
+              {
+                name: "deno:optimizer #2",
+                setup(ctx) {
+                  ctx.onResolve({ filter: /.*/ }, (args) => {
+                    console.log("optimize2", args.path);
+                  });
+                },
+              },
+            ],
+          },
+        },
+        environments: {
+          ssr: {
+            optimizeDeps: {
+              esbuildOptions: {
+                plugins: [
+                  {
+                    name: "deno:optimize:ssr",
+                    setup(ctx) {
+                      ctx.onResolve({ filter: /^[^.].*/ }, (args) => {
+                        let resolved = args.path;
+
+                        for (
+                          let i = 0;
+                          i < resolvedConfig.resolve.alias.length;
+                          i++
+                        ) {
+                          const alias = resolvedConfig.resolve.alias[i];
+
+                          if (typeof alias.find === "string") {
+                            if (args.path === alias.find) {
+                              resolved = alias.replacement;
+                              break;
+                            }
+                          } else if (alias.find.test(args.path)) {
+                            resolved = alias.replacement;
+                            break;
+                          }
+                        }
+
+                        if (res) {
+                          console.log("optimize", args.path);
+                        }
+                        return null;
+                      });
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      };
     },
-    async configResolved() {
+    async configResolved(config) {
+      resolvedConfig = config;
+
       // TODO: Pass conditions
       ssrLoader = await new Workspace({
         platform: "node",
