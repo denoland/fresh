@@ -60,6 +60,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
         isDev = env.command === "serve";
 
         return {
+          // appType: "custom",
           esbuild: {
             jsx: "automatic",
             jsxImportSource: "preact",
@@ -74,12 +75,20 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
             // Disallow externals, because it leads to duplicate
             // modules with `preact` vs `npm:preact@*` in the server
             // environment.
-            noExternal: true,
+            // noExternal: true,
           },
           optimizeDeps: {
             // Optimize deps somehow leads to duplicate modules or them
             // being placed in the wrong chunks...
-            noDiscovery: true,
+            // noDiscovery: true,
+            include: [
+              "preact",
+              "preact/jsx-runtime",
+              "preact/jsx-dev-runtime",
+              "react",
+              "react-dom",
+              "react-dom/test-utils",
+            ],
           },
 
           publicDir: pathWithRoot("static", config.root),

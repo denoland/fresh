@@ -1,4 +1,4 @@
-import type { DevEnvironment, Plugin } from "vite";
+import type { DevEnvironment, Plugin, RunnableDevEnvironment } from "vite";
 import * as path from "@std/path";
 import { ASSET_CACHE_BUST_KEY } from "fresh/internal";
 import { createRequest, sendResponse } from "@mjackson/node-fetch-server";
@@ -69,7 +69,9 @@ export function devServer(): Plugin[] {
             // Ignore
           }
 
-          const mod = await server.ssrLoadModule("fresh:server_entry");
+          const ssr = server.environments.ssr as RunnableDevEnvironment;
+
+          const mod = await ssr.runner.import("fresh:server_entry");
 
           try {
             const req = createRequest(nodeReq, nodeRes);

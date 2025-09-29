@@ -1,6 +1,5 @@
 import type { Plugin } from "vite";
 import * as babel from "@babel/core";
-import { cjsPlugin } from "./patches/commonjs.ts";
 import { jsxComments } from "./patches/jsx_comment.ts";
 import { inlineEnvVarsPlugin } from "./patches/inline_env_vars.ts";
 import { removePolyfills } from "./patches/remove_polyfills.ts";
@@ -40,7 +39,6 @@ export function patches(): Plugin {
 
         const plugins: babel.PluginItem[] = [
           codeEvalPlugin(options?.ssr ? "ssr" : "client", env),
-          cjsPlugin,
           removePolyfills,
           jsxComments,
           inlineEnvVarsPlugin(env, Deno.env.toObject()),

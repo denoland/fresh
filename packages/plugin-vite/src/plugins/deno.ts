@@ -54,6 +54,9 @@ export function deno(): Plugin {
       return true;
     },
     async resolveId(id, importer, options) {
+      if (options.ssr && (id.includes("react") || id.includes("radix"))) {
+        console.log("resolve", { id, importer });
+      }
       if (BUILTINS.has(id)) {
         // `node:` prefix is not included in builtins list.
         if (!id.startsWith("node:")) {
@@ -157,6 +160,8 @@ export function deno(): Plugin {
     async load(id, options) {
       const loader = options?.ssr ? ssrLoader : browserLoader;
 
+      id = removeSearch(id);
+
       if (isDenoSpecifier(id)) {
         const { type, specifier } = parseDenoSpecifier(id);
 
@@ -237,12 +242,11 @@ export function deno(): Plugin {
           return;
         }
 
-        let actualId = id;
+        let actualId = removeSearch(id);
         if (isDenoSpecifier(id)) {
           const { specifier } = parseDenoSpecifier(id);
           actualId = specifier;
         }
-        actualId = actualId.replace("?commonjs-es-import", "");
 
         if (actualId.startsWith("\0")) {
           actualId = actualId.slice(1);
@@ -298,6 +302,17 @@ function isJsMediaType(media: MediaType): boolean {
     case MediaType.Unknown:
       return false;
   }
+}
+
+function removeSearch(id: string): string {
+  if (/^https?:/.test(id)) return id;
+
+  const idx = id.indexOf("?");
+  if (idx > -1) {
+    return id.slice(0, idx);
+  }
+
+  return id;
 }
 
 export type DenoSpecifier = string & { __deno: string };
