@@ -62,19 +62,32 @@ export function deno(): Plugin {
                   {
                     name: "deno:optimize:ssr",
                     setup(ctx) {
-                      ctx.onResolve({ filter: /^[^.].*/ }, (args) => {
+                      ctx.onResolve({ filter: /^[^.].*/ }, async (args) => {
                         let resolved = args.path;
 
+                        console.log(
+                          "-->",
+                          args.path,
+                          // resolvedConfig.resolve.alias,
+                          // resolvedConfig.environments.ssr.optimizeDeps,
+                        );
+                        const aliases = resolvedConfig.resolve.alias;
+                        resolvedConfig.resolve.alias;
                         for (
                           let i = 0;
-                          i < resolvedConfig.resolve.alias.length;
+                          i < aliases.length;
                           i++
                         ) {
-                          const alias = resolvedConfig.resolve.alias[i];
+                          const alias = aliases[i];
 
                           if (typeof alias.find === "string") {
                             if (args.path === alias.find) {
                               resolved = alias.replacement;
+                              break;
+                            } else if (args.path.startsWith(alias.find + "/")) {
+                              const spec = args.path.slice(alias.find.length);
+
+                              resolved = `${alias.replacement}${spec}`;
                               break;
                             }
                           } else if (alias.find.test(args.path)) {
@@ -83,10 +96,42 @@ export function deno(): Plugin {
                           }
                         }
 
-                        if (res) {
-                          console.log("optimize", args.path);
+                        if (BUILTINS.has(resolved)) {
+                          // `node:` prefix is not included in builtins list.
+                          if (!resolved.startsWith("node:")) {
+                            resolved = `node:${resolved}`;
+                          }
+
+                          return {
+                            path: resolved,
+                            external: true,
+                          };
                         }
+
+                        try {
+                          resolved = await ssrLoader.resolve(
+                            resolved,
+                            args.importer,
+                            ResolutionMode.Import,
+                          );
+
+                          if (resolved !== args.path) {
+                            const filePath = path.fromFileUrl(resolved);
+
+                            return { path: filePath };
+                          }
+                        } catch (err) {
+                          console.log(err);
+                          // Ignore
+                        }
+
                         return null;
+                      });
+
+                      ctx.onLoad({ filter: /.*/ }, async (args) => {
+                        if (args.path.includes("react")) {
+                          console.log("LOAD", args.path);
+                        }
                       });
                     },
                   },
@@ -116,6 +161,9 @@ export function deno(): Plugin {
       return true;
     },
     async resolveId(id, importer, options) {
+      if (id.includes("@radix-ui")) {
+        console.log({ id });
+      }
       if (BUILTINS.has(id)) {
         // `node:` prefix is not included in builtins list.
         if (!id.startsWith("node:")) {
@@ -264,6 +312,7 @@ export function deno(): Plugin {
         return;
       }
 
+      id = removeSearch(id);
       const url = path.toFileUrl(id);
 
       const result = await loader.load(url.href, meta.type);
@@ -334,6 +383,17 @@ export function deno(): Plugin {
       },
     },
   };
+}
+
+function removeSearch(id: string): string {
+  if (/^\0?(https?):/.test(id)) return id;
+
+  const idx = id.indexOf("?");
+  if (idx > -1) {
+    return id.slice(0, idx);
+  }
+
+  return id;
 }
 
 function isJsMediaType(media: MediaType): boolean {

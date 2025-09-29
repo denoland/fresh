@@ -75,12 +75,12 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
             // Disallow externals, because it leads to duplicate
             // modules with `preact` vs `npm:preact@*` in the server
             // environment.
-            // noExternal: true,
+            noExternal: true,
           },
           optimizeDeps: {
             // Optimize deps somehow leads to duplicate modules or them
             // being placed in the wrong chunks...
-            // noDiscovery: true,
+            noDiscovery: true,
           },
 
           publicDir: pathWithRoot("static", config.root),
@@ -124,7 +124,13 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
                   "io-redis",
                   "pg",
                   "@radix-ui/themes",
+                  "preact/debug",
+                  "preact",
+                  "preact-render-to-string",
+                  "preact/hooks",
+                  "@preact/signals",
                 ],
+                noDiscovery: true,
                 esbuildOptions: {
                   plugins: [
                     {
