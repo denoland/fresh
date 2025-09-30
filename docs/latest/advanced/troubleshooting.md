@@ -6,6 +6,19 @@ description: |
 This site contains some tips to troubleshoot your app in case something doesn't
 work as expected.
 
+## Install or re-install dependencies
+
+When run for the first time, you might see Deno complaining about missing
+packages. Install them with:
+
+```shell
+deno install --allow-scripts
+```
+
+If you run into dependency trouble later and suspect that Deno might be caching
+an outdated package, you can force a clean reinstall by adding `-r` to the above
+command.
+
 ## Update Fresh
 
 The easiest way to resolve most issues is to ensure that you're on the
