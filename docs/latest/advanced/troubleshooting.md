@@ -89,5 +89,5 @@ in the bottom status bar. If this does not happen automatically, you can enable
 the Deno extension via the command palette (Cmd+Shift+P on macOS, Ctrl+Shift+P
 on Windows/Linux) and run `Deno: Enable`.
 
-For detailed instructions see the official
-[Deno VS Code documentation](https://docs.deno.com/runtime/reference/vscode/)
+For detailed instructions, see the official
+[Deno VS Code documentation](https://docs.deno.com/runtime/reference/vscode/).
