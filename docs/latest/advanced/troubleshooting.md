@@ -80,12 +80,12 @@ If your deployment doesn't boot, check the following things:
 
 If you see errors in VS Code like `Cannot find module 'fresh/runtime'` or see a
 lot of TypeScript errors, you likely have not installed the Deno extension. You
-can easily find it inside VS Code's extension browser or get it from the market
-place:
+can easily find it inside VS Code's extension browser or get it from the
+marketplace:
 
 https://marketplace.visualstudio.com/items?itemName=denoland.vscode-deno
 
-When installed and successfully enabled the current installed Deno version
-should show up in the bottom status line. If for some reason this does not
-automatically happen you can enable the Deno extension via the command palette
-(Shift-Cmd-P) in VS Code and run `Deno: Enable`.
+Once installed and enabled, the currently installed Deno version should appear
+in the bottom status bar. If this does not happen automatically, you can enable
+the Deno extension via the command palette (Cmd+Shift+P on macOS, Ctrl+Shift+P
+on Windows/Linux) and run `Deno: Enable`.
