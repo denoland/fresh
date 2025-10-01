@@ -75,3 +75,17 @@ If your deployment doesn't boot, check the following things:
 1. Make sure that you ran `deno task build`.
 2. Make sure that your entry points to the generated `_fresh/server.js` file
    instead of `main.ts`. The latter won't work with Fresh 2.
+
+## VS Code does not find packages and/or types
+
+If you see errors in VS Code like `Cannot find module 'fresh/runtime'` or see a
+lot of TypeScript errors, you likely have not installed the Deno extension. You
+can easily find it inside VS Code's extension browser or get it from the market
+place:
+
+https://marketplace.visualstudio.com/items?itemName=denoland.vscode-deno
+
+When installed and successfully enabled the current installed Deno version
+should show up in the bottom status line. If for some reason this does not
+automatically happen you can enable the Deno extension via the command palette
+(Shift-Cmd-P) in VS Code and run `Deno: Enable`.
