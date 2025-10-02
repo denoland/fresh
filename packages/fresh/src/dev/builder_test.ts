@@ -397,7 +397,7 @@ Deno.test({
     const tmp = _tmp.dir;
 
     const app = new App({ basePath: "/foo/bar" })
-      .get("/", () => new Response("ok"))
+      .get("/", () => new Response("root index"))
       .get("/asdf", () => new Response("ok"));
 
     const builder = new Builder({
@@ -414,10 +414,17 @@ Deno.test({
       },
     });
 
-    const res = await fetch(`${address}/foo/bar/asdf`);
+    // Test regular route
+    const res1 = await fetch(`${address}/foo/bar/asdf`);
+    const text1 = await res1.text();
+    expect(text1).toEqual("ok");
 
-    const text = await res.text();
-    expect(text).toEqual("ok");
+    // Test root index with basePath (without trailing slash)
+    // This was the main issue - accessing /foo/bar should work
+    const res2 = await fetch(`${address}/foo/bar`);
+    const text2 = await res2.text();
+    expect(res2.status).toEqual(200);
+    expect(text2).toEqual("root index");
 
     controller.abort();
   },
