@@ -76,6 +76,9 @@ If your deployment doesn't boot, check the following things:
 2. Make sure that your entry points to the generated `_fresh/server.js` file
    instead of `main.ts`. The latter won't work with Fresh 2.
 
+Error messages like `ISOLATE_INTERNAL_FAILURE` may indicate above issues, but
+can also be caused by other problems in your deployment configuration.
+
 ## VS Code does not find packages and/or types
 
 If you see errors in VS Code like `Cannot find module 'fresh/runtime'` or see a
