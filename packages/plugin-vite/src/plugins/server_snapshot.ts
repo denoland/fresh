@@ -415,6 +415,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
           id: /^(\/@id\/)?fresh-route-css::/,
         },
         handler(id) {
+          console.log("RRRR", { id });
           let name = id.startsWith("/@id/")
             ? id.slice("/@id/fresh-route-css::".length)
             : id.slice("fresh-route-css::".length);
@@ -435,6 +436,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
           const name = id.slice("\0fresh-route-css::".length);
 
           const route = routes.get(name);
+          console.log({ route });
           if (route === undefined) return;
 
           if (!isDev) {
@@ -506,7 +508,7 @@ export default ${JSON.stringify(route.css)}
 
           const fileUrl = path.toFileUrl(route.filePath).href;
           const cssId = isDev
-            ? `/@id/fresh-route-css::${name}.module.css`
+            ? `fresh-route-css::${name}.module.css`
             : `fresh-route-css::${name}.module.css`;
 
           // For some reason doing `export * from "foo"` is broken

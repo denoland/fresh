@@ -79,7 +79,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
           optimizeDeps: {
             // Optimize deps somehow leads to duplicate modules or them
             // being placed in the wrong chunks...
-            noDiscovery: true,
+            // noDiscovery: true,
           },
 
           publicDir: pathWithRoot("static", config.root),

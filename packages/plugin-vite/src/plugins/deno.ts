@@ -21,6 +21,14 @@ interface DenoState {
   type: RequestedModuleType;
 }
 
+interface PkgJson {
+  name: string;
+  version: string;
+  main?: string;
+  module?: string;
+  exports?: string | Record<string, string | Record<string, string>>;
+}
+
 export function deno(): Plugin {
   let ssrLoader: Loader;
   let browserLoader: Loader;
@@ -54,6 +62,8 @@ export function deno(): Plugin {
       return true;
     },
     async resolveId(id, importer, options) {
+      if (id.startsWith("/@fs/")) return;
+
       if (BUILTINS.has(id)) {
         // `node:` prefix is not included in builtins list.
         if (!id.startsWith("node:")) {
@@ -131,6 +141,62 @@ export function deno(): Plugin {
         }
 
         const type = getDenoType(id, options.attributes.type ?? "default");
+
+        // Let vite handle npm modules by doing a reverse lookup
+        // with the resolved package.
+        const match = resolved.match(
+          /(.*[/\\]+node_modules[/\\]+\.deno[/\\]+(@[^/\\]+[/\\]+[^/\\]+|[^@][^/\\]+)[/\\]+node_modules[/\\]+([^/\\]+)[/\\]+)([^?]+)/,
+        );
+        if (match !== null) {
+          try {
+            const pkgDir = path.fromFileUrl(match[1]);
+            const pkgJsonPath = path.join(pkgDir, "package.json");
+            const pkgJson = JSON.parse(
+              await Deno.readTextFile(pkgJsonPath),
+            ) as PkgJson;
+
+            const name = match[3];
+
+            const rest = "./" + match[4].replace(/\\+/, "/");
+
+            console.log({ match });
+
+            // FIXME
+            if (name === "vite") {
+              if (rest === "./dist/client/env.mjs") {
+                return `vite/dist/client/env.mjs`;
+              }
+            } else if (name === "preact/debug") {
+              return;
+            }
+
+            if (pkgJson.exports !== undefined) {
+              for (const [key, value] of Object.entries(pkgJson.exports)) {
+                if (value === null) continue;
+
+                if (value === rest) {
+                  if (key === ".") {
+                    return name;
+                  }
+                  return `${name}/${key}`;
+                } else if (typeof value === "object") {
+                  for (const [subKey, subValue] of Object.entries(value)) {
+                    if (subValue === rest) {
+                      const mapped = `${name}/${key.slice(2)}`;
+
+                      if (mapped === original) {
+                        return;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          } catch (_err) {
+            // ignore
+          }
+        }
+
         if (
           type !== RequestedModuleType.Default ||
           /^(https?|jsr|npm):/.test(resolved)
@@ -187,12 +253,32 @@ export function deno(): Plugin {
         id = id.slice(1);
       }
 
-      const meta = this.getModuleInfo(id)?.meta.deno as
+      id = removeSearch(id);
+
+      let meta = this.getModuleInfo(id)?.meta.deno as
         | DenoState
         | undefined
         | null;
 
-      if (meta === null || meta === undefined) return;
+      maybe:
+      if (meta === null || meta === undefined) {
+        // Maybe it's a mapped Deno path
+        try {
+          const resolved = await loader.resolve(
+            id,
+            undefined,
+            ResolutionMode.Import,
+          );
+          if (resolved !== id) {
+            id = resolved;
+            meta = { type: RequestedModuleType.Default };
+            break maybe;
+          }
+        } catch {
+          // Ignore
+        }
+        return;
+      }
 
       // Skip for non-js files like `.css`
       if (
@@ -202,9 +288,9 @@ export function deno(): Plugin {
         return;
       }
 
-      const url = path.toFileUrl(id);
+      const url = !/^[a-z]+:\/\//.test(id) ? path.toFileUrl(id).href : id;
 
-      const result = await loader.load(url.href, meta.type);
+      const result = await loader.load(url, meta.type);
       if (result.kind === "external") {
         return null;
       }
@@ -397,4 +483,13 @@ function babelTransform(
   }
 
   return null;
+}
+
+function removeSearch(id: string): string {
+  const idx = id.indexOf("?");
+  if (idx > -1) {
+    return id.slice(0, idx);
+  }
+
+  return id;
 }
