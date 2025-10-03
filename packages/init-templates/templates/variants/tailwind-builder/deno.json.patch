@@ -1,8 +1,0 @@
-{
-  "imports": {
-    "tailwindcss": "npm:tailwindcss@^{{TAILWINDCSS_VERSION}}",
-    "@fresh/plugin-tailwind": "jsr:@fresh/plugin-tailwind@^{{FRESH_TAILWIND_VERSION}}",
-    "@tailwindcss/postcss": "npm:@tailwindcss/postcss@^{{TAILWINDCSS_POSTCSS_VERSION}}",
-    "postcss": "npm:postcss@^{{POSTCSS_VERSION}}"
-  }
-}

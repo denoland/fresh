@@ -2,7 +2,6 @@
 import * as colors from "@std/fmt/colors";
 import * as path from "@std/path";
 import * as fs from "@std/fs";
-import { parse as parseJsonc } from "@std/jsonc";
 import type { InitOptions, TemplateVariables } from "./types.ts";
 import { InitError } from "./errors.ts";
 import {
@@ -10,7 +9,6 @@ import {
   getLatestVersion,
   getTemplateDir,
   isDirectoryEmpty,
-  mergeJson,
   processFilename,
   substituteVariables,
 } from "./utils.ts";
@@ -93,15 +91,22 @@ export async function initProject(
     USE_VITE: useVite,
   };
 
-  // Select and process template
-  const templateName = useVite ? "template-vite" : "template-builder";
+  // Select complete template based on build system and styling choice
+  let templateName: string;
+  if (useVite && useTailwind) {
+    templateName = "vite-tailwind";
+  } else if (useVite) {
+    templateName = "vite";
+  } else if (useTailwind) {
+    templateName = "builder-tailwind";
+  } else {
+    templateName = "builder";
+  }
+
   const templateDir = path.join(getTemplateDir(), templateName);
 
-  // Collect variants
+  // Collect truly additive variants (docker, vscode)
   const variants: string[] = [];
-  if (useTailwind) {
-    variants.push(useVite ? "tailwind-vite" : "tailwind-builder");
-  }
   if (useVSCode) {
     variants.push("vscode");
   }
@@ -204,8 +209,14 @@ async function processTemplate(
   const variantsDir = path.join(getTemplateDir(), "variants");
   for (const variant of variants) {
     const variantDir = path.join(variantsDir, variant);
-    if (await exists(variantDir)) {
+    try {
+      await Deno.stat(variantDir);
       await applyVariant(variantDir, targetDir, variables);
+    } catch (err) {
+      if (!(err instanceof Deno.errors.NotFound)) {
+        throw err;
+      }
+      // Variant doesn't exist, skip it
     }
   }
 }
@@ -269,6 +280,7 @@ async function processFile(
 
 /**
  * Apply a variant overlay to the target directory.
+ * Variants are truly additive - they only add files, don't modify existing ones.
  */
 async function applyVariant(
   variantDir: string,
@@ -284,64 +296,10 @@ async function applyVariant(
       const destPath = path.join(targetDir, destName);
       await fs.ensureDir(destPath);
       await processDirectory(srcPath, destPath, variables);
-    } else if (entry.name.endsWith(".patch")) {
-      // Apply patch file - remove .patch extension for target
-      const targetName = entry.name.slice(0, -6); // Remove ".patch"
-      const targetPath = path.join(targetDir, targetName);
-      await applyPatch(srcPath, targetPath, variables);
     } else {
       // Regular file - copy/process
       await processFile(srcPath, targetDir, entry.name, variables);
     }
-  }
-}
-
-/**
- * Apply a JSON patch file to a target file.
- */
-async function applyPatch(
-  patchPath: string,
-  targetPath: string,
-  variables: TemplateVariables,
-): Promise<void> {
-  // Read patch
-  const patchContent = await Deno.readTextFile(patchPath);
-  const patchJson = parseJsonc(
-    substituteVariables(
-      patchContent,
-      variables as unknown as Record<string, string | boolean | number>,
-    ),
-  ) as Record<string, unknown>;
-
-  // Read target (or create empty object)
-  let targetJson: Record<string, unknown> = {};
-  if (await exists(targetPath)) {
-    const targetContent = await Deno.readTextFile(targetPath);
-    targetJson = parseJsonc(targetContent) as Record<string, unknown>;
-  }
-
-  // Merge
-  const merged = mergeJson(targetJson, patchJson);
-
-  // Write back
-  await Deno.writeTextFile(
-    targetPath,
-    JSON.stringify(merged, null, 2) + "\n",
-  );
-}
-
-/**
- * Check if a file or directory exists.
- */
-async function exists(path: string): Promise<boolean> {
-  try {
-    await Deno.stat(path);
-    return true;
-  } catch (err) {
-    if (err instanceof Deno.errors.NotFound) {
-      return false;
-    }
-    throw err;
   }
 }
 

@@ -9,11 +9,18 @@ tested.**
 ## What's New
 
 - ✅ **Template files** instead of inline TypeScript strings
-- ✅ **Modular variants** for features (Tailwind, VS Code, Docker)
-- ✅ **Variable substitution** with `{{VARIABLE_NAME}}` syntax
-- ✅ **JSON patch system** for overlaying variants
-- ✅ **26 passing tests** covering all functionality
+- ✅ **Dead simple** - each template is complete and standalone
+- ✅ **Truly additive variants** - docker and vscode just add files
+- ✅ **Minimal variable substitution** with `{{VARIABLE_NAME}}` syntax
+- ✅ **No patch system** - no JSON merging, no overlay complexity
+- ✅ **28 passing tests** covering all functionality
 - ✅ **Full type safety** throughout
+
+## Philosophy
+
+**Redundancy over cleverness.** Each template folder contains exactly what gets
+generated. Browse `templates/vite-tailwind/` to see what a Vite + Tailwind
+project looks like. That's it.
 
 ## Quick Comparison
 
@@ -31,10 +38,13 @@ await writeFile("main.ts", MAIN_TS);
 
 ```
 templates/
-  template-vite/
+  vite/                  ← Complete Vite project
     main.ts              ← Actual file
     deno.json.tmpl       ← Template with {{VARIABLES}}
     routes/_app.tsx.tmpl
+
+  vite-tailwind/         ← Complete Vite + Tailwind project
+    (complete files, Tailwind already integrated)
 ```
 
 ## Usage
@@ -56,23 +66,22 @@ await initProject(Deno.cwd(), {
 ```
 packages/init-templates/
 ├── src/
-│   ├── init.ts        # Main logic
-│   ├── utils.ts       # Helpers
+│   ├── init.ts        # Main logic (simplified)
+│   ├── utils.ts       # Helpers (no JSON merging)
 │   ├── types.ts       # TypeScript types
 │   └── errors.ts      # Error classes
 ├── templates/
-│   ├── template-vite/       # Vite projects (default)
-│   ├── template-builder/    # Legacy builder
+│   ├── vite/                 # Complete Vite (no Tailwind)
+│   ├── vite-tailwind/        # Complete Vite + Tailwind
+│   ├── builder/              # Complete Builder (no Tailwind)
+│   ├── builder-tailwind/     # Complete Builder + Tailwind
 │   └── variants/
-│       ├── tailwind-vite/
-│       ├── tailwind-builder/
-│       ├── docker/
-│       └── vscode/
+│       ├── docker/           # Just adds Dockerfile
+│       └── vscode/           # Just adds .vscode/
 └── tests/
-    ├── utils_test.ts         # 12 tests ✓
-    ├── template_test.ts      # 9 tests ✓
-    ├── init_test.ts          # 5 tests ✓
-    └── integration_test.ts   # 6 tests (scaffolding)
+    ├── utils_test.ts         # 10 tests ✓
+    ├── template_test.ts      # 13 tests ✓
+    └── init_test.ts          # 5 tests ✓
 ```
 
 ## Documentation
@@ -86,11 +95,10 @@ packages/init-templates/
 ```bash
 $ deno task test
 
-✓ 26 tests passed
-  - utils_test.ts: 12 tests
-  - template_test.ts: 9 tests
+✓ 28 tests passed
+  - utils_test.ts: 10 tests
+  - template_test.ts: 13 tests
   - init_test.ts: 5 tests
-  - integration_test.ts: 6 ignored (scaffolding)
 
 ✓ deno task check
   - Format: ✓
@@ -112,16 +120,20 @@ $ deno task test
 }
 ```
 
-### 2. Variants with Patches
+### 2. Complete Templates (No Patches!)
 
-```json
-// variants/tailwind-vite/deno.json.patch
-{
-  "imports": {
-    "tailwindcss": "npm:tailwindcss@^{{TAILWINDCSS_VERSION}}"
-  }
-}
+Tailwind is integrated directly in complete templates:
+
+```typescript
+// In vite-tailwind/vite.config.ts
+import tailwindcss from "@tailwindcss/vite";
+
+export default defineConfig({
+  plugins: [tailwindcss()],
+});
 ```
+
+No patches, no merging - it's already there!
 
 ### 3. Smart Filename Processing
 
@@ -142,11 +154,19 @@ Both Vite and Builder templates include:
 
 ## Variants Available
 
-- **Tailwind CSS** (for Vite or Builder)
-- **VS Code** configuration
-- **Docker** setup
+**Additive Variants** (only add files, never modify):
 
-All can be combined freely.
+- **VS Code** configuration (adds `.vscode/` folder)
+- **Docker** setup (adds `Dockerfile`)
+
+**Feature Combinations** (via complete templates):
+
+- Plain Vite: `vite/`
+- Vite + Tailwind: `vite-tailwind/`
+- Plain Builder: `builder/`
+- Builder + Tailwind: `builder-tailwind/`
+
+All variants can be combined with any template.
 
 ## Next Steps
 

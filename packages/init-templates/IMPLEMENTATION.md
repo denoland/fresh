@@ -15,26 +15,29 @@ Location: `/packages/init-templates/`
 A complete, self-contained package that provides template-based project
 initialization with:
 
-- Modular template system
-- Variable substitution
-- Variant overlays
+- Complete, standalone template system
+- Minimal variable substitution
+- Truly additive variants (docker, vscode)
 - Comprehensive test coverage
+
+**Design Philosophy**: Dead simple. Each template folder contains exactly what
+gets generated. No overlays, no patches, no JSON merging. Just copy files and
+substitute a few variables.
 
 ### 2. Core Components
 
 #### Source Files (`src/`)
 
 - **`init.ts`**: Main initialization logic
-  - Template selection (Vite vs Builder)
-  - Variant collection (Tailwind, VS Code, Docker)
+  - Simple template selection: pick one complete template
+  - Optional variant application (docker, vscode)
   - Template processing and file generation
   - Version resolution from JSR
 
 - **`utils.ts`**: Utility functions
   - `getLatestVersion()`: Fetch package versions from JSR
   - `substituteVariables()`: Template variable replacement
-  - `mergeJson()`: Deep merge for patch files
-  - `processFilename()`: Convert `_file` to `.file`
+  - `processFilename()`: Convert `__file` to `.file`
   - `isDirectoryEmpty()`: Directory validation
   - `confirmOrValue()`, `promptOrValue()`: User interaction helpers
 
@@ -49,77 +52,71 @@ initialization with:
 
 #### Templates (`templates/`)
 
-**Base Templates:**
+**Complete Templates:**
 
-- **`template-vite/`**: Default Vite-based template
+- **`vite/`**: Complete Vite-based project (no Tailwind)
   - Uses Vite for build tooling
   - Hot module reloading via `client.ts`
   - Assets in `assets/` directory
-  - Includes `vite.config.ts`
+  - Plain `vite.config.ts`
 
-- **`template-builder/`**: Legacy builder-based template
+- **`vite-tailwind/`**: Complete Vite + Tailwind project
+  - Everything from `vite/`
+  - `vite.config.ts` with `tailwindcss()` plugin
+  - `deno.json.tmpl` with Tailwind imports
+  - `assets/styles.css` with Tailwind `@import` directives
+
+- **`builder/`**: Complete builder-based project (no Tailwind)
   - Uses Fresh's built-in builder
   - Static assets in `static/` directory
-  - Includes `dev.ts` for development
+  - Plain `dev.ts`
 
-**Both templates include:**
+- **`builder-tailwind/`**: Complete builder + Tailwind project
+  - Everything from `builder/`
+  - `dev.ts.tmpl` with `tailwindcss()` plugin
+  - `deno.json.tmpl` with Tailwind imports
+  - `static/styles.css` with Tailwind `@import` directives
+
+**All templates include:**
 
 - `deno.json.tmpl` with version variables
 - `main.ts` with Fresh app setup
-- `utils.ts` with type definitions
 - `routes/`: index, _app, API routes
 - `islands/Counter.tsx`: Example island
 - `components/Button.tsx`: Example component
 - `static/logo.svg`: Fresh logo
 - `README.md`, `.gitignore`
 
-**Variants (`templates/variants/`):**
-
-- **`tailwind-vite/`**: Tailwind CSS for Vite
-  - Updates `vite.config.ts` to include Tailwind plugin
-  - Patches `deno.json` with Tailwind dependencies
-  - Replaces `assets/styles.css` with Tailwind imports
-
-- **`tailwind-builder/`**: Tailwind CSS for Builder
-  - Updates `dev.ts` to include Tailwind plugin
-  - Patches `deno.json` with Tailwind dependencies
-  - Replaces `static/styles.css` with Tailwind imports
+**Additive Variants (`templates/variants/`):**
 
 - **`docker/`**: Docker support
-  - Adds `Dockerfile` with Deno version variable
+  - Adds only: `Dockerfile` with Deno version variable
 
 - **`vscode/`**: VS Code configuration
-  - `.vscode/settings.json`: Deno settings
-  - `.vscode/extensions.json`: Recommended extensions
+  - Adds only: `.vscode/settings.json` and `.vscode/extensions.json`
 
 ### 3. Tests (`tests/`)
 
-Comprehensive test suite with 26 passing tests:
+Comprehensive test suite with 28 passing tests:
 
-- **`utils_test.ts`** (12 tests):
+- **`utils_test.ts`** (10 tests):
   - Filename processing
   - Variable substitution
-  - JSON merging
   - Directory checking
   - Version fetching
 
-- **`template_test.ts`** (9 tests):
-  - Template file existence validation
-  - Template variable verification
-  - Variant file structure checks
-  - JSON patch validation
+- **`template_test.ts`** (13 tests):
+  - All 4 complete templates exist with required files
+  - Tailwind templates actually contain Tailwind integration
+  - Version variables present in deno.json.tmpl
+  - Docker and vscode variants work correctly
 
 - **`init_test.ts`** (5 tests):
   - Vite project generation
-  - Vite with Tailwind
+  - Vite with Tailwind (uses vite-tailwind template)
   - Builder project generation
   - VS Code configuration
   - Docker setup
-
-- **`integration_test.ts`** (scaffolding):
-  - Placeholder tests for full project validation
-  - Tests marked as `ignore: true` for future implementation
-  - Will validate: `deno task check`, `deno task build`, `deno task dev`
 
 ### 4. Documentation
 
@@ -142,18 +139,26 @@ Comprehensive test suite with 26 passing tests:
 
 ## Key Features
 
-### 1. Template System
+### 1. Complete Template System
 
-Files are organized as actual files rather than inline strings:
+Each template is a complete, standalone project - just copy and substitute
+variables:
 
 ```
 templates/
-  template-vite/
+  vite/                # Complete project
     routes/
       _app.tsx.tmpl  →  _app.tsx
     __gitignore      →  .gitignore
     deno.json.tmpl   →  deno.json
+    vite.config.ts   →  vite.config.ts
+
+  vite-tailwind/       # Complete project with Tailwind
+    (same as vite/ but with Tailwind integrated)
 ```
+
+**Key insight**: Each template folder contains ALL files for that configuration.
+No mental merging required.
 
 ### 2. Variable Substitution
 
@@ -169,31 +174,23 @@ Available variables:
 - Project info: `PROJECT_NAME`, `DENO_VERSION`
 - Boolean flags: `USE_TAILWIND`, `USE_VSCODE`, `USE_DOCKER`, `USE_VITE`
 
-### 3. Variant System
+### 3. Simplified Variant System
 
-Modular additions that overlay on base templates:
+Variants are **truly additive** - they only add new files:
 
-- **Additive**: Add new files (e.g., `Dockerfile`)
-- **Patch**: Modify existing files via JSON merge (`.patch` files)
-- **Replacement**: Replace entire files (e.g., `styles.css`)
+- **`docker/`**: Adds `Dockerfile` only
+- **`vscode/`**: Adds `.vscode/` folder only
 
-Example patch file:
+**No patch files. No JSON merging. No overlay logic.**
 
-```json
-// deno.json.patch
-{
-  "imports": {
-    "tailwindcss": "npm:tailwindcss@^{{TAILWINDCSS_VERSION}}"
-  }
-}
-```
+If a feature needs to modify existing files (like Tailwind), it gets its own
+complete template instead.
 
 ### 4. File Naming Conventions
 
 - `__filename` → `.filename` (double underscore becomes dot-prefix)
 - `_app.tsx` → `_app.tsx` (single underscore files remain unchanged)
 - `filename.tmpl` → `filename` (template extension removed)
-- `.patch` files merge with existing JSON files
 
 ### 5. Type Safety
 

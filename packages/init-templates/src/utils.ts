@@ -103,34 +103,6 @@ export function substituteVariables(
 }
 
 /**
- * Merge two JSON objects deeply.
- * Arrays are replaced, not merged.
- */
-export function mergeJson(
-  base: Record<string, unknown>,
-  patch: Record<string, unknown>,
-): Record<string, unknown> {
-  const result = { ...base };
-
-  for (const [key, value] of Object.entries(patch)) {
-    if (
-      value && typeof value === "object" && !Array.isArray(value) &&
-      result[key] && typeof result[key] === "object" &&
-      !Array.isArray(result[key])
-    ) {
-      result[key] = mergeJson(
-        result[key] as Record<string, unknown>,
-        value as Record<string, unknown>,
-      );
-    } else {
-      result[key] = value;
-    }
-  }
-
-  return result;
-}
-
-/**
  * Convert double-underscore-prefixed filename to dot-prefixed.
  * Only converts files/dirs that start with double underscore (__).
  * Files with single underscore (like _app.tsx) are NOT converted.
