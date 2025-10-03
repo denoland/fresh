@@ -6,18 +6,30 @@
  *
  * @example
  * ```typescript
- * import { initProject } from "@fresh/init-templates";
+ * import { initProject, resolveVersions } from "@fresh/init-templates";
  *
+ * // Resolve versions from network (or use defaults)
+ * const versions = await resolveVersions();
+ *
+ * // Initialize project with fully resolved options
  * await initProject(Deno.cwd(), {
  *   directory: "./my-fresh-app",
+ *   builder: false,
  *   tailwind: true,
  *   vscode: true,
- * });
+ *   docker: false,
+ *   force: false,
+ * }, versions);
  * ```
  *
  * @module
  */
 
-export { initProject } from "./src/init.ts";
-export type { InitOptions, TemplateVariables } from "./src/types.ts";
+export { initProject, resolveVersions } from "./src/init.ts";
+export type {
+  InitOptions,
+  ResolvedInitOptions,
+  ResolvedVersions,
+  TemplateVariables,
+} from "./src/types.ts";
 export { InitError } from "./src/errors.ts";

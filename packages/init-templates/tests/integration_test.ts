@@ -1,6 +1,6 @@
 import { assertEquals } from "@std/assert";
 import * as path from "@std/path";
-import { initProject } from "../src/init.ts";
+import { initProject, resolveVersions } from "../src/init.ts";
 import { withTmpDir } from "../../fresh/src/test_utils.ts";
 import { withChildProcessServer } from "../../fresh/tests/test_utils.tsx";
 
@@ -35,6 +35,24 @@ async function runCommand(
   return { success: code === 0, output };
 }
 
+// Helper to initialize a project with resolved versions (for tests)
+async function initTestProject(
+  cwd: string,
+  directory: string,
+  builder: boolean,
+  tailwind: boolean,
+) {
+  const versions = await resolveVersions({ fresh: "2.1.1" });
+  await initProject(cwd, {
+    directory,
+    builder,
+    tailwind,
+    vscode: false,
+    docker: false,
+    force: true,
+  }, versions);
+}
+
 Deno.test({
   name: "integration - vite project passes check",
   ignore: false,
@@ -42,15 +60,7 @@ Deno.test({
     await using tmp = await withTmpDir();
     const projectDir = path.join(tmp.dir, "test-vite-check");
 
-    await initProject(tmp.dir, {
-      directory: "test-vite-check",
-      builder: false,
-      tailwind: false,
-      vscode: false,
-      docker: false,
-      force: true,
-      versions: { fresh: "2.1.1" },
-    });
+    await initTestProject(tmp.dir, "test-vite-check", false, false);
 
     const { success, output } = await runCommand(
       projectDir,
@@ -70,15 +80,7 @@ Deno.test({
     await using tmp = await withTmpDir();
     const projectDir = path.join(tmp.dir, "test-builder-check");
 
-    await initProject(tmp.dir, {
-      directory: "test-builder-check",
-      builder: true,
-      tailwind: false,
-      vscode: false,
-      docker: false,
-      force: true,
-      versions: { fresh: "2.1.1" },
-    });
+    await initTestProject(tmp.dir, "test-builder-check", true, false);
 
     const { success, output } = await runCommand(
       projectDir,
@@ -98,15 +100,7 @@ Deno.test({
     await using tmp = await withTmpDir();
     const projectDir = path.join(tmp.dir, "test-vite-tailwind-check");
 
-    await initProject(tmp.dir, {
-      directory: "test-vite-tailwind-check",
-      builder: false,
-      tailwind: true,
-      vscode: false,
-      docker: false,
-      force: true,
-      versions: { fresh: "2.1.1" },
-    });
+    await initTestProject(tmp.dir, "test-vite-tailwind-check", false, true);
 
     const { success, output } = await runCommand(
       projectDir,
@@ -126,15 +120,7 @@ Deno.test({
     await using tmp = await withTmpDir();
     const projectDir = path.join(tmp.dir, "test-vite-build");
 
-    await initProject(tmp.dir, {
-      directory: "test-vite-build",
-      builder: false,
-      tailwind: false,
-      vscode: false,
-      docker: false,
-      force: true,
-      versions: { fresh: "2.1.1" },
-    });
+    await initTestProject(tmp.dir, "test-vite-build", false, false);
 
     // Install dependencies first
     await runCommand(projectDir, ["deno", "install"]);
@@ -162,15 +148,7 @@ Deno.test({
     await using tmp = await withTmpDir();
     const projectDir = path.join(tmp.dir, "test-builder-build");
 
-    await initProject(tmp.dir, {
-      directory: "test-builder-build",
-      builder: true,
-      tailwind: false,
-      vscode: false,
-      docker: false,
-      force: true,
-      versions: { fresh: "2.1.1" },
-    });
+    await initTestProject(tmp.dir, "test-builder-build", true, false);
 
     const { success, output } = await runCommand(
       projectDir,
@@ -195,15 +173,7 @@ Deno.test({
     await using tmp = await withTmpDir();
     const projectDir = path.join(tmp.dir, "test-dev-server");
 
-    await initProject(tmp.dir, {
-      directory: "test-dev-server",
-      builder: false,
-      tailwind: false,
-      vscode: false,
-      docker: false,
-      force: true,
-      versions: { fresh: "2.1.1" },
-    });
+    await initTestProject(tmp.dir, "test-dev-server", false, false);
 
     // Start dev server and verify it works
     await withChildProcessServer(
@@ -255,15 +225,7 @@ Deno.test({
     await using tmp = await withTmpDir();
     const projectDir = path.join(tmp.dir, "test-builder-dev");
 
-    await initProject(tmp.dir, {
-      directory: "test-builder-dev",
-      builder: true,
-      tailwind: false,
-      vscode: false,
-      docker: false,
-      force: true,
-      versions: { fresh: "2.1.1" },
-    });
+    await initTestProject(tmp.dir, "test-builder-dev", true, false);
 
     // Start dev server and verify it works
     await withChildProcessServer(

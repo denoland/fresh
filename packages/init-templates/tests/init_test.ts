@@ -1,11 +1,16 @@
 import { expect } from "@std/expect";
 import * as path from "@std/path";
 import { withTmpDir } from "../../fresh/src/test_utils.ts";
-import { initProject } from "../src/init.ts";
+import { initProject, resolveVersions } from "../src/init.ts";
 
 Deno.test("initProject - creates vite project with default options", async () => {
   await using tmp = await withTmpDir();
   const projectDir = path.join(tmp.dir, "test-project");
+
+  const versions = await resolveVersions({
+    fresh: "2.1.1",
+    preact: "10.27.2",
+  });
 
   await initProject(tmp.dir, {
     directory: "test-project",
@@ -14,11 +19,7 @@ Deno.test("initProject - creates vite project with default options", async () =>
     vscode: false,
     docker: false,
     force: true,
-    versions: {
-      fresh: "2.1.1",
-      preact: "10.27.2",
-    },
-  });
+  }, versions);
 
   // Check that key files exist
   const files = [
@@ -69,6 +70,8 @@ Deno.test("initProject - creates vite project with tailwind", async () => {
   await using tmp = await withTmpDir();
   const projectDir = path.join(tmp.dir, "test-tailwind");
 
+  const versions = await resolveVersions({ fresh: "2.1.1" });
+
   await initProject(tmp.dir, {
     directory: "test-tailwind",
     builder: false,
@@ -76,8 +79,7 @@ Deno.test("initProject - creates vite project with tailwind", async () => {
     vscode: false,
     docker: false,
     force: true,
-    versions: { fresh: "2.1.1" },
-  });
+  }, versions);
 
   // Check vite.config.ts includes tailwind
   const viteConfig = await Deno.readTextFile(
@@ -104,6 +106,8 @@ Deno.test("initProject - creates builder project", async () => {
   await using tmp = await withTmpDir();
   const projectDir = path.join(tmp.dir, "test-builder");
 
+  const versions = await resolveVersions({ fresh: "2.1.1" });
+
   await initProject(tmp.dir, {
     directory: "test-builder",
     builder: true,
@@ -111,8 +115,7 @@ Deno.test("initProject - creates builder project", async () => {
     vscode: false,
     docker: false,
     force: true,
-    versions: { fresh: "2.1.1" },
-  });
+  }, versions);
 
   // Check that dev.ts exists (not vite.config.ts)
   const devTsPath = path.join(projectDir, "dev.ts");
@@ -144,6 +147,8 @@ Deno.test("initProject - creates project with vscode settings", async () => {
   await using tmp = await withTmpDir();
   const projectDir = path.join(tmp.dir, "test-vscode");
 
+  const versions = await resolveVersions({ fresh: "2.1.1" });
+
   await initProject(tmp.dir, {
     directory: "test-vscode",
     builder: false,
@@ -151,8 +156,7 @@ Deno.test("initProject - creates project with vscode settings", async () => {
     vscode: true,
     docker: false,
     force: true,
-    versions: { fresh: "2.1.1" },
-  });
+  }, versions);
 
   // Check VS Code files exist
   const vscodeFiles = [
@@ -186,6 +190,8 @@ Deno.test("initProject - creates project with docker", async () => {
   await using tmp = await withTmpDir();
   const projectDir = path.join(tmp.dir, "test-docker");
 
+  const versions = await resolveVersions({ fresh: "2.1.1" });
+
   await initProject(tmp.dir, {
     directory: "test-docker",
     builder: false,
@@ -193,8 +199,7 @@ Deno.test("initProject - creates project with docker", async () => {
     vscode: false,
     docker: true,
     force: true,
-    versions: { fresh: "2.1.1" },
-  });
+  }, versions);
 
   // Check Dockerfile exists
   const dockerfilePath = path.join(projectDir, "Dockerfile");
@@ -213,6 +218,8 @@ Deno.test(
     await using tmp = await withTmpDir();
     const projectDir = path.join(tmp.dir, "test-vscode-tailwind");
 
+    const versions = await resolveVersions({ fresh: "2.1.1" });
+
     await initProject(tmp.dir, {
       directory: "test-vscode-tailwind",
       builder: false,
@@ -220,8 +227,7 @@ Deno.test(
       vscode: true,
       docker: false,
       force: true,
-      versions: { fresh: "2.1.1" },
-    });
+    }, versions);
 
     // Check .vscode/tailwind.json exists
     const tailwindJsonPath = path.join(
