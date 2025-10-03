@@ -1,21 +1,24 @@
-// deno-lint-ignore-file no-console
-import * as colors from "@std/fmt/colors";
 import * as path from "@std/path";
 import * as fs from "@std/fs";
-import type { InitOptions, TemplateVariables } from "./types.ts";
-import { InitError } from "./errors.ts";
+import type {
+  ResolvedInitOptions,
+  ResolvedVersions,
+  TemplateVariables,
+  VersionOverrides,
+} from "./types.ts";
 import {
-  confirmOrValue,
   getLatestVersion,
   getTemplateDir,
   getVariantsDir,
-  isDirectoryEmpty,
   processFilename,
   substituteVariables,
 } from "./utils.ts";
 
-// Default version constants - these should match the current init package
-const DEFAULT_VERSIONS = {
+/**
+ * Default version constants for dependencies.
+ * These should match the current init package.
+ */
+export const DEFAULT_VERSIONS = {
   fresh: "2.1.1",
   freshTailwind: "1.0.0",
   freshVitePlugin: "1.0.0",
@@ -28,59 +31,27 @@ const DEFAULT_VERSIONS = {
   vite: "7.1.3",
 };
 
-const CONFIRM_EMPTY_MESSAGE =
-  "The target directory is not empty (files could get overwritten). Do you want to continue anyway?";
-const CONFIRM_TAILWIND_MESSAGE = `Set up ${
-  colors.cyan("Tailwind CSS")
-} for styling?`;
-const CONFIRM_VSCODE_MESSAGE = `Do you use ${colors.cyan("VS Code")}?`;
-
 /**
  * Initialize a new Fresh project using templates.
+ * This is a pure template processor - all validation, prompts, and output
+ * should be handled by the caller (typically CLI).
+ *
+ * @param cwd - Current working directory
+ * @param options - Fully resolved initialization options (no undefined values)
+ * @param versions - Pre-resolved version strings for dependencies
  */
 export async function initProject(
   cwd: string,
-  options: InitOptions,
+  options: ResolvedInitOptions,
+  versions: ResolvedVersions,
 ): Promise<void> {
-  console.log();
-  console.log(
-    colors.bgRgb8(
-      colors.rgb8(" 🍋 Fresh: The next-gen web framework. ", 0),
-      121,
-    ),
-  );
-  console.log();
-
-  // Resolve target directory
   const projectDir = path.resolve(cwd, options.directory);
   const projectName = path.basename(projectDir);
 
-  // Check if directory is empty
-  const isEmpty = await isDirectoryEmpty(projectDir);
-  if (!isEmpty) {
-    const shouldContinue = options.force !== undefined
-      ? options.force
-      : confirm(CONFIRM_EMPTY_MESSAGE);
-
-    if (!shouldContinue) {
-      throw new InitError("Directory is not empty.");
-    }
-  }
-
-  // Determine configuration
   const useVite = !options.builder;
-  const useTailwind = confirmOrValue(
-    CONFIRM_TAILWIND_MESSAGE,
-    options.tailwind,
-  );
-  const useVSCode = confirmOrValue(CONFIRM_VSCODE_MESSAGE, options.vscode);
-  const useDocker = options.docker ?? false;
-
-  // Fetch versions
-  const versions = await resolveVersions(options.versions);
-
-  console.log(`    version ${colors.rgb8(versions.FRESH_VERSION, 4)}`);
-  console.log();
+  const useTailwind = options.tailwind;
+  const useVSCode = options.vscode;
+  const useDocker = options.docker;
 
   // Create variables context
   const variables: TemplateVariables = {
@@ -124,54 +95,15 @@ export async function initProject(
 
   // Fetch and write favicon
   await fetchFavicon(projectDir);
-
-  // Success message
-  console.log(
-    "\n%cProject initialized!\n",
-    "color: green; font-weight: bold",
-  );
-
-  if (options.directory !== ".") {
-    console.log(
-      `Enter your project directory using %ccd ${options.directory}%c.`,
-      "color: cyan",
-      "",
-    );
-  }
-  console.log(
-    "Run %cdeno task dev%c to start the project. %cCTRL-C%c to stop.",
-    "color: cyan",
-    "",
-    "color: cyan",
-    "",
-  );
-  console.log();
-  console.log(
-    "Stuck? Join our Discord %chttps://discord.gg/deno",
-    "color: cyan",
-    "",
-  );
-  console.log();
-  console.log("%cHappy hacking! 🦕", "color: gray");
 }
 
 /**
- * Resolve all version strings, fetching latest from JSR.
+ * Resolve all version strings, fetching latest from JSR/npm.
+ * This is exported so CLI can call it separately from template processing.
  */
-async function resolveVersions(
-  overrides?: Partial<typeof DEFAULT_VERSIONS>,
-): Promise<
-  Omit<
-    TemplateVariables,
-    keyof {
-      PROJECT_NAME: unknown;
-      USE_TAILWIND: unknown;
-      USE_VSCODE: unknown;
-      USE_DOCKER: unknown;
-      USE_VITE: unknown;
-    }
-  >
-> {
+export async function resolveVersions(
+  overrides?: VersionOverrides,
+): Promise<ResolvedVersions> {
   const versions = { ...DEFAULT_VERSIONS, ...overrides };
 
   const [fresh, preact, preactSignals] = await Promise.all([

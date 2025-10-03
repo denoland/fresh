@@ -9,9 +9,9 @@
 
 import { parseArgs } from "@std/cli/parse-args";
 import * as colors from "@std/fmt/colors";
-import { initProject } from "./src/init.ts";
+import { initProject, resolveVersions } from "./src/init.ts";
 import { InitError } from "./src/errors.ts";
-import type { InitOptions } from "./src/types.ts";
+import type { InitOptions, ResolvedInitOptions } from "./src/types.ts";
 import initConfig from "./deno.json" with { type: "json" };
 
 const HELP_TEXT = `
@@ -104,8 +104,8 @@ async function main() {
     error("Too many arguments. Expected at most one directory argument.");
   }
 
-  // Build options object
-  const options: InitOptions = {
+  // Build partial options from CLI flags
+  const partialOptions: InitOptions = {
     directory,
     force: flags.force ?? undefined,
     builder: flags.builder ?? false,
@@ -115,16 +115,12 @@ async function main() {
   };
 
   // Interactive prompts for missing options
-  if (options.tailwind === undefined) {
-    options.tailwind = confirm(CONFIRM_TAILWIND_MESSAGE);
-  }
-
-  if (options.vscode === undefined) {
-    options.vscode = confirm(CONFIRM_VSCODE_MESSAGE);
-  }
+  const tailwind = partialOptions.tailwind ?? confirm(CONFIRM_TAILWIND_MESSAGE);
+  const vscode = partialOptions.vscode ?? confirm(CONFIRM_VSCODE_MESSAGE);
+  let force = partialOptions.force ?? false;
 
   // Check if directory is empty (if not forced)
-  if (!options.force) {
+  if (!force) {
     try {
       const projectDir = new URL(directory, `file://${Deno.cwd()}/`).pathname;
       const entries = [...Deno.readDirSync(projectDir)];
@@ -136,7 +132,7 @@ async function main() {
         if (!shouldContinue) {
           error("Directory is not empty. Use --force to overwrite.");
         }
-        options.force = true;
+        force = true;
       }
     } catch (err) {
       if (!(err instanceof Deno.errors.NotFound)) {
@@ -146,15 +142,60 @@ async function main() {
     }
   }
 
-  // Call the init function
+  // Build fully resolved options
+  const resolvedOptions: ResolvedInitOptions = {
+    directory,
+    builder: partialOptions.builder ?? false,
+    tailwind,
+    vscode,
+    docker: partialOptions.docker ?? false,
+    force,
+  };
+
+  // Resolve versions
+  const versions = await resolveVersions(partialOptions.versions);
+
+  console.log(`    version ${colors.rgb8(versions.FRESH_VERSION, 4)}`);
+  console.log();
+
+  // Call the template engine (pure processing, no output)
   try {
-    await initProject(Deno.cwd(), options);
+    await initProject(Deno.cwd(), resolvedOptions, versions);
   } catch (err) {
     if (err instanceof InitError) {
       Deno.exit(1);
     }
     throw err;
   }
+
+  // Display success messages
+  console.log(
+    "\n%cProject initialized!\n",
+    "color: green; font-weight: bold",
+  );
+
+  if (directory !== ".") {
+    console.log(
+      `Enter your project directory using %ccd ${directory}%c.`,
+      "color: cyan",
+      "",
+    );
+  }
+  console.log(
+    "Run %cdeno task dev%c to start the project. %cCTRL-C%c to stop.",
+    "color: cyan",
+    "",
+    "color: cyan",
+    "",
+  );
+  console.log();
+  console.log(
+    "Stuck? Join our Discord %chttps://discord.gg/deno",
+    "color: cyan",
+    "",
+  );
+  console.log();
+  console.log("%cHappy hacking! 🦕", "color: gray");
 }
 
 // Run the CLI

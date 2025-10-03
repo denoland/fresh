@@ -1,5 +1,6 @@
 /**
- * Options for initializing a Fresh project.
+ * Options for initializing a Fresh project (CLI/user input).
+ * Optional fields may be undefined and require prompting.
  */
 export interface InitOptions {
   /** Target directory for the project */
@@ -25,6 +26,31 @@ export interface InitOptions {
 }
 
 /**
+ * Fully resolved options for the template engine.
+ * All fields are required - no undefined values.
+ * CLI must resolve all options before passing to template engine.
+ */
+export interface ResolvedInitOptions {
+  /** Target directory for the project */
+  directory: string;
+
+  /** Use legacy builder instead of Vite */
+  builder: boolean;
+
+  /** Include Tailwind CSS setup */
+  tailwind: boolean;
+
+  /** Include VS Code configuration */
+  vscode: boolean;
+
+  /** Include Docker setup */
+  docker: boolean;
+
+  /** Force overwrite existing files */
+  force: boolean;
+}
+
+/**
  * Version overrides for testing or pinning specific versions.
  */
 export interface VersionOverrides {
@@ -38,6 +64,23 @@ export interface VersionOverrides {
   postcss?: string;
   vite?: string;
   tailwindcssVite?: string;
+}
+
+/**
+ * Resolved version strings for dependencies.
+ */
+export interface ResolvedVersions {
+  FRESH_VERSION: string;
+  FRESH_TAILWIND_VERSION: string;
+  FRESH_VITE_PLUGIN_VERSION: string;
+  PREACT_VERSION: string;
+  PREACT_SIGNALS_VERSION: string;
+  TAILWINDCSS_VERSION: string;
+  TAILWINDCSS_POSTCSS_VERSION: string;
+  TAILWINDCSS_VITE_VERSION: string;
+  POSTCSS_VERSION: string;
+  VITE_VERSION: string;
+  DENO_VERSION: string;
 }
 
 /**
