@@ -4,13 +4,27 @@ import * as fs from "@std/fs";
 import * as semver from "@std/semver";
 
 /**
- * Fetch the latest version of a package from JSR.
+ * Fetch the latest version of a package from JSR or npm.
  */
 export async function getLatestVersion(
   pkg: string,
   fallback: string,
 ): Promise<string> {
   try {
+    // Check if it's an npm package
+    if (pkg.startsWith("npm:")) {
+      const npmPkg = pkg.slice(4); // Remove "npm:" prefix
+      const res = await fetch(`https://registry.npmjs.org/${npmPkg}/latest`);
+      if (!res.ok) {
+        await res.body?.cancel();
+        throw new Error(`HTTP ${res.status}`);
+      }
+
+      const json = await res.json() as { version: string };
+      return json.version;
+    }
+
+    // JSR package
     const res = await fetch(`https://jsr.io/${pkg}/meta.json`);
     if (!res.ok) {
       await res.body?.cancel(); // Consume the body to avoid leaks

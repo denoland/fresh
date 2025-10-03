@@ -189,7 +189,7 @@ Deno.test({
 });
 
 Deno.test({
-  name: "integration - dev server starts successfully",
+  name: "integration - vite dev server works",
   ignore: false,
   async fn() {
     await using tmp = await withTmpDir();
@@ -205,16 +205,102 @@ Deno.test({
       versions: { fresh: "2.1.1" },
     });
 
-    // Start dev server and verify it responds
+    // Start dev server and verify it works
     await withChildProcessServer(
       {
         cwd: projectDir,
         args: ["task", "dev"],
       },
       async (address) => {
-        // Verify the server responds
+        // Verify the home page responds with correct content
         const res = await fetch(address);
         assertEquals(res.status, 200);
+
+        const html = await res.text();
+        // Check for Fresh welcome message
+        assertEquals(
+          html.includes("Welcome to Fresh"),
+          true,
+          "Fresh welcome message should appear",
+        );
+        // Check for counter island
+        assertEquals(
+          html.includes("Counter"),
+          true,
+          "Counter island should be present",
+        );
+        // Check for logo
+        assertEquals(
+          html.includes("logo.svg"),
+          true,
+          "Fresh logo should be present",
+        );
+
+        // Test the API route
+        const apiRes = await fetch(`${address}/api/fresh`);
+        assertEquals(apiRes.status, 200);
+        const greeting = await apiRes.text();
+        assertEquals(greeting, "Hello, Fresh!", "API should return greeting");
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "integration - builder dev server works",
+  ignore: false,
+  async fn() {
+    await using tmp = await withTmpDir();
+    const projectDir = path.join(tmp.dir, "test-builder-dev");
+
+    await initProject(tmp.dir, {
+      directory: "test-builder-dev",
+      builder: true,
+      tailwind: false,
+      vscode: false,
+      docker: false,
+      force: true,
+      versions: { fresh: "2.1.1" },
+    });
+
+    // Start dev server and verify it works
+    await withChildProcessServer(
+      {
+        cwd: projectDir,
+        args: ["task", "dev"],
+      },
+      async (address) => {
+        // Verify the home page responds with correct content
+        const res = await fetch(address);
+        assertEquals(res.status, 200);
+
+        const html = await res.text();
+        // Check for Fresh welcome message
+        assertEquals(
+          html.includes("Welcome to Fresh"),
+          true,
+          "Fresh welcome message should appear",
+        );
+        // Check for counter island
+        assertEquals(
+          html.includes("Counter"),
+          true,
+          "Counter island should be present",
+        );
+        // Check for logo
+        assertEquals(
+          html.includes("logo.svg"),
+          true,
+          "Fresh logo should be present",
+        );
+
+        // Test the API route
+        const apiRes = await fetch(`${address}/api/fresh`);
+        assertEquals(apiRes.status, 200);
+        const greeting = await apiRes.text();
+        assertEquals(greeting, "Hello, Fresh!", "API should return greeting");
       },
     );
   },
