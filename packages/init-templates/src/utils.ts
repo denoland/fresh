@@ -137,7 +137,7 @@ export function processFilename(filename: string): string {
  */
 export function getTemplateDir(): string {
   const moduleDir = path.dirname(path.fromFileUrl(import.meta.url));
-  return path.join(moduleDir, "..", "templates");
+  return path.join(moduleDir, "..", "assets", "template");
 }
 
 /**
@@ -145,7 +145,7 @@ export function getTemplateDir(): string {
  */
 export function getVariantsDir(): string {
   const moduleDir = path.dirname(path.fromFileUrl(import.meta.url));
-  return path.join(moduleDir, "..", "variants");
+  return path.join(moduleDir, "..", "assets", "variants");
 }
 
 /**

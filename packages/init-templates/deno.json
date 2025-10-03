@@ -7,7 +7,8 @@
   },
   "tasks": {
     "check": "deno fmt --check . && deno lint . && deno check **/*.ts",
-    "test": "deno test -A"
+    "test": "deno test -A",
+    "sync": "deno run -A sync_templates.ts"
   },
   "imports": {
     "@std/assert": "jsr:@std/assert@^1",
