@@ -1,6 +1,6 @@
 import { expect } from "@std/expect";
 import * as path from "@std/path";
-import { getTemplateDir } from "../src/utils.ts";
+import { getTemplateDir, getVariantsDir } from "../src/utils.ts";
 
 Deno.test("vite - has all required files", async () => {
   const templateDir = path.join(getTemplateDir(), "vite");
@@ -175,7 +175,7 @@ Deno.test("vite _app.tsx.tmpl - contains PROJECT_NAME variable", async () => {
 });
 
 Deno.test("variants/docker - has Dockerfile", async () => {
-  const variantDir = path.join(getTemplateDir(), "variants/docker");
+  const variantDir = path.join(getVariantsDir(), "docker");
   const dockerfilePath = path.join(variantDir, "Dockerfile");
 
   const stat = await Deno.stat(dockerfilePath);
@@ -187,7 +187,7 @@ Deno.test("variants/docker - has Dockerfile", async () => {
 });
 
 Deno.test("variants/vscode - has required files", async () => {
-  const variantDir = path.join(getTemplateDir(), "variants/vscode");
+  const variantDir = path.join(getVariantsDir(), "vscode");
 
   const requiredFiles = [
     "__vscode/settings.json.tmpl",

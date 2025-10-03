@@ -74,10 +74,10 @@ packages/init-templates/
 │   ├── vite/                 # Complete Vite (no Tailwind)
 │   ├── vite-tailwind/        # Complete Vite + Tailwind
 │   ├── builder/              # Complete Builder (no Tailwind)
-│   ├── builder-tailwind/     # Complete Builder + Tailwind
-│   └── variants/
-│       ├── docker/           # Just adds Dockerfile
-│       └── vscode/           # Just adds .vscode/
+│   └── builder-tailwind/     # Complete Builder + Tailwind
+├── variants/                 # Additive features (at package root)
+│   ├── docker/               # Just adds Dockerfile
+│   └── vscode/               # Just adds .vscode/
 └── tests/
     ├── utils_test.ts         # 10 tests ✓
     ├── template_test.ts      # 13 tests ✓
