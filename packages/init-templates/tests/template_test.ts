@@ -201,3 +201,19 @@ Deno.test("variants/vscode - has required files", async () => {
     expect(stat.isFile).toBe(true);
   }
 });
+
+Deno.test("variants/vscode-tailwind - has tailwind.json", async () => {
+  const variantDir = path.join(getVariantsDir(), "vscode-tailwind");
+  const tailwindJsonPath = path.join(variantDir, "__vscode/tailwind.json");
+
+  const stat = await Deno.stat(tailwindJsonPath);
+  expect(stat).toBeTruthy();
+  expect(stat.isFile).toBe(true);
+
+  // Check content
+  const content = JSON.parse(await Deno.readTextFile(tailwindJsonPath));
+  expect(content.version).toBe(1.1);
+  expect(content.atDirectives).toBeTruthy();
+  expect(content.atDirectives.length).toBeGreaterThan(0);
+  expect(content.atDirectives[0].name).toBe("@tailwind");
+});
