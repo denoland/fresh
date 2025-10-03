@@ -138,12 +138,18 @@ Deno.test("sync_templates - dry run does not modify files", async () => {
   try {
     await createTestStructure(tmpDir);
 
+    // Get path to sync_templates.ts relative to this test file
+    const syncScriptPath = path.join(
+      path.dirname(path.fromFileUrl(import.meta.url)),
+      "../sync_templates.ts",
+    );
+
     // Run sync in dry-run mode
     const process = new Deno.Command("deno", {
       args: [
         "run",
         "-A",
-        path.join(Deno.cwd(), "sync_templates.ts"),
+        syncScriptPath,
         "--dry-run",
       ],
       cwd: tmpDir,
@@ -176,12 +182,18 @@ Deno.test("sync_templates - syncs common files correctly", async () => {
   try {
     await createTestStructure(tmpDir);
 
+    // Get path to sync_templates.ts relative to this test file
+    const syncScriptPath = path.join(
+      path.dirname(path.fromFileUrl(import.meta.url)),
+      "../sync_templates.ts",
+    );
+
     // Run actual sync
     const process = new Deno.Command("deno", {
       args: [
         "run",
         "-A",
-        path.join(Deno.cwd(), "sync_templates.ts"),
+        syncScriptPath,
       ],
       cwd: tmpDir,
       stdout: "piped",
@@ -268,12 +280,18 @@ Deno.test("sync_templates - syncs builder templates", async () => {
   try {
     await createTestStructure(tmpDir);
 
+    // Get path to sync_templates.ts relative to this test file
+    const syncScriptPath = path.join(
+      path.dirname(path.fromFileUrl(import.meta.url)),
+      "../sync_templates.ts",
+    );
+
     // Run sync
     const process = new Deno.Command("deno", {
       args: [
         "run",
         "-A",
-        path.join(Deno.cwd(), "sync_templates.ts"),
+        syncScriptPath,
       ],
       cwd: tmpDir,
       stdout: "piped",
@@ -331,12 +349,18 @@ Deno.test("sync_templates - handles missing base directory", async () => {
     await fs.ensureDir(path.join(tmpDir, "assets/template/vite"));
     await fs.ensureDir(path.join(tmpDir, "assets/template/vite-tailwind"));
 
+    // Get path to sync_templates.ts relative to this test file
+    const syncScriptPath = path.join(
+      path.dirname(path.fromFileUrl(import.meta.url)),
+      "../sync_templates.ts",
+    );
+
     // Run sync (should handle missing base gracefully)
     const process = new Deno.Command("deno", {
       args: [
         "run",
         "-A",
-        path.join(Deno.cwd(), "sync_templates.ts"),
+        syncScriptPath,
       ],
       cwd: tmpDir,
       stdout: "piped",
