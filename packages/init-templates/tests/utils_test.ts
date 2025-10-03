@@ -7,9 +7,10 @@ import {
   substituteVariables,
 } from "../src/utils.ts";
 
-Deno.test("processFilename - converts underscore prefix to dot", () => {
-  assertEquals(processFilename("_gitignore"), ".gitignore");
-  assertEquals(processFilename("_vscode"), ".vscode");
+Deno.test("processFilename - converts double underscore prefix to dot", () => {
+  assertEquals(processFilename("__gitignore"), ".gitignore");
+  assertEquals(processFilename("__vscode"), ".vscode");
+  assertEquals(processFilename("_app.tsx"), "_app.tsx");
   assertEquals(processFilename("regular-file.ts"), "regular-file.ts");
 });
 

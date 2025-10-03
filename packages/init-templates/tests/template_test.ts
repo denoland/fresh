@@ -6,7 +6,7 @@ Deno.test("template-vite - has all required files", async () => {
   const templateDir = path.join(getTemplateDir(), "template-vite");
 
   const requiredFiles = [
-    "_gitignore",
+    "__gitignore",
     "README.md",
     "deno.json.tmpl",
     "vite.config.ts.tmpl",
@@ -33,7 +33,7 @@ Deno.test("template-builder - has all required files", async () => {
   const templateDir = path.join(getTemplateDir(), "template-builder");
 
   const requiredFiles = [
-    "_gitignore",
+    "__gitignore",
     "README.md",
     "deno.json.tmpl",
     "dev.ts.tmpl",
@@ -127,8 +127,8 @@ Deno.test("variants/vscode - has required files", async () => {
   const variantDir = path.join(getTemplateDir(), "variants/vscode");
 
   const requiredFiles = [
-    "_vscode/settings.json.tmpl",
-    "_vscode/extensions.json.tmpl",
+    "__vscode/settings.json.tmpl",
+    "__vscode/extensions.json.tmpl",
   ];
 
   for (const file of requiredFiles) {
