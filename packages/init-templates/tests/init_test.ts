@@ -206,3 +206,38 @@ Deno.test("initProject - creates project with docker", async () => {
   expect(dockerfile).toContain("FROM denoland/deno");
   expect(dockerfile).toContain("EXPOSE 8000");
 });
+
+Deno.test(
+  "initProject - creates tailwind.json when vscode + tailwind",
+  async () => {
+    await using tmp = await withTmpDir();
+    const projectDir = path.join(tmp.dir, "test-vscode-tailwind");
+
+    await initProject(tmp.dir, {
+      directory: "test-vscode-tailwind",
+      builder: false,
+      tailwind: true,
+      vscode: true,
+      docker: false,
+      force: true,
+      versions: { fresh: "2.1.1" },
+    });
+
+    // Check .vscode/tailwind.json exists
+    const tailwindJsonPath = path.join(
+      projectDir,
+      ".vscode/tailwind.json",
+    );
+    const tailwindStat = await Deno.stat(tailwindJsonPath);
+    expect(tailwindStat.isFile).toBe(true);
+
+    // Check tailwind.json content
+    const tailwindJson = JSON.parse(
+      await Deno.readTextFile(tailwindJsonPath),
+    );
+    expect(tailwindJson.version).toBe(1.1);
+    expect(tailwindJson.atDirectives).toBeTruthy();
+    expect(tailwindJson.atDirectives.length).toBeGreaterThan(0);
+    expect(tailwindJson.atDirectives[0].name).toBe("@tailwind");
+  },
+);
