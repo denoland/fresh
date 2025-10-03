@@ -40,7 +40,7 @@ packages/init-templates/
 │   └── fixtures/
 ├── templates/
 │   ├── template-vite/
-│   │   ├── _gitignore
+│   │   ├── __gitignore
 │   │   ├── README.md
 │   │   ├── deno.json.tmpl
 │   │   ├── vite.config.ts.tmpl
@@ -62,7 +62,7 @@ packages/init-templates/
 │   │       ├── logo.svg
 │   │       └── favicon.ico
 │   ├── template-builder/
-│   │   ├── _gitignore
+│   │   ├── __gitignore
 │   │   ├── README.md
 │   │   ├── deno.json.tmpl
 │   │   ├── dev.ts.tmpl
@@ -86,7 +86,7 @@ packages/init-templates/
 │   │   ├── docker/
 │   │   │   └── Dockerfile
 │   │   └── vscode/
-│   │       └── .vscode/
+│   │       └── __vscode/
 │   │           ├── settings.json.tmpl
 │   │           ├── extensions.json.tmpl
 │   │           └── tailwind.json (conditional)
@@ -97,8 +97,10 @@ packages/init-templates/
 
 ### File Naming Conventions
 
-- **`_filename`**: Files starting with `_` are renamed without the underscore
-  (e.g., `_gitignore` → `.gitignore`)
+- **`__filename`**: Files starting with double underscore are renamed to
+  dot-prefixed (e.g., `__gitignore` → `.gitignore`, `__vscode` → `.vscode`)
+- **`_filename`**: Files with single underscore remain unchanged (e.g.,
+  `_app.tsx` stays as `_app.tsx`)
 - **`filename.tmpl`**: Template files with variable substitution
 - **`filename.patch`**: Patch files that modify base template files (for
   variants)

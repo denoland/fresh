@@ -125,9 +125,9 @@ $ deno task test
 
 ### 3. Smart Filename Processing
 
-- `_gitignore` → `.gitignore` ✓
+- `__gitignore` → `.gitignore` ✓
 - `_app.tsx` → `_app.tsx` (unchanged) ✓
-- `_vscode/` → `.vscode/` ✓
+- `__vscode/` → `.vscode/` ✓
 - `file.tmpl` → `file` ✓
 
 ## Templates Generated

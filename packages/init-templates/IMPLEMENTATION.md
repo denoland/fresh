@@ -151,7 +151,7 @@ templates/
   template-vite/
     routes/
       _app.tsx.tmpl  →  _app.tsx
-    _gitignore       →  .gitignore
+    __gitignore      →  .gitignore
     deno.json.tmpl   →  deno.json
 ```
 
@@ -190,8 +190,8 @@ Example patch file:
 
 ### 4. File Naming Conventions
 
-- `_filename` → `.filename` (for files without extensions)
-- `_app.tsx` → `_app.tsx` (files with extensions keep underscore)
+- `__filename` → `.filename` (double underscore becomes dot-prefix)
+- `_app.tsx` → `_app.tsx` (single underscore files remain unchanged)
 - `filename.tmpl` → `filename` (template extension removed)
 - `.patch` files merge with existing JSON files
 

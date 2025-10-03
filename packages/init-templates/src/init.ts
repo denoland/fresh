@@ -222,7 +222,7 @@ async function processDirectory(
     const srcPath = path.join(srcDir, entry.name);
 
     if (entry.isDirectory) {
-      // Process directory name (convert _ to .)
+      // Process directory name (convert __ to .)
       const destName = processFilename(entry.name);
       const destPath = path.join(destDir, destName);
       await fs.ensureDir(destPath);
@@ -243,7 +243,7 @@ async function processFile(
   filename: string,
   variables: TemplateVariables,
 ): Promise<void> {
-  // Process filename: convert _ prefix to . prefix
+  // Process filename: convert __ prefix to . prefix
   const processedName = processFilename(filename);
 
   // Handle template files: remove .tmpl extension
@@ -279,7 +279,7 @@ async function applyVariant(
     const srcPath = path.join(variantDir, entry.name);
 
     if (entry.isDirectory) {
-      // Process directory name (convert _ to .)
+      // Process directory name (convert __ to .)
       const destName = processFilename(entry.name);
       const destPath = path.join(targetDir, destName);
       await fs.ensureDir(destPath);

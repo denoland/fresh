@@ -131,17 +131,17 @@ export function mergeJson(
 }
 
 /**
- * Convert underscore-prefixed filename to dot-prefixed.
- * Only converts files/dirs that have no extension (like _gitignore, _vscode).
- * Files with extensions (like _app.tsx) are NOT converted.
+ * Convert double-underscore-prefixed filename to dot-prefixed.
+ * Only converts files/dirs that start with double underscore (__).
+ * Files with single underscore (like _app.tsx) are NOT converted.
  * Examples:
- * - "_gitignore" -> ".gitignore"
- * - "_vscode" -> ".vscode"
+ * - "__gitignore" -> ".gitignore"
+ * - "__vscode" -> ".vscode"
  * - "_app.tsx" -> "_app.tsx" (unchanged)
  */
 export function processFilename(filename: string): string {
-  if (filename.startsWith("_") && !filename.includes(".", 1)) {
-    return "." + filename.slice(1);
+  if (filename.startsWith("__")) {
+    return "." + filename.slice(2);
   }
   return filename;
 }
