@@ -1,6 +1,6 @@
 import { expect } from "@std/expect";
 import { App } from "../../../app.ts";
-import { FakeServer } from "../../../test_utils.ts";
+import { FakeServer } from "@fresh/internal/test-utils";
 import { devErrorOverlay } from "./middleware.tsx";
 import { HttpError } from "../../../error.ts";
 

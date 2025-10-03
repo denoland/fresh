@@ -1,6 +1,6 @@
 import { runMiddlewares } from "./mod.ts";
 import { expect } from "@std/expect";
-import { serveMiddleware } from "../test_utils.ts";
+import { serveMiddleware } from "@fresh/internal/test-utils";
 import type { Middleware } from "./mod.ts";
 import type { Lazy, MaybeLazy } from "../types.ts";
 
