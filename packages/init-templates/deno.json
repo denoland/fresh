@@ -11,7 +11,6 @@
     "sync": "deno run -A sync_templates.ts"
   },
   "imports": {
-    "@std/assert": "jsr:@std/assert@^1",
     "@std/cli": "jsr:@std/cli@^1",
     "@std/fmt": "jsr:@std/fmt@^1",
     "@std/fs": "jsr:@std/fs@^1",
