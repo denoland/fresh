@@ -13,6 +13,7 @@
     "jsr:@deno/loader@~0.3.3": "0.3.5",
     "jsr:@marvinh-test/fresh-island@^0.0.3": "0.0.3",
     "jsr:@marvinh-test/import-json@^0.0.1": "0.0.1",
+    "jsr:@std/assert@1": "1.0.14",
     "jsr:@std/assert@^1.0.13": "1.0.14",
     "jsr:@std/assert@^1.0.14": "1.0.14",
     "jsr:@std/async@1": "1.0.14",
@@ -29,6 +30,7 @@
     "jsr:@std/encoding@1": "1.0.10",
     "jsr:@std/encoding@^1.0.10": "1.0.10",
     "jsr:@std/expect@^1.0.16": "1.0.17",
+    "jsr:@std/fmt@1": "1.0.8",
     "jsr:@std/fmt@1.0.3": "1.0.3",
     "jsr:@std/fmt@^1.0.3": "1.0.8",
     "jsr:@std/fmt@^1.0.7": "1.0.8",
@@ -3750,6 +3752,16 @@
         "dependencies": [
           "jsr:@std/fmt@^1.0.8",
           "npm:@types/node@^24.2.1"
+        ]
+      },
+      "packages/init-templates": {
+        "dependencies": [
+          "jsr:@std/assert@1",
+          "jsr:@std/fmt@1",
+          "jsr:@std/fs@1",
+          "jsr:@std/jsonc@1",
+          "jsr:@std/path@1",
+          "jsr:@std/semver@1"
         ]
       },
       "packages/plugin-tailwindcss-v3": {
