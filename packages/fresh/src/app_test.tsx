@@ -893,3 +893,24 @@ Deno.test("App - .mountApp() with both main and inner basePath", async () => {
   res = await server.get("/main/services/users");
   expect(res.status).toEqual(404);
 });
+
+Deno.test("App - .mountApp() avoids double basePath when mounting at same path as inner basePath", async () => {
+  const innerApp = new App({ basePath: "/ui" })
+    .get("/", () => new Response("ui home"))
+    .get("/dashboard", () => new Response("dashboard"));
+
+  const app = new App()
+    .get("/", () => new Response("root home"))
+    .mountApp("/ui", innerApp);
+
+  const server = new FakeServer(app.handler());
+
+  let res = await server.get("/");
+  expect(await res.text()).toEqual("root home");
+
+  res = await server.get("/ui");
+  expect(await res.text()).toEqual("ui home");
+
+  res = await server.get("/ui/dashboard");
+  expect(await res.text()).toEqual("dashboard");
+});

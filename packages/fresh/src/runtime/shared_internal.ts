@@ -90,7 +90,11 @@ export const enum PartialMode {
  * specific to the current version of the application, and as such can be safely
  * served with a very long cache lifetime (1 year).
  */
-export function assetInternal(path: string, buildId: string): string {
+export function assetInternal(
+  path: string,
+  buildId: string,
+  basePath?: string,
+): string {
   if (!path.startsWith("/") || path.startsWith("//")) return path;
   try {
     const url = new URL(path, "https://freshassetcache.local");
@@ -101,7 +105,11 @@ export function assetInternal(path: string, buildId: string): string {
       return path;
     }
     url.searchParams.set(ASSET_CACHE_BUST_KEY, buildId);
-    return url.pathname + url.search + url.hash;
+    let finalPath = url.pathname + url.search + url.hash;
+
+    finalPath = applyBasePath(finalPath, basePath);
+
+    return finalPath;
   } catch (err) {
     // deno-lint-ignore no-console
     console.warn(
@@ -113,7 +121,11 @@ export function assetInternal(path: string, buildId: string): string {
 }
 
 /** Apply the `asset` function to urls in a `srcset` attribute. */
-export function assetSrcSetInternal(srcset: string, buildId: string): string {
+export function assetSrcSetInternal(
+  srcset: string,
+  buildId: string,
+  basePath?: string,
+): string {
   if (srcset.includes("(")) return srcset; // Bail if the srcset contains complicated syntax.
   const parts = srcset.split(",");
   const constructed = [];
@@ -126,7 +138,9 @@ export function assetSrcSetInternal(srcset: string, buildId: string): string {
     const leading = part.substring(0, leadingWhitespace);
     const url = trimmed.substring(0, urlEnd);
     const trailing = trimmed.substring(urlEnd);
-    constructed.push(leading + assetInternal(url, buildId) + trailing);
+    constructed.push(
+      leading + assetInternal(url, buildId, basePath) + trailing,
+    );
   }
   return constructed.join(",");
 }
@@ -138,15 +152,29 @@ export function assetHashingHook(
     ["data-fresh-disable-lock"]?: boolean;
   }>,
   buildId: string,
+  basePath?: string,
 ) {
   if (vnode.type === "img" || vnode.type === "source") {
     const { props } = vnode;
     if (props["data-fresh-disable-lock"]) return;
     if (typeof props.src === "string") {
-      props.src = assetInternal(props.src, buildId);
+      props.src = assetInternal(props.src, buildId, basePath);
     }
     if (typeof props.srcset === "string") {
-      props.srcset = assetSrcSetInternal(props.srcset, buildId);
+      props.srcset = assetSrcSetInternal(props.srcset, buildId, basePath);
     }
   }
+}
+
+/** Apply basePath to a given path string */
+export function applyBasePath(path: string, basePath?: string): string {
+  if (!basePath || basePath === "/") {
+    return path;
+  }
+
+  if (!path.startsWith("/") || path.startsWith("//")) {
+    return path;
+  }
+
+  return basePath + path;
 }
