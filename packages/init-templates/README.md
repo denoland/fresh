@@ -17,6 +17,7 @@ approach.
 - 🧪 **Well-tested**: Comprehensive unit tests for template processing
 - 🔄 **Variable substitution**: Minimal dynamic content using template variables
 - 🎯 **Type-safe**: Full TypeScript support throughout
+- 🖥️ **CLI & Library**: Works both as a command-line tool and importable library
 
 ## Philosophy
 
@@ -33,6 +34,35 @@ See [DESIGN.md](./DESIGN.md) for a comprehensive overview of the template system
 architecture, file structure, and design decisions.
 
 ## Usage
+
+### As a CLI Tool
+
+Create a new Fresh project interactively:
+
+```bash
+deno run -Ar jsr:@fresh/init-templates my-project
+```
+
+With command-line options:
+
+```bash
+# Vite project with Tailwind and VS Code support
+deno run -Ar jsr:@fresh/init-templates my-app --tailwind --vscode
+
+# Builder project with Docker support
+deno run -Ar jsr:@fresh/init-templates my-app --builder --docker
+
+# Force overwrite existing files
+deno run -Ar jsr:@fresh/init-templates my-app --force
+```
+
+Show help:
+
+```bash
+deno run -Ar jsr:@fresh/init-templates --help
+```
+
+### As a Library
 
 ```typescript
 import { initProject } from "@fresh/init-templates";

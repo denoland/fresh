@@ -1,13 +1,17 @@
 {
   "name": "@fresh/init-templates",
   "version": "0.1.0",
-  "exports": "./mod.ts",
+  "exports": {
+    ".": "./mod.ts",
+    "./cli": "./cli.ts"
+  },
   "tasks": {
     "check": "deno fmt --check . && deno lint . && deno check **/*.ts",
     "test": "deno test -A"
   },
   "imports": {
     "@std/assert": "jsr:@std/assert@^1",
+    "@std/cli": "jsr:@std/cli@^1",
     "@std/fmt": "jsr:@std/fmt@^1",
     "@std/fs": "jsr:@std/fs@^1",
     "@std/path": "jsr:@std/path@^1",
