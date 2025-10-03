@@ -1,6 +1,8 @@
 import { assertEquals } from "@std/assert";
 import * as path from "@std/path";
 import { initProject } from "../src/init.ts";
+import { withTmpDir } from "../../fresh/src/test_utils.ts";
+import { withChildProcessServer } from "../../fresh/tests/test_utils.tsx";
 
 /**
  * Integration tests for validating generated projects.
@@ -14,11 +16,10 @@ import { initProject } from "../src/init.ts";
  * They should be run less frequently, perhaps in CI or before releases.
  */
 
-// Helper to run a command in a directory
+// Helper to run a command in a directory and check its exit code
 async function runCommand(
   dir: string,
   cmd: string[],
-  options: { background?: boolean } = {},
 ): Promise<{ success: boolean; output: string }> {
   const command = new Deno.Command(cmd[0], {
     args: cmd.slice(1),
@@ -26,14 +27,6 @@ async function runCommand(
     stdout: "piped",
     stderr: "piped",
   });
-
-  if (options.background) {
-    const child = command.spawn();
-    // Give it a moment to start
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    child.kill();
-    return { success: true, output: "" };
-  }
 
   const { code, stdout, stderr } = await command.output();
   const output = new TextDecoder().decode(stdout) +
@@ -44,196 +37,187 @@ async function runCommand(
 
 Deno.test({
   name: "integration - vite project passes check",
-  ignore: true, // Enable when ready for full integration tests
+  ignore: false,
   async fn() {
-    const tempDir = await Deno.makeTempDir();
-    const projectDir = path.join(tempDir, "test-vite-check");
+    await using tmp = await withTmpDir();
+    const projectDir = path.join(tmp.dir, "test-vite-check");
 
-    try {
-      await initProject(tempDir, {
-        directory: "test-vite-check",
-        builder: false,
-        tailwind: false,
-        vscode: false,
-        docker: false,
-        force: true,
-        versions: { fresh: "2.1.1" },
-      });
+    await initProject(tmp.dir, {
+      directory: "test-vite-check",
+      builder: false,
+      tailwind: false,
+      vscode: false,
+      docker: false,
+      force: true,
+      versions: { fresh: "2.1.1" },
+    });
 
-      const { success, output } = await runCommand(
-        projectDir,
-        ["deno", "task", "check"],
-      );
+    const { success, output } = await runCommand(
+      projectDir,
+      ["deno", "task", "check"],
+    );
 
-      assertEquals(success, true, `Check failed: ${output}`);
-    } finally {
-      await Deno.remove(tempDir, { recursive: true });
-    }
+    assertEquals(success, true, `Check failed: ${output}`);
   },
+  sanitizeOps: false,
+  sanitizeResources: false,
 });
 
 Deno.test({
   name: "integration - builder project passes check",
-  ignore: true, // Enable when ready for full integration tests
+  ignore: false,
   async fn() {
-    const tempDir = await Deno.makeTempDir();
-    const projectDir = path.join(tempDir, "test-builder-check");
+    await using tmp = await withTmpDir();
+    const projectDir = path.join(tmp.dir, "test-builder-check");
 
-    try {
-      await initProject(tempDir, {
-        directory: "test-builder-check",
-        builder: true,
-        tailwind: false,
-        vscode: false,
-        docker: false,
-        force: true,
-        versions: { fresh: "2.1.1" },
-      });
+    await initProject(tmp.dir, {
+      directory: "test-builder-check",
+      builder: true,
+      tailwind: false,
+      vscode: false,
+      docker: false,
+      force: true,
+      versions: { fresh: "2.1.1" },
+    });
 
-      const { success, output } = await runCommand(
-        projectDir,
-        ["deno", "task", "check"],
-      );
+    const { success, output } = await runCommand(
+      projectDir,
+      ["deno", "task", "check"],
+    );
 
-      assertEquals(success, true, `Check failed: ${output}`);
-    } finally {
-      await Deno.remove(tempDir, { recursive: true });
-    }
+    assertEquals(success, true, `Check failed: ${output}`);
   },
+  sanitizeOps: false,
+  sanitizeResources: false,
 });
 
 Deno.test({
   name: "integration - vite with tailwind passes check",
-  ignore: true, // Enable when ready for full integration tests
+  ignore: false,
   async fn() {
-    const tempDir = await Deno.makeTempDir();
-    const projectDir = path.join(tempDir, "test-vite-tailwind-check");
+    await using tmp = await withTmpDir();
+    const projectDir = path.join(tmp.dir, "test-vite-tailwind-check");
 
-    try {
-      await initProject(tempDir, {
-        directory: "test-vite-tailwind-check",
-        builder: false,
-        tailwind: true,
-        vscode: false,
-        docker: false,
-        force: true,
-        versions: { fresh: "2.1.1" },
-      });
+    await initProject(tmp.dir, {
+      directory: "test-vite-tailwind-check",
+      builder: false,
+      tailwind: true,
+      vscode: false,
+      docker: false,
+      force: true,
+      versions: { fresh: "2.1.1" },
+    });
 
-      const { success, output } = await runCommand(
-        projectDir,
-        ["deno", "task", "check"],
-      );
+    const { success, output } = await runCommand(
+      projectDir,
+      ["deno", "task", "check"],
+    );
 
-      assertEquals(success, true, `Check failed: ${output}`);
-    } finally {
-      await Deno.remove(tempDir, { recursive: true });
-    }
+    assertEquals(success, true, `Check failed: ${output}`);
   },
+  sanitizeOps: false,
+  sanitizeResources: false,
 });
 
 Deno.test({
   name: "integration - vite project can build",
-  ignore: true, // Enable when ready for full integration tests
+  ignore: false,
   async fn() {
-    const tempDir = await Deno.makeTempDir();
-    const projectDir = path.join(tempDir, "test-vite-build");
+    await using tmp = await withTmpDir();
+    const projectDir = path.join(tmp.dir, "test-vite-build");
 
-    try {
-      await initProject(tempDir, {
-        directory: "test-vite-build",
-        builder: false,
-        tailwind: false,
-        vscode: false,
-        docker: false,
-        force: true,
-        versions: { fresh: "2.1.1" },
-      });
+    await initProject(tmp.dir, {
+      directory: "test-vite-build",
+      builder: false,
+      tailwind: false,
+      vscode: false,
+      docker: false,
+      force: true,
+      versions: { fresh: "2.1.1" },
+    });
 
-      // Install dependencies first
-      await runCommand(projectDir, ["deno", "install"]);
+    // Install dependencies first
+    await runCommand(projectDir, ["deno", "install"]);
 
-      const { success, output } = await runCommand(
-        projectDir,
-        ["deno", "task", "build"],
-      );
+    const { success, output } = await runCommand(
+      projectDir,
+      ["deno", "task", "build"],
+    );
 
-      assertEquals(success, true, `Build failed: ${output}`);
+    assertEquals(success, true, `Build failed: ${output}`);
 
-      // Check that _fresh directory was created
-      const freshDir = path.join(projectDir, "_fresh");
-      const stat = await Deno.stat(freshDir);
-      assertEquals(stat.isDirectory, true);
-    } finally {
-      await Deno.remove(tempDir, { recursive: true });
-    }
+    // Check that _fresh directory was created
+    const freshDir = path.join(projectDir, "_fresh");
+    const stat = await Deno.stat(freshDir);
+    assertEquals(stat.isDirectory, true);
   },
+  sanitizeOps: false,
+  sanitizeResources: false,
 });
 
 Deno.test({
   name: "integration - builder project can build",
-  ignore: true, // Enable when ready for full integration tests
+  ignore: false,
   async fn() {
-    const tempDir = await Deno.makeTempDir();
-    const projectDir = path.join(tempDir, "test-builder-build");
+    await using tmp = await withTmpDir();
+    const projectDir = path.join(tmp.dir, "test-builder-build");
 
-    try {
-      await initProject(tempDir, {
-        directory: "test-builder-build",
-        builder: true,
-        tailwind: false,
-        vscode: false,
-        docker: false,
-        force: true,
-        versions: { fresh: "2.1.1" },
-      });
+    await initProject(tmp.dir, {
+      directory: "test-builder-build",
+      builder: true,
+      tailwind: false,
+      vscode: false,
+      docker: false,
+      force: true,
+      versions: { fresh: "2.1.1" },
+    });
 
-      const { success, output } = await runCommand(
-        projectDir,
-        ["deno", "task", "build"],
-      );
+    const { success, output } = await runCommand(
+      projectDir,
+      ["deno", "task", "build"],
+    );
 
-      assertEquals(success, true, `Build failed: ${output}`);
+    assertEquals(success, true, `Build failed: ${output}`);
 
-      // Check that _fresh directory was created
-      const freshDir = path.join(projectDir, "_fresh");
-      const stat = await Deno.stat(freshDir);
-      assertEquals(stat.isDirectory, true);
-    } finally {
-      await Deno.remove(tempDir, { recursive: true });
-    }
+    // Check that _fresh directory was created
+    const freshDir = path.join(projectDir, "_fresh");
+    const stat = await Deno.stat(freshDir);
+    assertEquals(stat.isDirectory, true);
   },
+  sanitizeOps: false,
+  sanitizeResources: false,
 });
 
 Deno.test({
   name: "integration - dev server starts successfully",
-  ignore: true, // Enable when ready for full integration tests
+  ignore: false,
   async fn() {
-    const tempDir = await Deno.makeTempDir();
-    const projectDir = path.join(tempDir, "test-dev-server");
+    await using tmp = await withTmpDir();
+    const projectDir = path.join(tmp.dir, "test-dev-server");
 
-    try {
-      await initProject(tempDir, {
-        directory: "test-dev-server",
-        builder: false,
-        tailwind: false,
-        vscode: false,
-        docker: false,
-        force: true,
-        versions: { fresh: "2.1.1" },
-      });
+    await initProject(tmp.dir, {
+      directory: "test-dev-server",
+      builder: false,
+      tailwind: false,
+      vscode: false,
+      docker: false,
+      force: true,
+      versions: { fresh: "2.1.1" },
+    });
 
-      // Try to start dev server in background
-      const { success } = await runCommand(
-        projectDir,
-        ["deno", "task", "dev"],
-        { background: true },
-      );
-
-      // If we get here without hanging, the server started
-      assertEquals(success, true);
-    } finally {
-      await Deno.remove(tempDir, { recursive: true });
-    }
+    // Start dev server and verify it responds
+    await withChildProcessServer(
+      {
+        cwd: projectDir,
+        args: ["task", "dev"],
+      },
+      async (address) => {
+        // Verify the server responds
+        const res = await fetch(address);
+        assertEquals(res.status, 200);
+      },
+    );
   },
+  sanitizeOps: false,
+  sanitizeResources: false,
 });
