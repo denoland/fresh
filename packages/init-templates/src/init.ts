@@ -106,10 +106,14 @@ export async function initProject(
 
   const templateDir = path.join(getTemplateDir(), templateName);
 
-  // Collect truly additive variants (docker, vscode)
+  // Collect truly additive variants (docker, vscode, vscode-tailwind)
   const variants: string[] = [];
   if (useVSCode) {
     variants.push("vscode");
+    // Add Tailwind-specific VS Code support if both are enabled
+    if (useTailwind) {
+      variants.push("vscode-tailwind");
+    }
   }
   if (useDocker) {
     variants.push("docker");
@@ -117,11 +121,6 @@ export async function initProject(
 
   // Process template
   await processTemplate(templateDir, variants, projectDir, variables);
-
-  // Add conditional tailwind.json for VS Code + Tailwind
-  if (useVSCode && useTailwind) {
-    await writeTailwindJson(projectDir);
-  }
 
   // Fetch and write favicon
   await fetchFavicon(projectDir);
@@ -307,89 +306,6 @@ async function applyVariant(
       await processFile(srcPath, targetDir, entry.name, variables);
     }
   }
-}
-
-/**
- * Write Tailwind CSS custom data for VS Code.
- * Provides autocomplete for Tailwind directives in CSS files.
- */
-async function writeTailwindJson(projectDir: string): Promise<void> {
-  const tailwindCustomData = {
-    "version": 1.1,
-    "atDirectives": [
-      {
-        "name": "@tailwind",
-        "description":
-          "Use the `@tailwind` directive to insert Tailwind's `base`, `components`, `utilities` and `screens` styles into your CSS.",
-        "references": [
-          {
-            "name": "Tailwind Documentation",
-            "url":
-              "https://tailwindcss.com/docs/functions-and-directives#tailwind",
-          },
-        ],
-      },
-      {
-        "name": "@apply",
-        "description":
-          "Use the `@apply` directive to inline any existing utility classes into your own custom CSS. This is useful when you find a common utility pattern in your HTML that you'd like to extract to a new component.",
-        "references": [
-          {
-            "name": "Tailwind Documentation",
-            "url":
-              "https://tailwindcss.com/docs/functions-and-directives#apply",
-          },
-        ],
-      },
-      {
-        "name": "@responsive",
-        "description":
-          "You can generate responsive variants of your own classes by wrapping their definitions in the `@responsive` directive:\n```css\n@responsive {\n  .alert {\n    background-color: #E53E3E;\n  }\n}\n```\n",
-        "references": [
-          {
-            "name": "Tailwind Documentation",
-            "url":
-              "https://tailwindcss.com/docs/functions-and-directives#responsive",
-          },
-        ],
-      },
-      {
-        "name": "@screen",
-        "description":
-          "The `@screen` directive allows you to create media queries that reference your breakpoints by **name** instead of duplicating their values in your own CSS:\n```css\n@screen sm {\n  /* ... */\n}\n```\n…gets transformed into this:\n```css\n@media (min-width: 640px) {\n  /* ... */\n}\n```\n",
-        "references": [
-          {
-            "name": "Tailwind Documentation",
-            "url":
-              "https://tailwindcss.com/docs/functions-and-directives#screen",
-          },
-        ],
-      },
-      {
-        "name": "@variants",
-        "description":
-          "Generate `hover`, `focus`, `active` and other **variants** of your own utilities by wrapping their definitions in the `@variants` directive:\n```css\n@variants hover, focus {\n   .btn-brand {\n    background-color: #3182CE;\n  }\n}\n```\n",
-        "references": [
-          {
-            "name": "Tailwind Documentation",
-            "url":
-              "https://tailwindcss.com/docs/functions-and-directives#variants",
-          },
-        ],
-      },
-    ],
-  };
-
-  const tailwindJsonPath = path.join(
-    projectDir,
-    ".vscode",
-    "tailwind.json",
-  );
-  await fs.ensureDir(path.dirname(tailwindJsonPath));
-  await Deno.writeTextFile(
-    tailwindJsonPath,
-    JSON.stringify(tailwindCustomData, null, 2),
-  );
 }
 
 /**
