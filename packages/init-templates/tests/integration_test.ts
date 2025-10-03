@@ -192,11 +192,15 @@ Deno.test({
           html,
           "Fresh welcome message should appear",
         ).toContain("Welcome to Fresh");
-        // Check for counter island
+        // Check for counter buttons (verifies island is rendered)
         expect(
           html,
-          "Counter island should be present",
-        ).toContain("Counter");
+          "Counter buttons should be present",
+        ).toContain('id="increment"');
+        expect(
+          html,
+          "Counter buttons should be present",
+        ).toContain('id="decrement"');
         // Check for logo
         expect(
           html,
@@ -241,11 +245,15 @@ Deno.test({
           html,
           "Fresh welcome message should appear",
         ).toContain("Welcome to Fresh");
-        // Check for counter island
+        // Check for counter buttons (verifies island is rendered)
         expect(
           html,
-          "Counter island should be present",
-        ).toContain("Counter");
+          "Counter buttons should be present",
+        ).toContain('id="increment"');
+        expect(
+          html,
+          "Counter buttons should be present",
+        ).toContain('id="decrement"');
         // Check for logo
         expect(
           html,
