@@ -1,4 +1,4 @@
-import { assertEquals } from "@std/assert";
+import { expect } from "@std/expect";
 import * as path from "@std/path";
 import { initProject, resolveVersions } from "../src/init.ts";
 import { withTmpDir } from "../../fresh/src/test_utils.ts";
@@ -67,7 +67,7 @@ Deno.test({
       ["deno", "task", "check"],
     );
 
-    assertEquals(success, true, `Check failed: ${output}`);
+    expect(success, `Check failed: ${output}`).toBe(true);
   },
   sanitizeOps: false,
   sanitizeResources: false,
@@ -87,7 +87,7 @@ Deno.test({
       ["deno", "task", "check"],
     );
 
-    assertEquals(success, true, `Check failed: ${output}`);
+    expect(success, `Check failed: ${output}`).toBe(true);
   },
   sanitizeOps: false,
   sanitizeResources: false,
@@ -107,7 +107,7 @@ Deno.test({
       ["deno", "task", "check"],
     );
 
-    assertEquals(success, true, `Check failed: ${output}`);
+    expect(success, `Check failed: ${output}`).toBe(true);
   },
   sanitizeOps: false,
   sanitizeResources: false,
@@ -130,12 +130,12 @@ Deno.test({
       ["deno", "task", "build"],
     );
 
-    assertEquals(success, true, `Build failed: ${output}`);
+    expect(success, `Build failed: ${output}`).toBe(true);
 
     // Check that _fresh directory was created
     const freshDir = path.join(projectDir, "_fresh");
     const stat = await Deno.stat(freshDir);
-    assertEquals(stat.isDirectory, true);
+    expect(stat.isDirectory).toBe(true);
   },
   sanitizeOps: false,
   sanitizeResources: false,
@@ -155,12 +155,12 @@ Deno.test({
       ["deno", "task", "build"],
     );
 
-    assertEquals(success, true, `Build failed: ${output}`);
+    expect(success, `Build failed: ${output}`).toBe(true);
 
     // Check that _fresh directory was created
     const freshDir = path.join(projectDir, "_fresh");
     const stat = await Deno.stat(freshDir);
-    assertEquals(stat.isDirectory, true);
+    expect(stat.isDirectory).toBe(true);
   },
   sanitizeOps: false,
   sanitizeResources: false,
@@ -184,33 +184,30 @@ Deno.test({
       async (address) => {
         // Verify the home page responds with correct content
         const res = await fetch(address);
-        assertEquals(res.status, 200);
+        expect(res.status).toBe(200);
 
         const html = await res.text();
         // Check for Fresh welcome message
-        assertEquals(
-          html.includes("Welcome to Fresh"),
-          true,
+        expect(
+          html,
           "Fresh welcome message should appear",
-        );
+        ).toContain("Welcome to Fresh");
         // Check for counter island
-        assertEquals(
-          html.includes("Counter"),
-          true,
+        expect(
+          html,
           "Counter island should be present",
-        );
+        ).toContain("Counter");
         // Check for logo
-        assertEquals(
-          html.includes("logo.svg"),
-          true,
+        expect(
+          html,
           "Fresh logo should be present",
-        );
+        ).toContain("logo.svg");
 
         // Test the API route
         const apiRes = await fetch(`${address}/api/fresh`);
-        assertEquals(apiRes.status, 200);
+        expect(apiRes.status).toBe(200);
         const greeting = await apiRes.text();
-        assertEquals(greeting, "Hello, Fresh!", "API should return greeting");
+        expect(greeting, "API should return greeting").toBe("Hello, Fresh!");
       },
     );
   },
@@ -236,33 +233,30 @@ Deno.test({
       async (address) => {
         // Verify the home page responds with correct content
         const res = await fetch(address);
-        assertEquals(res.status, 200);
+        expect(res.status).toBe(200);
 
         const html = await res.text();
         // Check for Fresh welcome message
-        assertEquals(
-          html.includes("Welcome to Fresh"),
-          true,
+        expect(
+          html,
           "Fresh welcome message should appear",
-        );
+        ).toContain("Welcome to Fresh");
         // Check for counter island
-        assertEquals(
-          html.includes("Counter"),
-          true,
+        expect(
+          html,
           "Counter island should be present",
-        );
+        ).toContain("Counter");
         // Check for logo
-        assertEquals(
-          html.includes("logo.svg"),
-          true,
+        expect(
+          html,
           "Fresh logo should be present",
-        );
+        ).toContain("logo.svg");
 
         // Test the API route
         const apiRes = await fetch(`${address}/api/fresh`);
-        assertEquals(apiRes.status, 200);
+        expect(apiRes.status).toBe(200);
         const greeting = await apiRes.text();
-        assertEquals(greeting, "Hello, Fresh!", "API should return greeting");
+        expect(greeting, "API should return greeting").toBe("Hello, Fresh!");
       },
     );
   },

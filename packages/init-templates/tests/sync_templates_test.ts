@@ -1,4 +1,4 @@
-import { assertEquals } from "@std/assert";
+import { expect } from "@std/expect";
 import * as path from "@std/path";
 import * as fs from "@std/fs";
 
@@ -116,17 +116,17 @@ Deno.test("isTemplateSpecific - identifies template-specific files", () => {
   }
 
   // Should return true for template-specific files
-  assertEquals(isTemplateSpecific("deno.json.tmpl"), true);
-  assertEquals(isTemplateSpecific("vite.config.ts"), true);
-  assertEquals(isTemplateSpecific("assets/styles.css"), true);
-  assertEquals(isTemplateSpecific("static/styles.css"), true);
-  assertEquals(isTemplateSpecific("path/to/deno.json.tmpl"), true);
+  expect(isTemplateSpecific("deno.json.tmpl")).toBe(true);
+  expect(isTemplateSpecific("vite.config.ts")).toBe(true);
+  expect(isTemplateSpecific("assets/styles.css")).toBe(true);
+  expect(isTemplateSpecific("static/styles.css")).toBe(true);
+  expect(isTemplateSpecific("path/to/deno.json.tmpl")).toBe(true);
 
   // Should return false for common files
-  assertEquals(isTemplateSpecific("main.ts"), false);
-  assertEquals(isTemplateSpecific("components/Button.tsx"), false);
-  assertEquals(isTemplateSpecific("routes/index.tsx"), false);
-  assertEquals(isTemplateSpecific("README.md"), false);
+  expect(isTemplateSpecific("main.ts")).toBe(false);
+  expect(isTemplateSpecific("components/Button.tsx")).toBe(false);
+  expect(isTemplateSpecific("routes/index.tsx")).toBe(false);
+  expect(isTemplateSpecific("README.md")).toBe(false);
 });
 
 /**
@@ -154,22 +154,14 @@ Deno.test("sync_templates - dry run does not modify files", async () => {
     const { code, stdout } = await process.output();
     const output = new TextDecoder().decode(stdout);
 
-    assertEquals(code, 0, "Sync script should exit successfully");
-    assertEquals(
-      output.includes("DRY RUN MODE"),
-      true,
-      "Should indicate dry run mode",
-    );
-    assertEquals(
-      output.includes("would be copied"),
-      true,
-      "Should show what would be copied",
-    );
+    expect(code).toBe(0);
+    expect(output).toContain("DRY RUN MODE");
+    expect(output).toContain("would be copied");
 
     // Verify templates are still empty (dry run didn't copy)
     const viteMain = path.join(tmpDir, "assets/template/vite/main.ts");
     const exists = await fs.exists(viteMain);
-    assertEquals(exists, false, "Dry run should not create files");
+    expect(exists).toBe(false);
   } finally {
     await Deno.remove(tmpDir, { recursive: true });
   }
@@ -199,12 +191,8 @@ Deno.test("sync_templates - syncs common files correctly", async () => {
     const { code, stdout } = await process.output();
     const output = new TextDecoder().decode(stdout);
 
-    assertEquals(code, 0, "Sync script should exit successfully");
-    assertEquals(
-      output.includes("Sync complete"),
-      true,
-      "Should indicate completion",
-    );
+    expect(code).toBe(0);
+    expect(output).toContain("Sync complete");
 
     // Verify common files were copied
     const viteMain = path.join(tmpDir, "assets/template/vite/main.ts");
@@ -217,25 +205,13 @@ Deno.test("sync_templates - syncs common files correctly", async () => {
       "assets/template/vite-tailwind/main.ts",
     );
 
-    assertEquals(
-      await fs.exists(viteMain),
-      true,
-      "Should copy main.ts to vite",
-    );
-    assertEquals(
-      await fs.exists(viteButton),
-      true,
-      "Should copy Button.tsx to vite",
-    );
-    assertEquals(
-      await fs.exists(viteTailwindMain),
-      true,
-      "Should copy main.ts to vite-tailwind",
-    );
+    expect(await fs.exists(viteMain)).toBe(true);
+    expect(await fs.exists(viteButton)).toBe(true);
+    expect(await fs.exists(viteTailwindMain)).toBe(true);
 
     // Verify content is correct
     const mainContent = await Deno.readTextFile(viteMain);
-    assertEquals(mainContent, "export const app = new App();");
+    expect(mainContent).toBe("export const app = new App();");
 
     // Verify template-specific files were NOT overwritten
     const viteDeno = path.join(tmpDir, "assets/template/vite/deno.json.tmpl");
@@ -249,21 +225,9 @@ Deno.test("sync_templates - syncs common files correctly", async () => {
     const configContent = await Deno.readTextFile(viteConfig);
     const stylesContent = await Deno.readTextFile(viteStyles);
 
-    assertEquals(
-      denoContent,
-      '{"imports": {"vite": "npm:vite"}}',
-      "Should preserve deno.json.tmpl",
-    );
-    assertEquals(
-      configContent,
-      "export default { plugins: [] }",
-      "Should preserve vite.config.ts",
-    );
-    assertEquals(
-      stylesContent,
-      ".fresh { color: blue; }",
-      "Should preserve styles.css",
-    );
+    expect(denoContent).toBe('{"imports": {"vite": "npm:vite"}}');
+    expect(configContent).toBe("export default { plugins: [] }");
+    expect(stylesContent).toBe(".fresh { color: blue; }");
 
     // Verify tailwind variant has different template-specific files
     const viteTailwindDeno = path.join(
@@ -283,21 +247,13 @@ Deno.test("sync_templates - syncs common files correctly", async () => {
     const tailwindConfigContent = await Deno.readTextFile(viteTailwindConfig);
     const tailwindStylesContent = await Deno.readTextFile(viteTailwindStyles);
 
-    assertEquals(
-      tailwindDenoContent,
+    expect(tailwindDenoContent).toBe(
       '{"imports": {"vite": "npm:vite", "tailwind": "npm:tailwindcss"}}',
-      "Should preserve tailwind deno.json.tmpl",
     );
-    assertEquals(
-      tailwindConfigContent,
+    expect(tailwindConfigContent).toBe(
       "export default { plugins: [tailwind()] }",
-      "Should preserve tailwind vite.config.ts",
     );
-    assertEquals(
-      tailwindStylesContent,
-      "@import 'tailwindcss';",
-      "Should preserve tailwind styles.css",
-    );
+    expect(tailwindStylesContent).toBe("@import 'tailwindcss';");
   } finally {
     await Deno.remove(tmpDir, { recursive: true });
   }
@@ -325,7 +281,7 @@ Deno.test("sync_templates - syncs builder templates", async () => {
     });
 
     const { code } = await process.output();
-    assertEquals(code, 0, "Sync script should exit successfully");
+    expect(code).toBe(0);
 
     // Verify builder files were copied
     const builderMain = path.join(tmpDir, "assets/template/builder/main.ts");
@@ -338,21 +294,9 @@ Deno.test("sync_templates - syncs builder templates", async () => {
       "assets/template/builder-tailwind/main.ts",
     );
 
-    assertEquals(
-      await fs.exists(builderMain),
-      true,
-      "Should copy main.ts to builder",
-    );
-    assertEquals(
-      await fs.exists(builderButton),
-      true,
-      "Should copy Button.tsx to builder",
-    );
-    assertEquals(
-      await fs.exists(builderTailwindMain),
-      true,
-      "Should copy main.ts to builder-tailwind",
-    );
+    expect(await fs.exists(builderMain)).toBe(true);
+    expect(await fs.exists(builderButton)).toBe(true);
+    expect(await fs.exists(builderTailwindMain)).toBe(true);
 
     // Verify template-specific files were preserved
     const builderStyles = path.join(
@@ -369,16 +313,8 @@ Deno.test("sync_templates - syncs builder templates", async () => {
       builderTailwindStyles,
     );
 
-    assertEquals(
-      stylesContent,
-      ".fresh { color: blue; }",
-      "Should preserve builder styles.css",
-    );
-    assertEquals(
-      tailwindStylesContent,
-      "@import 'tailwindcss';",
-      "Should preserve builder-tailwind styles.css",
-    );
+    expect(stylesContent).toBe(".fresh { color: blue; }");
+    expect(tailwindStylesContent).toBe("@import 'tailwindcss';");
   } finally {
     await Deno.remove(tmpDir, { recursive: true });
   }
@@ -411,8 +347,8 @@ Deno.test("sync_templates - handles missing base directory", async () => {
     const output = new TextDecoder().decode(stdout);
 
     // Should complete but report errors
-    assertEquals(code, 0, "Script should exit successfully");
-    assertEquals(output.includes("error"), true, "Should report errors");
+    expect(code).toBe(0);
+    expect(output).toContain("error");
   } finally {
     await Deno.remove(tmpDir, { recursive: true });
   }

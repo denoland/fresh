@@ -1,4 +1,4 @@
-import { assertEquals } from "@std/assert";
+import { expect } from "@std/expect";
 import * as path from "@std/path";
 
 Deno.test({
@@ -18,39 +18,15 @@ Deno.test({
     const { code, stdout } = await command.output();
     const output = new TextDecoder().decode(stdout);
 
-    assertEquals(code, 0, "Should exit with code 0");
-    assertEquals(
-      output.includes("@fresh/init-templates"),
-      true,
-      "Should show package name",
-    );
-    assertEquals(output.includes("USAGE:"), true, "Should show usage");
-    assertEquals(output.includes("OPTIONS:"), true, "Should show options");
-    assertEquals(
-      output.includes("--force"),
-      true,
-      "Should list --force option",
-    );
-    assertEquals(
-      output.includes("--tailwind"),
-      true,
-      "Should list --tailwind option",
-    );
-    assertEquals(
-      output.includes("--vscode"),
-      true,
-      "Should list --vscode option",
-    );
-    assertEquals(
-      output.includes("--docker"),
-      true,
-      "Should list --docker option",
-    );
-    assertEquals(
-      output.includes("--builder"),
-      true,
-      "Should list --builder option",
-    );
+    expect(code).toBe(0);
+    expect(output).toContain("@fresh/init-templates");
+    expect(output).toContain("USAGE:");
+    expect(output).toContain("OPTIONS:");
+    expect(output).toContain("--force");
+    expect(output).toContain("--tailwind");
+    expect(output).toContain("--vscode");
+    expect(output).toContain("--docker");
+    expect(output).toContain("--builder");
   },
   sanitizeOps: false,
   sanitizeResources: false,
@@ -81,17 +57,13 @@ Deno.test({
       const { code, stdout } = await command.output();
       const output = new TextDecoder().decode(stdout);
 
-      assertEquals(code, 0, "Should exit with code 0");
-      assertEquals(
-        output.includes("Project initialized!"),
-        true,
-        "Should show success message",
-      );
+      expect(code).toBe(0);
+      expect(output).toContain("Project initialized!");
 
       // Verify project structure
       const projectDir = path.join(tmpDir, projectName);
       const stat = await Deno.stat(projectDir);
-      assertEquals(stat.isDirectory, true, "Project directory should exist");
+      expect(stat.isDirectory).toBe(true);
 
       // Verify key files exist
       await Deno.stat(path.join(projectDir, "deno.json"));
@@ -134,7 +106,7 @@ Deno.test({
       });
 
       const { code } = await command.output();
-      assertEquals(code, 0, "Should exit with code 0");
+      expect(code).toBe(0);
 
       // Verify builder project structure
       const projectDir = path.join(tmpDir, projectName);
