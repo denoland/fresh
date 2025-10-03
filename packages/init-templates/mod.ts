@@ -32,4 +32,3 @@ export type {
   ResolvedVersions,
   TemplateVariables,
 } from "./src/types.ts";
-export { InitError } from "./src/errors.ts";
