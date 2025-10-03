@@ -19,6 +19,18 @@ drawbacks:
    changes
 4. **Readability**: Template content is mixed with generation logic
 
+## Design Philosophy
+
+**Dead simple. Prefer redundancy over cleverness.**
+
+- Each template folder contains a complete, standalone project
+- No overlay systems, no patch files, no JSON merging
+- Browse a template directory to see exactly what gets generated
+- Variants are truly additive (only add files, never modify existing ones)
+
+This means some file duplication (e.g., `Button.tsx` exists in 4 templates), but
+the mental model is trivial: **what you see is what you get**.
+
 ## Architecture
 
 ### Directory Structure
@@ -39,14 +51,13 @@ packages/init-templates/
 │   ├── template_test.ts
 │   └── fixtures/
 ├── templates/
-│   ├── template-vite/
+│   ├── vite/                        # Complete Vite project (no Tailwind)
 │   │   ├── __gitignore
 │   │   ├── README.md
 │   │   ├── deno.json.tmpl
-│   │   ├── vite.config.ts.tmpl
+│   │   ├── vite.config.ts
 │   │   ├── main.ts
 │   │   ├── client.ts
-│   │   ├── utils.ts
 │   │   ├── assets/
 │   │   │   └── styles.css
 │   │   ├── components/
@@ -59,40 +70,36 @@ packages/init-templates/
 │   │   │   └── api/
 │   │   │       └── [name].tsx
 │   │   └── static/
-│   │       ├── logo.svg
-│   │       └── favicon.ico
-│   ├── template-builder/
+│   │       └── logo.svg
+│   ├── vite-tailwind/               # Complete Vite + Tailwind project
+│   │   ├── (same structure as vite/)
+│   │   ├── vite.config.ts           # ← With tailwindcss() plugin
+│   │   ├── deno.json.tmpl           # ← With Tailwind imports
+│   │   └── assets/
+│   │       └── styles.css           # ← Tailwind @imports
+│   ├── builder/                     # Complete Builder project (no Tailwind)
 │   │   ├── __gitignore
 │   │   ├── README.md
 │   │   ├── deno.json.tmpl
 │   │   ├── dev.ts.tmpl
 │   │   ├── main.ts
-│   │   ├── utils.ts
-│   │   ├── components/
-│   │   ├── islands/
-│   │   ├── routes/
+│   │   ├── (routes, islands, components...)
 │   │   └── static/
-│   ├── variants/
-│   │   ├── tailwind-vite/
-│   │   │   ├── assets/
-│   │   │   │   └── styles.css
-│   │   │   ├── deno.json.patch
-│   │   │   └── vite.config.ts.patch
-│   │   ├── tailwind-builder/
-│   │   │   ├── static/
-│   │   │   │   └── styles.css
-│   │   │   ├── deno.json.patch
-│   │   │   └── dev.ts.patch
-│   │   ├── docker/
-│   │   │   └── Dockerfile
-│   │   └── vscode/
-│   │       └── __vscode/
-│   │           ├── settings.json.tmpl
-│   │           ├── extensions.json.tmpl
-│   │           └── tailwind.json (conditional)
-│   └── shared/
-│       └── assets/
-│           └── gradient.css
+│   │       ├── styles.css
+│   │       └── logo.svg
+│   ├── builder-tailwind/            # Complete Builder + Tailwind project
+│   │   ├── (same structure as builder/)
+│   │   ├── dev.ts.tmpl              # ← With tailwindcss() plugin
+│   │   ├── deno.json.tmpl           # ← With Tailwind imports
+│   │   └── static/
+│   │       └── styles.css           # ← Tailwind @imports
+│   └── variants/
+│       ├── docker/                  # Additive: just adds Dockerfile
+│       │   └── Dockerfile
+│       └── vscode/                  # Additive: just adds .vscode/
+│           └── __vscode/
+│               ├── settings.json.tmpl
+│               └── extensions.json.tmpl
 ```
 
 ### File Naming Conventions
@@ -134,40 +141,46 @@ syntax:
 
 The template engine (`src/init.ts`) performs the following steps:
 
-1. **Selection**: Determine base template (vite/builder) based on `--builder`
-   flag
-2. **Variant Collection**: Collect applicable variants based on flags
-   (--tailwind, --vscode, --docker)
-3. **Variable Resolution**: Fetch latest versions from JSR and create variable
+1. **Template Selection**: Pick the complete template based on options:
+   ```typescript
+   if (useVite && useTailwind) templateName = "vite-tailwind";
+   else if (useVite) templateName = "vite";
+   else if (useTailwind) templateName = "builder-tailwind";
+   else templateName = "builder";
+   ```
+
+2. **Variable Resolution**: Fetch latest versions from JSR and create variable
    context
-4. **File Processing**:
-   - Copy base template files
-   - Apply variant overlays (patch files or additional files)
+
+3. **Template Processing**:
+   - Copy all files from the selected complete template
    - Process `.tmpl` files with variable substitution
-   - Rename `_` prefixed files
+   - Rename `__` prefixed files to `.` prefixed
+
+4. **Variant Application** (optional):
+   - Copy files from docker/ variant if requested
+   - Copy files from vscode/ variant if requested
+
 5. **Validation**: Ensure all required files are present
 
-### Variant System
+That's it! No overlays, no patches, no JSON merging.
 
-Variants allow modular additions to base templates without duplication:
+### Variant System (Simplified)
 
-- **Additive variants**: Add new files (e.g., `Dockerfile`, `.vscode/*`)
-- **Patch variants**: Modify existing template files using JSON merge or string
-  replacement
-- **Conditional content**: Template files can include conditional blocks
+Variants are **truly additive** - they only add new files, never modify existing
+ones:
 
-Example patch file (`deno.json.patch`):
+- **`docker/`**: Adds just a `Dockerfile`
+- **`vscode/`**: Adds just a `.vscode/` folder
 
-```json
-{
-  "imports": {
-    "tailwindcss": "npm:tailwindcss@^{{TAILWIND_VERSION}}",
-    "@tailwindcss/vite": "npm:@tailwindcss/vite@^4.1.12"
-  }
-}
-```
+If a feature requires modifying existing files (like Tailwind does), it gets its
+own complete template instead of being a variant. This is why we have:
 
-This gets merged into the base `deno.json.tmpl` during generation.
+- `vite/` and `vite-tailwind/` (not `vite/` + `variants/tailwind-vite/`)
+- `builder/` and `builder-tailwind/` (not `builder/` +
+  `variants/tailwind-builder/`)
+
+**Trade-off**: Some file duplication, but zero complexity.
 
 ## API Design
 
@@ -215,14 +228,16 @@ export async function initProject(
   options: InitOptions,
 ): Promise<void>;
 
-async function selectTemplate(options: InitOptions): Promise<string>;
-async function collectVariants(options: InitOptions): Promise<string[]>;
 async function resolveVariables(
   options: InitOptions,
 ): Promise<TemplateVariables>;
 async function processTemplate(
   templateDir: string,
-  variants: string[],
+  targetDir: string,
+  variables: TemplateVariables,
+): Promise<void>;
+async function applyVariant(
+  variantDir: string,
   targetDir: string,
   variables: TemplateVariables,
 ): Promise<void>;
@@ -232,11 +247,13 @@ async function processTemplate(
 
 ### Unit Tests
 
-1. **Template Selection**: Verify correct template is selected based on flags
-2. **Variable Substitution**: Test variable replacement in `.tmpl` files
-3. **File Copying**: Ensure files are copied with correct names
-4. **Variant Application**: Test patch merging and overlay logic
-5. **Conditional Logic**: Test boolean flags affect output correctly
+1. **Template Existence**: Verify all 4 complete templates have required files
+2. **Tailwind Integration**: Verify tailwind templates actually include Tailwind
+3. **Variable Substitution**: Test variable replacement in `.tmpl` files
+4. **File Copying**: Ensure files are copied with correct names
+5. **Variant Application**: Test docker and vscode variants add files correctly
+6. **Variant Application**: Test patch merging and overlay logic
+7. **Conditional Logic**: Test boolean flags affect output correctly
 
 ### Integration Tests (Scaffolding)
 

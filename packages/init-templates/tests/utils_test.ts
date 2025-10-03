@@ -2,7 +2,6 @@ import { expect } from "@std/expect";
 import {
   getLatestVersion,
   isDirectoryEmpty,
-  mergeJson,
   processFilename,
   substituteVariables,
 } from "../src/utils.ts";
@@ -33,54 +32,6 @@ Deno.test("substituteVariables - handles boolean values", () => {
   const variables = { ENABLED: true };
   const result = substituteVariables(template, variables);
   expect(result).toBe("Enabled: true");
-});
-
-Deno.test("mergeJson - merges objects deeply", () => {
-  const base = {
-    a: 1,
-    b: { c: 2, d: 3 },
-    e: [1, 2, 3],
-  };
-
-  const patch = {
-    b: { d: 4, f: 5 },
-    e: [4, 5],
-    g: 6,
-  };
-
-  const result = mergeJson(base, patch);
-
-  expect(result).toEqual({
-    a: 1,
-    b: { c: 2, d: 4, f: 5 },
-    e: [4, 5], // Arrays are replaced, not merged
-    g: 6,
-  });
-});
-
-Deno.test("mergeJson - handles nested objects", () => {
-  const base = {
-    compilerOptions: {
-      lib: ["dom"],
-      jsx: "precompile",
-    },
-  };
-
-  const patch = {
-    compilerOptions: {
-      types: ["vite/client"],
-    },
-  };
-
-  const result = mergeJson(base, patch);
-
-  expect(result).toEqual({
-    compilerOptions: {
-      lib: ["dom"],
-      jsx: "precompile",
-      types: ["vite/client"],
-    },
-  });
 });
 
 Deno.test("isDirectoryEmpty - returns true for non-existent directory", async () => {

@@ -12,10 +12,20 @@ approach.
 ## Features
 
 - 📁 **File-based templates**: All project files stored as proper templates
-- 🔧 **Modular variants**: Mix and match features (Tailwind, VS Code, Docker)
+- 🎯 **Dead simple**: Each template folder contains exactly what gets generated
+- ➕ **Additive variants**: Docker and VS Code support as simple overlays
 - 🧪 **Well-tested**: Comprehensive unit tests for template processing
-- 🔄 **Variable substitution**: Dynamic content using template variables
+- 🔄 **Variable substitution**: Minimal dynamic content using template variables
 - 🎯 **Type-safe**: Full TypeScript support throughout
+
+## Philosophy
+
+**Simplicity over cleverness.** Each template is a complete, standalone project.
+No overlay systems, no patch files, no JSON merging. Just copy files and
+substitute a few variables.
+
+Want to see what a Vite + Tailwind project looks like? Browse
+`templates/vite-tailwind/`. That's it.
 
 ## Architecture
 
@@ -38,9 +48,17 @@ await initProject(Deno.cwd(), {
 
 Templates are organized in the `templates/` directory:
 
-- `template-vite/`: Vite-based project template (default)
-- `template-builder/`: Legacy builder-based template
-- `variants/`: Modular additions (Tailwind, VS Code, Docker)
+**Complete Templates:**
+
+- `vite/`: Vite-based project (no Tailwind)
+- `vite-tailwind/`: Vite-based project with Tailwind CSS
+- `builder/`: Builder-based project (no Tailwind)
+- `builder-tailwind/`: Builder-based project with Tailwind CSS
+
+**Additive Variants:**
+
+- `variants/docker/`: Adds Dockerfile only
+- `variants/vscode/`: Adds .vscode/ folder only
 
 ## Development
 
@@ -61,19 +79,31 @@ Templates support variable substitution using `{{VARIABLE_NAME}}` syntax:
 - `{{PREACT_VERSION}}`: Preact version
 - And more... (see DESIGN.md for full list)
 
-## Adding New Templates
+## Adding New Complete Templates
 
-1. Create a new directory under `templates/`
-2. Add template files (use `.tmpl` extension for files with variables)
-3. Update the template selection logic in `src/init.ts`
-4. Add tests for the new template
+1. Create a new directory under `templates/` (e.g., `vite-typescript/`)
+2. Add ALL files the template needs (complete, standalone)
+3. Use `.tmpl` extension for files with variables
+4. Update the template selection logic in `src/init.ts`
+5. Add tests in `tests/template_test.ts`
+
+**No overlays, no patches, no magic.** Each template is what you get.
 
 ## Adding Variants
 
+Variants should be **truly additive** - they only add new files or folders,
+never modify existing ones.
+
 1. Create a new directory under `templates/variants/`
-2. Add files to overlay on base templates
-3. Use `.patch` files to merge changes into existing template files
-4. Update variant collection logic in `src/init.ts`
+2. Add only new files (e.g., `Dockerfile`, `.vscode/` folder)
+3. Update variant collection logic in `src/init.ts`
+4. Add tests
+
+Examples of good variants: `docker/` (adds Dockerfile), `vscode/` (adds
+.vscode/)
+
+Examples of bad variants: modifying existing files (use complete templates
+instead)
 
 ## License
 
