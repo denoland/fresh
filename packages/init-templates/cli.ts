@@ -10,7 +10,6 @@
 import { parseArgs } from "@std/cli/parse-args";
 import * as colors from "@std/fmt/colors";
 import { initProject, resolveVersions } from "./src/init.ts";
-import { InitError } from "./src/errors.ts";
 import type { InitOptions, ResolvedInitOptions } from "./src/types.ts";
 import initConfig from "./deno.json" with { type: "json" };
 
@@ -55,7 +54,7 @@ const CONFIRM_VSCODE_MESSAGE = `Do you use ${colors.cyan("VS Code")}?`;
 
 function error(message: string): never {
   console.error(`%cerror%c: ${message}`, "color: red; font-weight: bold", "");
-  throw new InitError(message);
+  Deno.exit(1);
 }
 
 async function main() {
@@ -159,14 +158,7 @@ async function main() {
   console.log();
 
   // Call the template engine (pure processing, no output)
-  try {
-    await initProject(Deno.cwd(), resolvedOptions, versions);
-  } catch (err) {
-    if (err instanceof InitError) {
-      Deno.exit(1);
-    }
-    throw err;
-  }
+  await initProject(Deno.cwd(), resolvedOptions, versions);
 
   // Display success messages
   console.log(
