@@ -34,6 +34,12 @@ init-templates/
 └── tests/                # Comprehensive test suite
 ```
 
+**Note on structure:** `cli.ts` and `sync_templates.ts` are kept in the root
+(not `src/`) because they are executable entry points, not library code. This
+makes their role immediately visible: `cli.ts` is the CLI tool,
+`sync_templates.ts` is the maintenance script. The `src/` directory contains
+only library implementation code meant to be imported.
+
 ## Template Maintenance Workflow
 
 To reduce duplication, common files are stored in `assets/base/` and synced to
