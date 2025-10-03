@@ -27,14 +27,19 @@ await initProject(Deno.cwd(), {
 
 ## Templates
 
-**Complete Templates** (in `templates/`):
+**Complete Templates** (in `assets/template/`):
 
 - `vite/` - Vite without Tailwind
 - `vite-tailwind/` - Vite with Tailwind
 - `builder/` - Builder without Tailwind
 - `builder-tailwind/` - Builder with Tailwind
 
-**Variants** (in `variants/`, additive only):
+**Base Templates** (in `assets/base/`, for maintenance):
+
+- `vite/` - Common files shared by vite and vite-tailwind
+- `builder/` - Common files shared by builder and builder-tailwind
+
+**Variants** (in `assets/variants/`, additive only):
 
 - `docker/` - Adds Dockerfile
 - `vscode/` - Adds .vscode/ config
@@ -46,11 +51,29 @@ await initProject(Deno.cwd(), {
 - `filename.tmpl` → Variable substitution with `{{VAR_NAME}}`
 - Other files copied as-is
 
+## Template Maintenance
+
+To maintain common files across template variants:
+
+1. **Edit base templates**: Modify files in `assets/base/vite/` or
+   `assets/base/builder/`
+2. **Sync changes**: Run `deno task sync` to copy to template variants
+3. **Template-specific files** are never overwritten:
+   - `deno.json.tmpl` (different dependencies per variant)
+   - `vite.config.ts` (Tailwind plugin configuration)
+   - `assets/styles.css` / `static/styles.css` (Tailwind imports)
+
+```bash
+deno task sync           # Sync base → templates
+deno task sync --dry-run # Preview changes without applying
+```
+
 ## Development
 
 ```bash
 deno task test    # Run tests
 deno task check   # Check code
+deno task sync    # Sync base templates
 ```
 
 See [DESIGN.md](./DESIGN.md) for architecture details.
