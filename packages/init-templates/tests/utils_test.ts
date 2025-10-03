@@ -1,4 +1,4 @@
-import { assertEquals, assertExists } from "@std/assert";
+import { expect } from "@std/expect";
 import {
   getLatestVersion,
   isDirectoryEmpty,
@@ -8,31 +8,31 @@ import {
 } from "../src/utils.ts";
 
 Deno.test("processFilename - converts double underscore prefix to dot", () => {
-  assertEquals(processFilename("__gitignore"), ".gitignore");
-  assertEquals(processFilename("__vscode"), ".vscode");
-  assertEquals(processFilename("_app.tsx"), "_app.tsx");
-  assertEquals(processFilename("regular-file.ts"), "regular-file.ts");
+  expect(processFilename("__gitignore")).toBe(".gitignore");
+  expect(processFilename("__vscode")).toBe(".vscode");
+  expect(processFilename("_app.tsx")).toBe("_app.tsx");
+  expect(processFilename("regular-file.ts")).toBe("regular-file.ts");
 });
 
 Deno.test("substituteVariables - replaces template variables", () => {
   const template = "Hello {{NAME}}, version {{VERSION}}!";
   const variables = { NAME: "Fresh", VERSION: "2.0.0" };
   const result = substituteVariables(template, variables);
-  assertEquals(result, "Hello Fresh, version 2.0.0!");
+  expect(result).toBe("Hello Fresh, version 2.0.0!");
 });
 
 Deno.test("substituteVariables - handles multiple occurrences", () => {
   const template = "{{X}} + {{X}} = {{Y}}";
   const variables = { X: "1", Y: "2" };
   const result = substituteVariables(template, variables);
-  assertEquals(result, "1 + 1 = 2");
+  expect(result).toBe("1 + 1 = 2");
 });
 
 Deno.test("substituteVariables - handles boolean values", () => {
   const template = "Enabled: {{ENABLED}}";
   const variables = { ENABLED: true };
   const result = substituteVariables(template, variables);
-  assertEquals(result, "Enabled: true");
+  expect(result).toBe("Enabled: true");
 });
 
 Deno.test("mergeJson - merges objects deeply", () => {
@@ -50,7 +50,7 @@ Deno.test("mergeJson - merges objects deeply", () => {
 
   const result = mergeJson(base, patch);
 
-  assertEquals(result, {
+  expect(result).toEqual({
     a: 1,
     b: { c: 2, d: 4, f: 5 },
     e: [4, 5], // Arrays are replaced, not merged
@@ -74,7 +74,7 @@ Deno.test("mergeJson - handles nested objects", () => {
 
   const result = mergeJson(base, patch);
 
-  assertEquals(result, {
+  expect(result).toEqual({
     compilerOptions: {
       lib: ["dom"],
       jsx: "precompile",
@@ -85,7 +85,7 @@ Deno.test("mergeJson - handles nested objects", () => {
 
 Deno.test("isDirectoryEmpty - returns true for non-existent directory", async () => {
   const isEmpty = await isDirectoryEmpty("/non/existent/path");
-  assertEquals(isEmpty, true);
+  expect(isEmpty).toBe(true);
 });
 
 Deno.test("isDirectoryEmpty - returns false for directory with files", async () => {
@@ -93,7 +93,7 @@ Deno.test("isDirectoryEmpty - returns false for directory with files", async () 
   await Deno.writeTextFile(`${tempDir}/test.txt`, "test");
 
   const isEmpty = await isDirectoryEmpty(tempDir);
-  assertEquals(isEmpty, false);
+  expect(isEmpty).toBe(false);
 
   await Deno.remove(tempDir, { recursive: true });
 });
@@ -102,7 +102,7 @@ Deno.test("isDirectoryEmpty - returns true for empty directory", async () => {
   const tempDir = await Deno.makeTempDir();
 
   const isEmpty = await isDirectoryEmpty(tempDir);
-  assertEquals(isEmpty, true);
+  expect(isEmpty).toBe(true);
 
   await Deno.remove(tempDir);
 });
@@ -112,20 +112,20 @@ Deno.test("isDirectoryEmpty - returns true for directory with only .git", async 
   await Deno.mkdir(`${tempDir}/.git`);
 
   const isEmpty = await isDirectoryEmpty(tempDir);
-  assertEquals(isEmpty, true);
+  expect(isEmpty).toBe(true);
 
   await Deno.remove(tempDir, { recursive: true });
 });
 
 Deno.test("getLatestVersion - returns fallback on error", async () => {
   const version = await getLatestVersion("@nonexistent/package", "1.0.0");
-  assertEquals(version, "1.0.0");
+  expect(version).toBe("1.0.0");
 });
 
 Deno.test("getLatestVersion - fetches real version", async () => {
   // This test requires network access
   const version = await getLatestVersion("@std/assert", "0.0.1");
-  assertExists(version);
+  expect(version).toBeTruthy();
   // Should return something other than fallback
   // (unless there's a network error, in which case it returns fallback)
 });

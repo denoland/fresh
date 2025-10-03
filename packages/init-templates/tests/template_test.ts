@@ -1,4 +1,4 @@
-import { assertEquals, assertExists } from "@std/assert";
+import { expect } from "@std/expect";
 import * as path from "@std/path";
 import { getTemplateDir } from "../src/utils.ts";
 
@@ -25,7 +25,8 @@ Deno.test("template-vite - has all required files", async () => {
   for (const file of requiredFiles) {
     const filePath = path.join(templateDir, file);
     const stat = await Deno.stat(filePath);
-    assertExists(stat, `Template file should exist: ${file}`);
+    expect(stat).toBeTruthy();
+    expect(stat.isFile).toBe(true);
   }
 });
 
@@ -51,7 +52,8 @@ Deno.test("template-builder - has all required files", async () => {
   for (const file of requiredFiles) {
     const filePath = path.join(templateDir, file);
     const stat = await Deno.stat(filePath);
-    assertExists(stat, `Template file should exist: ${file}`);
+    expect(stat).toBeTruthy();
+    expect(stat.isFile).toBe(true);
   }
 });
 
@@ -60,10 +62,10 @@ Deno.test("template-vite deno.json.tmpl - contains template variables", async ()
   const denoJsonPath = path.join(templateDir, "deno.json.tmpl");
   const content = await Deno.readTextFile(denoJsonPath);
 
-  assertEquals(content.includes("{{FRESH_VERSION}}"), true);
-  assertEquals(content.includes("{{PREACT_VERSION}}"), true);
-  assertEquals(content.includes("{{PREACT_SIGNALS_VERSION}}"), true);
-  assertEquals(content.includes("{{VITE_VERSION}}"), true);
+  expect(content).toContain("{{FRESH_VERSION}}");
+  expect(content).toContain("{{PREACT_VERSION}}");
+  expect(content).toContain("{{PREACT_SIGNALS_VERSION}}");
+  expect(content).toContain("{{VITE_VERSION}}");
 });
 
 Deno.test("template-vite _app.tsx.tmpl - contains PROJECT_NAME variable", async () => {
@@ -71,7 +73,7 @@ Deno.test("template-vite _app.tsx.tmpl - contains PROJECT_NAME variable", async 
   const appPath = path.join(templateDir, "routes/_app.tsx.tmpl");
   const content = await Deno.readTextFile(appPath);
 
-  assertEquals(content.includes("{{PROJECT_NAME}}"), true);
+  expect(content).toContain("{{PROJECT_NAME}}");
 });
 
 Deno.test("variants/tailwind-vite - has required files", async () => {
@@ -89,7 +91,8 @@ Deno.test("variants/tailwind-vite - has required files", async () => {
   for (const file of requiredFiles) {
     const filePath = path.join(variantDir, file);
     const stat = await Deno.stat(filePath);
-    assertExists(stat, `Variant file should exist: ${file}`);
+    expect(stat).toBeTruthy();
+    expect(stat.isFile).toBe(true);
   }
 });
 
@@ -108,7 +111,8 @@ Deno.test("variants/tailwind-builder - has required files", async () => {
   for (const file of requiredFiles) {
     const filePath = path.join(variantDir, file);
     const stat = await Deno.stat(filePath);
-    assertExists(stat, `Variant file should exist: ${file}`);
+    expect(stat).toBeTruthy();
+    expect(stat.isFile).toBe(true);
   }
 });
 
@@ -117,10 +121,11 @@ Deno.test("variants/docker - has Dockerfile", async () => {
   const dockerfilePath = path.join(variantDir, "Dockerfile");
 
   const stat = await Deno.stat(dockerfilePath);
-  assertExists(stat);
+  expect(stat).toBeTruthy();
+  expect(stat.isFile).toBe(true);
 
   const content = await Deno.readTextFile(dockerfilePath);
-  assertEquals(content.includes("{{DENO_VERSION}}"), true);
+  expect(content).toContain("{{DENO_VERSION}}");
 });
 
 Deno.test("variants/vscode - has required files", async () => {
@@ -134,7 +139,8 @@ Deno.test("variants/vscode - has required files", async () => {
   for (const file of requiredFiles) {
     const filePath = path.join(variantDir, file);
     const stat = await Deno.stat(filePath);
-    assertExists(stat, `Variant file should exist: ${file}`);
+    expect(stat).toBeTruthy();
+    expect(stat.isFile).toBe(true);
   }
 });
 
@@ -146,7 +152,7 @@ Deno.test("variants/tailwind-vite/deno.json.patch - valid JSON", async () => {
   const content = await Deno.readTextFile(patchPath);
 
   // Should have template variables
-  assertEquals(content.includes("{{TAILWINDCSS_VERSION}}"), true);
+  expect(content).toContain("{{TAILWINDCSS_VERSION}}");
 
   // After replacing variables, should be valid JSON
   const replaced = content.replace(/\{\{[^}]+\}\}/g, "1.0.0");
