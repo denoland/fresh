@@ -127,6 +127,14 @@ export function getTemplateDir(): string {
 }
 
 /**
+ * Get the variants directory path.
+ */
+export function getVariantsDir(): string {
+  const moduleDir = path.dirname(path.fromFileUrl(import.meta.url));
+  return path.join(moduleDir, "..", "variants");
+}
+
+/**
  * Prompt user for confirmation (or use provided value).
  */
 export function confirmOrValue(

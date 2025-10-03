@@ -87,19 +87,19 @@ packages/init-templates/
 │   │   └── static/
 │   │       ├── styles.css
 │   │       └── logo.svg
-│   ├── builder-tailwind/            # Complete Builder + Tailwind project
-│   │   ├── (same structure as builder/)
-│   │   ├── dev.ts.tmpl              # ← With tailwindcss() plugin
-│   │   ├── deno.json.tmpl           # ← With Tailwind imports
-│   │   └── static/
-│   │       └── styles.css           # ← Tailwind @imports
-│   └── variants/
-│       ├── docker/                  # Additive: just adds Dockerfile
-│       │   └── Dockerfile
-│       └── vscode/                  # Additive: just adds .vscode/
-│           └── __vscode/
-│               ├── settings.json.tmpl
-│               └── extensions.json.tmpl
+│   └── builder-tailwind/            # Complete Builder + Tailwind project
+│       ├── (same structure as builder/)
+│       ├── dev.ts.tmpl              # ← With tailwindcss() plugin
+│       ├── deno.json.tmpl           # ← With Tailwind imports
+│       └── static/
+│           └── styles.css           # ← Tailwind @imports
+└── variants/                        # Additive variants (at package root)
+    ├── docker/                      # Additive: just adds Dockerfile
+    │   └── Dockerfile
+    └── vscode/                      # Additive: just adds .vscode/
+        └── __vscode/
+            ├── settings.json.tmpl
+            └── extensions.json.tmpl
 ```
 
 ### File Naming Conventions
@@ -176,9 +176,10 @@ ones:
 If a feature requires modifying existing files (like Tailwind does), it gets its
 own complete template instead of being a variant. This is why we have:
 
-- `vite/` and `vite-tailwind/` (not `vite/` + `variants/tailwind-vite/`)
-- `builder/` and `builder-tailwind/` (not `builder/` +
-  `variants/tailwind-builder/`)
+- `templates/vite/` and `templates/vite-tailwind/` (not `templates/vite/` +
+  variant overlay)
+- `templates/builder/` and `templates/builder-tailwind/` (not
+  `templates/builder/` + variant overlay)
 
 **Trade-off**: Some file duplication, but zero complexity.
 

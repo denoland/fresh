@@ -8,6 +8,7 @@ import {
   confirmOrValue,
   getLatestVersion,
   getTemplateDir,
+  getVariantsDir,
   isDirectoryEmpty,
   processFilename,
   substituteVariables,
@@ -206,7 +207,7 @@ async function processTemplate(
   await processDirectory(templateDir, targetDir, variables);
 
   // Apply variants
-  const variantsDir = path.join(getTemplateDir(), "variants");
+  const variantsDir = getVariantsDir();
   for (const variant of variants) {
     const variantDir = path.join(variantsDir, variant);
     try {

@@ -55,7 +55,7 @@ Templates are organized in the `templates/` directory:
 - `builder/`: Builder-based project (no Tailwind)
 - `builder-tailwind/`: Builder-based project with Tailwind CSS
 
-**Additive Variants:**
+**Additive Variants** (at package root, separate from templates):
 
 - `variants/docker/`: Adds Dockerfile only
 - `variants/vscode/`: Adds .vscode/ folder only
@@ -94,7 +94,7 @@ Templates support variable substitution using `{{VARIABLE_NAME}}` syntax:
 Variants should be **truly additive** - they only add new files or folders,
 never modify existing ones.
 
-1. Create a new directory under `templates/variants/`
+1. Create a new directory under `variants/` (at package root level)
 2. Add only new files (e.g., `Dockerfile`, `.vscode/` folder)
 3. Update variant collection logic in `src/init.ts`
 4. Add tests

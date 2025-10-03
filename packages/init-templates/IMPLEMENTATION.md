@@ -87,7 +87,7 @@ substitute a few variables.
 - `static/logo.svg`: Fresh logo
 - `README.md`, `.gitignore`
 
-**Additive Variants (`templates/variants/`):**
+**Additive Variants (`variants/` at package root):**
 
 - **`docker/`**: Docker support
   - Adds only: `Dockerfile` with Deno version variable
@@ -135,7 +135,7 @@ Comprehensive test suite with 28 passing tests:
   - Usage examples
   - Template structure
   - Development guide
-  - Adding templates/variants
+  - Adding templates and variants
 
 ## Key Features
 
@@ -238,9 +238,9 @@ All 26 tests pass:
 1. **Maintainability**: Templates are real files with proper syntax highlighting
 2. **Version Control**: Meaningful diffs for template changes
 3. **Testability**: Can validate templates independently
-4. **Extensibility**: Add templates/variants by adding directories
+4. **Extensibility**: Add complete templates or additive variants as directories
 5. **Clarity**: Separation of concerns (logic vs content)
-6. **Reusability**: Variant system prevents duplication
+6. **Simplicity**: No complex overlay or patch systems
 7. **Type Safety**: Full TypeScript support
 
 ## Migration Path
@@ -293,13 +293,13 @@ packages/init-templates/
 │   ├── types.ts          # Type definitions (94 lines)
 │   └── errors.ts         # Error classes (9 lines)
 ├── templates/
-│   ├── template-vite/    # Vite-based template
-│   ├── template-builder/ # Builder-based template
-│   └── variants/         # Optional features
-│       ├── tailwind-vite/
-│       ├── tailwind-builder/
-│       ├── docker/
-│       └── vscode/
+│   ├── vite/             # Complete Vite project
+│   ├── vite-tailwind/    # Complete Vite + Tailwind
+│   ├── builder/          # Complete Builder project
+│   └── builder-tailwind/ # Complete Builder + Tailwind
+├── variants/             # Optional additive features
+│   ├── docker/
+│   └── vscode/
 └── tests/
     ├── utils_test.ts     # 12 tests
     ├── template_test.ts  # 9 tests

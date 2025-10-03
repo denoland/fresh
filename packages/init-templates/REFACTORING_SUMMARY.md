@@ -37,9 +37,9 @@ templates/
   vite-tailwind/           # Complete Vite + Tailwind project
   builder/                 # Complete plain Builder project
   builder-tailwind/        # Complete Builder + Tailwind project
-  variants/
-    docker/                # Just adds Dockerfile (truly additive)
-    vscode/                # Just adds .vscode/ folder (truly additive)
+variants/                  # At package root, separate from templates
+  docker/                  # Just adds Dockerfile (truly additive)
+  vscode/                  # Just adds .vscode/ folder (truly additive)
 ```
 
 ### 2. Code Simplification
