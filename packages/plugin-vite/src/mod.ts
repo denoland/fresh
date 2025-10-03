@@ -25,6 +25,8 @@ import { isBuiltin } from "node:module";
 import { load as stdLoadEnv } from "@std/dotenv";
 import path from "node:path";
 
+export type { FreshViteConfig };
+
 export function fresh(config?: FreshViteConfig): Plugin[] {
   const fConfig: ResolvedFreshViteConfig = {
     serverEntry: config?.serverEntry ?? "main.ts",
