@@ -9,17 +9,27 @@
   },
   "lint": {
     "rules": {
-      "tags": ["fresh", "recommended"]
+      "tags": [
+        "fresh",
+        "recommended"
+      ]
     }
   },
-  "exclude": ["**/_fresh/*"],
+  "exclude": [
+    "**/_fresh/*"
+  ],
   "imports": {
     "fresh": "jsr:@fresh/core@^__FRESH_VERSION__",
     "preact": "npm:preact@^__PREACT_VERSION__",
     "@preact/signals": "npm:@preact/signals@^__PREACT_SIGNALS_VERSION__"
   },
   "compilerOptions": {
-    "lib": ["dom", "dom.asynciterable", "dom.iterable", "deno.ns"],
+    "lib": [
+      "dom",
+      "dom.asynciterable",
+      "dom.iterable",
+      "deno.ns"
+    ],
     "jsx": "precompile",
     "jsxImportSource": "preact",
     "jsxPrecompileSkipElements": [
