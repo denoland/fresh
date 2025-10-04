@@ -69,18 +69,32 @@ The sync script (`src/sync.ts`) copies:
 
 ### Variable Substitution
 
-Template files use `__VARIABLE__` syntax:
+Template files use `__VARIABLE__` syntax for text replacement:
 
-- `__PROJECT_NAME__` - Project name
-- `__FRESH_VERSION__` - Fresh version
+**Project Variables:**
+
+- `__PROJECT_NAME__` - Project name (from directory basename)
+
+**Version Variables:**
+
+- `__FRESH_VERSION__` - Fresh core version
+- `__FRESH_TAILWIND_VERSION__` - Fresh Tailwind plugin version
+- `__FRESH_VITE_PLUGIN_VERSION__` - Fresh Vite plugin version
 - `__PREACT_VERSION__` - Preact version
 - `__PREACT_SIGNALS_VERSION__` - Preact Signals version
-- `__VITE_VERSION__` - Vite version
 - `__TAILWINDCSS_VERSION__` - Tailwind CSS version
-- `__DENO_VERSION__` - Deno version
+- `__TAILWINDCSS_POSTCSS_VERSION__` - Tailwind CSS PostCSS version
+- `__TAILWINDCSS_VITE_VERSION__` - Tailwind CSS Vite plugin version
+- `__POSTCSS_VERSION__` - PostCSS version
+- `__VITE_VERSION__` - Vite version
+- `__DENO_VERSION__` - Deno version (current runtime)
 
 Text files are processed for variable substitution. Binary files are copied
 as-is.
+
+**Note:** Boolean flags (tailwind, vscode, docker, builder) are used for
+**template/variant selection logic**, not as substitutable variables in template
+files.
 
 ## Template Selection
 

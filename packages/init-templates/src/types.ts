@@ -1,6 +1,18 @@
 /**
  * Options for initializing a Fresh project (CLI/user input).
  * Optional fields may be undefined and require prompting.
+ *
+ * @example
+ * ```ts
+ * const options: InitOptions = {
+ *   directory: "./my-app",
+ *   tailwind: true,  // or undefined to prompt user
+ *   vscode: false,
+ *   docker: false,
+ *   builder: false,
+ *   force: false,
+ * };
+ * ```
  */
 export interface InitOptions {
   /** Target directory for the project */
@@ -52,6 +64,17 @@ export interface ResolvedInitOptions {
 
 /**
  * Version overrides for testing or pinning specific versions.
+ * All fields are optional and use camelCase naming.
+ *
+ * @example
+ * ```ts
+ * const overrides: VersionOverrides = {
+ *   fresh: "2.0.0",
+ *   preact: "10.20.0",
+ *   // Other versions will use defaults
+ * };
+ * const versions = await resolveVersions(overrides);
+ * ```
  */
 export interface VersionOverrides {
   fresh?: string;
@@ -68,6 +91,14 @@ export interface VersionOverrides {
 
 /**
  * Resolved version strings for dependencies.
+ * Uses SCREAMING_SNAKE_CASE for template variable substitution (__FRESH_VERSION__).
+ *
+ * @example
+ * ```ts
+ * const versions = await resolveVersions();
+ * console.log(versions.FRESH_VERSION);  // "2.1.1"
+ * console.log(versions.PREACT_VERSION); // "10.27.2"
+ * ```
  */
 export interface ResolvedVersions {
   FRESH_VERSION: string;
@@ -85,6 +116,22 @@ export interface ResolvedVersions {
 
 /**
  * Variables available for template substitution.
+ * Only PROJECT_NAME and version strings are used for __VARIABLE__ replacement.
+ * Boolean flags are included for internal use but not substituted in templates.
+ *
+ * @example
+ * ```ts
+ * const variables: TemplateVariables = {
+ *   PROJECT_NAME: "my-app",          // Used: __PROJECT_NAME__
+ *   FRESH_VERSION: "2.1.1",          // Used: __FRESH_VERSION__
+ *   PREACT_VERSION: "10.27.2",       // Used: __PREACT_VERSION__
+ *   // ... other versions (all used for substitution)
+ *   USE_TAILWIND: true,              // Not substituted, used for logic only
+ *   USE_VSCODE: false,               // Not substituted, used for logic only
+ *   USE_DOCKER: false,               // Not substituted, used for logic only
+ *   USE_VITE: true,                  // Not substituted, used for logic only
+ * };
+ * ```
  */
 export interface TemplateVariables {
   // Project info
@@ -108,34 +155,4 @@ export interface TemplateVariables {
   USE_VSCODE: boolean;
   USE_DOCKER: boolean;
   USE_VITE: boolean;
-}
-
-/**
- * Metadata about a template.
- */
-export interface TemplateInfo {
-  /** Template directory name */
-  name: string;
-  /** Human-readable display name */
-  displayName: string;
-  /** Template description */
-  description: string;
-  /** Path to template directory */
-  path: string;
-}
-
-/**
- * Metadata about a template variant.
- */
-export interface VariantInfo {
-  /** Variant directory name */
-  name: string;
-  /** Human-readable display name */
-  displayName: string;
-  /** Variant description */
-  description: string;
-  /** Path to variant directory */
-  path: string;
-  /** Compatible base templates */
-  compatibleWith: string[];
 }

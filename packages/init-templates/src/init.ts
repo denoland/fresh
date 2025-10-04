@@ -36,6 +36,23 @@ export const DEFAULT_VERSIONS = {
  * This is a pure template processor - all validation, prompts, and output
  * should be handled by the caller (typically CLI).
  *
+ * @example
+ * ```ts
+ * import { initProject, resolveVersions } from "./init.ts";
+ *
+ * const options = {
+ *   directory: "./my-app",
+ *   tailwind: true,
+ *   vscode: false,
+ *   docker: false,
+ *   builder: false,
+ *   force: false,
+ * };
+ *
+ * const versions = await resolveVersions();
+ * await initProject(Deno.cwd(), options, versions);
+ * ```
+ *
  * @param cwd - Current working directory
  * @param options - Fully resolved initialization options (no undefined values)
  * @param versions - Pre-resolved version strings for dependencies
@@ -98,12 +115,28 @@ export async function initProject(
 }
 
 /**
- * Resolve all version strings.
+ * Resolve all version strings for dependencies.
  *
  * NOTE: This matches the behavior of the old @fresh/init package:
  * - Only Fresh core version is fetched from network
  * - All other versions use fixed defaults (updated by release script)
  * - This is exported so CLI can call it separately from template processing
+ *
+ * @example
+ * ```ts
+ * // Resolve with defaults
+ * const versions = await resolveVersions();
+ * console.log(versions.FRESH_VERSION); // "2.1.1" or latest from network
+ *
+ * // Override specific versions (useful for testing)
+ * const testVersions = await resolveVersions({
+ *   fresh: "2.0.0",
+ *   preact: "10.20.0",
+ * });
+ * ```
+ *
+ * @param overrides - Optional version overrides for testing or pinning
+ * @returns Resolved version strings in SCREAMING_SNAKE_CASE for template substitution
  */
 export async function resolveVersions(
   overrides?: VersionOverrides,
