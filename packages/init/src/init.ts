@@ -394,7 +394,8 @@ import "./assets/styles.css";`,
     // Skip this and be silent if there is a network issue.
   }
 
-  const MAIN_TS = `import { App, staticFiles } from "fresh";
+  const MAIN_TS = `// deno-lint-ignore-file no-console
+import { App, staticFiles } from "fresh";
 import { define, type State } from "./utils.ts";
 
 export const app = new App<State>();
@@ -457,7 +458,8 @@ export interface State {
 export const define = createDefine<State>();`;
   await writeFile("utils.ts", UTILS_TS);
 
-  const ROUTES_HOME = `import { useSignal } from "@preact/signals";
+  const ROUTES_HOME = `// deno-lint-ignore-file no-console
+import { useSignal } from "@preact/signals";
 import { Head } from "fresh/runtime";
 import { define } from "../utils.ts";
 import Counter from "../islands/Counter.tsx";
@@ -710,7 +712,7 @@ This will watch the project directory and restart as necessary.`;
           {
             "name": "@apply",
             "description":
-              "Use the `@apply` directive to inline any existing utility classes into your own custom CSS. This is useful when you find a common utility pattern in your HTML that you’d like to extract to a new component.",
+              "Use the `@apply` directive to inline any existing utility classes into your own custom CSS. This is useful when you find a common utility pattern in your HTML that you'd like to extract to a new component.",
             "references": [
               {
                 "name": "Tailwind Documentation",

@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-console
 import { useSignal } from "@preact/signals";
 import { Head } from "fresh/runtime";
 import { define } from "../utils.ts";
