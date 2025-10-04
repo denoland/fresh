@@ -2,8 +2,8 @@
   "nodeModulesDir": "auto",
   "tasks": {
     "check": "deno fmt --check . && deno lint . && deno check",
-    "dev": "deno run -A --watch=static/,routes/ dev.ts",
-    "build": "deno run -A dev.ts build",
+    "dev": "vite",
+    "build": "vite build",
     "start": "deno serve -A _fresh/server.js",
     "update": "deno run -A -r jsr:@fresh/update ."
   },
@@ -14,9 +14,13 @@
   },
   "exclude": ["**/_fresh/*"],
   "imports": {
-    "fresh": "jsr:@fresh/core@^{{FRESH_VERSION}}",
-    "preact": "npm:preact@^{{PREACT_VERSION}}",
-    "@preact/signals": "npm:@preact/signals@^{{PREACT_SIGNALS_VERSION}}"
+    "fresh": "jsr:@fresh/core@^__FRESH_VERSION__",
+    "preact": "npm:preact@^__PREACT_VERSION__",
+    "@preact/signals": "npm:@preact/signals@^__PREACT_SIGNALS_VERSION__",
+    "@fresh/plugin-vite": "jsr:@fresh/plugin-vite@^__FRESH_VITE_PLUGIN_VERSION__",
+    "vite": "npm:vite@^__VITE_VERSION__",
+    "tailwindcss": "npm:tailwindcss@^__TAILWINDCSS_VERSION__",
+    "@tailwindcss/vite": "npm:@tailwindcss/vite@^__TAILWINDCSS_VITE_VERSION__"
   },
   "compilerOptions": {
     "lib": ["dom", "dom.asynciterable", "dom.iterable", "deno.ns"],
@@ -37,6 +41,7 @@
       "base",
       "noscript",
       "template"
-    ]
+    ],
+    "types": ["vite/client"]
   }
 }

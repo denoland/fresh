@@ -101,6 +101,7 @@ export async function copyDir(src: string, dest: string): Promise<void> {
 
 /**
  * Substitute variables in a template string.
+ * Replaces __VAR__ patterns with values.
  */
 export function substituteVariables(
   content: string,
@@ -109,7 +110,7 @@ export function substituteVariables(
   let result = content;
 
   for (const [key, value] of Object.entries(variables)) {
-    const regex = new RegExp(`\\{\\{${key}\\}\\}`, "g");
+    const regex = new RegExp(`__${key}__`, "g");
     result = result.replace(regex, String(value));
   }
 
