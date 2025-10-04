@@ -77,17 +77,25 @@ The sync script (`sync_templates.ts`) automatically:
 ### File Naming Conventions
 
 - `__filename` → `.filename` during copy (e.g., `__gitignore` → `.gitignore`)
-- `filename.tmpl` → Processed for variable substitution
-- Other files → Copied as-is
+- All other files keep their original names and extensions
 
 ### Variable Substitution
 
-Files ending in `.tmpl` support these variables:
+Template files use double-underscore syntax for variable placeholders. During
+project initialization, these variables are substituted with actual values:
 
-- `{{PROJECT_NAME}}` - User's project name
-- `{{FRESH_VERSION}}` - Latest Fresh version
-- `{{PREACT_VERSION}}` - Latest Preact version
-- `{{PREACT_SIGNALS_VERSION}}` - Latest Preact Signals version
+- `__PROJECT_NAME__` - User's project name
+- `__FRESH_VERSION__` - Latest Fresh version
+- `__PREACT_VERSION__` - Latest Preact version
+- `__PREACT_SIGNALS_VERSION__` - Latest Preact Signals version
+- `__VITE_VERSION__` - Latest Vite version
+- `__TAILWINDCSS_VERSION__` - Latest Tailwind CSS version
+- `__DENO_VERSION__` - Latest Deno version
+
+Variable substitution is attempted on all text files. Binary files are copied
+as-is without modification. This approach allows template files to maintain
+their proper file extensions (`.ts`, `.tsx`, `.json`) for correct syntax
+highlighting and editor tooling while still supporting variable substitution.
 
 ## Template Selection Logic
 

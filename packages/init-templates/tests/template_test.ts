@@ -8,7 +8,7 @@ Deno.test("vite - has all required files", async () => {
   const requiredFiles = [
     "__gitignore",
     "README.md",
-    "deno.json.tmpl",
+    "deno.json",
     "vite.config.ts",
     "main.ts",
     "client.ts",
@@ -17,7 +17,7 @@ Deno.test("vite - has all required files", async () => {
     "components/Button.tsx",
     "islands/Counter.tsx",
     "routes/index.tsx",
-    "routes/_app.tsx.tmpl",
+    "routes/_app.tsx",
     "routes/api/[name].tsx",
     "static/logo.svg",
   ];
@@ -36,7 +36,7 @@ Deno.test("vite-tailwind - has all required files", async () => {
   const requiredFiles = [
     "__gitignore",
     "README.md",
-    "deno.json.tmpl",
+    "deno.json",
     "vite.config.ts",
     "main.ts",
     "client.ts",
@@ -45,7 +45,7 @@ Deno.test("vite-tailwind - has all required files", async () => {
     "components/Button.tsx",
     "islands/Counter.tsx",
     "routes/index.tsx",
-    "routes/_app.tsx.tmpl",
+    "routes/_app.tsx",
     "routes/api/[name].tsx",
     "static/logo.svg",
   ];
@@ -64,14 +64,14 @@ Deno.test("builder - has all required files", async () => {
   const requiredFiles = [
     "__gitignore",
     "README.md",
-    "deno.json.tmpl",
-    "dev.ts.tmpl",
+    "deno.json",
+    "dev.ts",
     "main.ts",
     "utils.ts",
     "components/Button.tsx",
     "islands/Counter.tsx",
     "routes/index.tsx",
-    "routes/_app.tsx.tmpl",
+    "routes/_app.tsx",
     "routes/api/[name].tsx",
     "static/styles.css",
     "static/logo.svg",
@@ -91,14 +91,14 @@ Deno.test("builder-tailwind - has all required files", async () => {
   const requiredFiles = [
     "__gitignore",
     "README.md",
-    "deno.json.tmpl",
-    "dev.ts.tmpl",
+    "deno.json",
+    "dev.ts",
     "main.ts",
     "utils.ts",
     "components/Button.tsx",
     "islands/Counter.tsx",
     "routes/index.tsx",
-    "routes/_app.tsx.tmpl",
+    "routes/_app.tsx",
     "routes/api/[name].tsx",
     "static/styles.css",
     "static/logo.svg",
@@ -112,24 +112,24 @@ Deno.test("builder-tailwind - has all required files", async () => {
   }
 });
 
-Deno.test("vite deno.json.tmpl - contains template variables", async () => {
+Deno.test("vite deno.json - contains template variables", async () => {
   const templateDir = path.join(getTemplateDir(), "vite");
-  const denoJsonPath = path.join(templateDir, "deno.json.tmpl");
+  const denoJsonPath = path.join(templateDir, "deno.json");
   const content = await Deno.readTextFile(denoJsonPath);
 
-  expect(content).toContain("{{FRESH_VERSION}}");
-  expect(content).toContain("{{PREACT_VERSION}}");
-  expect(content).toContain("{{PREACT_SIGNALS_VERSION}}");
-  expect(content).toContain("{{VITE_VERSION}}");
+  expect(content).toContain("__FRESH_VERSION__");
+  expect(content).toContain("__PREACT_VERSION__");
+  expect(content).toContain("__PREACT_SIGNALS_VERSION__");
+  expect(content).toContain("__VITE_VERSION__");
 });
 
-Deno.test("vite-tailwind deno.json.tmpl - contains Tailwind dependencies", async () => {
+Deno.test("vite-tailwind deno.json - contains Tailwind dependencies", async () => {
   const templateDir = path.join(getTemplateDir(), "vite-tailwind");
-  const denoJsonPath = path.join(templateDir, "deno.json.tmpl");
+  const denoJsonPath = path.join(templateDir, "deno.json");
   const content = await Deno.readTextFile(denoJsonPath);
 
-  expect(content).toContain("{{TAILWINDCSS_VERSION}}");
-  expect(content).toContain("{{TAILWINDCSS_VITE_VERSION}}");
+  expect(content).toContain("__TAILWINDCSS_VERSION__");
+  expect(content).toContain("__TAILWINDCSS_VITE_VERSION__");
 });
 
 Deno.test("vite-tailwind vite.config.ts - imports Tailwind", async () => {
@@ -149,13 +149,13 @@ Deno.test("vite-tailwind assets/styles.css - uses Tailwind", async () => {
   expect(content).toContain('@import "tailwindcss"');
 });
 
-Deno.test("builder-tailwind deno.json.tmpl - contains Tailwind dependencies", async () => {
+Deno.test("builder-tailwind deno.json - contains Tailwind dependencies", async () => {
   const templateDir = path.join(getTemplateDir(), "builder-tailwind");
-  const denoJsonPath = path.join(templateDir, "deno.json.tmpl");
+  const denoJsonPath = path.join(templateDir, "deno.json");
   const content = await Deno.readTextFile(denoJsonPath);
 
-  expect(content).toContain("{{TAILWINDCSS_VERSION}}");
-  expect(content).toContain("{{FRESH_TAILWIND_VERSION}}");
+  expect(content).toContain("__TAILWINDCSS_VERSION__");
+  expect(content).toContain("__FRESH_TAILWIND_VERSION__");
 });
 
 Deno.test("builder-tailwind static/styles.css - uses Tailwind", async () => {
@@ -166,12 +166,12 @@ Deno.test("builder-tailwind static/styles.css - uses Tailwind", async () => {
   expect(content).toContain('@import "tailwindcss"');
 });
 
-Deno.test("vite _app.tsx.tmpl - contains PROJECT_NAME variable", async () => {
+Deno.test("vite _app.tsx - contains PROJECT_NAME variable", async () => {
   const templateDir = path.join(getTemplateDir(), "vite");
-  const appPath = path.join(templateDir, "routes/_app.tsx.tmpl");
+  const appPath = path.join(templateDir, "routes/_app.tsx");
   const content = await Deno.readTextFile(appPath);
 
-  expect(content).toContain("{{PROJECT_NAME}}");
+  expect(content).toContain("__PROJECT_NAME__");
 });
 
 Deno.test("variants/docker - has Dockerfile", async () => {
@@ -183,15 +183,15 @@ Deno.test("variants/docker - has Dockerfile", async () => {
   expect(stat.isFile).toBe(true);
 
   const content = await Deno.readTextFile(dockerfilePath);
-  expect(content).toContain("{{DENO_VERSION}}");
+  expect(content).toContain("__DENO_VERSION__");
 });
 
 Deno.test("variants/vscode - has required files", async () => {
   const variantDir = path.join(getVariantsDir(), "vscode");
 
   const requiredFiles = [
-    "__vscode/settings.json.tmpl",
-    "__vscode/extensions.json.tmpl",
+    "__vscode/settings.json",
+    "__vscode/extensions.json",
   ];
 
   for (const file of requiredFiles) {

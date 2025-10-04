@@ -14,21 +14,21 @@ Deno.test("processFilename - converts double underscore prefix to dot", () => {
 });
 
 Deno.test("substituteVariables - replaces template variables", () => {
-  const template = "Hello {{NAME}}, version {{VERSION}}!";
+  const template = "Hello __NAME__, version __VERSION__!";
   const variables = { NAME: "Fresh", VERSION: "2.0.0" };
   const result = substituteVariables(template, variables);
   expect(result).toBe("Hello Fresh, version 2.0.0!");
 });
 
 Deno.test("substituteVariables - handles multiple occurrences", () => {
-  const template = "{{X}} + {{X}} = {{Y}}";
+  const template = "__X__ + __X__ = __Y__";
   const variables = { X: "1", Y: "2" };
   const result = substituteVariables(template, variables);
   expect(result).toBe("1 + 1 = 2");
 });
 
 Deno.test("substituteVariables - handles boolean values", () => {
-  const template = "Enabled: {{ENABLED}}";
+  const template = "Enabled: __ENABLED__";
   const variables = { ENABLED: true };
   const result = substituteVariables(template, variables);
   expect(result).toBe("Enabled: true");

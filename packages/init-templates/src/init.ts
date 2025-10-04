@@ -192,25 +192,20 @@ async function processFile(
   variables: TemplateVariables,
 ): Promise<void> {
   // Process filename: convert __ prefix to . prefix
-  const processedName = processFilename(filename);
-
-  // Handle template files: remove .tmpl extension
-  const finalName = processedName.endsWith(".tmpl")
-    ? processedName.slice(0, -5)
-    : processedName;
-
+  const finalName = processFilename(filename);
   const destPath = path.join(destDir, finalName);
 
-  // Handle template files with variable substitution
-  if (filename.endsWith(".tmpl")) {
+  // Try to read as text and perform substitution on ALL files
+  // If file is binary, the copy will fail gracefully and we'll copy as binary
+  try {
     const content = await Deno.readTextFile(srcPath);
     const transformed = substituteVariables(
       content,
       variables as unknown as Record<string, string | boolean | number>,
     );
     await Deno.writeTextFile(destPath, transformed);
-  } else {
-    // Copy binary/text files as-is
+  } catch {
+    // File is binary or unreadable as text, copy as-is
     await fs.copy(srcPath, destPath, { overwrite: true });
   }
 }
