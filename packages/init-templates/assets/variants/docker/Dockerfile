@@ -1,3 +1,4 @@
+
 FROM denoland/deno:__DENO_VERSION__
 
 ARG GIT_REVISION
@@ -11,3 +12,4 @@ RUN deno cache _fresh/server.js
 EXPOSE 8000
 
 CMD ["serve", "-A", "_fresh/server.js"]
+
