@@ -149,7 +149,20 @@ async function collectCss(
     if (mod === undefined || mod.transformResult === null) {
       // During development assets are loaded lazily, so we need
       // to trigger processing manually.
-      await env.fetchModule(current);
+      try {
+        await env.fetchModule(current);
+      } catch (err) {
+        // If the transport is disconnected (e.g., during HMR server restart),
+        // we can't fetch the module. Skip it and continue with what we have.
+        if (
+          err instanceof Error &&
+          err.message.includes("transport was disconnected")
+        ) {
+          continue;
+        }
+        // Re-throw other errors
+        throw err;
+      }
       mod = env.moduleGraph.idToModuleMap.get(current) ??
         env.moduleGraph.idToModuleMap.get(`\0${current}`);
 
