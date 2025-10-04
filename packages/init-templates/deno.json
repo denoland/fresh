@@ -1,10 +1,9 @@
 {
   "name": "@fresh/init-templates",
-  "version": "0.1.0",
-  "exports": {
-    ".": "./mod.ts",
-    "./cli": "./cli.ts"
-  },
+  "version": "3.0.0-beta.1",
+  "license": "MIT",
+  "exports": "./src/mod.ts",
+  "exclude": ["**/tmp/*"],
   "tasks": {
     "check": "deno fmt --check . && deno lint . && deno check **/*.ts",
     "test": "deno test -A",
@@ -19,6 +18,20 @@
     "@std/jsonc": "jsr:@std/jsonc@^1"
   },
   "publish": {
-    "exclude": ["tests/", "DESIGN.md"]
+    "include": [
+      "src/**/*.ts",
+      "assets/**/*",
+      "deno.json",
+      "README.md",
+      "mod.ts",
+      "cli.ts"
+    ],
+    "exclude": [
+      "**/*_test.*",
+      "*.todo",
+      "tests/",
+      "DESIGN.md",
+      "sync_templates.ts"
+    ]
   }
 }

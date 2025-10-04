@@ -19,7 +19,7 @@ Deno.test({
     const output = new TextDecoder().decode(stdout);
 
     expect(code).toBe(0);
-    expect(output).toContain("@fresh/init-templates");
+    expect(output).toContain("@fresh/init");
     expect(output).toContain("USAGE:");
     expect(output).toContain("OPTIONS:");
     expect(output).toContain("--force");

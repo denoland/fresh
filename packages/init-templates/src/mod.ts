@@ -1,17 +1,20 @@
 #!/usr/bin/env -S deno run -A
 // deno-lint-ignore-file no-console
 /**
- * Command-line interface for @fresh/init-templates
+ * CLI entry point for @fresh/init-templates
  *
- * This provides a CLI wrapper around the initProject function,
- * maintaining compatibility with the old @fresh/init package.
+ * This module provides the same interface as the old @fresh/init package,
+ * accepting the same function signature: initProject(cwd, input[], flags)
+ *
+ * When run directly (deno run -Ar jsr:@fresh/init-templates), this serves as
+ * the command-line interface.
  */
 
 import { parseArgs } from "@std/cli/parse-args";
 import * as colors from "@std/fmt/colors";
-import { initProject, resolveVersions } from "./src/init.ts";
-import type { InitOptions, ResolvedInitOptions } from "./src/types.ts";
-import initConfig from "./deno.json" with { type: "json" };
+import { initProject as initProjectImpl, resolveVersions } from "./init.ts";
+import type { InitOptions, ResolvedInitOptions } from "./types.ts";
+import initConfig from "../deno.json" with { type: "json" };
 
 const HELP_TEXT = `
 ${
@@ -52,26 +55,36 @@ const CONFIRM_TAILWIND_MESSAGE = `Set up ${
 } for styling?`;
 const CONFIRM_VSCODE_MESSAGE = `Do you use ${colors.cyan("VS Code")}?`;
 
+export class InitError extends Error {}
+
 function error(message: string): never {
   console.error(`%cerror%c: ${message}`, "color: red; font-weight: bold", "");
-  Deno.exit(1);
+  throw new InitError();
 }
 
-async function main() {
-  const flags = parseArgs(Deno.args, {
-    boolean: ["force", "tailwind", "vscode", "docker", "help", "builder"],
-    default: {
-      force: null,
-      tailwind: null,
-      vscode: null,
-      docker: null,
-      builder: null,
-    },
-    alias: {
-      help: "h",
-    },
-  });
-
+/**
+ * Initialize a Fresh project.
+ *
+ * This function provides backward compatibility with the old @fresh/init
+ * package by accepting the same signature: (cwd, input[], flags).
+ *
+ * @param cwd - Current working directory
+ * @param input - Directory arguments from command line
+ * @param flags - CLI flags (force, tailwind, vscode, docker, builder, help)
+ */
+export async function initProject(
+  cwd: string = Deno.cwd(),
+  input: (string | number)[],
+  flags: {
+    docker?: boolean | null;
+    force?: boolean | null;
+    tailwind?: boolean | null;
+    vscode?: boolean | null;
+    builder?: boolean | null;
+    help?: boolean | null;
+    h?: boolean | null;
+  } = {},
+): Promise<void> {
   // Show help if requested
   if (flags.help || flags.h) {
     console.log(HELP_TEXT);
@@ -86,19 +99,18 @@ async function main() {
       121,
     ),
   );
-  console.log(`    version ${colors.rgb8(initConfig.version, 4)}`);
   console.log();
 
   // Get project directory
   let directory: string;
-  if (flags._.length === 0) {
+  if (input.length === 0) {
     const userInput = prompt("Project Name:", "fresh-project");
     if (!userInput) {
       error(HELP_TEXT);
     }
     directory = userInput;
-  } else if (flags._.length === 1) {
-    directory = String(flags._[0]);
+  } else if (input.length === 1) {
+    directory = String(input[0]);
   } else {
     error("Too many arguments. Expected at most one directory argument.");
   }
@@ -121,7 +133,7 @@ async function main() {
   // Check if directory is empty (if not forced)
   if (!force) {
     try {
-      const projectDir = new URL(directory, `file://${Deno.cwd()}/`).pathname;
+      const projectDir = new URL(directory, `file://${cwd}/`).pathname;
       const entries = [...Deno.readDirSync(projectDir)];
       const isEmpty = entries.length === 0 ||
         (entries.length === 1 && entries[0].name === ".git");
@@ -158,7 +170,7 @@ async function main() {
   console.log();
 
   // Call the template engine (pure processing, no output)
-  await initProject(Deno.cwd(), resolvedOptions, versions);
+  await initProjectImpl(cwd, resolvedOptions, versions);
 
   // Display success messages
   console.log(
@@ -190,7 +202,28 @@ async function main() {
   console.log("%cHappy hacking! 🦕", "color: gray");
 }
 
-// Run the CLI
+// When run as CLI
 if (import.meta.main) {
-  main();
+  const flags = parseArgs(Deno.args, {
+    boolean: ["force", "tailwind", "vscode", "docker", "help", "builder"],
+    default: {
+      force: null,
+      tailwind: null,
+      vscode: null,
+      docker: null,
+      builder: null,
+    },
+    alias: {
+      help: "h",
+    },
+  });
+
+  try {
+    await initProject(Deno.cwd(), flags._, flags);
+  } catch (err) {
+    if (err instanceof InitError) {
+      Deno.exit(1);
+    }
+    throw err;
+  }
 }

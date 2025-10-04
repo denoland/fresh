@@ -51,8 +51,16 @@ async function compareDirectories(
     const file1Path = path.join(dir1, file);
     const file2Path = path.join(dir2, file);
 
-    const content1 = await Deno.readTextFile(file1Path);
-    const content2 = await Deno.readTextFile(file2Path);
+    let content1 = await Deno.readTextFile(file1Path);
+    let content2 = await Deno.readTextFile(file2Path);
+
+    // For deno.json, normalize dependency versions to allow minor/patch differences
+    // The new init fetches latest compatible versions from network, which may differ
+    // from hardcoded versions in old init. This is expected and acceptable behavior.
+    if (file === "deno.json") {
+      content1 = normalizeDependencyVersions(content1);
+      content2 = normalizeDependencyVersions(content2);
+    }
 
     if (content1 !== content2) {
       console.error(`\nFile mismatch in ${description}: ${file}`);
@@ -66,6 +74,26 @@ async function compareDirectories(
 
     expect(content2).toBe(content1);
   }
+}
+
+/**
+ * Normalize dependency versions in deno.json to allow minor/patch differences.
+ * Replaces specific version numbers with major version only for comparison.
+ */
+function normalizeDependencyVersions(content: string): string {
+  return content
+    // Normalize preact signals version (2.3.x -> 2.x)
+    .replace(
+      /"npm:@preact\/signals@\^2\.\d+\.\d+"/g,
+      '"npm:@preact/signals@^2.x"',
+    )
+    // Normalize preact version (10.x.x -> 10.x)
+    .replace(/"npm:preact@\^10\.\d+\.\d+"/g, '"npm:preact@^10.x"')
+    // Normalize fresh/plugin-vite version (1.0.x -> 1.0)
+    .replace(
+      /"jsr:@fresh\/plugin-vite@\^1\.0\.\d+"/g,
+      '"jsr:@fresh/plugin-vite@^1.0"',
+    );
 }
 
 /**
