@@ -7,7 +7,7 @@
   "tasks": {
     "check": "deno fmt --check . && deno lint . && deno check **/*.ts",
     "test": "deno test -A",
-    "sync": "deno run -A sync_templates.ts"
+    "sync": "deno run -A src/sync.ts"
   },
   "imports": {
     "@std/cli": "jsr:@std/cli@^1",
@@ -22,16 +22,14 @@
       "src/**/*.ts",
       "assets/**/*",
       "deno.json",
-      "README.md",
-      "mod.ts",
-      "cli.ts"
+      "README.md"
     ],
     "exclude": [
       "**/*_test.*",
       "*.todo",
       "tests/",
       "DESIGN.md",
-      "sync_templates.ts"
+      "src/sync.ts"
     ]
   }
 }

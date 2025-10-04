@@ -10,6 +10,12 @@ export async function getLatestVersion(
   pkg: string,
   fallback: string,
 ): Promise<string> {
+  // In test mode, always use fallback to avoid network calls
+  // deno-lint-ignore no-explicit-any
+  if ((globalThis as any).INIT_TEST) {
+    return fallback;
+  }
+
   try {
     // Check if it's an npm package
     if (pkg.startsWith("npm:")) {

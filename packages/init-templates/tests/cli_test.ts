@@ -8,7 +8,7 @@ Deno.test({
       args: [
         "run",
         "-A",
-        path.join(import.meta.dirname!, "..", "cli.ts"),
+        path.join(import.meta.dirname!, "..", "src", "mod.ts"),
         "--help",
       ],
       stdout: "piped",
@@ -43,7 +43,7 @@ Deno.test({
         args: [
           "run",
           "-A",
-          path.join(import.meta.dirname!, "..", "cli.ts"),
+          path.join(import.meta.dirname!, "..", "src", "mod.ts"),
           projectName,
           "--force",
           "--tailwind",
@@ -90,7 +90,7 @@ Deno.test({
         args: [
           "run",
           "-A",
-          path.join(import.meta.dirname!, "..", "cli.ts"),
+          path.join(import.meta.dirname!, "..", "src", "mod.ts"),
           projectName,
           "--force",
           "--builder",

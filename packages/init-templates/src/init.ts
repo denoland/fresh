@@ -98,26 +98,28 @@ export async function initProject(
 }
 
 /**
- * Resolve all version strings, fetching latest from JSR/npm.
- * This is exported so CLI can call it separately from template processing.
+ * Resolve all version strings.
+ *
+ * NOTE: This matches the behavior of the old @fresh/init package:
+ * - Only Fresh core version is fetched from network
+ * - All other versions use fixed defaults (updated by release script)
+ * - This is exported so CLI can call it separately from template processing
  */
 export async function resolveVersions(
   overrides?: VersionOverrides,
 ): Promise<ResolvedVersions> {
   const versions = { ...DEFAULT_VERSIONS, ...overrides };
 
-  const [fresh, preact, preactSignals] = await Promise.all([
-    getLatestVersion("@fresh/core", versions.fresh),
-    getLatestVersion("npm:preact", versions.preact),
-    getLatestVersion("npm:@preact/signals", versions.preactSignals),
-  ]);
+  // Only fetch latest for Fresh core (matching old init behavior)
+  const fresh = await getLatestVersion("@fresh/core", versions.fresh);
 
   return {
     FRESH_VERSION: fresh,
     FRESH_TAILWIND_VERSION: versions.freshTailwind,
     FRESH_VITE_PLUGIN_VERSION: versions.freshVitePlugin,
-    PREACT_VERSION: preact,
-    PREACT_SIGNALS_VERSION: preactSignals,
+    // Use fixed versions for Preact and Signals (not fetched from network)
+    PREACT_VERSION: versions.preact,
+    PREACT_SIGNALS_VERSION: versions.preactSignals,
     TAILWINDCSS_VERSION: versions.tailwindcss,
     TAILWINDCSS_POSTCSS_VERSION: versions.tailwindcssPostcss,
     TAILWINDCSS_VITE_VERSION: versions.tailwindcssVite,

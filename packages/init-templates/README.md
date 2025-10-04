@@ -23,12 +23,32 @@ deno run -Ar jsr:@fresh/init-templates my-project
 deno run -Ar jsr:@fresh/init-templates my-app --tailwind --vscode --docker
 ```
 
+## Package Structure
+
+```
+packages/init-templates/
+├── src/
+│   ├── mod.ts          # Main CLI entry point (exported as package default)
+│   ├── init.ts         # Core initialization logic
+│   ├── types.ts        # TypeScript type definitions
+│   ├── utils.ts        # Utility functions
+│   └── sync.ts         # Template synchronization tool
+├── assets/
+│   ├── templates/      # Complete project templates
+│   └── variants/       # Additive template variants
+├── tests/              # Test suite
+├── deno.json           # Package configuration
+└── README.md
+```
+
 ## Compatibility Notes
 
 - **CLI Interface:** Fully backward compatible with `@fresh/init` v2.0.9
 - **Export Structure:** Main export points to `./src/mod.ts` (CLI entry point)
 - **Function Signature:** Supports the old `initProject(cwd, input[], flags)`
   signature
+- **Version Behavior:** Only fetches Fresh core from network; uses fixed
+  versions for Preact/Signals (matching old init)
 - **Generated Projects:** Produce identical output to the old init package
 
 ## Library Usage (Advanced)

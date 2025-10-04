@@ -138,10 +138,10 @@ Deno.test("sync_templates - dry run does not modify files", async () => {
   try {
     await createTestStructure(tmpDir);
 
-    // Get path to sync_templates.ts relative to this test file
+    // Get path to src/sync.ts relative to this test file
     const syncScriptPath = path.join(
       path.dirname(path.fromFileUrl(import.meta.url)),
-      "../sync_templates.ts",
+      "../src/sync.ts",
     );
 
     // Run sync in dry-run mode
@@ -182,10 +182,10 @@ Deno.test("sync_templates - syncs common files correctly", async () => {
   try {
     await createTestStructure(tmpDir);
 
-    // Get path to sync_templates.ts relative to this test file
+    // Get path to src/sync.ts relative to this test file
     const syncScriptPath = path.join(
       path.dirname(path.fromFileUrl(import.meta.url)),
-      "../sync_templates.ts",
+      "../src/sync.ts",
     );
 
     // Run actual sync
@@ -280,10 +280,10 @@ Deno.test("sync_templates - syncs builder templates", async () => {
   try {
     await createTestStructure(tmpDir);
 
-    // Get path to sync_templates.ts relative to this test file
+    // Get path to src/sync.ts relative to this test file
     const syncScriptPath = path.join(
       path.dirname(path.fromFileUrl(import.meta.url)),
-      "../sync_templates.ts",
+      "../src/sync.ts",
     );
 
     // Run sync
@@ -349,10 +349,10 @@ Deno.test("sync_templates - handles missing base directory", async () => {
     await fs.ensureDir(path.join(tmpDir, "assets/template/vite"));
     await fs.ensureDir(path.join(tmpDir, "assets/template/vite-tailwind"));
 
-    // Get path to sync_templates.ts relative to this test file
+    // Get path to src/sync.ts relative to this test file
     const syncScriptPath = path.join(
       path.dirname(path.fromFileUrl(import.meta.url)),
-      "../sync_templates.ts",
+      "../src/sync.ts",
     );
 
     // Run sync (should handle missing base gracefully)
