@@ -13,7 +13,7 @@
 import { parseArgs } from "@std/cli/parse-args";
 import * as colors from "@std/fmt/colors";
 import { initProject as initProjectImpl, resolveVersions } from "./init.ts";
-import type { InitOptions, ResolvedInitOptions } from "./types.ts";
+import type { InitOptions } from "./types.ts";
 import initConfig from "../deno.json" with { type: "json" };
 
 const HELP_TEXT = `
@@ -115,20 +115,10 @@ export async function initProject(
     error("Too many arguments. Expected at most one directory argument.");
   }
 
-  // Build partial options from CLI flags
-  const partialOptions: InitOptions = {
-    directory,
-    force: flags.force ?? undefined,
-    builder: flags.builder ?? false,
-    docker: flags.docker ?? false,
-    tailwind: flags.tailwind ?? undefined,
-    vscode: flags.vscode ?? undefined,
-  };
-
-  // Interactive prompts for missing options
-  const tailwind = partialOptions.tailwind ?? confirm(CONFIRM_TAILWIND_MESSAGE);
-  const vscode = partialOptions.vscode ?? confirm(CONFIRM_VSCODE_MESSAGE);
-  let force = partialOptions.force ?? false;
+  // Build options from CLI flags (with prompts for missing values)
+  const tailwind = flags.tailwind ?? confirm(CONFIRM_TAILWIND_MESSAGE);
+  const vscode = flags.vscode ?? confirm(CONFIRM_VSCODE_MESSAGE);
+  let force = flags.force ?? false;
 
   // Check if directory is empty (if not forced)
   if (!force) {
@@ -154,23 +144,23 @@ export async function initProject(
   }
 
   // Build fully resolved options
-  const resolvedOptions: ResolvedInitOptions = {
+  const options: Required<InitOptions> = {
     directory,
-    builder: partialOptions.builder ?? false,
+    builder: flags.builder ?? false,
     tailwind,
     vscode,
-    docker: partialOptions.docker ?? false,
+    docker: flags.docker ?? false,
     force,
   };
 
   // Resolve versions
-  const versions = await resolveVersions(partialOptions.versions);
+  const versions = await resolveVersions();
 
   console.log(`    version ${colors.rgb8(versions.FRESH_VERSION, 4)}`);
   console.log();
 
   // Call the template engine (pure processing, no output)
-  await initProjectImpl(cwd, resolvedOptions, versions);
+  await initProjectImpl(cwd, options, versions);
 
   // Display success messages
   console.log(

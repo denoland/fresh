@@ -1,8 +1,7 @@
 import * as path from "@std/path";
 import * as fs from "@std/fs";
 import type {
-  ResolvedInitOptions,
-  ResolvedVersions,
+  InitOptions,
   TemplateVariables,
   VersionOverrides,
 } from "./types.ts";
@@ -40,7 +39,7 @@ export const DEFAULT_VERSIONS = {
  * ```ts
  * import { initProject, resolveVersions } from "./init.ts";
  *
- * const options = {
+ * const options: InitOptions = {
  *   directory: "./my-app",
  *   tailwind: true,
  *   vscode: false,
@@ -54,30 +53,27 @@ export const DEFAULT_VERSIONS = {
  * ```
  *
  * @param cwd - Current working directory
- * @param options - Fully resolved initialization options (no undefined values)
- * @param versions - Pre-resolved version strings for dependencies
+ * @param options - Initialization options (optional fields will use defaults)
+ * @param versions - Pre-resolved version strings (without PROJECT_NAME)
  */
 export async function initProject(
   cwd: string,
-  options: ResolvedInitOptions,
-  versions: ResolvedVersions,
+  options: Required<InitOptions>,
+  versions: Omit<TemplateVariables, "PROJECT_NAME">,
 ): Promise<void> {
   const projectDir = path.resolve(cwd, options.directory);
   const projectName = path.basename(projectDir);
 
+  // Boolean flags for template/variant selection (not template variables)
   const useVite = !options.builder;
   const useTailwind = options.tailwind;
   const useVSCode = options.vscode;
   const useDocker = options.docker;
 
-  // Create variables context
+  // Template substitution variables (includes PROJECT_NAME + all versions)
   const variables: TemplateVariables = {
-    PROJECT_NAME: projectName,
     ...versions,
-    USE_TAILWIND: useTailwind,
-    USE_VSCODE: useVSCode,
-    USE_DOCKER: useDocker,
-    USE_VITE: useVite,
+    PROJECT_NAME: projectName,
   };
 
   // Select complete template based on build system and styling choice
@@ -120,7 +116,6 @@ export async function initProject(
  * NOTE: This matches the behavior of the old @fresh/init package:
  * - Only Fresh core version is fetched from network
  * - All other versions use fixed defaults (updated by release script)
- * - This is exported so CLI can call it separately from template processing
  *
  * @example
  * ```ts
@@ -136,11 +131,11 @@ export async function initProject(
  * ```
  *
  * @param overrides - Optional version overrides for testing or pinning
- * @returns Resolved version strings in SCREAMING_SNAKE_CASE for template substitution
+ * @returns Template variables (without PROJECT_NAME, which is added later)
  */
 export async function resolveVersions(
   overrides?: VersionOverrides,
-): Promise<ResolvedVersions> {
+): Promise<Omit<TemplateVariables, "PROJECT_NAME">> {
   const versions = { ...DEFAULT_VERSIONS, ...overrides };
 
   // Only fetch latest for Fresh core (matching old init behavior)
