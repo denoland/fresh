@@ -542,3 +542,31 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "vite build - island named after global object (Map)",
+  fn: async () => {
+    const fixture = path.join(FIXTURE_DIR, "island_global_name");
+    await using res = await buildVite(fixture);
+
+    await launchProd(
+      { cwd: res.tmp },
+      async (address) => {
+        const response = await fetch(address);
+        const html = await response.text();
+
+        // Verify the fix: the boot script should use safe variable names
+        // Without the fix, this would use: import Map from "..." and boot({Map}, ...)
+        // which would shadow the global Map constructor
+        // With the fix, it uses: import __FRSH_ISLAND_0 from "..." and boot({"Map":__FRSH_ISLAND_0}, ...)
+        expect(html).toContain("__FRSH_ISLAND_0");
+        expect(html).toContain("import __FRSH_ISLAND_0 from");
+
+        // Verify that island reference uses quoted key to avoid shadowing
+        expect(html).toMatch(/"Map":\s*__FRSH_ISLAND_0/);
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
