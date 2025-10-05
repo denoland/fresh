@@ -116,6 +116,9 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
               },
             },
             ssr: {
+              optimizeDeps: {
+                include: ["@opentelemetry/api"],
+              },
               build: {
                 manifest: true,
                 emitAssets: true,

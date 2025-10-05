@@ -21,17 +21,26 @@ interface DenoState {
   type: RequestedModuleType;
 }
 
+export type PkgExport =
+  | string
+  | Record<
+    string,
+    | string
+    | Record<string, string | Record<string, string | Record<string, string>>>
+  >;
+
 interface PkgJson {
   name: string;
   version: string;
   main?: string;
   module?: string;
-  exports?: string | Record<string, string | Record<string, string>>;
+  exports?: PkgExport;
 }
 
 export function deno(): Plugin {
   let ssrLoader: Loader;
   let browserLoader: Loader;
+  let root = "";
 
   let isDev = false;
 
@@ -45,7 +54,9 @@ export function deno(): Plugin {
     config(_, env) {
       isDev = env.command === "serve";
     },
-    async configResolved() {
+    async configResolved(config) {
+      root = config.root;
+
       // TODO: Pass conditions
       ssrLoader = await new Workspace({
         platform: "node",
@@ -64,6 +75,10 @@ export function deno(): Plugin {
     async resolveId(id, importer, options) {
       if (id.startsWith("/@fs/")) return;
 
+      if (!id.startsWith(".")) {
+        console.log("resolve", { id, importer, ssr: options.ssr });
+      }
+
       if (BUILTINS.has(id)) {
         // `node:` prefix is not included in builtins list.
         if (!id.startsWith("node:")) {
@@ -74,6 +89,30 @@ export function deno(): Plugin {
           external: true,
         };
       }
+
+      // Resolve to vite optimized dep
+      const match = id.match(/npm:(@[^/]+\/[^@/]+|[^@/]+)(@[^/]+)(.*)/);
+      if (match !== null) {
+        const pkg = match[1];
+        const entry = match[3];
+
+        let file = pkg.replaceAll("/", "_");
+
+        if (entry !== "") {
+          file += `_${entry.replaceAll("/", "_")}`;
+        }
+
+        const optimizedPath = path.join(
+          root,
+          ".vite",
+          `deps${options.ssr ? "_ssr" : ""}`,
+          file,
+        );
+
+        console.log({ optimizedPath });
+        return optimizedPath;
+      }
+
       const loader = options?.ssr ? ssrLoader : browserLoader;
 
       const original = id;
@@ -145,9 +184,11 @@ export function deno(): Plugin {
         // Let vite handle npm modules by doing a reverse lookup
         // with the resolved package.
         const match = resolved.match(
-          /(.*[/\\]+node_modules[/\\]+\.deno[/\\]+(@[^/\\]+[/\\]+[^/\\]+|[^@][^/\\]+)[/\\]+node_modules[/\\]+([^/\\]+)[/\\]+)([^?]+)/,
+          /(.*\/node_modules\/\.deno\/(@[^/]+\/+[^/]+|[^@][^/]+)\/(@[^/]+\/+[^/]+|[^@][^/]+))\/(.*)/,
         );
+        console.log("maybe reverse", original, resolved);
         if (match !== null) {
+          console.log("REVERSE", original);
           try {
             const pkgDir = path.fromFileUrl(match[1]);
             const pkgJsonPath = path.join(pkgDir, "package.json");
@@ -157,42 +198,23 @@ export function deno(): Plugin {
 
             const name = match[3];
 
-            const rest = "./" + match[4].replace(/\\+/, "/");
-
-            console.log({ match });
-
-            // FIXME
-            if (name === "vite") {
-              if (rest === "./dist/client/env.mjs") {
-                return `vite/dist/client/env.mjs`;
-              }
-            } else if (name === "preact/debug") {
-              return;
-            }
+            const entry = match[4].replace(/\\+/, "/");
 
             if (pkgJson.exports !== undefined) {
-              for (const [key, value] of Object.entries(pkgJson.exports)) {
-                if (value === null) continue;
-
-                if (value === rest) {
-                  if (key === ".") {
-                    return name;
-                  }
-                  return `${name}/${key}`;
-                } else if (typeof value === "object") {
-                  for (const [subKey, subValue] of Object.entries(value)) {
-                    if (subValue === rest) {
-                      const mapped = `${name}/${key.slice(2)}`;
-
-                      if (mapped === original) {
-                        return;
-                      }
-                    }
-                  }
+              const matched = matchPkgExport(name, entry, pkgJson.exports);
+              if (matched !== undefined) {
+                if (importer?.includes("node_modules")) {
+                  console.log("match exports", {
+                    name,
+                    entry,
+                    importer,
+                    exports: pkgJson.exports,
+                  });
                 }
+                return matched;
               }
             }
-          } catch (_err) {
+          } catch {
             // ignore
           }
         }
@@ -492,4 +514,40 @@ function removeSearch(id: string): string {
   }
 
   return id;
+}
+
+export function matchPkgExport(
+  name: string,
+  entry: string,
+  exportValue: PkgExport,
+): string | undefined {
+  const mappedEntry = `./${entry}`;
+
+  for (const [key, value] of Object.entries(exportValue)) {
+    const result = matchExportEntry(name, key, mappedEntry, value);
+    if (result !== undefined) return result;
+  }
+}
+
+function matchExportEntry(
+  name: string,
+  key: string,
+  entry: string,
+  value: PkgExport | null,
+): string | undefined {
+  if (value === null) return;
+
+  if (value === entry) {
+    if (key === ".") {
+      return name;
+    }
+    return `${name}${key.slice(1)}`;
+  }
+
+  if (typeof value === "object") {
+    for (const subValue of Object.values(value)) {
+      const result = matchExportEntry(name, key, entry, subValue);
+      if (result !== undefined) return result;
+    }
+  }
 }

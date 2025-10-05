@@ -40,6 +40,7 @@ export function devServer(): Plugin[] {
             ) ||
             url.pathname === "/.well-known/appspecific/com.chrome.devtools.json"
           ) {
+            console.log("yeah");
             return next();
           }
 
@@ -48,6 +49,7 @@ export function devServer(): Plugin[] {
           try {
             const stat = await Deno.stat(staticFilePath);
             if (stat.isFile) {
+              console.log("yeah2");
               return next();
             }
           } catch {
@@ -64,11 +66,13 @@ export function devServer(): Plugin[] {
             const content = await Deno.readTextFile(staticFilePathIndex);
             nodeRes.setHeader("Content-Type", "text/html; charset=utf-8");
             nodeRes.end(content);
+            console.log("yeah3");
             return;
           } catch {
             // Ignore
           }
 
+          console.log("fetch", url.pathname);
           try {
             const mod = await server.ssrLoadModule("fresh:server_entry");
             const req = createRequest(nodeReq, nodeRes);
