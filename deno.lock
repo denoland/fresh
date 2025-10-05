@@ -3754,7 +3754,7 @@
           "npm:@types/node@^24.2.1"
         ]
       },
-      "packages/init-templates": {
+      "packages/init": {
         "dependencies": [
           "jsr:@std/cli@1",
           "jsr:@std/fmt@1",

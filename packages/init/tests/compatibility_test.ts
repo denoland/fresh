@@ -1,6 +1,6 @@
 /**
  * Compatibility tests that compare the output of the old init script
- * (packages/init) with the new template-based init script (packages/init-templates)
+ * (jsr:@fresh/init@2.0.9) with the new template-based init script
  * to ensure 100% identical output for various option combinations.
  */
 import { expect } from "@std/expect";
@@ -8,12 +8,7 @@ import * as path from "@std/path";
 import * as fs from "@std/fs";
 import { stub } from "@std/testing/mock";
 import { initProject as newInitProject, resolveVersions } from "../src/init.ts";
-import { initProject as oldInitProject } from "../../init/src/init.ts";
 import { withTmpDir } from "../../fresh/src/test_utils.ts";
-
-// Tell the old init script we're in test mode to disable some output
-// deno-lint-ignore no-explicit-any
-(globalThis as any).INIT_TEST = true;
 
 /**
  * Recursively get all files in a directory with their relative paths
@@ -96,6 +91,45 @@ function normalizeDependencyVersions(content: string): string {
 }
 
 /**
+ * Run the old init script from JSR using the CLI
+ */
+async function runOldInit(
+  dir: string,
+  projectName: string,
+  flags: {
+    docker?: boolean;
+    tailwind?: boolean;
+    vscode?: boolean;
+    builder?: boolean;
+  },
+): Promise<void> {
+  const args = [
+    "run",
+    "-A",
+    "jsr:@fresh/init@2.0.9",
+    projectName,
+    "--force",
+  ];
+
+  if (flags.builder) args.push("--builder");
+  if (flags.tailwind) args.push("--tailwind");
+  if (flags.vscode) args.push("--vscode");
+  if (flags.docker) args.push("--docker");
+
+  const command = new Deno.Command("deno", {
+    args,
+    cwd: dir,
+    stdout: "null",
+    stderr: "null",
+  });
+
+  const { success } = await command.output();
+  if (!success) {
+    throw new Error("Old init script failed");
+  }
+}
+
+/**
  * Test helper that runs both old and new init scripts with the same options
  * and compares the output
  */
@@ -121,15 +155,8 @@ async function testCompatibility(
   using _promptStub = stub(globalThis, "prompt", () => projectName);
   using _confirmStub = stub(globalThis, "confirm", () => false);
 
-  // Run old init script with force flag and explicit values for all flags
-  // to avoid prompts (null values trigger prompts)
-  await oldInitProject(tmpOld.dir, [projectName], {
-    builder: flags.builder ?? false,
-    tailwind: flags.tailwind ?? false,
-    vscode: flags.vscode ?? false,
-    docker: flags.docker ?? false,
-    force: true,
-  });
+  // Run old init script from JSR using CLI
+  await runOldInit(tmpOld.dir, projectName, flags);
 
   // Resolve versions to match what the old init would use
   const versions = await resolveVersions({
