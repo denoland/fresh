@@ -15,20 +15,23 @@ import {
 
 /**
  * Default version constants for dependencies.
- * These should match the current init package.
+ * These are updated automatically by the release script (tools/release.ts).
  */
-export const DEFAULT_VERSIONS = {
-  fresh: "2.1.1",
-  freshTailwind: "1.0.0",
-  freshVitePlugin: "1.0.0",
-  preact: "10.27.2",
-  preactSignals: "2.3.1",
-  tailwindcss: "4.1.10",
-  tailwindcssPostcss: "4.1.10",
-  tailwindcssVite: "4.1.12",
-  postcss: "8.5.6",
-  vite: "7.1.3",
-};
+const FRESH_VERSION = "2.1.1";
+const FRESH_TAILWIND_VERSION = "1.0.0";
+const PREACT_VERSION = "10.27.2";
+const PREACT_SIGNALS_VERSION = "2.3.1";
+
+/**
+ * Other dependency versions (not automatically updated).
+ * Update these manually when needed.
+ */
+const FRESH_VITE_PLUGIN_VERSION = "1.0.0";
+const TAILWINDCSS_VERSION = "4.1.10";
+const TAILWINDCSS_POSTCSS_VERSION = "4.1.10";
+const TAILWINDCSS_VITE_VERSION = "4.1.12";
+const POSTCSS_VERSION = "8.5.6";
+const VITE_VERSION = "7.1.3";
 
 /**
  * Initialize a new Fresh project using templates.
@@ -136,7 +139,21 @@ export async function initProject(
 export async function resolveVersions(
   overrides?: VersionOverrides,
 ): Promise<Omit<TemplateVariables, "PROJECT_NAME">> {
-  const versions = { ...DEFAULT_VERSIONS, ...overrides };
+  // Build default versions object
+  const defaults = {
+    fresh: FRESH_VERSION,
+    freshTailwind: FRESH_TAILWIND_VERSION,
+    freshVitePlugin: FRESH_VITE_PLUGIN_VERSION,
+    preact: PREACT_VERSION,
+    preactSignals: PREACT_SIGNALS_VERSION,
+    tailwindcss: TAILWINDCSS_VERSION,
+    tailwindcssPostcss: TAILWINDCSS_POSTCSS_VERSION,
+    tailwindcssVite: TAILWINDCSS_VITE_VERSION,
+    postcss: POSTCSS_VERSION,
+    vite: VITE_VERSION,
+  };
+
+  const versions = { ...defaults, ...overrides };
 
   // Only fetch latest for Fresh core from JSR
   const fresh = await getLatestVersion("@fresh/core", versions.fresh);
