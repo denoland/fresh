@@ -1,6 +1,6 @@
 /**
- * Compatibility tests that compare the output of the old init script
- * (jsr:@fresh/init@2.0.9) with the new template-based init script
+ * Compatibility tests that compare the output of @fresh/init v2.0.9
+ * (last version before template-based refactor) with the current version
  * to ensure 100% identical output for various option combinations.
  */
 import { expect } from "@std/expect";
@@ -49,8 +49,8 @@ async function compareDirectories(
     let content2 = await Deno.readTextFile(file2Path);
 
     // For deno.json, normalize dependency versions to allow minor/patch differences
-    // The new init fetches latest compatible versions from network, which may differ
-    // from hardcoded versions in old init. This is expected and acceptable behavior.
+    // The current init fetches latest Fresh version from network, which may differ
+    // from the version that was current when 2.0.9 was released. This is expected.
     if (file === "deno.json") {
       content1 = normalizeDependencyVersions(content1);
       content2 = normalizeDependencyVersions(content2);
@@ -58,11 +58,11 @@ async function compareDirectories(
 
     if (content1 !== content2) {
       console.error(`\nFile mismatch in ${description}: ${file}`);
-      console.error(`Old init: ${file1Path}`);
-      console.error(`New init: ${file2Path}`);
-      console.error("\n--- Expected (old init) ---");
+      console.error(`Version 2.0.9: ${file1Path}`);
+      console.error(`Current version: ${file2Path}`);
+      console.error("\n--- Expected (v2.0.9) ---");
       console.error(content1.slice(0, 500));
-      console.error("\n--- Actual (new init) ---");
+      console.error("\n--- Actual (current) ---");
       console.error(content2.slice(0, 500));
     }
 
@@ -91,9 +91,10 @@ function normalizeDependencyVersions(content: string): string {
 }
 
 /**
- * Run the old init script from JSR using the CLI
+ * Run the reference init script (v2.0.9) from JSR using the CLI.
+ * This is the last version before the template-based refactor.
  */
-async function runOldInit(
+async function runReferenceInit(
   dir: string,
   projectName: string,
   flags: {
@@ -125,13 +126,13 @@ async function runOldInit(
 
   const { success } = await command.output();
   if (!success) {
-    throw new Error("Old init script failed");
+    throw new Error("Reference init script (v2.0.9) failed");
   }
 }
 
 /**
- * Test helper that runs both old and new init scripts with the same options
- * and compares the output
+ * Test helper that runs both v2.0.9 (reference) and current init with the same
+ * options and compares the output to ensure backward compatibility.
  */
 async function testCompatibility(
   testName: string,
@@ -155,10 +156,10 @@ async function testCompatibility(
   using _promptStub = stub(globalThis, "prompt", () => projectName);
   using _confirmStub = stub(globalThis, "confirm", () => false);
 
-  // Run old init script from JSR using CLI
-  await runOldInit(tmpOld.dir, projectName, flags);
+  // Run reference init script (v2.0.9) from JSR using CLI
+  await runReferenceInit(tmpOld.dir, projectName, flags);
 
-  // Resolve versions to match what the old init would use
+  // Resolve versions to match what v2.0.9 would use (fixed versions)
   const versions = await resolveVersions({
     fresh: "2.1.1",
     freshTailwind: "1.0.0",
@@ -172,7 +173,7 @@ async function testCompatibility(
     vite: "7.1.3",
   });
 
-  // Run new init script
+  // Run current init script
   await newInitProject(
     tmpNew.dir,
     {

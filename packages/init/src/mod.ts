@@ -1,12 +1,14 @@
 #!/usr/bin/env -S deno run -A
 /**
- * CLI entry point for @fresh/init-templates
+ * CLI entry point for @fresh/init
  *
- * This module provides the same interface as the old @fresh/init package,
- * accepting the same function signature: initProject(cwd, input[], flags)
+ * This module serves two purposes:
+ * 1. CLI execution: Parses command-line arguments and runs the init script
+ * 2. Programmatic API: Exports initProject and resolveVersions for library use
  *
- * When run directly (deno run -Ar jsr:@fresh/init-templates), this serves as
- * the command-line interface.
+ * When run directly (deno run -Ar jsr:@fresh/init), this serves as
+ * the CLI entry point, providing interactive and non-interactive modes
+ * for creating new Fresh projects.
  */
 
 import { parseArgs } from "@std/cli/parse-args";
@@ -64,8 +66,8 @@ function error(message: string): never {
 /**
  * Initialize a Fresh project.
  *
- * This function provides backward compatibility with the old @fresh/init
- * package by accepting the same signature: (cwd, input[], flags).
+ * This is the main CLI entry point that accepts command-line arguments
+ * and flags to create a new Fresh project.
  *
  * @param cwd - Current working directory
  * @param input - Directory arguments from command line

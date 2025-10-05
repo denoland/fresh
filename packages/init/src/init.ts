@@ -113,8 +113,8 @@ export async function initProject(
 /**
  * Resolve all version strings for dependencies.
  *
- * NOTE: This matches the behavior of the old @fresh/init package:
- * - Only Fresh core version is fetched from network
+ * Version resolution strategy:
+ * - Only Fresh core version is fetched from network (latest from JSR)
  * - All other versions use fixed defaults (updated by release script)
  *
  * @example
@@ -138,7 +138,7 @@ export async function resolveVersions(
 ): Promise<Omit<TemplateVariables, "PROJECT_NAME">> {
   const versions = { ...DEFAULT_VERSIONS, ...overrides };
 
-  // Only fetch latest for Fresh core (matching old init behavior)
+  // Only fetch latest for Fresh core from JSR
   const fresh = await getLatestVersion("@fresh/core", versions.fresh);
 
   return {

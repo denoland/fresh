@@ -1,6 +1,6 @@
 # Architecture & Maintenance
 
-Maintainer documentation for `@fresh/init-templates`.
+Maintainer documentation for `@fresh/init`.
 
 ## Design Philosophy
 
@@ -10,7 +10,7 @@ template and optionally applies variant overlays on top.
 ## Directory Structure
 
 ```
-packages/init-templates/
+packages/init/
 ├── src/
 │   ├── mod.ts            # CLI entry point (package default export)
 │   ├── init.ts           # Core initialization logic
@@ -131,5 +131,5 @@ deno task sync    # Sync templates
 - **Unit tests** - Core functionality
 - **Integration tests** - Full project generation and builds
 - **CLI tests** - Command-line interface
-- **Compatibility tests** - Verify output matches old init
+- **Compatibility tests** - Verify output matches v2.0.9 (pre-refactor baseline)
 - **Sync tests** - Template synchronization

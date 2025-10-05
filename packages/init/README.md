@@ -1,7 +1,6 @@
-# @fresh/init-templates
+# @fresh/init
 
-Template-based initialization system for Fresh projects. Backward compatible
-with `@fresh/init`.
+Template-based initialization system for Fresh projects.
 
 ## Usage
 
@@ -9,10 +8,10 @@ with `@fresh/init`.
 
 ```bash
 # Interactive mode
-deno run -Ar jsr:@fresh/init-templates my-project
+deno run -Ar jsr:@fresh/init my-project
 
 # With options
-deno run -Ar jsr:@fresh/init-templates my-app --tailwind --vscode --docker
+deno run -Ar jsr:@fresh/init my-app --tailwind --vscode --docker
 ```
 
 **Options:**
@@ -27,10 +26,7 @@ deno run -Ar jsr:@fresh/init-templates my-app --tailwind --vscode --docker
 ### Programmatic
 
 ```typescript
-import {
-  initProject,
-  resolveVersions,
-} from "jsr:@fresh/init-templates/src/init";
+import { initProject, resolveVersions } from "jsr:@fresh/init/src/init";
 
 const versions = await resolveVersions();
 await initProject(Deno.cwd(), {
