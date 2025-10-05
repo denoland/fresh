@@ -542,3 +542,27 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "vite build - island named after global object (Map)",
+  fn: async () => {
+    const fixture = path.join(FIXTURE_DIR, "island_global_name");
+    await using res = await buildVite(fixture);
+
+    await launchProd(
+      { cwd: res.tmp },
+      async (address) => {
+        const response = await fetch(address);
+        const html = await response.text();
+
+        // Verify the fix: UniqueNamer prefixes "Map" with underscore to prevent shadowing
+        // Without the fix: import Map from "..." and boot({Map}, ...) - shadows global Map
+        // With the fix: import _Map_N from "..." and boot({_Map_N}, ...) - no shadowing
+        expect(html).toMatch(/import.*_Map(_\d+)?.*from/);
+        expect(html).toMatch(/boot\(\s*\{\s*_Map(_\d+)?\s*\}/);
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
