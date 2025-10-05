@@ -450,11 +450,9 @@ export async function generateSnapshotServer(
   } = options;
 
   const islandImports = islands
-    .map((item, idx) => {
+    .map((item) => {
       const spec = writeSpecifier(item.server);
-      // Use a safe variable name to avoid conflicts with global objects
-      const safeVarName = `__FRSH_ISLAND_${idx}`;
-      return `import * as ${safeVarName} from "${spec}";`;
+      return `import * as ${item.name} from "${spec}";`;
     })
     .join("\n");
 
@@ -467,12 +465,11 @@ export async function generateSnapshotServer(
     .filter(Boolean)
     .join("\n");
 
-  const islandMarkers = islands.map((item, idx) => {
+  const islandMarkers = islands.map((item) => {
     const browser = JSON.stringify(item.browser);
     const name = JSON.stringify(item.name);
     const css = JSON.stringify(item.css);
-    const safeVarName = `__FRSH_ISLAND_${idx}`;
-    return `islandPreparer.prepare(islands, ${safeVarName}, ${browser}, ${name}, ${css});`;
+    return `islandPreparer.prepare(islands, ${item.name}, ${browser}, ${name}, ${css});`;
   }).join("\n");
 
   const serializedFsRoutes = fsRoutesFiles

@@ -555,15 +555,11 @@ Deno.test({
         const response = await fetch(address);
         const html = await response.text();
 
-        // Verify the fix: the boot script should use safe variable names
-        // Without the fix, this would use: import Map from "..." and boot({Map}, ...)
-        // which would shadow the global Map constructor
-        // With the fix, it uses: import __FRSH_ISLAND_0 from "..." and boot({"Map":__FRSH_ISLAND_0}, ...)
-        expect(html).toContain("__FRSH_ISLAND_0");
-        expect(html).toContain("import __FRSH_ISLAND_0 from");
-
-        // Verify that island reference uses quoted key to avoid shadowing
-        expect(html).toMatch(/"Map":\s*__FRSH_ISLAND_0/);
+        // Verify the fix: UniqueNamer prefixes "Map" with underscore to prevent shadowing
+        // Without the fix: import Map from "..." and boot({Map}, ...) - shadows global Map
+        // With the fix: import _Map_N from "..." and boot({_Map_N}, ...) - no shadowing
+        expect(html).toMatch(/import.*_Map(_\d+)?.*from/);
+        expect(html).toMatch(/boot\(\s*\{\s*_Map(_\d+)?\s*\}/);
       },
     );
   },
