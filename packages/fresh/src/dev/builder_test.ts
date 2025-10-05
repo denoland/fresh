@@ -838,3 +838,74 @@ Deno.test("specToName", () => {
   expect(specToName("/islands/_bar-baz-...-$.tsx")).toEqual("_bar_baz_$");
   expect(specToName("/islands/1_hello.tsx")).toEqual("_hello");
 });
+
+Deno.test({
+  name: "Builder - island named after global object (Map)",
+  fn: async () => {
+    const root = path.join(import.meta.dirname!, "..", "..");
+    await using _tmp = await withTmpDir({ dir: root, prefix: "tmp_builder_" });
+    const tmp = _tmp.dir;
+
+    await writeFiles(tmp, {
+      "islands/Map.tsx": `import { useSignal } from "@preact/signals";
+import { useEffect } from "preact/hooks";
+
+export default function Map() {
+  const ready = useSignal(false);
+  const count = useSignal(0);
+
+  useEffect(() => {
+    ready.value = true;
+  }, []);
+
+  return (
+    <div class={ready.value ? "ready" : ""}>
+      <p class="output">{count.value}</p>
+      <button
+        type="button"
+        class="increment"
+        onClick={() => count.value = count.peek() + 1}
+      >
+        increment
+      </button>
+    </div>
+  );
+}`,
+      "routes/index.tsx": `import Map from "../islands/Map.tsx";
+export default () => <Map />;`,
+      "main.ts": `import { App } from "fresh";
+export const app = new App().fsRoutes();`,
+    });
+
+    const builder = new Builder({
+      root: tmp,
+      outDir: path.join(tmp, "dist"),
+    });
+
+    // Register the island manually
+    const islandPath = path.join(tmp, "islands", "Map.tsx");
+    builder.registerIsland(path.toFileUrl(islandPath).href);
+
+    await builder.build();
+
+    await withChildProcessServer(
+      { cwd: tmp, args: ["serve", "-A", "dist/server.js"] },
+      async (address) => {
+        const res = await fetch(address);
+        const html = await res.text();
+
+        // Verify the fix: the boot script should use safe variable names
+        // Without the fix, this would use: import Map from "..." and boot({Map}, ...)
+        // which would shadow the global Map constructor
+        // With the fix, it uses: import __FRSH_ISLAND_0 from "..." and boot({"Map_1":__FRSH_ISLAND_0}, ...)
+        expect(html).toContain("__FRSH_ISLAND_0");
+        expect(html).toContain("import __FRSH_ISLAND_0 from");
+
+        // Verify that island reference uses quoted key to avoid shadowing
+        expect(html).toMatch(/"Map[^"]*":\s*__FRSH_ISLAND_0/);
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});

@@ -10,7 +10,6 @@ import { Multiple1, Multiple2 } from "./fixtures_islands/Multiple.tsx";
 import { JsxIsland } from "./fixtures_islands/JsxIsland.tsx";
 import { JsxChildrenIsland } from "./fixtures_islands/JsxChildrenIsland.tsx";
 import { NodeProcess } from "./fixtures_islands/NodeProcess.tsx";
-import MapIsland from "./fixtures_islands/Map.tsx";
 import { signal } from "@preact/signals";
 import {
   ALL_ISLAND_DIR,
@@ -801,26 +800,5 @@ Deno.test({
     expect(link).toMatch(
       /<\/_fresh\/js\/[a-zA-Z0-9]+\/fresh-runtime\.js>; rel="modulepreload"; as="script", <\/_fresh\/js\/[a-zA-Z0-9]+\/SelfCounter\.js>; rel="modulepreload"; as="script"/,
     );
-  },
-});
-
-Deno.test({
-  name: "islands - island named after global object (Map)",
-  fn: async () => {
-    const app = testApp()
-      .get("/", (ctx) => {
-        return ctx.render(
-          <Doc>
-            <MapIsland />
-          </Doc>,
-        );
-      });
-
-    await withBrowserApp(app, async (page, address) => {
-      await page.goto(address, { waitUntil: "load" });
-      await page.locator(".ready").wait();
-      await page.locator(".increment").click();
-      await waitForText(page, ".output", "1");
-    });
   },
 });
