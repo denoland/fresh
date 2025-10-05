@@ -41,7 +41,6 @@ const toc: RawTableOfContents = {
 
           ["islands", "Islands", "link:latest"],
           ["static-files", "Static files", "link:latest"],
-          ["assets-vs-static", "Assets vs Static", "link:latest"],
 
           ["file-routing", "File routing", "link:latest"],
         ],
