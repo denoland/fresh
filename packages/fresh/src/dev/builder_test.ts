@@ -897,7 +897,7 @@ export const app = new App().fsRoutes();`,
         // Verify the fix: the boot script should use safe variable names
         // Without the fix, this would use: import Map from "..." and boot({Map}, ...)
         // which would shadow the global Map constructor
-        // With the fix, it uses: import __FRSH_ISLAND_0 from "..." and boot({"Map_1":__FRSH_ISLAND_0}, ...)
+        // With the fix, it uses: import __FRSH_ISLAND_0 from "..." and boot({"Map":__FRSH_ISLAND_0}, ...)
         expect(html).toContain("__FRSH_ISLAND_0");
         expect(html).toContain("import __FRSH_ISLAND_0 from");
 

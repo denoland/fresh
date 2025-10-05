@@ -76,6 +76,9 @@ export class UniqueNamer {
 }
 
 // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#reserved_words
+// Note: JavaScript global objects (Map, Set, Array, Promise, etc.) are NOT included here
+// because they are valid island names. Code generation uses safe prefixed variable names
+// (__FRSH_ISLAND_N) to avoid shadowing globals.
 const JS_RESERVED = new Set([
   "break",
   "case",
