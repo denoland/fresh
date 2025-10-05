@@ -3,7 +3,6 @@
  * (packages/init) with the new template-based init script (packages/init-templates)
  * to ensure 100% identical output for various option combinations.
  */
-// deno-lint-ignore-file no-console
 import { expect } from "@std/expect";
 import * as path from "@std/path";
 import * as fs from "@std/fs";

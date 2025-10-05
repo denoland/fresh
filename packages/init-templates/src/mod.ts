@@ -1,5 +1,4 @@
 #!/usr/bin/env -S deno run -A
-// deno-lint-ignore-file no-console
 /**
  * CLI entry point for @fresh/init-templates
  *

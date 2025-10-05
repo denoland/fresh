@@ -1,4 +1,3 @@
-// deno-lint-ignore-file no-console
 import { App, staticFiles } from "fresh";
 import { define, type State } from "./utils.ts";
 

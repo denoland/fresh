@@ -4,6 +4,11 @@
   "license": "MIT",
   "exports": "./src/mod.ts",
   "exclude": ["**/tmp/*"],
+  "lint": {
+    "rules": {
+      "exclude": ["no-console"]
+    }
+  },
   "tasks": {
     "check": "deno fmt --check . && deno lint . && deno check **/*.ts",
     "test": "deno test -A",

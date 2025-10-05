@@ -1,4 +1,3 @@
-// deno-lint-ignore-file no-console
 import * as path from "@std/path";
 import * as fs from "@std/fs";
 import * as semver from "@std/semver";
