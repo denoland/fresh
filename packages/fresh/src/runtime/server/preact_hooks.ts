@@ -604,12 +604,12 @@ function FreshRuntimeScript() {
       })
     );
   } else {
-    const islandImports = islandArr.map((island) => {
+    const islandImports = islandArr.map((island, idx) => {
+      // Use a safe variable name with index to avoid conflicts with global objects
+      const safeVarName = `__FRSH_ISLAND_${idx}`;
       const named = island.exportName === "default"
-        ? island.name
-        : island.exportName === island.name
-        ? `{ ${island.exportName} }`
-        : `{ ${island.exportName} as ${island.name} }`;
+        ? safeVarName
+        : `{ ${island.exportName} as ${safeVarName} }`;
 
       const islandSpec = island.file.startsWith(".")
         ? island.file.slice(1)
@@ -617,8 +617,10 @@ function FreshRuntimeScript() {
       return `import ${named} from "${basePath}${islandSpec}";`;
     }).join("");
 
-    const islandObj = "{" + islandArr.map((island) => island.name)
-      .join(",") +
+    // Use explicit object properties to map island names to safe variables
+    const islandObj = "{" +
+      islandArr.map((island, idx) => `"${island.name}":__FRSH_ISLAND_${idx}`)
+        .join(",") +
       "}";
 
     const serializedProps = escapeScript(
