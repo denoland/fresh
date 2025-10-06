@@ -32,9 +32,9 @@ import "./assets/styles.css";
 
 **Rule of thumb:**
 
-- Files **imported in code** (CSS, fonts, icons, etc.) → Place outside `static/`
+- Files **imported in code** (CSS, icons, etc.) → Place outside `static/`
   (e.g., in an `assets/` folder)
-- Files **referenced by URL path** (favicon.ico, robots.txt, PDFs, etc.) → Place
+- Files **referenced by URL path** (favicon.ico, fonts, robots.txt, PDFs, etc.) → Place
   in `static/`
 
 When you import a file in your code, Vite processes it through its build
