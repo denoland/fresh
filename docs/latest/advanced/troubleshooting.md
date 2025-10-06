@@ -6,6 +6,17 @@ description: |
 This site contains some tips to troubleshoot your app in case something doesn't
 work as expected.
 
+## Update Deno
+
+The Node compatibility layer in Deno is constantly receiving new improvements
+and bug fixes with every Deno version. Chances are that the issue you're running
+into has already been fixed. To rule that out, install the latest Deno version.
+
+```sh
+# Install latest Deno version
+deno upgrade
+```
+
 ## Install or re-install dependencies
 
 When run for the first time, you might see Deno complaining about missing
