@@ -13,6 +13,7 @@
   },
   "imports": {
     "@std/fmt": "jsr:@std/fmt@^1.0.8",
-    "@types/node": "npm:@types/node@^24.2.1"
+    "@types/node": "npm:@types/node@^24.2.1",
+    "@std/net": "jsr:@std/net@^1.0.6"
   }
 }
