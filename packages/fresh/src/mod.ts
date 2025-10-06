@@ -15,9 +15,7 @@ export { csrf, type CsrfOptions } from "./middlewares/csrf.ts";
 export { cors, type CORSOptions } from "./middlewares/cors.ts";
 export {
   type AddressType,
-  type ConnInfo,
   ipRestriction,
-  type IPRestrictionRule,
   type IPRestrictionRules,
 } from "./middlewares/ip_restriction.ts";
 export { csp, type CSPOptions } from "./middlewares/csp.ts";
