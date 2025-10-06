@@ -303,7 +303,7 @@ export const app = new App().fsRoutes()`,
 
     let text = "fail";
     await withChildProcessServer(
-      { cwd: tmp, args: ["serve", "-A", "dist/server.js"] },
+      { cwd: tmp, args: ["serve", "-A", "--port=0", "dist/server.js"] },
       async (address) => {
         const res = await fetch(`${address}/foo`);
         text = await res.text();
@@ -343,7 +343,7 @@ export const app = new App().fsRoutes()`,
 
     let text = "fail";
     await withChildProcessServer(
-      { cwd: tmp, args: ["serve", "-A", "dist/server.js"] },
+      { cwd: tmp, args: ["serve", "-A", "--port=0", "dist/server.js"] },
       async (address) => {
         const res = await fetch(address);
         text = await res.text();
@@ -489,7 +489,7 @@ export const app = new App()
     await new Builder({ root: tmp }).build();
 
     await withChildProcessServer(
-      { cwd: tmp, args: ["serve", "-A", "_fresh/server.js"] },
+      { cwd: tmp, args: ["serve", "-A", "--port=0", "_fresh/server.js"] },
       async (address) => {
         let res = await fetch(`${address}/foo.txt`);
         expect(await res.text()).toEqual("ok");
@@ -599,7 +599,7 @@ export const app = new App().fsRoutes()`,
 
     let text = "fail";
     await withChildProcessServer(
-      { cwd: tmp, args: ["serve", "-A", "dist/server.js"] },
+      { cwd: tmp, args: ["serve", "-A", "--port=0", "dist/server.js"] },
       async (address) => {
         const res = await fetch(address);
         text = await res.text();
@@ -889,7 +889,7 @@ export const app = new App().fsRoutes();`,
     await builder.build();
 
     await withChildProcessServer(
-      { cwd: tmp, args: ["serve", "-A", "dist/server.js"] },
+      { cwd: tmp, args: ["serve", "-A", "--port=0", "dist/server.js"] },
       async (address) => {
         const res = await fetch(address);
         const html = await res.text();
