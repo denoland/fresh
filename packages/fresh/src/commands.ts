@@ -1,3 +1,4 @@
+import { setAdditionalStyles } from "./context.ts";
 import { HttpError } from "./error.ts";
 import { isHandlerByMethod, type PageResponse } from "./handlers.ts";
 import type { MaybeLazyMiddleware, Middleware } from "./middlewares/mod.ts";
@@ -273,12 +274,17 @@ function applyCommandsInner<State>(
           const routePath = mergePath(
             basePath,
             config?.routeOverride ?? pattern,
+            false,
           );
 
           let def: Route<State>;
           fns.push(async (ctx) => {
             if (def === undefined) {
               def = await route();
+            }
+
+            if (def.css !== undefined) {
+              setAdditionalStyles(ctx, def.css);
             }
 
             return renderRoute(ctx, def);
@@ -304,6 +310,7 @@ function applyCommandsInner<State>(
           const routePath = toRoutePath(mergePath(
             basePath,
             route.config?.routeOverride ?? pattern,
+            false,
           ));
 
           if (typeof route.handler === "function") {
@@ -333,7 +340,7 @@ function applyCommandsInner<State>(
 
         result.push(...fns);
 
-        const resPath = toRoutePath(mergePath(basePath, pattern));
+        const resPath = toRoutePath(mergePath(basePath, pattern, false));
         if (method === "ALL") {
           router.add("GET", resPath, result);
           router.add("DELETE", resPath, result);

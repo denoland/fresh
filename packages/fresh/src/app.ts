@@ -179,7 +179,7 @@ export class App<State> {
 
   constructor(config: FreshConfig = {}) {
     this.config = {
-      root: Deno.cwd(),
+      root: ".",
       basePath: config.basePath ?? "",
       mode: config.mode ?? "production",
     };
@@ -328,9 +328,15 @@ export class App<State> {
       const cmd = app.#commands[i];
 
       if (cmd.type !== CommandType.App && cmd.type !== CommandType.NotFound) {
+        // Apply the inner app's basePath if it exists
+        let effectivePattern = cmd.pattern;
+        if (app.config.basePath) {
+          effectivePattern = mergePath(app.config.basePath, cmd.pattern, false);
+        }
+
         const clone = {
           ...cmd,
-          pattern: mergePath(path, cmd.pattern),
+          pattern: mergePath(path, effectivePattern, true),
           includeLastSegment: cmd.pattern === "/" || cmd.includeLastSegment,
         };
         this.#commands.push(clone);
@@ -362,7 +368,7 @@ export class App<State> {
         DENO_DEPLOYMENT_ID !== undefined
       ) {
         throw new Error(
-          `Could not find _fresh directory. Maybe you forgot to run "deno task build"?`,
+          `Could not find _fresh directory. Maybe you forgot to run "deno task build" or maybe you're trying to run "main.ts" directly instead of "_fresh/server.js"?`,
         );
       } else {
         buildCache = new MockBuildCache([], this.config.mode);

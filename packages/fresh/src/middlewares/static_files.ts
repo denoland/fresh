@@ -1,5 +1,5 @@
 import type { Middleware } from "./mod.ts";
-import { ASSET_CACHE_BUST_KEY } from "../runtime/shared_internal.tsx";
+import { ASSET_CACHE_BUST_KEY } from "../constants.ts";
 import { BUILD_ID } from "@fresh/build-id";
 import { tracer } from "../otel.ts";
 import { getBuildCache } from "../context.ts";
@@ -103,7 +103,9 @@ export function staticFiles<T>(): Middleware<T> {
         return new Response(null, { status: 200, headers });
       }
 
-      return new Response(file.readable, { headers });
+      // Errors in TS 5.9.2, not sure why
+      // deno-lint-ignore no-explicit-any
+      return new Response(file.readable as any, { headers });
     } finally {
       span.end();
     }

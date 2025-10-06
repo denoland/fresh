@@ -137,10 +137,15 @@ export async function withTmpDir(
   return {
     dir,
     async [Symbol.asyncDispose]() {
+      // Skip pointless cleanup in CI, speed up tests
+      if (Deno.env.get("CI") === "true") return;
+
       try {
         await Deno.remove(dir, { recursive: true });
       } catch {
-        // Ignore errors Files in tmp will be cleaned up by the OS
+        // Temp files are not cleaned up automatically on Windows
+        // deno-lint-ignore no-console
+        console.warn(`Failed to clean up temp dir: "${dir}"`);
       }
     },
   };
@@ -156,6 +161,10 @@ export class MockBuildCache<State> implements BuildCache<State> {
   constructor(files: FsRouteFile<State>[], mode: "development" | "production") {
     this.features.errorOverlay = mode === "development";
     this.#files = files;
+  }
+
+  getEntryAssets(): string[] {
+    return [];
   }
 
   getFsRoutes(): Command<State>[] {

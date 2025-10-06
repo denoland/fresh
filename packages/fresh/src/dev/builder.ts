@@ -25,7 +25,7 @@ import { parseDirPath } from "../config.ts";
 import { pathToExportName, UniqueNamer } from "../utils.ts";
 import { checkDenoCompilerOptions } from "./check.ts";
 import { crawlFsItem } from "./fs_crawl.ts";
-import { DAY } from "../constants.ts";
+import { UPDATE_INTERVAL } from "../constants.ts";
 
 export interface BuildOptions {
   /**
@@ -76,6 +76,14 @@ export interface BuildOptions {
    */
   routeDir?: string;
   /**
+   * The entrypoint for your server.
+   *
+   * This can be an absolute path, a file URL or a relative path.
+   * Relative paths are resolved against the `root` option.
+   * @default "main.ts"
+   */
+  serverEntry?: string;
+  /**
    * File paths which should be ignored when crawling the file system.
    */
   ignore?: RegExp[];
@@ -109,6 +117,7 @@ export class Builder<State = any> {
 
   constructor(options?: BuildOptions) {
     const root = parseDirPath(options?.root ?? ".", Deno.cwd());
+    const serverEntry = parseDirPath(options?.serverEntry ?? "main.ts", root);
     const outDir = parseDirPath(options?.outDir ?? "_fresh", root);
     const staticDir = parseDirPath(options?.staticDir ?? "static", root);
     const islandDir = parseDirPath(options?.islandDir ?? "islands", root);
@@ -119,6 +128,7 @@ export class Builder<State = any> {
     this.#transformer = new FileTransformer(fsAdapter, root);
 
     this.config = {
+      serverEntry,
       target: options?.target ?? ["chrome99", "firefox99", "safari15"],
       root,
       outDir,
@@ -148,7 +158,7 @@ export class Builder<State = any> {
     options: ListenOptions = {},
   ): Promise<void> {
     // Run update check in background
-    updateCheck(DAY).catch(() => {});
+    updateCheck(UPDATE_INTERVAL).catch(() => {});
 
     this.config.mode = "development";
 
@@ -287,7 +297,7 @@ export class Builder<State = any> {
 
     const runtimePath = dev
       ? "../runtime/client/dev.ts"
-      : "../runtime/client/mod.tsx";
+      : "../runtime/client/mod.ts";
 
     const entryPoints: Record<string, string> = {
       "fresh-runtime": new URL(runtimePath, import.meta.url).href,
@@ -304,6 +314,7 @@ export class Builder<State = any> {
         name,
         server: spec,
         browser: null,
+        css: [],
       });
     }
 

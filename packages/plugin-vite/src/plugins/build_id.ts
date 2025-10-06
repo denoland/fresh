@@ -7,6 +7,7 @@ export function buildIdPlugin(): Plugin {
 
   return {
     name: "fresh:build-id",
+    sharedDuringBuild: true,
     async config(_, env) {
       const isDev = env.command === "serve";
 
@@ -26,28 +27,43 @@ export function buildIdPlugin(): Plugin {
         return `\0fresh/build-id`;
       }
     },
-    load(id) {
-      if (id !== `\0fresh/build-id`) return;
-
-      return `export let BUILD_ID = ${JSON.stringify(buildId)};
+    load: {
+      filter: {
+        id: /\0fresh\/build-id/,
+      },
+      handler() {
+        return `export let BUILD_ID = ${JSON.stringify(buildId)};
 export const DENO_DEPLOYMENT_ID = undefined;
 export function setBuildId(id) {
   BUILD_ID = id;
 }`;
+      },
     },
   };
 }
 
 export async function getBuildId(dev: boolean): Promise<string> {
-  if (!dev) {
-    const bin = Deno.build.os === "windows" ? "git.exe" : "git";
-    const res = await new Deno.Command(bin, { args: ["rev-parse", "HEAD"] })
-      .output();
+  const gitRevision = Deno.env.get("DENO_DEPLOYMENT_ID") ??
+    Deno.env.get("DENO_DEPLOY_BUILD_ID") ??
+    Deno.env.get("GITHUB_SHA") ??
+    Deno.env.get("CI_COMMIT_SHA");
+  if (gitRevision !== undefined) {
+    return gitRevision.trim();
+  }
 
-    return new TextDecoder().decode(res.stdout);
+  if (!dev) {
+    try {
+      const bin = Deno.build.os === "windows" ? "git.exe" : "git";
+      const res = await new Deno.Command(bin, { args: ["rev-parse", "HEAD"] })
+        .output();
+
+      return new TextDecoder().decode(res.stdout).trim();
+    } catch {
+      // ignore
+    }
   }
 
   const arr = new Uint32Array(1);
   crypto.getRandomValues(arr);
-  return String(arr[0]);
+  return String(arr[0]).trim();
 }

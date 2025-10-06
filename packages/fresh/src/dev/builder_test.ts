@@ -303,7 +303,7 @@ export const app = new App().fsRoutes()`,
 
     let text = "fail";
     await withChildProcessServer(
-      { cwd: tmp, args: ["serve", "-A", "dist/server.js"] },
+      { cwd: tmp, args: ["serve", "-A", "--port=0", "dist/server.js"] },
       async (address) => {
         const res = await fetch(`${address}/foo`);
         text = await res.text();
@@ -343,7 +343,7 @@ export const app = new App().fsRoutes()`,
 
     let text = "fail";
     await withChildProcessServer(
-      { cwd: tmp, args: ["serve", "-A", "dist/server.js"] },
+      { cwd: tmp, args: ["serve", "-A", "--port=0", "dist/server.js"] },
       async (address) => {
         const res = await fetch(address);
         text = await res.text();
@@ -384,6 +384,42 @@ Deno.test({
         controller.abort();
       },
     });
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "Builder - dev server supports basePath",
+  fn: async () => {
+    const root = path.join(import.meta.dirname!, "..", "..");
+    await using _tmp = await withTmpDir({ dir: root, prefix: "tmp_builder_" });
+    const tmp = _tmp.dir;
+
+    const app = new App({ basePath: "/foo/bar" })
+      .get("/", () => new Response("ok"))
+      .get("/asdf", () => new Response("ok"));
+
+    const builder = new Builder({
+      root: tmp,
+      outDir: path.join(tmp, "dist"),
+    });
+
+    const controller = new AbortController();
+    let address;
+    await builder.listen(() => Promise.resolve<App<unknown>>(app), {
+      signal: controller.signal,
+      onListen(addr) {
+        address = `http://localhost:${addr.port}`;
+      },
+    });
+
+    const res = await fetch(`${address}/foo/bar/asdf`);
+
+    const text = await res.text();
+    expect(text).toEqual("ok");
+
+    controller.abort();
   },
   sanitizeOps: false,
   sanitizeResources: false,
@@ -453,12 +489,39 @@ export const app = new App()
     await new Builder({ root: tmp }).build();
 
     await withChildProcessServer(
-      { cwd: tmp, args: ["serve", "-A", "_fresh/server.js"] },
+      { cwd: tmp, args: ["serve", "-A", "--port=0", "_fresh/server.js"] },
       async (address) => {
         let res = await fetch(`${address}/foo.txt`);
         expect(await res.text()).toEqual("ok");
 
         res = await fetch(`${address}/test/foo.txt`);
+        expect(await res.text()).toEqual("ok");
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "Builder - custom server entry",
+  fn: async () => {
+    const root = path.join(import.meta.dirname!, "..", "..");
+    await using _tmp = await withTmpDir({ dir: root, prefix: "tmp_builder_" });
+    const tmp = _tmp.dir;
+
+    await writeFiles(tmp, {
+      "other.ts": `import { App, staticFiles } from "fresh";
+export const app = new App()
+  .get("/", () => new Response("ok"));`,
+    });
+
+    await new Builder({ root: tmp, serverEntry: "other.ts" }).build();
+
+    await withChildProcessServer(
+      { cwd: tmp, args: ["serve", "-A", "--port=0", "_fresh/server.js"] },
+      async (address) => {
+        const res = await fetch(`${address}`);
         expect(await res.text()).toEqual("ok");
       },
     );
@@ -536,7 +599,7 @@ export const app = new App().fsRoutes()`,
 
     let text = "fail";
     await withChildProcessServer(
-      { cwd: tmp, args: ["serve", "-A", "dist/server.js"] },
+      { cwd: tmp, args: ["serve", "-A", "--port=0", "dist/server.js"] },
       async (address) => {
         const res = await fetch(address);
         text = await res.text();
@@ -774,4 +837,71 @@ Deno.test("specToName", () => {
   expect(specToName("islands/foo.v2.tsx")).toEqual("foo_v2");
   expect(specToName("/islands/_bar-baz-...-$.tsx")).toEqual("_bar_baz_$");
   expect(specToName("/islands/1_hello.tsx")).toEqual("_hello");
+});
+
+Deno.test({
+  name: "Builder - island named after global object (Map)",
+  fn: async () => {
+    const root = path.join(import.meta.dirname!, "..", "..");
+    await using _tmp = await withTmpDir({ dir: root, prefix: "tmp_builder_" });
+    const tmp = _tmp.dir;
+
+    await writeFiles(tmp, {
+      "islands/Map.tsx": `import { useSignal } from "@preact/signals";
+import { useEffect } from "preact/hooks";
+
+export default function Map() {
+  const ready = useSignal(false);
+  const count = useSignal(0);
+
+  useEffect(() => {
+    ready.value = true;
+  }, []);
+
+  return (
+    <div class={ready.value ? "ready" : ""}>
+      <p class="output">{count.value}</p>
+      <button
+        type="button"
+        class="increment"
+        onClick={() => count.value = count.peek() + 1}
+      >
+        increment
+      </button>
+    </div>
+  );
+}`,
+      "routes/index.tsx": `import Map from "../islands/Map.tsx";
+export default () => <Map />;`,
+      "main.ts": `import { App } from "fresh";
+export const app = new App().fsRoutes();`,
+    });
+
+    const builder = new Builder({
+      root: tmp,
+      outDir: path.join(tmp, "dist"),
+    });
+
+    // Register the island manually
+    const islandPath = path.join(tmp, "islands", "Map.tsx");
+    builder.registerIsland(path.toFileUrl(islandPath).href);
+
+    await builder.build();
+
+    await withChildProcessServer(
+      { cwd: tmp, args: ["serve", "-A", "--port=0", "dist/server.js"] },
+      async (address) => {
+        const res = await fetch(address);
+        const html = await res.text();
+
+        // Verify the fix: UniqueNamer prefixes "Map" with underscore to prevent shadowing
+        // Without the fix: import Map from "..." and boot({Map}, ...) - shadows global Map
+        // With the fix: import _Map_N from "..." and boot({_Map_N}, ...) - no shadowing
+        expect(html).toMatch(/import\s+_Map_\d+\s+from/);
+        expect(html).toMatch(/boot\(\s*\{\s*_Map_\d+\s*\}/);
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
 });

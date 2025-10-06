@@ -84,7 +84,11 @@ export async function bundleJs(
       preactDebugger(PREACT_ENV),
       buildIdPlugin(options.buildId),
       windowsPathFixer(),
-      denoPlugin({ preserveJsx: true, debug: false }),
+      denoPlugin({
+        preserveJsx: true,
+        debug: false,
+        publicEnvVarPrefix: "FRESH_PUBLIC_",
+      }),
     ],
   });
 
@@ -166,15 +170,15 @@ function buildIdPlugin(buildId: string): EsbuildPlugin {
   return {
     name: "fresh-build-id",
     setup(build) {
-      build.onResolve({ filter: /^(jsr:)?@fresh\/build-id(@.*)?$/ }, (args) => {
+      build.onResolve({ filter: /^(jsr:)?@fresh\/build-id/ }, (args) => {
         return {
           path: args.path,
-          namespace: "fresh-internal",
+          namespace: "fresh-internal-build-id",
         };
       });
       build.onLoad({
-        filter: /^(jsr:)?@fresh\/build-id$/,
-        namespace: "fresh-internal",
+        filter: /.*/,
+        namespace: "fresh-internal-build-id",
       }, () => {
         return {
           contents: `export const BUILD_ID = "${buildId}";`,

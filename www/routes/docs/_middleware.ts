@@ -3,6 +3,8 @@ import type { Context } from "fresh";
 const REDIRECTS: Record<string, string> = {
   "/docs/getting-started/fetching-data":
     "/docs/getting-started/custom-handlers",
+  "/docs/canary/examples/modifying-the-head": "/docs/advanced/head",
+  "/docs/canary/concepts/builder": "/docs/advanced/builder",
 };
 
 export async function handler<T>(ctx: Context<T>) {

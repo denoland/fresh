@@ -1,6 +1,7 @@
 import { type Context, getInternals } from "../context.ts";
 import type { App as _App } from "../app.ts";
 import type { Define as _Define } from "../define.ts";
+import { recordSpanError, tracer } from "../otel.ts";
 
 /**
  * A middleware function is the basic building block of Fresh. It allows you
@@ -87,38 +88,49 @@ export type MaybeLazyMiddleware<State> = (
   ctx: Context<State>,
 ) => Response | Promise<Response | Middleware<State>>;
 
-export function runMiddlewares<State>(
+export async function runMiddlewares<State>(
   middlewares: MaybeLazyMiddleware<State>[],
   ctx: Context<State>,
 ): Promise<Response> {
-  let fn = ctx.next;
-  let i = middlewares.length;
-  while (i--) {
-    const local = fn;
-    let next = middlewares[i];
-    const idx = i;
-    fn = async () => {
-      const internals = getInternals(ctx);
-      const { app: prevApp, layouts: prevLayouts } = internals;
+  return await tracer.startActiveSpan("middlewares", {
+    attributes: { "fresh.middleware.count": middlewares.length },
+  }, async (span) => {
+    try {
+      let fn = ctx.next;
+      let i = middlewares.length;
+      while (i--) {
+        const local = fn;
+        let next = middlewares[i];
+        const idx = i;
+        fn = async () => {
+          const internals = getInternals(ctx);
+          const { app: prevApp, layouts: prevLayouts } = internals;
 
-      ctx.next = local;
-      try {
-        const result = await next(ctx);
-        if (typeof result === "function") {
-          middlewares[idx] = result;
-          next = result;
-          return await result(ctx);
-        }
+          ctx.next = local;
+          try {
+            const result = await next(ctx);
+            if (typeof result === "function") {
+              middlewares[idx] = result;
+              next = result;
+              return await result(ctx);
+            }
 
-        return result;
-      } catch (err) {
-        ctx.error = err;
-        throw err;
-      } finally {
-        internals.app = prevApp;
-        internals.layouts = prevLayouts;
+            return result;
+          } catch (err) {
+            ctx.error = err;
+            throw err;
+          } finally {
+            internals.app = prevApp;
+            internals.layouts = prevLayouts;
+          }
+        };
       }
-    };
-  }
-  return fn();
+      return await fn();
+    } catch (err) {
+      recordSpanError(span, err);
+      throw err;
+    } finally {
+      span.end();
+    }
+  });
 }

@@ -40,7 +40,7 @@ function getFreshCacheDir(): string | null {
   return null;
 }
 
-async function fetchLatestVersion() {
+async function fetchLatestVersion(): Promise<string> {
   const res = await fetch("https://dl.deno.land/fresh/release-latest.txt");
   if (res.ok) {
     return (await res.text()).trim().replace(/^v/, "");
@@ -49,7 +49,7 @@ async function fetchLatestVersion() {
   throw new Error(`Could not fetch latest version.`);
 }
 
-function readCurrentVersion() {
+function readCurrentVersion(): string {
   return CURRENT_FRESH_VERSION;
 }
 
@@ -132,7 +132,7 @@ export async function updateCheck(
     );
     // deno-lint-ignore no-console
     console.log(
-      `    To upgrade, run: deno run -A -r https://fresh.deno.dev/update`,
+      `    To upgrade, run: deno run -A -r jsr:@fresh/update`,
     );
     // deno-lint-ignore no-console
     console.log();

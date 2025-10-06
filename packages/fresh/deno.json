@@ -1,17 +1,18 @@
 {
   "name": "@fresh/core",
-  "version": "2.0.0-alpha.56",
+  "version": "2.1.1",
   "license": "MIT",
   "exports": {
     ".": "./src/mod.ts",
     "./runtime": "./src/runtime/shared.ts",
-    "./runtime-client": "./src/runtime/client/mod.tsx",
+    "./runtime-client": "./src/runtime/client/mod.ts",
     "./dev": "./src/dev/mod.ts",
     "./compat": "./src/compat.ts",
     "./internal": "./src/internals.ts",
     "./internal-dev": "./src/internals_dev.ts"
   },
   "imports": {
-    "@std/fmt": "jsr:@std/fmt@^1.0.8"
+    "@std/fmt": "jsr:@std/fmt@^1.0.8",
+    "@types/node": "npm:@types/node@^24.2.1"
   }
 }

@@ -10,7 +10,6 @@ simplicity.
 
 Some stand-out features:
 
-- Just-in-time rendering on the edge.
 - Island based client hydration for maximum interactivity.
 - Zero runtime overhead: no JS is shipped to the client by default.
 - No configuration necessary.
@@ -30,23 +29,23 @@ You can scaffold a new project by running the Fresh init script. To scaffold a
 project run the following:
 
 ```sh
-deno run -A -r https://fresh.deno.dev
+deno run -Ar jsr:@fresh/init
 ```
 
 Then navigate to the newly created project folder:
 
 ```
-cd deno-fresh-demo
+cd fresh-project
 ```
 
 From within your project folder, start the development server using the
 `deno task` command:
 
 ```
-deno task start
+deno task dev
 ```
 
-Now open http://localhost:8000 in your browser to view the page. You make
+Now open http://localhost:5173 in your browser to view the page. You make
 changes to the project source code and see them reflected in your browser.
 
 To deploy the project to the live internet, you can use

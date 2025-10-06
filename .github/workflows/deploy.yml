@@ -23,6 +23,9 @@ jobs:
         with:
           cache: true
 
+      - name: Run install step
+        run: "deno install"
+
       - name: Build step
         working-directory: ./www
         run: "deno task build"
@@ -33,5 +36,5 @@ jobs:
         if: github.repository_owner == 'denoland'
         with:
           project: "fresh"
-          entrypoint: "./www/_fresh/server.js"
-          root: "."
+          entrypoint: "server.js"
+          root: "./www/_fresh/"

@@ -16,6 +16,7 @@ import {
   newRouteCmd,
 } from "./commands.ts";
 import { isLazy } from "./utils.ts";
+import { recordSpanError, tracer } from "./otel.ts";
 
 export interface FreshFsMod<State> {
   config?: RouteConfig;
@@ -24,6 +25,7 @@ export interface FreshFsMod<State> {
   default?:
     | AnyComponent<PageProps<unknown, State>>
     | AsyncAnyComponent<PageProps<unknown, State>>;
+  css?: string[];
 }
 
 export interface FsRouteFile<State> {
@@ -34,13 +36,18 @@ export interface FsRouteFile<State> {
   type: CommandType;
   routePattern: string;
   overrideConfig: RouteConfig | undefined;
+  css: string[];
 }
 
-// deno-lint-ignore no-explicit-any
-function isFreshFile<State>(mod: any): mod is FreshFsMod<State> {
+function isFreshFile<State>(
+  // deno-lint-ignore no-explicit-any
+  mod: any,
+  commandType: CommandType,
+): mod is FreshFsMod<State> {
   if (mod === null || typeof mod !== "object") return false;
 
   return typeof mod.default === "function" ||
+    commandType === CommandType.Middleware && Array.isArray(mod.default) ||
     typeof mod.config === "object" || typeof mod.handlers === "object" ||
     typeof mod.handlers === "function" || typeof mod.handler === "object" ||
     typeof mod.handler === "function";
@@ -70,7 +77,7 @@ export function fsItemsToCommands<State>(
     switch (type) {
       case CommandType.Middleware: {
         if (isLazy(rawMod)) continue;
-        const { handlers, mod } = validateFsMod(filePath, rawMod);
+        const { handlers, mod } = validateFsMod(filePath, rawMod, type);
 
         let middlewares = (handlers ?? mod.default) as unknown as
           | Middleware<State>
@@ -94,7 +101,7 @@ export function fsItemsToCommands<State>(
         continue;
       }
       case CommandType.Layout: {
-        const { handlers, mod } = validateFsMod<State>(filePath, rawMod);
+        const { handlers, mod } = validateFsMod<State>(filePath, rawMod, type);
         if (handlers !== null) {
           warnInvalidRoute("Layout does not support handlers");
         }
@@ -104,7 +111,7 @@ export function fsItemsToCommands<State>(
         continue;
       }
       case CommandType.Error: {
-        const { handlers, mod } = validateFsMod<State>(filePath, rawMod);
+        const { handlers, mod } = validateFsMod<State>(filePath, rawMod, type);
         commands.push(newErrorCmd(
           pattern,
           {
@@ -118,7 +125,7 @@ export function fsItemsToCommands<State>(
         continue;
       }
       case CommandType.NotFound: {
-        const { handlers, mod } = validateFsMod<State>(filePath, rawMod);
+        const { handlers, mod } = validateFsMod<State>(filePath, rawMod, type);
         commands.push(newNotFoundCmd({
           config: mod.config,
           component: mod.default,
@@ -128,7 +135,7 @@ export function fsItemsToCommands<State>(
         continue;
       }
       case CommandType.App: {
-        const { mod } = validateFsMod<State>(filePath, rawMod);
+        const { mod } = validateFsMod<State>(filePath, rawMod, type);
         if (mod.default === undefined) continue;
 
         commands.push(newAppCmd(mod.default));
@@ -140,15 +147,26 @@ export function fsItemsToCommands<State>(
         let config: RouteConfig = {};
         if (isLazy(rawMod)) {
           normalized = async () => {
-            const result = await rawMod();
-            return normalizeRoute(filePath, result, routePattern);
+            return await tracer.startActiveSpan("lazy-route", {
+              attributes: { "fresh.route_name": rawMod.name ?? "anonymous" },
+            }, async (span) => {
+              try {
+                const result = await rawMod();
+                return normalizeRoute(filePath, result, routePattern, type);
+              } catch (err) {
+                recordSpanError(span, err);
+                throw err;
+              } finally {
+                span.end();
+              }
+            });
           };
 
           config.methods = item.overrideConfig?.methods ?? "ALL";
           config.routeOverride = item.overrideConfig?.routeOverride ??
             routePattern;
         } else {
-          normalized = normalizeRoute(filePath, rawMod, routePattern);
+          normalized = normalizeRoute(filePath, rawMod, routePattern, type);
           if (rawMod.config) {
             config = rawMod.config;
           }
@@ -287,11 +305,12 @@ function getRoutePathScore(char: string, s: string, i: number): number {
 export function validateFsMod<State>(
   filePath: string,
   mod: unknown,
+  commandType: CommandType,
 ): {
   handlers: RouteHandler<unknown, State> | HandlerFn<unknown, State>[] | null;
   mod: FreshFsMod<State>;
 } {
-  if (!isFreshFile<State>(mod)) {
+  if (!isFreshFile<State>(mod, commandType)) {
     throw new Error(
       `Expected a route, middleware, layout or error template, but couldn't find relevant exports in: ${filePath}`,
     );
@@ -311,8 +330,9 @@ function normalizeRoute<State>(
   filePath: string,
   rawMod: FreshFsMod<State>,
   routePattern: string,
+  commandType: CommandType,
 ): Route<State> {
-  const { handlers, mod } = validateFsMod<State>(filePath, rawMod);
+  const { handlers, mod } = validateFsMod<State>(filePath, rawMod, commandType);
 
   return {
     config: {
@@ -322,5 +342,6 @@ function normalizeRoute<State>(
     // deno-lint-ignore no-explicit-any
     handler: (handlers as any) ?? undefined,
     component: mod.default,
+    css: rawMod.css,
   };
 }

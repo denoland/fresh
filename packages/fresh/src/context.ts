@@ -7,27 +7,33 @@ import {
   isValidElement,
   type VNode,
 } from "preact";
+import { jsxTemplate } from "preact/jsx-runtime";
 import { SpanStatusCode } from "@opentelemetry/api";
 import type { ResolvedFreshConfig } from "./config.ts";
 import type { BuildCache } from "./build_cache.ts";
 import type { LayoutConfig } from "./types.ts";
-import { RenderState, setRenderState } from "./runtime/server/preact_hooks.tsx";
-import { PARTIAL_SEARCH_PARAM } from "./constants.ts";
+import {
+  FreshScripts,
+  RenderState,
+  setRenderState,
+} from "./runtime/server/preact_hooks.ts";
+import { DEV_ERROR_OVERLAY_URL, PARTIAL_SEARCH_PARAM } from "./constants.ts";
 import { tracer } from "./otel.ts";
 import {
   type ComponentDef,
   isAsyncAnyComponent,
   type PageProps,
-  preactRender,
   renderAsyncAnyComponent,
   renderRouteComponent,
 } from "./render.ts";
+import { renderToString } from "preact-render-to-string";
 
 export interface Island {
   file: string;
   name: string;
   exportName: string;
   fn: ComponentType;
+  css: string[];
 }
 
 export type ServerIslandRegistry = Map<ComponentType, Island>;
@@ -46,6 +52,7 @@ export type FreshContext<State = unknown> = Context<State>;
 
 export let getBuildCache: <T>(ctx: Context<T>) => BuildCache<T>;
 export let getInternals: <T>(ctx: Context<T>) => UiTree<unknown, T>;
+export let setAdditionalStyles: <T>(ctx: Context<T>, css: string[]) => void;
 
 /**
  * The context passed to every middleware. It is unique for every request.
@@ -110,6 +117,7 @@ export class Context<State> {
   next: () => Promise<Response>;
 
   #buildCache: BuildCache<State>;
+  #additionalStyles: string[] | null = null;
 
   Component!: FunctionComponent;
 
@@ -117,6 +125,8 @@ export class Context<State> {
     // deno-lint-ignore no-explicit-any
     getInternals = <T>(ctx: Context<T>) => ctx.#internal as any;
     getBuildCache = <T>(ctx: Context<T>) => ctx.#buildCache;
+    setAdditionalStyles = <T>(ctx: Context<T>, css: string[]) =>
+      ctx.#additionalStyles = css;
   }
 
   constructor(
@@ -215,19 +225,23 @@ export class Context<State> {
       vnode = result;
     }
 
+    let appChild = vnode;
+    // deno-lint-ignore no-explicit-any
+    let appVNode: VNode<any>;
+
+    let hasApp = true;
+
     if (isAsyncAnyComponent(appDef)) {
-      const child = vnode;
-      props.Component = () => child;
+      props.Component = () => appChild;
       const result = await renderAsyncAnyComponent(appDef, props);
       if (result instanceof Response) {
         return result;
       }
 
-      vnode = result;
+      appVNode = result;
     } else if (appDef !== null) {
-      const child = vnode;
-      vnode = h(appDef, {
-        Component: () => child,
+      appVNode = h(appDef, {
+        Component: () => appChild,
         config: this.config,
         data: null,
         error: this.error,
@@ -237,7 +251,11 @@ export class Context<State> {
         req: this.req,
         state: this.state,
         url: this.url,
+        route: this.route,
       });
+    } else {
+      hasApp = false;
+      appVNode = appChild ?? h(Fragment, null);
     }
 
     const headers = init.headers !== undefined
@@ -267,15 +285,57 @@ export class Context<State> {
         partialId,
       );
 
+      if (this.#additionalStyles !== null) {
+        for (let i = 0; i < this.#additionalStyles.length; i++) {
+          const css = this.#additionalStyles[i];
+          state.islandAssets.add(css);
+        }
+      }
+
       try {
         setRenderState(state);
 
-        return preactRender(
+        let html = renderToString(
           vnode ?? h(Fragment, null),
-          this,
-          state,
-          headers,
         );
+
+        if (hasApp) {
+          appChild = jsxTemplate([html]);
+          html = renderToString(appVNode);
+        }
+
+        if (
+          !state.renderedHtmlBody || !state.renderedHtmlHead ||
+          !state.renderedHtmlTag
+        ) {
+          let fallback: VNode = jsxTemplate([html]);
+          if (!state.renderedHtmlBody) {
+            let scripts: VNode | null = null;
+
+            if (
+              this.url.pathname !== this.config.basePath + DEV_ERROR_OVERLAY_URL
+            ) {
+              scripts = h(FreshScripts, null) as VNode;
+            }
+
+            fallback = h("body", null, fallback, scripts);
+          }
+          if (!state.renderedHtmlHead) {
+            fallback = h(
+              Fragment,
+              null,
+              h("head", null, h("meta", { charset: "utf-8" })),
+              fallback,
+            );
+          }
+          if (!state.renderedHtmlTag) {
+            fallback = h("html", null, fallback);
+          }
+
+          html = renderToString(fallback);
+        }
+
+        return `<!DOCTYPE html>${html}`;
       } catch (err) {
         if (err instanceof Error) {
           span.recordException(err);
@@ -287,6 +347,27 @@ export class Context<State> {
         }
         throw err;
       } finally {
+        // Add preload headers
+        const basePath = this.config.basePath;
+        const runtimeUrl = state.buildCache.clientEntry.startsWith(".")
+          ? state.buildCache.clientEntry.slice(1)
+          : state.buildCache.clientEntry;
+        let link = `<${
+          encodeURI(`${basePath}${runtimeUrl}`)
+        }>; rel="modulepreload"; as="script"`;
+        state.islands.forEach((island) => {
+          const specifier = `${basePath}${
+            island.file.startsWith(".") ? island.file.slice(1) : island.file
+          }`;
+          link += `, <${
+            encodeURI(specifier)
+          }>; rel="modulepreload"; as="script"`;
+        });
+
+        if (link !== "") {
+          headers.append("Link", link);
+        }
+
         state.clear();
         setRenderState(null);
 

@@ -41,12 +41,6 @@
     "image": "fresh"
   },
   {
-    "title": "Paquet",
-    "link": "https://paquet.app",
-    "github": "notangelmario/paquet",
-    "image": "Paquet"
-  },
-  {
     "title": "Video Poker Academy",
     "link": "https://videopoker-academy.deno.dev/",
     "github": "hyprtxt/videopoker.academy",
@@ -444,5 +438,11 @@
     "link": "https://moatez-bejaoui.deno.dev",
     "github": "https://github.com/MoatezNG",
     "image": "moatez-desktop"
+  },
+  {
+    "title": "Retro Ranker",
+    "link": "https://retroranker.site",
+    "github": "https://github.com/Nergy101/retro-ranker",
+    "image": "retro-ranker"
   }
 ]

@@ -20,6 +20,7 @@ export {
   type IPRestrictionRule,
   type IPRestrictionRules,
 } from "./middlewares/ip_restriction.ts";
+export { csp, type CSPOptions } from "./middlewares/csp.ts";
 export type { FreshConfig, ResolvedFreshConfig } from "./config.ts";
 export type { Context, FreshContext, Island } from "./context.ts";
 export { createDefine, type Define } from "./define.ts";
