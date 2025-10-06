@@ -889,7 +889,7 @@ export const app = new App().fsRoutes();`,
     await builder.build();
 
     await withChildProcessServer(
-      { cwd: tmp, args: ["serve", "-A", "dist/server.js"] },
+      { cwd: tmp, args: ["serve", "-A", "--port=0", "dist/server.js"] },
       async (address) => {
         const res = await fetch(address);
         const html = await res.text();
