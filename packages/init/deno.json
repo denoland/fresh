@@ -4,37 +4,12 @@
   "license": "MIT",
   "exports": "./src/mod.ts",
   "exclude": ["**/tmp/*"],
-  "lint": {
-    "rules": {
-      "exclude": ["no-console"]
-    }
-  },
-  "tasks": {
-    "check": "deno fmt --check . && deno lint . && deno check **/*.ts",
-    "test": "deno test -A",
-    "sync": "deno run -A src/sync.ts"
-  },
-  "imports": {
-    "@std/cli": "jsr:@std/cli@^1",
-    "@std/fmt": "jsr:@std/fmt@^1",
-    "@std/fs": "jsr:@std/fs@^1",
-    "@std/path": "jsr:@std/path@^1",
-    "@std/semver": "jsr:@std/semver@^1",
-    "@std/jsonc": "jsr:@std/jsonc@^1"
-  },
   "publish": {
     "include": [
       "src/**/*.ts",
-      "assets/**/*",
       "deno.json",
       "README.md"
     ],
-    "exclude": [
-      "**/*_test.*",
-      "*.todo",
-      "tests/",
-      "DESIGN.md",
-      "src/sync.ts"
-    ]
+    "exclude": ["**/*_test.*", "*.todo"]
   }
 }
