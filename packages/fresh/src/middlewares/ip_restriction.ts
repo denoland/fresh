@@ -39,6 +39,30 @@ export interface IpRestrictionOptions {
   ) => Response | Promise<Response>;
 }
 
+/**
+ * IP Restriction Middleware for Fresh.
+ *
+ * @param rules rules `{ denyList: string[], allowList: string[] }`.
+ * @param options Options for the IP Restriction middleware.
+ * @returns The middleware handler function.
+ *
+ * @example Basic usage (with defaults)
+ * ```ts
+ * const app = new App<State>()
+ *
+ * app.use(ipRestriction({denyList: ["192.168.1.10", "2001:db8::1"]}))
+ * ```
+ *
+ * @example custom error handling
+ * ```ts
+ * const customOnError: IpRestrictionOptions = {
+ *   onError: () => {
+ *     return new Response("custom onError", { status: 401 });
+ *   },
+ * };
+ * app.use(ipRestriction({denyList: ["192.168.1.10", "2001:db8::1"]}, customOnError))
+ * ```
+ */
 export function ipRestriction<State>(
   { denyList = [], allowList = [] }: IPRestrictionRules,
   options?: IpRestrictionOptions,
