@@ -69,9 +69,8 @@ export function devServer(): Plugin[] {
             // Ignore
           }
 
-          const mod = await server.ssrLoadModule("fresh:server_entry");
-
           try {
+            const mod = await server.ssrLoadModule("fresh:server_entry");
             const req = createRequest(nodeReq, nodeRes);
             const res = (await mod.default.fetch(req)) as Response;
 

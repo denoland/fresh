@@ -28,7 +28,7 @@ project folder should look like this:
 │   ├── _app.tsx        # Renders the outer <html> content structure
 │   └── index.tsx       # Renders /
 ├── static/             # Contains static assets like css, logos, etc
-│   └── ...       
+│   └── ...
 │
 ├── client.ts       # Client entry file that's loaded on every page.
 ├── main.ts         # The server entry file of your app
@@ -45,6 +45,10 @@ deno task dev
 Go to the URL printed in the terminal to view your app.
 
 ![Screenshot of the newly initialized Fresh app showing a counter](/docs/getting-started-1-init.jpg)
+
+> [info]: If you encounter any problems during setup or development, check the
+> [troubleshooting guide](/docs/latest/advanced/troubleshooting) for common
+> issues and solutions.
 
 ## Creating our first route
 
