@@ -1,4 +1,8 @@
-import type { NodePath, PluginObj, types } from "@babel/core";
+import type {
+  NodePath,
+  PluginObj,
+  types,
+} from "../../deno_workarounds/babel.ts";
 
 export function inlineEnvVarsPlugin(mode: string, env: Record<string, string>) {
   const allowed = new Map<string, string>();

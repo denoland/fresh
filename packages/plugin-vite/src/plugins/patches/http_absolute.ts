@@ -4,7 +4,7 @@ import type {
   PluginPass,
   types,
   Visitor,
-} from "@babel/core";
+} from "../../deno_workarounds/babel.ts";
 
 function maybeRewrite(
   t: typeof types,

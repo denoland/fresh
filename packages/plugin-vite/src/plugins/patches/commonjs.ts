@@ -1,4 +1,8 @@
-import type { NodePath, PluginObj, types } from "@babel/core";
+import type {
+  NodePath,
+  PluginObj,
+  types,
+} from "../../deno_workarounds/babel.ts";
 import { builtinModules } from "node:module";
 
 const BUILTINS = new Set(builtinModules);

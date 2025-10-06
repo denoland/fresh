@@ -1,5 +1,5 @@
 import { expect } from "@std/expect/expect";
-import * as babel from "@babel/core";
+import * as babel from "../../deno_workarounds/babel.ts";
 import { inlineEnvVarsPlugin } from "./inline_env_vars.ts";
 
 function runTest(

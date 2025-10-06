@@ -1,4 +1,4 @@
-import type { PluginObj, types } from "@babel/core";
+import type { PluginObj, types } from "../../deno_workarounds/babel.ts";
 
 export function jsxComments(): PluginObj {
   return {

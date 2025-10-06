@@ -1,5 +1,5 @@
 import { expect } from "@std/expect/expect";
-import * as babel from "@babel/core";
+import * as babel from "../../deno_workarounds/babel.ts";
 import { cjsPlugin } from "../patches/commonjs.ts";
 
 function runTest(

@@ -1,5 +1,5 @@
 import { expect } from "@std/expect/expect";
-import * as babel from "@babel/core";
+import * as babel from "../../deno_workarounds/babel.ts";
 import { jsxComments } from "./jsx_comment.ts";
 
 function runTest(options: { input: string; expected: string }) {

@@ -111,6 +111,17 @@ export async function initProject(
 
   // Fetch and write favicon
   await fetchFavicon(projectDir);
+
+  // Run install command
+  const args = ["install"];
+  if (options.tailwind) {
+    args.push("--allow-scripts=npm:@tailwindcss/oxide");
+  }
+
+  await new Deno.Command(Deno.execPath(), {
+    args,
+    cwd: projectDir,
+  }).output();
 }
 
 /**

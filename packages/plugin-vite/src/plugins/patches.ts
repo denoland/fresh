@@ -1,5 +1,5 @@
 import type { Plugin } from "vite";
-import * as babel from "@babel/core";
+import * as babel from "../deno_workarounds/babel.ts";
 import { cjsPlugin } from "./patches/commonjs.ts";
 import { jsxComments } from "./patches/jsx_comment.ts";
 import { inlineEnvVarsPlugin } from "./patches/inline_env_vars.ts";
@@ -8,7 +8,8 @@ import { JS_REG, JSX_REG } from "../utils.ts";
 import { codeEvalPlugin } from "./patches/code_eval.ts";
 
 // @ts-ignore Workaround for https://github.com/denoland/deno/issues/30850
-const { default: babelReact } = await import("@babel/preset-react");
+// @ts-types="@marvinh/type-stub"
+import babelReact from "@babel/preset-react";
 
 export function patches(): Plugin {
   let isDev = false;

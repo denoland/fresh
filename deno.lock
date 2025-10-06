@@ -64,6 +64,7 @@
     "jsr:@zip-js/zip-js@^2.7.52": "2.8.2",
     "npm:@babel/core@^7.28.0": "7.28.4",
     "npm:@babel/preset-react@^7.27.1": "7.27.1_@babel+core@7.28.4",
+    "npm:@marvinh/type-stub@1": "1.0.0",
     "npm:@mjackson/node-fetch-server@0.7": "0.7.0",
     "npm:@opentelemetry/api@^1.9.0": "1.9.0",
     "npm:@preact/signals@2": "2.3.1_preact@10.27.2",
@@ -727,6 +728,9 @@
         "@jridgewell/resolve-uri",
         "@jridgewell/sourcemap-codec"
       ]
+    },
+    "@marvinh/type-stub@1.0.0": {
+      "integrity": "sha512-vZsvv181dOTZs1sSZYKebR66cjZdVtC7zk2FGYZBbBi55OUDn3cQM2t1NYLqzNOsuHwGFSHoN0Yp4aQsrcIM+g=="
     },
     "@mjackson/node-fetch-server@0.7.0": {
       "integrity": "sha512-un8diyEBKU3BTVj3GzlTPA1kIjCkGdD+AMYQy31Gf9JCkfoZzwgJ79GUtHrF2BN3XPNMLpubbzPcxys+a3uZEw=="
@@ -3779,11 +3783,13 @@
           "jsr:@marvinh-test/import-json@^0.0.1",
           "npm:@babel/core@^7.28.0",
           "npm:@babel/preset-react@^7.27.1",
+          "npm:@marvinh/type-stub@1",
           "npm:@mjackson/node-fetch-server@0.7",
           "npm:@prefresh/vite@^2.4.8",
           "npm:@radix-ui/themes@^3.2.1",
           "npm:@tailwindcss/vite@^4.1.12",
           "npm:@types/babel__core@^7.20.5",
+          "npm:@types/mime-db@^1.43.6",
           "npm:@types/node@^24.1.0",
           "npm:feed@^5.1.0",
           "npm:ioredis@^5.7.0",

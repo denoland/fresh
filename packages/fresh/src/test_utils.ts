@@ -141,7 +141,7 @@ export async function withTmpDir(
       if (Deno.env.get("CI") === "true") return;
 
       try {
-        await Deno.remove(dir, { recursive: true });
+        // await Deno.remove(dir, { recursive: true });
       } catch {
         // Temp files are not cleaned up automatically on Windows
         // deno-lint-ignore no-console

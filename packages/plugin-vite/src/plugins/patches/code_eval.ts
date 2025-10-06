@@ -1,4 +1,8 @@
-import type { PluginObj, PluginPass, types } from "@babel/core";
+import type {
+  PluginObj,
+  PluginPass,
+  types,
+} from "../../deno_workarounds/babel.ts";
 
 const APPLY_PG_QUIRKS = "applyPgQuirks";
 

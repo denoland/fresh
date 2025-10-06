@@ -1,3 +1,4 @@
+// @ts-types="@types/mime-db"
 import mime from "mime-db";
 import { useEffect, useState } from "preact/hooks";
 
