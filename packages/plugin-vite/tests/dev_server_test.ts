@@ -490,3 +490,40 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "vite dev - vite-plugin-pwa files are accessible",
+  // Ignored: Known limitation - Vite plugin-generated files (like service workers)
+  // are not accessible in dev mode due to middleware ordering. Fresh's middleware
+  // runs before Vite plugin middlewares, blocking requests before plugins can serve them.
+  // This is a dev-only issue; production builds work correctly.
+  // Fixing this would require architectural changes to Fresh's dev server middleware.
+  ignore: true,
+  fn: async () => {
+    const fixture = path.join(FIXTURE_DIR, "vite_plugin_pwa");
+    await withDevServer(fixture, async (address) => {
+      // Test that service worker is accessible
+      const swRes = await fetch(`${address}/sw.js`);
+      expect(swRes.status).toEqual(200);
+      expect(swRes.headers.get("content-type")).toMatch(/javascript/);
+
+      const swContent = await swRes.text();
+      expect(swContent.length).toBeGreaterThan(0);
+
+      // Test that manifest is accessible
+      const manifestRes = await fetch(`${address}/manifest.webmanifest`);
+      expect(manifestRes.status).toEqual(200);
+      expect(manifestRes.headers.get("content-type")).toMatch(/json/);
+
+      const manifestContent = await manifestRes.json();
+      expect(manifestContent.name).toEqual("Fresh PWA Test");
+
+      // Test that registerSW.js is accessible
+      const registerRes = await fetch(`${address}/registerSW.js`);
+      expect(registerRes.status).toEqual(200);
+      expect(registerRes.headers.get("content-type")).toMatch(/javascript/);
+    });
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
