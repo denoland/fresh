@@ -255,7 +255,7 @@ Deno.test("init - can start built project", async () => {
   }).output();
 
   await withChildProcessServer(
-    { cwd: dir, env: { PORT: "0" }, args: ["task", "start"] },
+    { cwd: dir, args: ["serve", "-A", "--port", "0", "_fresh/server.js"] },
     async (address) => {
       await withBrowser(async (page) => {
         await page.goto(address);
@@ -338,7 +338,7 @@ Deno.test.ignore("init - vite build", async () => {
   }).output();
 
   await withChildProcessServer(
-    { cwd: dir, env: { PORT: "0" }, args: ["task", "start"] },
+    { cwd: dir, args: ["serve", "-A", "--port", "0", "_fresh/server.js"] },
     async (address) => {
       await withBrowser(async (page) => {
         await page.goto(address);
