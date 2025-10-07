@@ -19,7 +19,6 @@
     "jsr:@std/async@^1.0.13": "1.0.14",
     "jsr:@std/bytes@^1.0.5": "1.0.6",
     "jsr:@std/bytes@^1.0.6": "1.0.6",
-    "jsr:@std/cli@1": "1.0.22",
     "jsr:@std/cli@^1.0.19": "1.0.22",
     "jsr:@std/collections@^1.1.2": "1.1.3",
     "jsr:@std/collections@^1.1.3": "1.1.3",
@@ -27,7 +26,6 @@
     "jsr:@std/encoding@1": "1.0.10",
     "jsr:@std/encoding@^1.0.10": "1.0.10",
     "jsr:@std/expect@^1.0.16": "1.0.17",
-    "jsr:@std/fmt@1": "1.0.8",
     "jsr:@std/fmt@1.0.3": "1.0.3",
     "jsr:@std/fmt@^1.0.3": "1.0.8",
     "jsr:@std/fmt@^1.0.7": "1.0.8",
@@ -1456,16 +1454,6 @@
           "jsr:@std/fmt@^1.0.8",
           "jsr:@std/net@^1.0.6",
           "npm:@types/node@^24.2.1"
-        ]
-      },
-      "packages/init": {
-        "dependencies": [
-          "jsr:@std/cli@1",
-          "jsr:@std/fmt@1",
-          "jsr:@std/fs@1",
-          "jsr:@std/jsonc@1",
-          "jsr:@std/path@1",
-          "jsr:@std/semver@1"
         ]
       },
       "packages/plugin-tailwindcss-v3": {
