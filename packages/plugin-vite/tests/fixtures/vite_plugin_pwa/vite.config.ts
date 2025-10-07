@@ -18,6 +18,10 @@ export default defineConfig({
       workbox: {
         globPatterns: ["**/*.{js,css,html}"],
       },
+      devOptions: {
+        enabled: true,
+        type: "module",
+      },
     }),
   ],
 });
