@@ -5,11 +5,11 @@ import * as semver from "@std/semver";
 import initConfig from "../deno.json" with { type: "json" };
 
 // Keep these as is, as we replace these version in our release script
-const FRESH_VERSION = "2.1.1";
+const FRESH_VERSION = "2.1.2";
 const FRESH_TAILWIND_VERSION = "1.0.0";
 const FRESH_VITE_PLUGIN = "1.0.0";
 const PREACT_VERSION = "10.27.2";
-const PREACT_SIGNALS_VERSION = "2.3.1";
+const PREACT_SIGNALS_VERSION = "2.3.2";
 const TAILWINDCSS_VERSION = "4.1.10";
 const TAILWINDCSS_POSTCSS_VERSION = "4.1.10";
 const POSTCSS_VERSION = "8.5.6";
