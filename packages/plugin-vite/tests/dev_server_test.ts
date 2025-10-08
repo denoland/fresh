@@ -1,10 +1,6 @@
 import * as path from "@std/path";
 import { expect } from "@std/expect";
-import {
-  waitFor,
-  waitForText,
-  withBrowser,
-} from "../../fresh/tests/test_utils.tsx";
+import { waitFor, waitForText, withBrowser } from "@fresh/internal/test-utils";
 import {
   DEMO_DIR,
   FIXTURE_DIR,

@@ -1,12 +1,15 @@
-import { Context, type ServerIslandRegistry } from "./context.ts";
-import type { FsAdapter } from "./fs.ts";
-import type { BuildCache, StaticFile } from "./build_cache.ts";
-import type { ResolvedFreshConfig } from "./config.ts";
-import type { WalkEntry } from "@std/fs/walk";
-import { DEFAULT_CONN_INFO } from "./app.ts";
-import type { Command } from "./commands.ts";
-import { fsItemsToCommands, type FsRouteFile } from "./fs_routes.ts";
-import * as path from "@std/path";
+// Note: This internal test utility imports Fresh internals directly by path.
+// This package is internal to the monorepo, so cross-package internal imports are acceptable here.
+import type { ResolvedFreshConfig } from "../../fresh/src/config.ts";
+import { Context } from "../../fresh/src/context.ts";
+import { DEFAULT_CONN_INFO } from "../../fresh/src/app.ts";
+import type { BuildCache, StaticFile } from "../../fresh/src/build_cache.ts";
+import type { ServerIslandRegistry } from "../../fresh/src/context.ts";
+import type { Command } from "../../fresh/src/commands.ts";
+import {
+  fsItemsToCommands,
+  type FsRouteFile,
+} from "../../fresh/src/fs_routes.ts";
 
 const STUB = {} as unknown as Deno.ServeHandlerInfo;
 
@@ -99,58 +102,6 @@ export function serveMiddleware<T>(
   });
 }
 
-export function createFakeFs(files: Record<string, unknown>): FsAdapter {
-  return {
-    cwd: () => ".",
-    async *walk(_root) {
-      for (const file of Object.keys(files)) {
-        const entry: WalkEntry = {
-          isDirectory: false,
-          isFile: true,
-          isSymlink: false,
-          name: file,
-          path: file,
-        };
-        yield entry;
-      }
-    },
-    // deno-lint-ignore require-await
-    async isDirectory(dir) {
-      return Object.keys(files).some((file) => file.startsWith(dir + "/"));
-    },
-    async mkdirp(_dir: string) {
-    },
-    readFile: Deno.readFile,
-    // deno-lint-ignore require-await
-    async readTextFile(path) {
-      return String(files[String(path)]);
-    },
-  };
-}
-
-export const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-export async function withTmpDir(
-  options?: Deno.MakeTempOptions,
-): Promise<{ dir: string } & AsyncDisposable> {
-  const dir = await Deno.makeTempDir(options);
-  return {
-    dir,
-    async [Symbol.asyncDispose]() {
-      // Skip pointless cleanup in CI, speed up tests
-      if (Deno.env.get("CI") === "true") return;
-
-      try {
-        await Deno.remove(dir, { recursive: true });
-      } catch {
-        // Temp files are not cleaned up automatically on Windows
-        // deno-lint-ignore no-console
-        console.warn(`Failed to clean up temp dir: "${dir}"`);
-      }
-    },
-  };
-}
-
 export class MockBuildCache<State> implements BuildCache<State> {
   #files: FsRouteFile<State>[];
   root = "";
@@ -176,18 +127,43 @@ export class MockBuildCache<State> implements BuildCache<State> {
   }
 }
 
-export async function writeFiles(dir: string, files: Record<string, string>) {
-  const entries = Object.entries(files);
-  await Promise.all(entries.map(async (entry) => {
-    const [pathname, content] = entry;
-    const fullPath = path.join(dir, pathname);
-    try {
-      await Deno.mkdir(path.dirname(fullPath), { recursive: true });
-      await Deno.writeTextFile(fullPath, content);
-    } catch (err) {
-      if (!(err instanceof Deno.errors.AlreadyExists)) {
-        throw err;
+export function createFakeFs(files: Record<string, unknown>): {
+  cwd: () => string;
+  walk: (_root: string) => AsyncGenerator<{
+    isDirectory: boolean;
+    isFile: boolean;
+    isSymlink: boolean;
+    name: string;
+    path: string;
+  }>;
+  isDirectory: (dir: string) => Promise<boolean>;
+  mkdirp: (_dir: string) => Promise<void>;
+  readFile: typeof Deno.readFile;
+  readTextFile: (path: string) => Promise<string>;
+} {
+  return {
+    cwd: () => ".",
+    async *walk(_root: string) {
+      for (const file of Object.keys(files)) {
+        const entry = {
+          isDirectory: false,
+          isFile: true,
+          isSymlink: false,
+          name: file,
+          path: file,
+        };
+        yield entry;
       }
-    }
-  }));
+    },
+    // deno-lint-ignore require-await
+    async isDirectory(dir: string) {
+      return Object.keys(files).some((file) => file.startsWith(dir + "/"));
+    },
+    async mkdirp(_dir: string) {},
+    readFile: Deno.readFile,
+    // deno-lint-ignore require-await
+    async readTextFile(path: string) {
+      return String(files[String(path)]);
+    },
+  };
 }

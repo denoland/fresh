@@ -1,15 +1,12 @@
 import { App, staticFiles } from "fresh";
 import {
-  ALL_ISLAND_DIR,
   assertNotSelector,
   assertSelector,
-  buildProd,
-  Doc,
+  FakeServer,
   parseHtml,
   withBrowserApp,
-} from "./test_utils.tsx";
-
-import { FakeServer } from "../src/test_utils.ts";
+} from "@fresh/internal/test-utils";
+import { ALL_ISLAND_DIR, buildProd, Doc } from "./test_utils.tsx";
 import { Partial } from "fresh/runtime";
 
 const allIslandCache = await buildProd({ islandDir: ALL_ISLAND_DIR });
@@ -118,7 +115,7 @@ Deno.test({
         return ctx.render(<PartialPage />);
       });
 
-    await withBrowserApp(app, async (page, address) => {
+    await withBrowserApp(app.handler(), async (page, address) => {
       await page.goto(`${address}/active_nav_partial`);
 
       let doc = parseHtml(await page.content());
