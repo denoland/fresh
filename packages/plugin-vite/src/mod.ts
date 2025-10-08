@@ -24,6 +24,7 @@ import { checkImports } from "./plugins/verify_imports.ts";
 import { isBuiltin } from "node:module";
 import { load as stdLoadEnv } from "@std/dotenv";
 import path from "node:path";
+import { assetPlugin } from "./plugins/assets.ts";
 
 export type { FreshViteConfig };
 
@@ -186,6 +187,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
     },
     serverEntryPlugin(fConfig),
     patches(),
+    ...assetPlugin(),
     ...serverSnapshot(fConfig),
     clientEntryPlugin(fConfig),
     ...clientSnapshot(fConfig),
