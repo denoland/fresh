@@ -134,7 +134,7 @@ export function cjsPlugin(
             );
           }
 
-          if (exported.size > 0 || exportedNs.size > 0) {
+          if (exported.size > 0 || exportedNs.size > 0 || hasEsModule) {
             path.unshiftContainer(
               "body",
               t.expressionStatement(
