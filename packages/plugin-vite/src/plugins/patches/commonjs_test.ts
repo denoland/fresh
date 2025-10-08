@@ -720,6 +720,9 @@ var __importDefault = this && this.__importDefault || function (mod) {
     "default": mod
   };
 };
-const node_events_1 = __importDefault(_mod.default ?? _mod);`,
+const node_events_1 = __importDefault({
+  __esModule: true,
+  default: _mod.default ?? _mod
+});`,
   });
 });
