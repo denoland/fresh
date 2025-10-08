@@ -26,7 +26,13 @@ Object.defineProperty(module, "exports", {
   }
 });`;
 
-const DEFAULT_EXPORT = `const _default = exports.default ?? exports;`;
+const DEFAULT_EXPORT = `let _default;
+if (typeof exports === "object" && exports !== null && "default" in exports) {
+  _default = exports.default;
+} else {
+  _default = exports;
+}`;
+
 const DEFAULT_EXPORT_END = `export default _default;
 export var __require = exports;`;
 const IMPORT_REQUIRE = `import { createRequire } from "node:module";
@@ -65,7 +71,6 @@ exports.foo = 'foo';
 var _foo = exports.foo;
 export { _foo as foo };
 ${DEFAULT_EXPORT}
-_default.foo = _foo;
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -83,7 +88,6 @@ module.exports.foo = 'foo';
 var _foo = exports.foo;
 export { _foo as foo };
 ${DEFAULT_EXPORT}
-_default.foo = _foo;
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -104,7 +108,6 @@ const foo = 'also bar';
 var _foo = exports.foo;
 export { _foo as foo };
 ${DEFAULT_EXPORT}
-_default.foo = _foo;
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -125,7 +128,6 @@ exports.foo = 'bar';
 var _foo = exports.foo;
 export { _foo as foo };
 ${DEFAULT_EXPORT}
-_default.foo = _foo;
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -138,9 +140,8 @@ Deno.test("commonjs - esModule flag only", () => {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-const _default = exports.default ?? exports;
-export default _default;
-export var __require = exports;
+${DEFAULT_EXPORT}
+${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
 });
@@ -153,9 +154,8 @@ Deno.test("commonjs - esModule flag only #2", () => {
 Object.defineProperty(module.exports, "__esModule", {
   value: true
 });
-const _default = exports.default ?? exports;
-export default _default;
-export var __require = exports;
+${DEFAULT_EXPORT}
+${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
 });
@@ -167,9 +167,8 @@ Deno.test("commonjs - esModule flag only minified #3", () => {
 Object.defineProperty(exports, '__esModule', {
   value: !0
 });
-const _default = exports.default ?? exports;
-export default _default;
-export var __require = exports;
+${DEFAULT_EXPORT}
+${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
 });
@@ -190,8 +189,6 @@ var _foo = exports.foo;
 var _bar = exports.bar;
 export { _foo as foo, _bar as bar };
 ${DEFAULT_EXPORT}
-_default.foo = _foo;
-_default.bar = _bar;
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -274,7 +271,6 @@ exports.trace = 'foo';
 var _trace = exports.trace;
 export { _trace as trace };
 ${DEFAULT_EXPORT}
-_default.trace = _trace;
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -293,7 +289,6 @@ exports.foo = 'foo';
 var _foo = exports.foo;
 export { _foo as foo };
 ${DEFAULT_EXPORT}
-_default.foo = _foo;
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -310,7 +305,6 @@ exports.foo = utils_1.foo;
 var _foo = exports.foo;
 export { _foo as foo };
 ${DEFAULT_EXPORT}
-_default.foo = _foo;
 ${DEFAULT_EXPORT_END}`,
   });
 });
@@ -326,7 +320,6 @@ exports.foo = utils_1.foo;
 var _foo = exports.foo;
 export { _foo as foo };
 ${DEFAULT_EXPORT}
-_default.foo = _foo;
 ${DEFAULT_EXPORT_END}`,
   });
 });
@@ -345,7 +338,6 @@ exports._globalThis = typeof globalThis === 'object' ? globalThis : global;
 var _globalThis = exports._globalThis;
 export { _globalThis };
 ${DEFAULT_EXPORT}
-_default._globalThis = _globalThis;
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -365,7 +357,6 @@ exports.foo = foo;
 var _foo = exports.foo;
 export { _foo as foo };
 ${DEFAULT_EXPORT}
-_default.foo = _foo;
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -378,7 +369,7 @@ Deno.test("commonjs - detect esbuild shims", () => {
 import * as _ns from "./globalThis";
 export * from "./globalThis";
 ${DEFAULT_EXPORT}
-for (var _k in _ns) if (_k !== "default" && _k !== "__esModule" && Object.prototype.hasOwnProperty.call(_ns, _k)) _default[_k] = _ns[_k];
+if (typeof exports === "object" && exports !== null && !("default" in exports)) for (var _k in _ns) if (_k !== "default" && _k !== "__esModule" && Object.prototype.hasOwnProperty.call(_ns, _k)) _default[_k] = _ns[_k];
 ${DEFAULT_EXPORT_END}`,
   });
 });
@@ -403,7 +394,6 @@ exports.VERSION = '1.9.0';
 var _VERSION = exports.VERSION;
 export { _VERSION as VERSION };
 ${DEFAULT_EXPORT}
-_default.VERSION = _VERSION;
 ${DEFAULT_EXPORT_END}`,
   });
 });
@@ -428,7 +418,6 @@ var DiagLogLevel;
 var _DiagLogLevel = exports.DiagLogLevel;
 export { _DiagLogLevel as DiagLogLevel };
 ${DEFAULT_EXPORT}
-_default.DiagLogLevel = _DiagLogLevel;
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -464,7 +453,6 @@ module.exports = {
 var _foo = exports.foo;
 export { _foo as foo };
 ${DEFAULT_EXPORT}
-_default.foo = _foo;
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -482,7 +470,6 @@ Deno.test("commonjs - detect iife wrapper", () => {
 var _foo = exports.foo;
 export { _foo as foo };
 ${DEFAULT_EXPORT}
-_default.foo = _foo;
 ${DEFAULT_EXPORT_END}`,
   });
 });
@@ -524,7 +511,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 export * from "./node";
 ${DEFAULT_EXPORT}
-for (var _k in _ns) if (_k !== "default" && _k !== "__esModule" && Object.prototype.hasOwnProperty.call(_ns, _k)) _default[_k] = _ns[_k];
+if (typeof exports === "object" && exports !== null && !("default" in exports)) for (var _k in _ns) if (_k !== "default" && _k !== "__esModule" && Object.prototype.hasOwnProperty.call(_ns, _k)) _default[_k] = _ns[_k];
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -540,7 +527,6 @@ module.exports = {
 var _foo = exports.foo;
 export { _foo as foo };
 ${DEFAULT_EXPORT}
-_default.foo = _foo;
 ${DEFAULT_EXPORT_END}`,
   });
 });
@@ -637,7 +623,6 @@ Deno.test("commonjs - wrapped iife binding", () => {
 var _foo = exports.foo;
 export { _foo as foo };
 ${DEFAULT_EXPORT}
-_default.foo = _foo;
 ${DEFAULT_EXPORT_END}`,
   });
 });
@@ -724,5 +709,24 @@ const node_events_1 = __importDefault({
   __esModule: true,
   default: _mod.default ?? _mod
 });`,
+  });
+});
+
+Deno.test("commonjs imitating esm - default export exists", () => {
+  runTest({
+    input: `module.exports = {
+  'default': 'string',
+  otherExport: 1
+};
+`,
+    expected: `${INIT}
+module.exports = {
+  'default': 'string',
+  otherExport: 1
+};
+var _otherExport = exports.otherExport;
+export { _otherExport as otherExport };
+${DEFAULT_EXPORT}
+${DEFAULT_EXPORT_END}`,
   });
 });
