@@ -33,6 +33,7 @@ export function patches(): Plugin {
             runtime: "automatic",
             importSource: "preact",
             development: isDev,
+            throwIfNamespace: false,
           }]);
         }
 

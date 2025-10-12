@@ -490,3 +490,14 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "vite dev - support jsx namespace",
+  fn: async () => {
+    const res = await fetch(`${demoServer.address()}/tests/jsx_namespace`);
+    const text = await res.text();
+    expect(text).toContain(`xml:space="preserve"`);
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
