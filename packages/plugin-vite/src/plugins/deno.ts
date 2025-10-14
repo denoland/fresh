@@ -375,6 +375,7 @@ function babelTransform(
       runtime: "automatic",
       importSource: "preact",
       development: isDev,
+      throwIfNamespace: false,
     }]);
   }
 
