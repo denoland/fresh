@@ -41,6 +41,12 @@
     "image": "fresh"
   },
   {
+    "title": "Beyond Better",
+    "link": "https://beyondbetter.app",
+    "github": "Beyond-Better/bb",
+    "image": "beyondbetter"
+  },
+  {
     "title": "Video Poker Academy",
     "link": "https://videopoker-academy.deno.dev/",
     "github": "hyprtxt/videopoker.academy",
