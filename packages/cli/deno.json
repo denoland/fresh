@@ -1,0 +1,7 @@
+{
+  "imports": {
+    "@std/cli": "jsr:@std/cli@^1.0.23",
+    "@std/fmt": "jsr:@std/fmt@^1.0.8",
+    "vite": "npm:vite@^7.1.11"
+  }
+}
