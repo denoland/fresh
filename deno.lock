@@ -118,6 +118,7 @@
     "npm:tailwindcss@^4.1.10": "4.1.16",
     "npm:ts-morph@26": "26.0.0",
     "npm:vite-plugin-inspect@^11.3.2": "11.3.3_vite@7.1.12__@types+node@24.9.2__picomatch@4.0.3_@types+node@24.9.2",
+    "npm:vite@^7.1.11": "7.1.12_@types+node@24.9.2_picomatch@4.0.3",
     "npm:vite@^7.1.4": "7.1.12_@types+node@24.9.2_picomatch@4.0.3",
     "npm:vite@^7.1.5": "7.1.12_@types+node@24.9.2_picomatch@4.0.3"
   },
@@ -3855,6 +3856,13 @@
       "packages/build-id": {
         "dependencies": [
           "jsr:@std/encoding@^1.0.10"
+        ]
+      },
+      "packages/cli": {
+        "dependencies": [
+          "jsr:@std/cli@^1.0.23",
+          "jsr:@std/fmt@^1.0.8",
+          "npm:vite@^7.1.11"
         ]
       },
       "packages/examples": {

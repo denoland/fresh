@@ -13,3 +13,6 @@ export { specToName } from "./dev/builder.ts";
 export { pathToSpec, UniqueNamer } from "./utils.ts";
 export { updateCheck } from "./dev/update_check.ts";
 export { TEST_FILE_PATTERN, UPDATE_INTERVAL } from "./constants.ts";
+
+import denoJson from "../deno.json" with { type: "json" };
+export const version = denoJson.version;
