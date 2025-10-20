@@ -2,45 +2,55 @@ import type { Context } from "../context.ts";
 import type { Middleware } from "./mod.ts";
 import { isIPv4, isIPv6, matchSubnets } from "@std/net/unstable-ip";
 
-export type AddressType = "IPv6" | "IPv4" | "none";
+/**
+ * Configuration rules for IP restriction middleware.
+ */
 export interface IPRestrictionRules {
+  /**
+   * List of IP addresses or CIDR blocks to deny access.
+   * If an IP matches any entry in this list, access will be blocked.
+   *
+   * @example ["192.168.1.10", "10.0.0.0/8", "2001:db8::1"]
+   */
   denyList?: string[];
+
+  /**
+   * List of IP addresses or CIDR blocks to allow access.
+   * If specified, only IPs matching entries in this list will be allowed.
+   * If empty or undefined, all IPs are allowed (unless in denyList).
+   *
+   * @example ["192.168.1.0/24", "203.0.113.0/24", "2001:db8::/32"]
+   */
   allowList?: string[];
 }
 
-function buildMatcher(ipList: string[]) {
-  return (addr: string) => {
-    return matchSubnets(addr, ipList);
-  };
-}
-
 function blockError(): Response {
-  return new Response("Forbidden", {
-    status: 403,
-    headers: {
-      "Content-Type": "text/plain",
-    },
-  });
+  return new Response("Forbidden", { status: 403 });
 }
 
-function findType(addr: string): AddressType {
+function findType(
+  addr: string,
+): Deno.NetworkInterfaceInfo["family"] | undefined {
   if (isIPv4(addr)) {
     return "IPv4";
   } else if (isIPv6(addr)) {
     return "IPv6";
   }
-  return "none";
+  return undefined;
 }
 
 export interface IpRestrictionOptions {
   onError?: <State>(
-    remote: { addr: string; type: AddressType },
+    remote: {
+      addr: string;
+      type: Deno.NetworkInterfaceInfo["family"] | undefined;
+    },
     ctx: Context<State>,
   ) => Response | Promise<Response>;
 }
 
 /**
- * IP Restriction Middleware for Fresh.
+ * IP restriction Middleware for Fresh.
  *
  * @param rules rules `{ denyList: string[], allowList: string[] }`.
  * @param options Options for the IP Restriction middleware.
@@ -53,7 +63,7 @@ export interface IpRestrictionOptions {
  * app.use(ipRestriction({denyList: ["192.168.1.10", "2001:db8::1"]}))
  * ```
  *
- * @example custom error handling
+ * @example Custom error handling
  * ```ts
  * const customOnError: IpRestrictionOptions = {
  *   onError: () => {
@@ -64,47 +74,39 @@ export interface IpRestrictionOptions {
  * ```
  */
 export function ipRestriction<State>(
-  { denyList = [], allowList = [] }: IPRestrictionRules,
+  rules: IPRestrictionRules,
   options?: IpRestrictionOptions,
 ): Middleware<State> {
-  const allowLength = allowList.length;
-
-  const denyMatcher = buildMatcher(denyList);
-  const allowMatcher = buildMatcher(allowList);
-
   return async function ipRestriction<State>(ctx: Context<State>) {
-    if (ctx.info.remoteAddr.transport !== "tcp") {
+    if (
+      ctx.info.remoteAddr.transport !== "udp" &&
+      ctx.info.remoteAddr.transport !== "tcp"
+    ) {
       throw new TypeError(
-        "Unsupported transport protocol. Only TCP is supported.",
+        "Unsupported transport protocol. TCP & UDP is supported.",
       );
     }
 
-    if (!ctx.info.remoteAddr.hostname) {
-      return blockError();
-    }
-
-    const addr = ctx.info.remoteAddr.hostname == "localhost"
-      ? "172.0.0.1"
-      : ctx.info.remoteAddr.hostname;
-
+    const addr = ctx.info.remoteAddr.hostname;
     const type = findType(addr);
-    if (type == "none") {
+
+    if (type == undefined) {
       return blockError();
     }
 
-    if (denyMatcher(addr)) {
+    if (matchSubnets(addr, rules.denyList || [])) {
       if (options?.onError) {
         return options.onError({ addr, type }, ctx);
       }
       return blockError();
     }
 
-    if (allowMatcher(addr)) {
+    if (matchSubnets(addr, rules.allowList || [])) {
       const res = await ctx.next();
       return res;
     }
 
-    if (allowLength === 0) {
+    if ((rules.allowList || []).length === 0) {
       return await ctx.next();
     } else {
       if (options?.onError) {
