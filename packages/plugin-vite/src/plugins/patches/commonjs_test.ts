@@ -134,7 +134,8 @@ ${EXPORT_ES_MODULE}`,
 Deno.test("commonjs - esModule flag only", () => {
   runTest({
     input: `Object.defineProperty(exports, "__esModule", { value: true });`,
-    expected: `Object.defineProperty(exports, "__esModule", {
+    expected: `${INIT}
+Object.defineProperty(exports, "__esModule", {
   value: true
 });
 const _default = exports.default ?? exports;
@@ -148,7 +149,8 @@ Deno.test("commonjs - esModule flag only #2", () => {
   runTest({
     input:
       `Object.defineProperty(module.exports, "__esModule", { value: true });`,
-    expected: `Object.defineProperty(module.exports, "__esModule", {
+    expected: `${INIT}
+Object.defineProperty(module.exports, "__esModule", {
   value: true
 });
 const _default = exports.default ?? exports;
@@ -161,7 +163,8 @@ ${EXPORT_ES_MODULE}`,
 Deno.test("commonjs - esModule flag only minified #3", () => {
   runTest({
     input: `Object.defineProperty(exports, '__esModule', { value: !0 });`,
-    expected: `Object.defineProperty(exports, '__esModule', {
+    expected: `${INIT}
+Object.defineProperty(exports, '__esModule', {
   value: !0
 });
 const _default = exports.default ?? exports;
@@ -692,7 +695,8 @@ Deno.test("commonjs - minified __esModule", () => {
 const m = module.exports;
 const a = Object.defineProperty;
 a(m, "__esModule", { value: !0 });`,
-    expected: `const m = module.exports;
+    expected: `${INIT}
+const m = module.exports;
 const a = Object.defineProperty;
 a(m, "__esModule", {
   value: !0
@@ -716,6 +720,9 @@ var __importDefault = this && this.__importDefault || function (mod) {
     "default": mod
   };
 };
-const node_events_1 = __importDefault(_mod.default ?? _mod);`,
+const node_events_1 = __importDefault({
+  __esModule: true,
+  default: _mod.default ?? _mod
+});`,
   });
 });
