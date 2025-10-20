@@ -66,7 +66,11 @@ export interface IpRestrictionOptions {
  * @example Custom error handling
  * ```ts
  * const customOnError: IpRestrictionOptions = {
- *   onError: () => {
+ *   onError: (remote, ctx) => {
+ *     console.log(
+ *       `Request URL: ${ctx.url}, Blocked IP: ${remote.addr} of type ${remote.type}`,
+ *     );
+ *
  *     return new Response("custom onError", { status: 401 });
  *   },
  * };
