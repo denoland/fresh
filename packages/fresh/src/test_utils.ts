@@ -102,8 +102,14 @@ export function serveMiddleware<T>(
 export function createFakeFs(files: Record<string, unknown>): FsAdapter {
   return {
     cwd: () => ".",
-    async *walk(_root) {
+    async *walk(_root, options) {
+      const skip = options?.skip ?? [];
       for (const file of Object.keys(files)) {
+        // Check if file matches any skip pattern
+        if (skip.some((pattern) => pattern.test(file))) {
+          continue;
+        }
+
         const entry: WalkEntry = {
           isDirectory: false,
           isFile: true,

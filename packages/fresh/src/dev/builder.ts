@@ -25,7 +25,7 @@ import { parseDirPath } from "../config.ts";
 import { pathToExportName, UniqueNamer } from "../utils.ts";
 import { checkDenoCompilerOptions } from "./check.ts";
 import { crawlFsItem } from "./fs_crawl.ts";
-import { UPDATE_INTERVAL } from "../constants.ts";
+import { TEST_FILE_PATTERN, UPDATE_INTERVAL } from "../constants.ts";
 
 export interface BuildOptions {
   /**
@@ -103,8 +103,6 @@ export type ResolvedBuildConfig = Required<Omit<BuildOptions, "sourceMap">> & {
   buildId: string;
   sourceMap?: FreshBundleOptions["sourceMap"];
 };
-
-const TEST_FILE_PATTERN = /[._]test\.(?:[tj]sx?|[mc][tj]s)$/;
 
 // deno-lint-ignore no-explicit-any
 export class Builder<State = any> {

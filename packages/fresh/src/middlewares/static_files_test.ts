@@ -84,13 +84,20 @@ Deno.test("static files - HEAD 200", async () => {
   expect(content).toEqual("");
 });
 
-Deno.test("static files - etag", async () => {
+Deno.test("static files - etag in production", async () => {
   const buildCache = new MockBuildCache({
     "foo.css": { content: "body {}", hash: "123" },
   });
   const server = serveMiddleware(
     staticFiles(),
-    { buildCache },
+    {
+      buildCache,
+      config: {
+        root: "",
+        basePath: "",
+        mode: "production",
+      },
+    },
   );
 
   const cacheUrl = `/foo.css?${ASSET_CACHE_BUST_KEY}=${BUILD_ID}`;
@@ -109,6 +116,35 @@ Deno.test("static files - etag", async () => {
   res = await server.get(cacheUrl, { headers });
   await res.body?.cancel();
   expect(res.status).toEqual(304);
+});
+
+Deno.test("static files - no etag in development", async () => {
+  const buildCache = new MockBuildCache({
+    "foo.css": { content: "body {}", hash: "123" },
+  });
+  const server = serveMiddleware(
+    staticFiles(),
+    {
+      buildCache,
+      config: {
+        root: "",
+        basePath: "",
+        mode: "development",
+      },
+    },
+  );
+
+  const cacheUrl = `/foo.css`;
+  let res = await server.get(cacheUrl);
+  await res.body?.cancel();
+  expect(res.headers.get("Etag")).toBeNull();
+
+  // Even if client sends If-None-Match in dev mode, always return 200
+  const headers = new Headers();
+  headers.append("If-None-Match", "123");
+  res = await server.get(cacheUrl, { headers });
+  await res.body?.cancel();
+  expect(res.status).toEqual(200);
 });
 
 Deno.test("static files - 404 on missing favicon.ico", async () => {
