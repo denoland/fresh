@@ -570,8 +570,8 @@ Deno.test({
 Deno.test({
   name: "vite build - excludes test files from routes",
   fn: async () => {
-    // Rebuild to ensure our changes are picked up
-    await using res = await buildVite(DEMO_DIR);
+    const fixture = path.join(FIXTURE_DIR, "test_files_exclusion");
+    await using res = await buildVite(fixture);
 
     // Verify that test files in routes/ are not bundled
     const serverAssetsDir = path.join(res.tmp, "_fresh", "server", "assets");
@@ -584,19 +584,16 @@ Deno.test({
       }
     }
 
-    console.log("Found route files:", files);
-
-    // index_test.ts should NOT be bundled
+    // Should have index route but NOT test files
+    expect(files.some((f) => f.includes("_fresh-route___index"))).toBe(true);
     expect(files.some((f) => f.includes("index_test"))).toBe(false);
+    expect(files.some((f) => f.includes("foo.test"))).toBe(false);
 
     // Verify no test pattern files at all
     // Note: files with "_test" or ".test" in their name (not just a "tests" folder)
     const testPatterns = ["_test.", "_test-", ".test."];
     for (const file of files) {
       for (const pattern of testPatterns) {
-        if (file.includes(pattern)) {
-          console.error(`ERROR: Found test file in build: ${file}`);
-        }
         expect(file.includes(pattern)).toBe(false);
       }
     }

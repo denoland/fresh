@@ -32,7 +32,7 @@ Deno.test("walkDir - respects skip patterns", async () => {
   const files: string[] = [];
   const TEST_FILE_PATTERN = /[._]test\.(?:[tj]sx?|[mc][tj]s)$/;
 
-  await walkDir(fs, "routes", async (entry) => {
+  await walkDir(fs, "routes", (entry) => {
     files.push(entry.path);
   }, [TEST_FILE_PATTERN]);
 
