@@ -1564,3 +1564,45 @@ Deno.test("fsRoutes - merge group methods", async () => {
   res = await server.post("/bar");
   expect(await res.text()).toEqual("POST ok");
 });
+
+Deno.test("fsRoutes - ignores test files in routes folder", async () => {
+  const fs = createFakeFs({
+    "routes/index.tsx": {
+      default: () => <>index</>,
+    },
+    "routes/index_test.tsx": {
+      default: () => <>index_test</>,
+    },
+    "routes/foo_test.ts": {
+      handler: () => new Response("foo_test"),
+    },
+    "routes/bar.test.ts": {
+      handler: () => new Response("bar_test"),
+    },
+    "routes/baz.test.tsx": {
+      default: () => <>baz_test</>,
+    },
+    "routes/qux_test.js": {
+      handler: () => new Response("qux_test"),
+    },
+    "routes/valid.tsx": {
+      default: () => <>valid</>,
+    },
+  });
+
+  const TEST_FILE_PATTERN = /[._]test\.(?:[tj]sx?|[mc][tj]s)$/;
+  const routeDir = path.join(fs.cwd(), "routes");
+  const rawFiles = await crawlRouteDir(fs, routeDir, [TEST_FILE_PATTERN], () => {});
+
+  // Only index.tsx and valid.tsx should be found, test files should be filtered out
+  expect(rawFiles.length).toEqual(2);
+  expect(rawFiles.some((f) => f.filePath.includes("index.tsx"))).toBe(true);
+  expect(rawFiles.some((f) => f.filePath.includes("valid.tsx"))).toBe(true);
+
+  // Ensure none of the test files are included
+  expect(rawFiles.some((f) => f.filePath.includes("index_test.tsx"))).toBe(false);
+  expect(rawFiles.some((f) => f.filePath.includes("foo_test.ts"))).toBe(false);
+  expect(rawFiles.some((f) => f.filePath.includes("bar.test.ts"))).toBe(false);
+  expect(rawFiles.some((f) => f.filePath.includes("baz.test.tsx"))).toBe(false);
+  expect(rawFiles.some((f) => f.filePath.includes("qux_test.js"))).toBe(false);
+});
