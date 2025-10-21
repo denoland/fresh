@@ -5,7 +5,7 @@ import { isIPv4, isIPv6, matchSubnets } from "@std/net/unstable-ip";
 /**
  * Configuration rules for IP restriction middleware.
  */
-export interface IPRestrictionRules {
+export interface IpFilterRules {
   /**
    * List of IP addresses or CIDR blocks to deny access.
    * If an IP matches any entry in this list, access will be blocked.
@@ -39,7 +39,7 @@ function findType(
   return undefined;
 }
 
-export interface IpRestrictionOptions {
+export interface ipFilterOptions {
   onError?: <State>(
     remote: {
       addr: string;
@@ -60,12 +60,12 @@ export interface IpRestrictionOptions {
  * ```ts
  * const app = new App<State>()
  *
- * app.use(ipRestriction({denyList: ["192.168.1.10", "2001:db8::1"]}))
+ * app.use(ipFilter({denyList: ["192.168.1.10", "2001:db8::1"]}))
  * ```
  *
  * @example Custom error handling
  * ```ts
- * const customOnError: IpRestrictionOptions = {
+ * const customOnError: ipFilterOptions = {
  *   onError: (remote, ctx) => {
  *     console.log(
  *       `Request URL: ${ctx.url}, Blocked IP: ${remote.addr} of type ${remote.type}`,
@@ -74,14 +74,14 @@ export interface IpRestrictionOptions {
  *     return new Response("custom onError", { status: 401 });
  *   },
  * };
- * app.use(ipRestriction({denyList: ["192.168.1.10", "2001:db8::1"]}, customOnError))
+ * app.use(ipFilter({denyList: ["192.168.1.10", "2001:db8::1"]}, customOnError))
  * ```
  */
-export function ipRestriction<State>(
-  rules: IPRestrictionRules,
-  options?: IpRestrictionOptions,
+export function ipFilter<State>(
+  rules: IpFilterRules,
+  options?: ipFilterOptions,
 ): Middleware<State> {
-  return async function ipRestriction<State>(ctx: Context<State>) {
+  return async function ipFilter<State>(ctx: Context<State>) {
     if (
       ctx.info.remoteAddr.transport !== "udp" &&
       ctx.info.remoteAddr.transport !== "tcp"
@@ -106,15 +106,14 @@ export function ipRestriction<State>(
     }
 
     if (matchSubnets(addr, rules.allowList || [])) {
-      const res = await ctx.next();
-      return res;
+      return ctx.next();
     }
 
     if ((rules.allowList || []).length === 0) {
-      return await ctx.next();
+      return ctx.next();
     } else {
       if (options?.onError) {
-        return await options.onError({ addr, type }, ctx);
+        return options.onError({ addr, type }, ctx);
       }
       return blockError();
     }
