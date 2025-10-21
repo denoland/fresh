@@ -60,7 +60,9 @@ export interface ipFilterOptions {
  * ```ts
  * const app = new App<State>()
  *
- * app.use(ipFilter({denyList: ["192.168.1.10", "2001:db8::1"]}))
+ * app.use(ipFilter({
+ *   denyList: ["192.168.1.10", "2001:db8::1"]
+ * }));
  * ```
  *
  * @example Custom error handling
@@ -76,7 +78,7 @@ export interface ipFilterOptions {
  * };
  * app.use(ipFilter({
  *   denyList: ["192.168.1.10", "2001:db8::1"]
- * }, customOnError))
+ * }, customOnError));
  * ```
  */
 export function ipFilter<State>(
