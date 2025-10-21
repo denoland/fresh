@@ -16,6 +16,7 @@ import { patches } from "./plugins/patches.ts";
 import process from "node:process";
 import {
   specToName,
+  TEST_FILE_PATTERN,
   UniqueNamer,
   UPDATE_INTERVAL,
   updateCheck,
@@ -33,7 +34,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
     clientEntry: config?.clientEntry ?? "client.ts",
     islandsDir: config?.islandsDir ?? "islands",
     routeDir: config?.routeDir ?? "routes",
-    ignore: config?.ignore ?? [],
+    ignore: config?.ignore ?? [TEST_FILE_PATTERN],
     islandSpecifiers: new Map(),
     namer: new UniqueNamer(),
     checkImports: config?.checkImports ?? [],
