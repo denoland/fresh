@@ -74,7 +74,9 @@ export interface ipFilterOptions {
  *     return new Response("custom onError", { status: 401 });
  *   },
  * };
- * app.use(ipFilter({denyList: ["192.168.1.10", "2001:db8::1"]}, customOnError))
+ * app.use(ipFilter({
+ *   denyList: ["192.168.1.10", "2001:db8::1"]
+ * }, customOnError))
  * ```
  */
 export function ipFilter<State>(
