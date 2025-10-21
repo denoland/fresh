@@ -12,4 +12,4 @@ export {
 export { specToName } from "./dev/builder.ts";
 export { pathToSpec, UniqueNamer } from "./utils.ts";
 export { updateCheck } from "./dev/update_check.ts";
-export { UPDATE_INTERVAL } from "./constants.ts";
+export { TEST_FILE_PATTERN, UPDATE_INTERVAL } from "./constants.ts";
