@@ -62,6 +62,19 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
         isDev = env.command === "serve";
 
         return {
+          server: {
+            watch: {
+              // Don't watch test files, temp files, or hidden files during development
+              // to prevent dev server crashes
+              ignored: [
+                "**/*_test.ts*",
+                "**/*.test.ts*",
+                "**/*.tmp.*",
+                "**/.timestamp-*",
+                "**/.*",
+              ],
+            },
+          },
           esbuild: {
             jsx: "automatic",
             jsxImportSource: "preact",
