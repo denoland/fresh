@@ -68,16 +68,20 @@ export function staticFiles<T>(): Middleware<T> {
         vary: "If-None-Match",
       });
 
-      const ifNoneMatch = req.headers.get("If-None-Match");
-      if (
-        ifNoneMatch !== null &&
-        (ifNoneMatch === etag || ifNoneMatch === `W/"${etag}"`)
-      ) {
-        file.close();
-        span.setAttribute("fresh.cache", "not_modified");
-        return new Response(null, { status: 304, headers });
-      } else if (etag !== null) {
-        headers.set("Etag", `W/"${etag}"`);
+      // In development mode, skip ETag validation to prevent serving stale
+      // cached assets when switching between different apps on the same port
+      if (ctx.config.mode !== "development") {
+        const ifNoneMatch = req.headers.get("If-None-Match");
+        if (
+          ifNoneMatch !== null &&
+          (ifNoneMatch === etag || ifNoneMatch === `W/"${etag}"`)
+        ) {
+          file.close();
+          span.setAttribute("fresh.cache", "not_modified");
+          return new Response(null, { status: 304, headers });
+        } else if (etag !== null) {
+          headers.set("Etag", `W/"${etag}"`);
+        }
       }
 
       if (
