@@ -85,7 +85,9 @@ export function ipFilter<State>(
   rules: IpFilterRules,
   options?: ipFilterOptions,
 ): Middleware<State> {
-  return async function ipFilter<State>(ctx: Context<State>) {
+  const onBlock = options?.onError ?? (() => blockError());
+
+  return function ipFilter<State>(ctx: Context<State>) {
     if (
       ctx.info.remoteAddr.transport !== "udp" &&
       ctx.info.remoteAddr.transport !== "tcp"
@@ -103,10 +105,7 @@ export function ipFilter<State>(
     }
 
     if (matchSubnets(addr, rules.denyList || [])) {
-      if (options?.onError) {
-        return options.onError({ addr, type }, ctx);
-      }
-      return blockError();
+      return onBlock({ addr, type }, ctx);
     }
 
     if (matchSubnets(addr, rules.allowList || [])) {
@@ -116,10 +115,7 @@ export function ipFilter<State>(
     if ((rules.allowList || []).length === 0) {
       return ctx.next();
     } else {
-      if (options?.onError) {
-        return options.onError({ addr, type }, ctx);
-      }
-      return blockError();
+      return onBlock({ addr, type }, ctx);
     }
   };
 }
