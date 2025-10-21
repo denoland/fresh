@@ -70,7 +70,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
                 "**/*_test.ts*",
                 "**/*.test.ts*",
                 "**/*.tmp.*",
-                "**/.timestamp-*",
+                "**/*.timestamp-*",
                 "**/.*",
               ],
             },
