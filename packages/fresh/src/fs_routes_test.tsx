@@ -63,15 +63,25 @@ Deno.test("fsRoutes - registers HTTP methods on router", async () => {
     const name = method.toLowerCase() as Lowercase<Method>;
     const res = await server[name]("/all");
     expect(res.status).toEqual(200);
-    expect(await res.text()).toEqual(method);
+
+    if (method === "HEAD") {
+      expect(res.body).toEqual(null);
+    } else {
+      expect(await res.text()).toEqual(method);
+    }
   }
 
   // Check individual routes
   for (const method of methods) {
     const lower = method.toLowerCase() as Lowercase<Method>;
     const res = await server[lower](`/${lower}`);
+
     expect(res.status).toEqual(200);
-    expect(await res.text()).toEqual(method);
+    if (method === "HEAD") {
+      expect(res.body).toEqual(null);
+    } else {
+      expect(await res.text()).toEqual(method);
+    }
 
     // Check that all other methods are forbidden
     for (const other of methods) {
@@ -79,8 +89,14 @@ Deno.test("fsRoutes - registers HTTP methods on router", async () => {
 
       const name = other.toLowerCase() as Lowercase<Method>;
       const res = await server[name](`/${lower}`);
+
       await res.body?.cancel();
-      expect(res.status).toEqual(405);
+      if (method === "GET" && other === "HEAD") {
+        // When only a HEAD route is registered it should return 404
+        expect(res.status).toEqual(404);
+      } else {
+        expect(res.status).toEqual(405);
+      }
     }
   }
 });
@@ -96,7 +112,12 @@ Deno.test("fsRoutes - registers fn handler for every method", async () => {
     const name = method.toLowerCase() as Lowercase<Method>;
     const res = await server[name]("/all");
     expect(res.status).toEqual(200);
-    expect(await res.text()).toEqual("ok");
+
+    if (method === "HEAD") {
+      expect(res.body).toEqual(null);
+    } else {
+      expect(await res.text()).toEqual("ok");
+    }
   }
 
   // Check individual routes
@@ -104,7 +125,12 @@ Deno.test("fsRoutes - registers fn handler for every method", async () => {
     const lower = method.toLowerCase() as Lowercase<Method>;
     const res = await server[lower]("/all");
     expect(res.status).toEqual(200);
-    expect(await res.text()).toEqual("ok");
+
+    if (method === "HEAD") {
+      expect(res.body).toEqual(null);
+    } else {
+      expect(await res.text()).toEqual("ok");
+    }
   }
 });
 

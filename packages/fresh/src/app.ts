@@ -439,6 +439,10 @@ export class App<State> {
           );
         }
 
+        if (method === "HEAD") {
+          return new Response(null, result);
+        }
+
         return result;
       } catch (err) {
         ctx.error = err;
