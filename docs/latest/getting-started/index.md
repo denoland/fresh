@@ -36,6 +36,36 @@ project folder should look like this:
 └── vite.config.ts  # Vite configuration file
 ```
 
+## Path aliases
+
+Your new project comes with a `@/` path alias pre-configured in `deno.json`.
+This allows you to use absolute imports from your project root instead of
+relative paths:
+
+```tsx routes/about.tsx
+// With @/ alias
+import { define } from "@/utils.ts";
+import { Button } from "@/components/Button.tsx";
+
+// Without alias (relative paths)
+import { define } from "../utils.ts";
+import { Button } from "../components/Button.tsx";
+```
+
+The `@/` alias is configured in your `deno.json` imports section:
+
+```json deno.json
+{
+  "imports": {
+    "@/": "./"
+    // ... other imports
+  }
+}
+```
+
+This makes imports cleaner and easier to refactor, especially as your project
+grows.
+
 Run the `dev` task to launch your app in development mode:
 
 ```sh Terminal
@@ -56,7 +86,7 @@ Let's create a new about page at `/about`. We can do that by adding a new file
 at `routes/about.tsx`.
 
 ```tsx routes/about.tsx
-import { define } from "../utils.ts";
+import { define } from "@/utils.ts";
 
 export default define.page(() => {
   return (
@@ -109,8 +139,8 @@ export function Countdown(props: { target: string }) {
 Let's add the countdown to our about page:
 
 ```tsx routes/about.tsx
-import { define } from "../utils.ts";
-import { Countdown } from "../islands/Countdown.tsx";
+import { define } from "@/utils.ts";
+import { Countdown } from "@/islands/Countdown.tsx";
 
 export default define.page(() => {
   return (
