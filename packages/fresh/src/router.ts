@@ -120,7 +120,10 @@ export class UrlPatternRouter<T> implements Router<T> {
     if (staticMatch !== undefined) {
       result.pattern = url.pathname;
 
-      const handlers = staticMatch.byMethod[method];
+      let handlers = staticMatch.byMethod[method];
+      if (method === "HEAD" && handlers.length === 0) {
+        handlers = staticMatch.byMethod.GET;
+      }
       if (handlers.length > 0) {
         result.methodMatch = true;
         result.handlers.push(...handlers);
@@ -137,7 +140,11 @@ export class UrlPatternRouter<T> implements Router<T> {
 
       result.pattern = route.pattern.pathname;
 
-      const handlers = route.byMethod[method];
+      let handlers = route.byMethod[method];
+      if (method === "HEAD" && handlers.length === 0) {
+        handlers = route.byMethod.GET;
+      }
+
       if (handlers.length > 0) {
         result.methodMatch = true;
         result.handlers.push(...handlers);
