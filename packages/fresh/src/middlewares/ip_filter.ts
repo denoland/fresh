@@ -52,7 +52,7 @@ export interface ipFilterOptions {
 /**
  * IP restriction Middleware for Fresh.
  *
- * @param rules rules `{ denyList: string[], allowList: string[] }`.
+ * @param rules Deny and allow rules object.
  * @param options Options for the IP Restriction middleware.
  * @returns The middleware handler function.
  *
