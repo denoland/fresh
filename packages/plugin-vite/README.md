@@ -34,4 +34,4 @@ Vite plugin for [Fresh](https://fresh.deno.dev).
 - Build: `vite build`
 
 More information
-[on the Fresh documentation](https://fresh.deno.dev/docs/canary/advanced/vite) .
+[on the Fresh documentation](https://fresh.deno.dev/docs/advanced/vite) .
