@@ -144,6 +144,27 @@ export function cjsPlugin(
                     t.identifier("defineProperty"),
                   ),
                   [
+                    t.identifier("exports"),
+                    t.stringLiteral("__esModule"),
+                    t.objectExpression([
+                      t.objectProperty(
+                        t.identifier("value"),
+                        t.booleanLiteral(true),
+                      ),
+                    ]),
+                  ],
+                ),
+              ),
+            );
+            path.unshiftContainer(
+              "body",
+              t.expressionStatement(
+                t.callExpression(
+                  t.memberExpression(
+                    t.identifier("Object"),
+                    t.identifier("defineProperty"),
+                  ),
+                  [
                     t.identifier("module"),
                     t.stringLiteral("exports"),
                     t.objectExpression([
@@ -246,21 +267,6 @@ export function cjsPlugin(
                 ),
               ]),
             );
-
-            for (const [local, exported] of exportNamed.entries()) {
-              if (exported === "default") continue;
-
-              path.pushContainer(
-                "body",
-                t.expressionStatement(
-                  t.assignmentExpression(
-                    "=",
-                    t.memberExpression(id, t.identifier(exported)),
-                    t.identifier(local),
-                  ),
-                ),
-              );
-            }
 
             for (let i = 0; i < mappedNs.length; i++) {
               const mapped = mappedNs[i];
