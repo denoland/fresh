@@ -5,6 +5,7 @@
     "build": "vite build"
   },
   "imports": {
+    "@fresh/plugin-vite": "jsr:@fresh/plugin-vite@^0.9.13",
     "@tailwindcss/vite": "npm:@tailwindcss/vite@^4.1.12",
     "vite": "npm:vite@^7.1.4",
     "vite-plugin-inspect": "npm:vite-plugin-inspect@^11.3.2"
