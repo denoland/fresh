@@ -31,6 +31,7 @@
     "@tailwindcss/vite": "npm:@tailwindcss/vite@^4.1.12",
     "@types/babel__core": "npm:@types/babel__core@^7.20.5",
     "@types/node": "npm:@types/node@^24.1.0",
+    "@types/qs": "npm:@types/qs@^6.14.0",
     "feed": "npm:feed@^5.1.0",
     "fresh": "jsr:@fresh/core@^2.0.0",
     "ioredis": "npm:ioredis@^5.7.0",

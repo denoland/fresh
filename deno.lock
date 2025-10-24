@@ -78,6 +78,7 @@
     "npm:@types/node@^24.3.0": "24.3.3",
     "npm:@types/pg@^8.15.5": "8.15.5",
     "npm:@types/prismjs@^1.26.5": "1.26.5",
+    "npm:@types/qs@^6.14.0": "6.14.0",
     "npm:autoprefixer@^10.4.21": "10.4.21_postcss@8.5.6",
     "npm:cssnano@^6.1.2": "6.1.2_postcss@8.5.6",
     "npm:esbuild-wasm@0.25.7": "0.25.7",
@@ -1847,6 +1848,9 @@
     },
     "@types/prismjs@1.26.5": {
       "integrity": "sha512-AUZTa7hQ2KY5L7AmtSiqxlhWxb4ina0yd8hNbl4TWuqnv/pFP0nDMb3YrfSBf4hJVGLh2YEIBfKaBW/9UEl6IQ=="
+    },
+    "@types/qs@6.14.0": {
+      "integrity": "sha512-eOunJqu0K1923aExK6y8p6fsihYEn/BYuQ4g0CxAAgFc4b/ZLN4CrsRZ55srTdqoiLzU2B2evC+apEIxprEzkQ=="
     },
     "ansi-regex@5.0.1": {
       "integrity": "sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ=="
@@ -3895,6 +3899,7 @@
           "npm:@tailwindcss/vite@^4.1.12",
           "npm:@types/babel__core@^7.20.5",
           "npm:@types/node@^24.1.0",
+          "npm:@types/qs@^6.14.0",
           "npm:feed@^5.1.0",
           "npm:ioredis@^5.7.0",
           "npm:mime-db@^1.54.0",
