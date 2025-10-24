@@ -29,9 +29,11 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });`;
 
-const DEFAULT_EXPORT = `const _default = exports.default ?? exports;`;
+const DEFAULT_EXPORT =
+  `const _default = "default" in exports ? exports : exports;`;
 const DEFAULT_EXPORT_END = `export default _default;
-export var __require = exports;`;
+export var __require = exports;
+export var __esModule = true;`;
 const IMPORT_REQUIRE = `import { createRequire } from "node:module";
 const require = createRequire(import.meta.url);`;
 const EXPORT_ES_MODULE = `export var __esModule = exports.__esModule;`;
@@ -687,12 +689,11 @@ a(m, "__esModule", {
   value: !0
 });
 ${DEFAULT_EXPORT}
-${DEFAULT_EXPORT_END}
-export var __esModule = exports.__esModule;`,
+${DEFAULT_EXPORT_END}`,
   });
 });
 
-Deno.test("commonjs - esbuild __importDefault", () => {
+Deno.test("commonjs - esbuild __importDefault node builtin", () => {
   runTest({
     input:
       `var __importDefault = (this && this.__importDefault) || function (mod) {
@@ -708,6 +709,68 @@ var __importDefault = this && this.__importDefault || function (mod) {
 const node_events_1 = __importDefault({
   __esModule: true,
   default: _mod.default ?? _mod
-});`,
+});
+export var __esModule = true;`,
+  });
+});
+
+Deno.test("commonjs - esbuild __importDefault", () => {
+  runTest({
+    input:
+      `var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+const foo = __importDefault(require("foo"));`,
+    expected: `import * as _mod from "node:events";
+var __importDefault = this && this.__importDefault || function (mod) {
+  return mod && mod.__esModule ? mod : {
+    "default": mod
+  };
+};
+const foo = __importDefault(_mod);
+export var __esModule = true;`,
+  });
+});
+
+Deno.test("commonjs - esbuild __importStar", () => {
+  runTest({
+    input: `var __importStar = (this && this.__importStar) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+const foo = __importStar(require("foo"));`,
+    expected: `import * as _mod from "node:events";
+var __importStar = this && this.__importStar || function (mod) {
+  return mod && mod.__esModule ? mod : {
+    "default": mod
+  };
+};
+const foo = __importStar(_mod);
+export var __esModule = true;`,
+  });
+});
+
+Deno.test("commonjs - require as named", () => {
+  runTest({
+    input: `const HttpAgent = require('./lib/agent');
+module.exports = HttpAgent;
+module.exports.HttpAgent = HttpAgent;
+module.exports.HttpsAgent = require('./lib/https_agent');
+module.exports.constants = require('./lib/constants');
+`,
+    expected: `${INIT}
+import * as _mod3 from './lib/constants';
+import * as _mod2 from './lib/https_agent';
+import * as _mod from './lib/agent';
+const HttpAgent = _mod.__require ?? _mod.default ?? _mod;
+module.exports = HttpAgent;
+module.exports.HttpAgent = HttpAgent;
+module.exports.HttpsAgent = _mod2.__require ?? _mod2.default ?? _mod2;
+module.exports.constants = _mod3.__require ?? _mod3.default ?? _mod3;
+var _HttpAgent = exports.HttpAgent;
+var _HttpsAgent = exports.HttpsAgent;
+var _constants = exports.constants;
+export { _HttpAgent as HttpAgent, _HttpsAgent as HttpsAgent, _constants as constants };
+${DEFAULT_EXPORT}
+${DEFAULT_EXPORT_END}`,
   });
 });

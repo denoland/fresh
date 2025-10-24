@@ -66,7 +66,7 @@ export function cjsPlugin(
               path.unshiftContainer(
                 "body",
                 t.importDeclaration(
-                  [t.importNamespaceSpecifier(id)],
+                  [t.importDefaultSpecifier(id)],
                   specifier,
                 ),
               );
@@ -135,27 +135,30 @@ export function cjsPlugin(
           }
 
           if (exported.size > 0 || exportedNs.size > 0 || hasEsModule) {
-            path.unshiftContainer(
-              "body",
-              t.expressionStatement(
-                t.callExpression(
-                  t.memberExpression(
-                    t.identifier("Object"),
-                    t.identifier("defineProperty"),
+            if (!hasEsModule) {
+              path.unshiftContainer(
+                "body",
+                t.expressionStatement(
+                  t.callExpression(
+                    t.memberExpression(
+                      t.identifier("Object"),
+                      t.identifier("defineProperty"),
+                    ),
+                    [
+                      t.identifier("exports"),
+                      t.stringLiteral("__esModule"),
+                      t.objectExpression([
+                        t.objectProperty(
+                          t.identifier("value"),
+                          t.booleanLiteral(true),
+                        ),
+                      ]),
+                    ],
                   ),
-                  [
-                    t.identifier("exports"),
-                    t.stringLiteral("__esModule"),
-                    t.objectExpression([
-                      t.objectProperty(
-                        t.identifier("value"),
-                        t.booleanLiteral(true),
-                      ),
-                    ]),
-                  ],
                 ),
-              ),
-            );
+              );
+            }
+
             path.unshiftContainer(
               "body",
               t.expressionStatement(
@@ -256,14 +259,7 @@ export function cjsPlugin(
               t.variableDeclaration("const", [
                 t.variableDeclarator(
                   id,
-                  t.logicalExpression(
-                    "??",
-                    t.memberExpression(
-                      t.identifier("exports"),
-                      t.identifier("default"),
-                    ),
-                    t.identifier("exports"),
-                  ),
+                  t.identifier("exports"),
                 ),
               ]),
             );
@@ -330,37 +326,34 @@ export function cjsPlugin(
             }
 
             path.pushContainer("body", t.exportDefaultDeclaration(id));
-            path.pushContainer(
-              "body",
-              t.exportNamedDeclaration(
-                t.variableDeclaration("var", [
-                  t.variableDeclarator(
-                    t.identifier("__require"),
-                    t.identifier("exports"),
-                  ),
-                ]),
-              ),
-            );
+            // path.pushContainer(
+            //   "body",
+            //   t.exportNamedDeclaration(
+            //     t.variableDeclaration("var", [
+            //       t.variableDeclarator(
+            //         t.identifier("__require"),
+            //         t.identifier("exports"),
+            //       ),
+            //     ]),
+            //   ),
+            // );
           }
 
           if (body.length === 0 && hasEsModule) {
             path.pushContainer("body", t.exportNamedDeclaration(null));
-          } else if (hasEsModule) {
-            path.pushContainer(
-              "body",
-              t.exportNamedDeclaration(
-                t.variableDeclaration(
-                  "var",
-                  [t.variableDeclarator(
-                    t.identifier("__esModule"),
-                    t.memberExpression(
-                      t.identifier("exports"),
-                      t.identifier("__esModule"),
-                    ),
-                  )],
-                ),
-              ),
-            );
+          } else if (body.length > 0) {
+            // path.pushContainer(
+            //   "body",
+            //   t.exportNamedDeclaration(
+            //     t.variableDeclaration(
+            //       "var",
+            //       [t.variableDeclarator(
+            //         t.identifier("__esModule"),
+            //         t.booleanLiteral(true),
+            //       )],
+            //     ),
+            //   ),
+            // );
           }
         },
       },
@@ -429,7 +422,8 @@ export function cjsPlugin(
               } else if (
                 path.parentPath?.isCallExpression() &&
                 t.isIdentifier(path.parentPath.node.callee) &&
-                path.parentPath.node.callee.name === "__importDefault"
+                (path.parentPath.node.callee.name === "__importDefault" ||
+                  path.parentPath.node.callee.name === "__importStar")
               ) {
                 if (isNodeBuiltin(source.value)) {
                   path.replaceWith(t.objectExpression([
@@ -453,28 +447,46 @@ export function cjsPlugin(
                   path.replaceWith(t.cloneNode(id, true));
                 }
               } else {
-                path.replaceWith(
-                  t.logicalExpression(
-                    "??",
-                    t.memberExpression(
-                      t.cloneNode(id, true),
-                      t.identifier("__require"),
-                    ),
-                    t.logicalExpression(
-                      "??",
-                      t.memberExpression(
-                        t.cloneNode(id, true),
-                        t.identifier("default"),
-                      ),
-                      t.cloneNode(id, true),
-                    ),
-                  ),
-                );
+                path.replaceWith(t.cloneNode(id, true));
+                // path.replaceWith(
+                //   t.logicalExpression(
+                //     "??",
+                //     t.memberExpression(
+                //       t.cloneNode(id, true),
+                //       t.identifier("__require"),
+                //     ),
+                //     t.logicalExpression(
+                //       "??",
+                //       t.memberExpression(
+                //         t.cloneNode(id, true),
+                //         t.identifier("default"),
+                //       ),
+                //       t.cloneNode(id, true),
+                //     ),
+                //   ),
+                // );
               }
               return;
             }
 
             path.replaceWith(t.cloneNode(id, true));
+            // path.replaceWith(
+            //   t.logicalExpression(
+            //     "??",
+            //     t.memberExpression(
+            //       t.cloneNode(id, true),
+            //       t.identifier("__require"),
+            //     ),
+            //     t.logicalExpression(
+            //       "??",
+            //       t.memberExpression(
+            //         t.cloneNode(id, true),
+            //         t.identifier("default"),
+            //       ),
+            //       t.cloneNode(id, true),
+            //     ),
+            //   ),
+            // );
           } else {
             state.set(NEEDS_REQUIRE_IMPORT, true);
           }
