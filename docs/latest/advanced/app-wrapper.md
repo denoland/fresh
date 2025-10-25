@@ -8,6 +8,10 @@ structure of the HTML document, typically up until the `<body>`-tag. It is only
 rendered on the server and never on the client. The passed `Component` value
 represents the children of this component.
 
+> [warn]: If you have just started a fresh new project, the entry file will
+> will be `main.ts`, not `main.tsx`. If that's the case, rename it, then
+> edit the [vite config](/docs/advanced/vite), set `serverEntry: "./main.tsx",`.
+
 ```tsx main.tsx
 function AppWrapper({ Component }) {
   return (
