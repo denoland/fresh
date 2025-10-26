@@ -24,6 +24,9 @@ Object.defineProperty(module, "exports", {
   set(value) {
     exports = value;
   }
+});
+Object.defineProperty(exports, "__esModule", {
+  value: true
 });`;
 
 const DEFAULT_EXPORT = `const _default = exports.default ?? exports;`;
@@ -65,7 +68,6 @@ exports.foo = 'foo';
 var _foo = exports.foo;
 export { _foo as foo };
 ${DEFAULT_EXPORT}
-_default.foo = _foo;
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -83,7 +85,6 @@ module.exports.foo = 'foo';
 var _foo = exports.foo;
 export { _foo as foo };
 ${DEFAULT_EXPORT}
-_default.foo = _foo;
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -104,7 +105,6 @@ const foo = 'also bar';
 var _foo = exports.foo;
 export { _foo as foo };
 ${DEFAULT_EXPORT}
-_default.foo = _foo;
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -125,7 +125,6 @@ exports.foo = 'bar';
 var _foo = exports.foo;
 export { _foo as foo };
 ${DEFAULT_EXPORT}
-_default.foo = _foo;
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -190,8 +189,6 @@ var _foo = exports.foo;
 var _bar = exports.bar;
 export { _foo as foo, _bar as bar };
 ${DEFAULT_EXPORT}
-_default.foo = _foo;
-_default.bar = _bar;
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -274,7 +271,6 @@ exports.trace = 'foo';
 var _trace = exports.trace;
 export { _trace as trace };
 ${DEFAULT_EXPORT}
-_default.trace = _trace;
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -293,7 +289,6 @@ exports.foo = 'foo';
 var _foo = exports.foo;
 export { _foo as foo };
 ${DEFAULT_EXPORT}
-_default.foo = _foo;
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -310,7 +305,6 @@ exports.foo = utils_1.foo;
 var _foo = exports.foo;
 export { _foo as foo };
 ${DEFAULT_EXPORT}
-_default.foo = _foo;
 ${DEFAULT_EXPORT_END}`,
   });
 });
@@ -326,7 +320,6 @@ exports.foo = utils_1.foo;
 var _foo = exports.foo;
 export { _foo as foo };
 ${DEFAULT_EXPORT}
-_default.foo = _foo;
 ${DEFAULT_EXPORT_END}`,
   });
 });
@@ -345,7 +338,6 @@ exports._globalThis = typeof globalThis === 'object' ? globalThis : global;
 var _globalThis = exports._globalThis;
 export { _globalThis };
 ${DEFAULT_EXPORT}
-_default._globalThis = _globalThis;
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -365,7 +357,6 @@ exports.foo = foo;
 var _foo = exports.foo;
 export { _foo as foo };
 ${DEFAULT_EXPORT}
-_default.foo = _foo;
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -403,7 +394,6 @@ exports.VERSION = '1.9.0';
 var _VERSION = exports.VERSION;
 export { _VERSION as VERSION };
 ${DEFAULT_EXPORT}
-_default.VERSION = _VERSION;
 ${DEFAULT_EXPORT_END}`,
   });
 });
@@ -428,7 +418,6 @@ var DiagLogLevel;
 var _DiagLogLevel = exports.DiagLogLevel;
 export { _DiagLogLevel as DiagLogLevel };
 ${DEFAULT_EXPORT}
-_default.DiagLogLevel = _DiagLogLevel;
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -464,7 +453,6 @@ module.exports = {
 var _foo = exports.foo;
 export { _foo as foo };
 ${DEFAULT_EXPORT}
-_default.foo = _foo;
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -482,7 +470,6 @@ Deno.test("commonjs - detect iife wrapper", () => {
 var _foo = exports.foo;
 export { _foo as foo };
 ${DEFAULT_EXPORT}
-_default.foo = _foo;
 ${DEFAULT_EXPORT_END}`,
   });
 });
@@ -540,7 +527,6 @@ module.exports = {
 var _foo = exports.foo;
 export { _foo as foo };
 ${DEFAULT_EXPORT}
-_default.foo = _foo;
 ${DEFAULT_EXPORT_END}`,
   });
 });
@@ -637,7 +623,6 @@ Deno.test("commonjs - wrapped iife binding", () => {
 var _foo = exports.foo;
 export { _foo as foo };
 ${DEFAULT_EXPORT}
-_default.foo = _foo;
 ${DEFAULT_EXPORT_END}`,
   });
 });
