@@ -1,4 +1,4 @@
-import type { Plugin } from "vite";
+import type { Plugin, ResolvedConfig } from "vite";
 import {
   type Loader,
   MediaType,
@@ -11,21 +11,24 @@ import * as babel from "@babel/core";
 import { httpAbsolute } from "./patches/http_absolute.ts";
 import { JS_REG, JSX_REG } from "../utils.ts";
 import { builtinModules } from "node:module";
+import { bundleNpmPackage, type BundleResult, readPackageJson } from "./npm.ts";
 
 // @ts-ignore Workaround for https://github.com/denoland/deno/issues/30850
 const { default: babelReact } = await import("@babel/preset-react");
 
 const BUILTINS = new Set(builtinModules);
-
-interface DenoState {
-  type: RequestedModuleType;
-}
+const NPM_PKG_NAME = /^(@[^/]+\/[^@/]+|[^@][^/@]+)/;
 
 export function deno(): Plugin {
   let ssrLoader: Loader;
   let browserLoader: Loader;
 
   let isDev = false;
+
+  const npmCache = new Map<string, BundleResult>();
+  const npmPending = new Map<string, Promise<void>>();
+  // deno-lint-ignore no-explicit-any
+  let viteConfig: ResolvedConfig = {} as any;
 
   return {
     name: "deno",
@@ -37,7 +40,9 @@ export function deno(): Plugin {
     config(_, env) {
       isDev = env.command === "serve";
     },
-    async configResolved() {
+    async configResolved(config) {
+      viteConfig = config;
+
       // TODO: Pass conditions
       ssrLoader = await new Workspace({
         platform: "node",
@@ -144,11 +149,6 @@ export function deno(): Plugin {
 
         return {
           id: resolved,
-          meta: {
-            deno: {
-              type,
-            },
-          },
         };
       } catch {
         // ignore
@@ -157,54 +157,97 @@ export function deno(): Plugin {
     async load(id, options) {
       const loader = options?.ssr ? ssrLoader : browserLoader;
 
+      let type = RequestedModuleType.Default;
+      let specifier: string;
+
       if (isDenoSpecifier(id)) {
-        const { type, specifier } = parseDenoSpecifier(id);
-
-        const result = await loader.load(specifier, type);
-        if (result.kind === "external") {
-          return null;
+        const result = parseDenoSpecifier(id);
+        type = result.type;
+        specifier = result.specifier;
+      } else {
+        if (id.startsWith("\0")) {
+          return;
         }
 
-        const code = new TextDecoder().decode(result.code);
+        const url = path.toFileUrl(id);
+        specifier = url.href;
 
-        const maybeJsx = babelTransform({
-          ssr: !!options?.ssr,
-          media: result.mediaType,
-          code,
-          id: specifier,
-          isDev,
-        });
-        if (maybeJsx !== null) {
-          return maybeJsx;
+        // Skip for non-js files like `.css`
+        if (!JS_REG.test(id)) {
+          return;
+        }
+      }
+
+      // Load npm bundle if it's an npm specifier.
+      const nodeIdx = specifier.lastIndexOf("/node_modules/");
+      npmOptimize: if (nodeIdx > -1) {
+        const endIdx = nodeIdx + "/node_modules/".length;
+        const part = specifier.slice(endIdx);
+        const match = part.match(NPM_PKG_NAME);
+        if (match === null) {
+          throw new Error(
+            `Unable to detect npm package from path: ${specifier}`,
+          );
         }
 
-        return {
-          code,
-        };
+        const pkg = match[1];
+        const fileDir = specifier.slice(0, endIdx + pkg.length);
+        const dir = path.fromFileUrl(fileDir);
+        const pkgJson = await readPackageJson(
+          path.join(dir, "package.json"),
+        );
+
+        if (pkg === "vite") {
+          console.log({ pkg, id, specifier });
+          break npmOptimize;
+        }
+
+        const cacheKey = `${pkgJson.name}@${pkgJson.version}`;
+
+        let cached = npmCache.get(cacheKey);
+        if (cached === undefined) {
+          const maybePending = npmPending.get(cacheKey);
+          if (maybePending !== undefined) {
+            await maybePending;
+
+            cached = npmCache.get(cacheKey)!;
+          } else {
+            const pending = Promise.withResolvers<void>();
+            npmPending.set(cacheKey, pending.promise);
+
+            const bundle = await bundleNpmPackage(
+              dir,
+              options?.ssr ? "ssr" : "browser",
+              loader,
+              viteConfig.resolve.alias,
+            );
+            npmCache.set(cacheKey, bundle);
+            cached = bundle;
+
+            pending.resolve();
+          }
+        }
+
+        const fileKey = !specifier.startsWith("file://")
+          ? path.toFileUrl(specifier).href
+          : specifier;
+
+        const chunk = cached.files.get(fileKey);
+        if (chunk !== undefined) {
+          return {
+            code: chunk.content,
+            map: chunk.map,
+          };
+        } else {
+          console.log(
+            "NO CHUNK",
+            fileKey,
+            Array.from(cached.files.keys()),
+          );
+        }
       }
 
-      if (id.startsWith("\0")) {
-        id = id.slice(1);
-      }
-
-      const meta = this.getModuleInfo(id)?.meta.deno as
-        | DenoState
-        | undefined
-        | null;
-
-      if (meta === null || meta === undefined) return;
-
-      // Skip for non-js files like `.css`
-      if (
-        meta.type === RequestedModuleType.Default &&
-        !JS_REG.test(id)
-      ) {
-        return;
-      }
-
-      const url = path.toFileUrl(id);
-
-      const result = await loader.load(url.href, meta.type);
+      const result = await loader.load(specifier, type);
       if (result.kind === "external") {
         return null;
       }
