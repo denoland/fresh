@@ -11,7 +11,12 @@ import * as babel from "@babel/core";
 import { httpAbsolute } from "./patches/http_absolute.ts";
 import { JS_REG, JSX_REG } from "../utils.ts";
 import { builtinModules } from "node:module";
-import { bundleNpmPackage, type BundleResult, readPackageJson } from "./npm.ts";
+import {
+  bundleNpmPackage,
+  type BundleResult,
+  readPackageJson,
+  reverseLookupNpm,
+} from "./npm.ts";
 
 // @ts-ignore Workaround for https://github.com/denoland/deno/issues/30850
 const { default: babelReact } = await import("@babel/preset-react");
@@ -197,12 +202,13 @@ export function deno(): Plugin {
           path.join(dir, "package.json"),
         );
 
+        const cacheKey = reverseLookupNpm(pkgJson, dir, specifier);
+        if (cacheKey === undefined) break npmOptimize;
+
         if (pkg === "vite") {
           console.log({ pkg, id, specifier });
           break npmOptimize;
         }
-
-        const cacheKey = `${pkgJson.name}@${pkgJson.version}`;
 
         let cached = npmCache.get(cacheKey);
         if (cached === undefined) {
@@ -242,6 +248,7 @@ export function deno(): Plugin {
           console.log(
             "NO CHUNK",
             fileKey,
+            cacheKey,
             Array.from(cached.files.keys()),
           );
         }
