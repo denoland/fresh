@@ -3,6 +3,7 @@ import denoJson from "../deno.json" with { type: "json" };
 
 export const CURRENT_FRESH_VERSION = denoJson.version;
 
+debugger;
 export const tracer = trace.getTracer("fresh", CURRENT_FRESH_VERSION);
 export { trace };
 

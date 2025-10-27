@@ -81,8 +81,10 @@
     "npm:@types/prismjs@^1.26.5": "1.26.5",
     "npm:@types/qs@^6.14.0": "6.14.0",
     "npm:autoprefixer@^10.4.21": "10.4.21_postcss@8.5.6",
+    "npm:cjs-module-lexer@^2.1.0": "2.1.0",
     "npm:cloudflare@^5.2.0": "5.2.0",
     "npm:cssnano@^6.1.2": "6.1.2_postcss@8.5.6",
+    "npm:es-module-lexer@^1.7.0": "1.7.0",
     "npm:esbuild-wasm@0.25.7": "0.25.7",
     "npm:esbuild@0.25.7": "0.25.7",
     "npm:esbuild@~0.25.5": "0.25.7",
@@ -106,6 +108,7 @@
     "npm:redis@^5.8.2": "5.8.2_@redis+client@5.8.2",
     "npm:rollup-plugin-visualizer@^6.0.3": "6.0.3_rollup@4.50.1",
     "npm:rollup@^4.50.0": "4.50.1",
+    "npm:rs-module-lexer@^2.6.0": "2.6.0",
     "npm:stripe@^19.1.0": "19.1.0_@types+node@24.3.3",
     "npm:tailwindcss@^3.4.17": "3.4.17_postcss@8.5.6",
     "npm:tailwindcss@^4.1.10": "4.1.13",
@@ -1871,6 +1874,51 @@
     "@types/qs@6.14.0": {
       "integrity": "sha512-eOunJqu0K1923aExK6y8p6fsihYEn/BYuQ4g0CxAAgFc4b/ZLN4CrsRZ55srTdqoiLzU2B2evC+apEIxprEzkQ=="
     },
+    "@xn-sakina/rml-darwin-arm64@2.6.0": {
+      "integrity": "sha512-RuFHj6ro6Q24gPqNQGvH4uxpsvbgqBBy+ZUK+jbMuMaw4wyti7F6klQWuikBJAxhWpmRbhAB/jrq0PC82qlh5A==",
+      "os": ["darwin"],
+      "cpu": ["arm64"]
+    },
+    "@xn-sakina/rml-darwin-x64@2.6.0": {
+      "integrity": "sha512-85bsP7viqtgw5nVYBdl8I4c2+q4sYFcBMTeFnTf4RqhUUwBLerP7D+XXnWwv3waO+aZ0Fe0ij9Fji3oTiREOCg==",
+      "os": ["darwin"],
+      "cpu": ["x64"]
+    },
+    "@xn-sakina/rml-linux-arm-gnueabihf@2.6.0": {
+      "integrity": "sha512-ySI529TPraG1Mf/YiKhLLNGJ1js0Y3BnZRAihUpF4IlyFKmeL3slXEdvK2tVndyX2O21EYWv/DcSAmFMNOolfA==",
+      "os": ["linux"],
+      "cpu": ["arm"]
+    },
+    "@xn-sakina/rml-linux-arm64-gnu@2.6.0": {
+      "integrity": "sha512-Ytzkmty4vVWAqe+mbu/ql5dqwUH49eVgPT38uJK78LTZRsdogxlQbuAoLKlb/N8CIXAE7BRoywz3lSEGToXylw==",
+      "os": ["linux"],
+      "cpu": ["arm64"]
+    },
+    "@xn-sakina/rml-linux-arm64-musl@2.6.0": {
+      "integrity": "sha512-DIBSDWlTmWk+r6Xp7mL9Cw8DdWNyJGg7YhOV1sSSRykdGs2TNtS3z0nbHRuUBMqrbtDk0IwqFSepLx12Bix/zw==",
+      "os": ["linux"],
+      "cpu": ["arm64"]
+    },
+    "@xn-sakina/rml-linux-x64-gnu@2.6.0": {
+      "integrity": "sha512-8Pks6hMicFGWYQmylKul7Gmn64pG4HkRL7skVWEPAF0LZHeI5yvV/EnQUnXXbxPp4Viy2H4420jl6BVS7Uetng==",
+      "os": ["linux"],
+      "cpu": ["x64"]
+    },
+    "@xn-sakina/rml-linux-x64-musl@2.6.0": {
+      "integrity": "sha512-xHX/rNKcATVrJt2no0FdO6kqnV4P5cP/3MgHA0KwhD/YJmWa66JIfWtzrPv9n/s0beGSorLkh8PLt5lVLFGvlQ==",
+      "os": ["linux"],
+      "cpu": ["x64"]
+    },
+    "@xn-sakina/rml-win32-arm64-msvc@2.6.0": {
+      "integrity": "sha512-aIOu5frDsxRp5naN6YjBtbCHS4K2WHIx2EClGclv3wGFrOn1oSROxpVOV/MODUuWITj/26pWbZ/tnbvva6ZV8A==",
+      "os": ["win32"],
+      "cpu": ["arm64"]
+    },
+    "@xn-sakina/rml-win32-x64-msvc@2.6.0": {
+      "integrity": "sha512-XXbzy2gLEs6PpHdM2IUC5QujOIjz6LpSQpJ+ow43gVc7BhagIF5YlMyTFZCbJehjK9yNgPCzdrzsukCjsH5kIA==",
+      "os": ["win32"],
+      "cpu": ["x64"]
+    },
     "abort-controller@3.0.0": {
       "integrity": "sha512-h8lQ8tacZYnR3vNQTgibj+tODHI5/+l06Au2Pcriv/Gmet0eaj4TwWH41sO9wnHDiQsEj19q0drzdWdeAHtweg==",
       "dependencies": [
@@ -2027,6 +2075,9 @@
     },
     "chownr@3.0.0": {
       "integrity": "sha512-+IxzY9BZOQd/XuYPRmrvEVjF/nqj5kgT4kEq7VofrDoM1MxoRjEWkrCC3EtLi59TVawxTAn+orJwFQcrqEN1+g=="
+    },
+    "cjs-module-lexer@2.1.0": {
+      "integrity": "sha512-UX0OwmYRYQQetfrLEZeewIFFI+wSTofC+pMBLNuH3RUuu/xzG1oz84UCEDOSoQlN3fZ4+AzmV50ZYvGqkMh9yA=="
     },
     "classnames@2.5.1": {
       "integrity": "sha512-saHYOzhIQs6wy2sVxTM6bUDsQO4F50V9RQ22qBpEdCW+I+/Wmke2HOl6lS6dTpdxVhb88/I6+Hs+438c3lfUow=="
@@ -2294,6 +2345,9 @@
     },
     "es-errors@1.3.0": {
       "integrity": "sha512-Zf5H2Kxt2xjTvbJvP2ZWLEICxA6j+hAmMzIlypy4xcBg1vKVnx89Wy0GbS+kf5cwCVFFzdCFh2XSCFNULS6csw=="
+    },
+    "es-module-lexer@1.7.0": {
+      "integrity": "sha512-jEQoCwk8hyb2AZziIOLhDqpm5+2ww5uIE6lkO/6jcOCusfk6LhMHpXXfBLXTZ7Ydyt0j4VoUQv6uGNYbdW+kBA=="
     },
     "es-object-atoms@1.1.1": {
       "integrity": "sha512-FGgH2h8zKNim9ljj7dankFPcICIK9Cp5bm+c2gQSYePhpaG5+esrLODihIorn+Pe6FGJzWhXQotPv73jTaldXA==",
@@ -3448,6 +3502,21 @@
       ],
       "bin": true
     },
+    "rs-module-lexer@2.6.0": {
+      "integrity": "sha512-aT0lO0icZ3Hq0IWvo+ORgVc6BJDoKfaDBdRIDQkL2PtBnFQJ0DuvExiiWI4GxjEjH8Yyro++NPArHFaD8bvS9w==",
+      "optionalDependencies": [
+        "@xn-sakina/rml-darwin-arm64",
+        "@xn-sakina/rml-darwin-x64",
+        "@xn-sakina/rml-linux-arm-gnueabihf",
+        "@xn-sakina/rml-linux-arm64-gnu",
+        "@xn-sakina/rml-linux-arm64-musl",
+        "@xn-sakina/rml-linux-x64-gnu",
+        "@xn-sakina/rml-linux-x64-musl",
+        "@xn-sakina/rml-win32-arm64-msvc",
+        "@xn-sakina/rml-win32-x64-msvc"
+      ],
+      "scripts": true
+    },
     "run-applescript@7.1.0": {
       "integrity": "sha512-DPe5pVFaAsinSaV6QjQ6gdiedWDcRCbUuiQfQa2wmWV7+xC9bGulGI8+TdRmoFkAPaBXk8CrAbnlY2ISniJ47Q=="
     },
@@ -4031,7 +4100,9 @@
           "npm:@types/babel__core@^7.20.5",
           "npm:@types/node@^24.1.0",
           "npm:@types/qs@^6.14.0",
+          "npm:cjs-module-lexer@^2.1.0",
           "npm:cloudflare@^5.2.0",
+          "npm:es-module-lexer@^1.7.0",
           "npm:feed@^5.1.0",
           "npm:ioredis@^5.7.0",
           "npm:magic-string@~0.30.21",
@@ -4040,6 +4111,7 @@
           "npm:preact@^10.26.9",
           "npm:qs@^6.14.0",
           "npm:rollup-plugin-visualizer@^6.0.3",
+          "npm:rs-module-lexer@^2.6.0",
           "npm:stripe@^19.1.0",
           "npm:vite-plugin-inspect@^11.3.2",
           "npm:vite@^7.1.4"

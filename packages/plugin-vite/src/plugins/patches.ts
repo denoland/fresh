@@ -6,6 +6,7 @@ import { inlineEnvVarsPlugin } from "./patches/inline_env_vars.ts";
 import { removePolyfills } from "./patches/remove_polyfills.ts";
 import { JS_REG, JSX_REG } from "../utils.ts";
 import { codeEvalPlugin } from "./patches/code_eval.ts";
+import { bareSpecifier } from "./patches/bare_specifier.ts";
 
 // @ts-ignore Workaround for https://github.com/denoland/deno/issues/30850
 const { default: babelReact } = await import("@babel/preset-react");
@@ -42,6 +43,7 @@ export function patches(): Plugin {
         const plugins: babel.PluginItem[] = [
           codeEvalPlugin(options?.ssr ? "ssr" : "client", env),
           // cjsPlugin,
+          bareSpecifier,
           removePolyfills,
           jsxComments,
           inlineEnvVarsPlugin(env, Deno.env.toObject()),

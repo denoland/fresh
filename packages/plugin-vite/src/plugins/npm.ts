@@ -1,11 +1,12 @@
 import * as esbuild from "esbuild";
-import MagicString from "magic-string";
-import { denoPlugin } from "@deno/esbuild-plugin";
 import * as path from "@std/path";
 import { builtinModules, isBuiltin } from "node:module";
 import type { Alias, AliasOptions } from "vite";
-import { Loader, ResolutionMode } from "@deno/loader";
-import { underline } from "@std/fmt/colors";
+import { type Loader, ResolutionMode } from "@deno/loader";
+import * as cjsLexer from "cjs-module-lexer";
+import { ConsoleEvent } from "@astral/astral";
+
+await cjsLexer.init();
 
 export interface PackageJson {
   name: string;
@@ -22,36 +23,33 @@ export async function readPackageJson(file: string): Promise<PackageJson> {
 }
 
 function normalizeId(id: string): string {
-  return id.replaceAll("/", "__").replaceAll(".", "_");
+  return id.replaceAll("/", "__");
 }
 
 export interface NpmEntry {
   id: string;
-  name: string;
   entryName: string;
 }
 
 export async function getAllNpmEntries(
   json: PackageJson,
-): Promise<NpmEntry[]> {
+): Promise<Map<string, NpmEntry>> {
   const pkgId = `${normalizeId(json.name)}@${json.version}`;
 
-  const entries: NpmEntry[] = [];
+  const byId = new Map<string, NpmEntry>();
 
   if (json.exports) {
     if (typeof json.exports === "string") {
-      entries.push({
+      byId.set(pkgId, {
         id: pkgId,
         entryName: json.name,
-        name: "__default",
       });
     } else {
       for (const id of Object.keys(json.exports)) {
         if (!id.startsWith(".")) {
-          entries.push({
+          byId.set(pkgId, {
             id: pkgId,
             entryName: json.name,
-            name: "__default",
           });
           break;
         }
@@ -61,26 +59,21 @@ export async function getAllNpmEntries(
           continue;
         }
 
-        entries.push({
-          id: `${pkgId}${id.slice(1)}`,
+        const entryid = `${pkgId}${normalizeId(id.slice(1))}`;
+        byId.set(entryid, {
+          id: entryid,
           entryName: `${json.name}${id.slice(1)}`,
-          name: id.slice(2).replace(/[./@]/g, "_"),
         });
       }
     }
   } else {
-    entries.push({
-      id: json.name,
+    byId.set(pkgId, {
+      id: pkgId,
       entryName: json.name,
-      name: "__default",
     });
   }
 
-  if (json.name === "preact") {
-    console.log("PREACT", entries);
-  }
-
-  return entries;
+  return byId;
 }
 
 export interface BundleFile {
@@ -104,7 +97,6 @@ export async function bundleNpmPackage(
   const pkgJson = await readPackageJson(path.join(dir, "package.json"));
 
   const entries = await getAllNpmEntries(pkgJson);
-  console.log(entries);
 
   let cwd = dir;
   while (path.basename(cwd) !== "node_modules") {
@@ -112,29 +104,27 @@ export async function bundleNpmPackage(
   }
 
   cwd = path.dirname(cwd);
-  console.log("OPTMIZING", pkgJson.name, pkgJson.version, entries, cwd);
+  const pkgId = `${normalizeId(pkgJson.name)}@${pkgJson.version}`;
 
   const bundle = await esbuild.build({
     write: false,
     bundle: true,
     metafile: true,
     absWorkingDir: cwd,
+    splitting: true,
+    chunkNames: `${platform}__${pkgId}__chunk-[hash]`,
     outdir: ".",
     sourcemap: "external",
     format: "esm",
     target: "esnext",
     platform: platform === "browser" ? "browser" : "node",
-    entryPoints: entries.map((entry) => {
+    entryPoints: Array.from(entries.values()).map((entry) => {
       return {
         in: entry.entryName,
-        out: entry.id,
+        out: `${platform}__${entry.id}`,
       };
     }),
 
-    // entries.reduce<Record<string, string>>((acc, entry) => {
-    //   acc[entry.entryName] = entry.entryName;
-    //   return acc;
-    // }, {}),
     logLevel: "debug",
     plugins: [
       {
@@ -197,10 +187,27 @@ export async function bundleNpmPackage(
                 if (res.startsWith("file://")) {
                   result = path.fromFileUrl(result);
                 }
-                console.log({ arg: args.path, res, result });
                 return {
                   path: result,
                 };
+              }
+
+              if (!args.path.startsWith(".")) {
+                const full = path.join(path.dirname(args.importer), args.path);
+                const rel = path.relative(dir, full);
+                console.log("aaa3", {
+                  dir,
+                  rel,
+                  full,
+                  p: args.path,
+                  imp: args.importer,
+                });
+                if (rel.startsWith("..")) {
+                  return {
+                    path: args.path,
+                    external: true,
+                  };
+                }
               }
 
               return null;
@@ -222,54 +229,15 @@ export async function bundleNpmPackage(
     ],
   });
 
-  console.log("DONE");
   const files = new Map<string, BundleFile>();
 
-  const sourceMaps: esbuild.OutputFile[] = [];
+  const outputFileByPath = new Map<string, esbuild.OutputFile>();
 
   for (let i = 0; i < bundle.outputFiles.length; i++) {
     const file = bundle.outputFiles[i];
 
-    if (file.path.endsWith(".map")) {
-      sourceMaps.push(file);
-      continue;
-    }
-
-    const rel = path.relative(cwd, file.path);
-    console.log({ f: file.path, cwd, rel });
-    const url = path.toFileUrl(file.path).href;
-
-    let code = file.text;
-
-    let hasRequire = false;
-    code = code.replaceAll(/__(require\(['"]node:[^)]+\))/g, (_, replace) => {
-      hasRequire = true;
-      return replace;
-    });
-
-    if (hasRequire) {
-      code =
-        `import { createRequire } from "node:module";const require = createRequire(import.meta.url);${code}`;
-    }
-
-    files.set(rel, {
-      filePath: url,
-      content: code,
-      map: null,
-    });
-  }
-
-  for (let i = 0; i < sourceMaps.length; i++) {
-    const map = sourceMaps[i];
-
-    const chunk = files.get(map.path.slice(-".map".length));
-    if (chunk !== undefined) {
-      chunk.map = map.text;
-    }
-  }
-
-  if (pkgJson.name === "preact") {
-    console.log(bundle);
+    const id = path.relative(cwd, file.path);
+    outputFileByPath.set(id, file);
   }
 
   console.log("OPTMIZING", pkgJson.name, pkgJson.version, "...done");
@@ -277,18 +245,64 @@ export async function bundleNpmPackage(
   for (const [id, chunk] of Object.entries(bundle.metafile.outputs)) {
     if (id.endsWith(".map")) continue;
 
-    const file = path.toFileUrl(path.join(cwd, id)).href;
+    const file = outputFileByPath.get(id);
+    if (!file) throw new Error(`Could not find output file: ${id}`);
 
+    let code = file.text;
+
+    let hasRequire = false;
+    code = code
+      .replaceAll(/__(require\(['"]node:[^)]+\))/g, (_, replace) => {
+        hasRequire = true;
+        return replace;
+      })
+      .replaceAll(/['"]\.\/([^'"]+chunk-\w+\.js)['"]/g, (m, spec) => {
+        return `${m[0]}deno-npm::${spec}${m[m.length - 1]}`;
+      });
+
+    if (hasRequire) {
+      code =
+        `import { createRequire } from "node:module";const require = createRequire(import.meta.url);${code}`;
+    }
+
+    const map = outputFileByPath.get(id + ".map")?.text ?? null;
+
+    // Reconstruct exports
     if (chunk.entryPoint) {
-      const bundled = files.get(file);
+      const inputFile = bundle.metafile.inputs[chunk.entryPoint];
+      if (inputFile.format === "cjs") {
+        code = code.replace(/^export default (.*);/gm, (_, spec) => {
+          return `var __default = ${spec};\n`;
+        });
+        code += `export default __default;\n`;
+        const source = await Deno.readTextFile(
+          path.join(cwd, chunk.entryPoint),
+        );
 
-      if (bundled !== undefined) {
-        console.log({ chunk: chunk.entryPoint });
-        const entryPath = path.toFileUrl(path.join(cwd, chunk.entryPoint)).href;
-        files.set(entryPath, bundled);
+        const result = await cjsLexer.parse(source);
+
+        for (let i = 0; i < result.exports.length; i++) {
+          const name = result.exports[i];
+          if (name === "default") continue;
+
+          code += `export var ${name} = __default["${name}"];\n`;
+        }
+        console.log({ entry: chunk.entryPoint, result, source, code });
       }
     }
+
+    const bundleFile: BundleFile = {
+      content: code,
+      filePath: file.path,
+      map,
+    };
+
+    console.log({ chunkId: id });
+
+    files.set(id, bundleFile);
   }
+
+  console.log("FINAL", files.keys());
 
   return {
     name: pkgJson.name,
@@ -298,6 +312,24 @@ export async function bundleNpmPackage(
 }
 
 export function reverseLookupNpm(
+  pkgJson: PackageJson,
+  dir: string,
+  spec: string,
+) {
+  let result = reverseLookupNpmInner(pkgJson, dir, spec);
+
+  if (result !== undefined) {
+    result = normalizeId(result);
+    if (!result.endsWith(".map") && !result.endsWith(".js")) {
+      result += ".js";
+    }
+    return result;
+  }
+
+  return result;
+}
+
+export function reverseLookupNpmInner(
   pkgJson: PackageJson,
   dir: string,
   spec: string,
