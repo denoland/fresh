@@ -1,7 +1,13 @@
 import type { Plugin } from "vite";
 import * as path from "@std/path";
 
-const SHIMS: Record<string, string> = {
+export const SHIMS: Record<string, string> = {
+  "node-fetch": path.join(
+    import.meta.dirname!,
+    "shims",
+    "node-fetch",
+    "index.ts",
+  ),
   "object.entries": path.join(
     import.meta.dirname!,
     "shims",
@@ -22,7 +28,7 @@ export function shims(): Plugin {
     sharedDuringBuild: true,
     resolveId: {
       filter: {
-        id: /(object\.entries|supports-color)/,
+        id: /(object\.entries|supports-color|node-fetch)/,
       },
       handler(id) {
         const resolved = SHIMS[id];

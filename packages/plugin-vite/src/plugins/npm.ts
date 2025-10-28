@@ -4,7 +4,7 @@ import { builtinModules, isBuiltin } from "node:module";
 import type { Alias, AliasOptions } from "vite";
 import { type Loader, ResolutionMode } from "@deno/loader";
 import * as cjsLexer from "cjs-module-lexer";
-import { ConsoleEvent } from "@astral/astral";
+import { walk } from "@std/fs/walk";
 
 await cjsLexer.init();
 
@@ -16,6 +16,9 @@ export interface PackageJson {
     | Record<string, string | Record<string, string | Record<string, string>>>;
   main?: string;
   module?: string;
+  dependencies?: Record<string, string>;
+  devDependencies?: Record<string, string>;
+  optionalDependencies?: Record<string, string>;
 }
 
 export async function readPackageJson(file: string): Promise<PackageJson> {
@@ -33,6 +36,7 @@ export interface NpmEntry {
 
 export async function getAllNpmEntries(
   json: PackageJson,
+  dir: string,
 ): Promise<Map<string, NpmEntry>> {
   const pkgId = `${normalizeId(json.name)}@${json.version}`;
 
@@ -55,6 +59,65 @@ export async function getAllNpmEntries(
         }
 
         if (id.includes("*")) {
+          if (json.name === "cloudflare" && id.includes("/_shims/")) {
+            const raw = id.slice(1)
+              .replaceAll(".", "\\\\.")
+              .replaceAll("*", ".*")
+              .replaceAll("/", "[/\\\\]+");
+
+            const tmp = path.normalize(id);
+
+            let nearestDir = dir;
+            for (const part of tmp.split(/[/\\]+/)) {
+              if (part.includes("*")) break;
+              nearestDir = path.join(nearestDir, part);
+            }
+
+            const reg = new RegExp(raw);
+            console.log("WALK CCC", nearestDir, reg);
+            for await (
+              const entry of walk(nearestDir, {
+                includeDirs: false,
+                includeFiles: true,
+                match: [reg],
+              })
+            ) {
+              if (entry.name.endsWith(".map") || entry.name.endsWith(".d.ts")) {
+                continue;
+              }
+
+              if (
+                json.name === "cloudflare" && id.includes("_shim") &&
+                entry.name.endsWith(".js")
+              ) {
+                continue;
+              }
+
+              console.log("WALk EEEE", entry);
+
+              const rel = path.relative(dir, entry.path).replaceAll(
+                /[/\\]+/g,
+                "/",
+              );
+
+              const entryId = `${pkgId}__${normalizeId(rel)}`;
+
+              let entryName = `${json.name}`;
+              const entryDir = path.dirname(rel);
+              if (entryDir !== ".") {
+                entryName += `/${entryDir}`;
+              }
+              entryName += `/${path.basename(rel, path.extname(rel))}`;
+
+              byId.set(entryId, {
+                id: entryId,
+                entryName,
+              });
+              console.log("BYID", byId);
+
+              continue;
+            }
+          }
           console.log("SKIPPING", json.name, id);
           continue;
         }
@@ -95,8 +158,9 @@ export async function bundleNpmPackage(
   aliases: (AliasOptions | undefined) & Alias[],
 ): Promise<BundleResult> {
   const pkgJson = await readPackageJson(path.join(dir, "package.json"));
+  const pkgId = `${normalizeId(pkgJson.name)}@${pkgJson.version}`;
 
-  const entries = await getAllNpmEntries(pkgJson);
+  const entries = await getAllNpmEntries(pkgJson, dir);
 
   let cwd = dir;
   while (path.basename(cwd) !== "node_modules") {
@@ -104,7 +168,31 @@ export async function bundleNpmPackage(
   }
 
   cwd = path.dirname(cwd);
-  const pkgId = `${normalizeId(pkgJson.name)}@${pkgJson.version}`;
+
+  const external: string[] = [
+    "npm:*",
+    "jsr:*",
+    "http:*",
+    "https:*",
+    "node:*",
+    "vite",
+    "rollup",
+    ...builtinModules,
+  ];
+
+  if (pkgJson.dependencies) {
+    external.push(...Object.keys(pkgJson.dependencies));
+  }
+  if (pkgJson.devDependencies) {
+    external.push(...Object.keys(pkgJson.devDependencies));
+  }
+  if (pkgJson.optionalDependencies) {
+    external.push(...Object.keys(pkgJson.optionalDependencies));
+  }
+
+  if (pkgJson.name === "cloudflare") {
+    console.log("CFF", { entries });
+  }
 
   const bundle = await esbuild.build({
     write: false,
@@ -126,6 +214,7 @@ export async function bundleNpmPackage(
     }),
 
     logLevel: "debug",
+    external,
     plugins: [
       {
         name: "fresh:alias",
@@ -152,6 +241,8 @@ export async function bundleNpmPackage(
                 namespace: args.namespace,
               });
 
+              console.log("ALIAS", resolved, entry);
+
               return resolved;
             });
 
@@ -177,9 +268,12 @@ export async function bundleNpmPackage(
               }
 
               if (args.kind === "entry-point") {
+                if (pkgJson.name === "cloudflare") {
+                  console.log({ p: args.path });
+                }
                 const res = await loader.resolve(
-                  `npm:` + args.path,
-                  args.importer,
+                  args.path,
+                  args.importer || path.join(dir, "index.js"),
                   ResolutionMode.Import,
                 );
 
@@ -187,27 +281,29 @@ export async function bundleNpmPackage(
                 if (res.startsWith("file://")) {
                   result = path.fromFileUrl(result);
                 }
+
+                // Use `module` entry if resolved to `main` instead.
+                if (
+                  typeof pkgJson.main === "string" &&
+                  typeof pkgJson.module === "string" &&
+                  result === path.join(dir, pkgJson.main)
+                ) {
+                  const moduleEntry = path.join(dir, pkgJson.module);
+                  return {
+                    path: moduleEntry,
+                  };
+                }
+
                 return {
                   path: result,
                 };
               }
 
               if (!args.path.startsWith(".")) {
-                const full = path.join(path.dirname(args.importer), args.path);
-                const rel = path.relative(dir, full);
-                console.log("aaa3", {
-                  dir,
-                  rel,
-                  full,
-                  p: args.path,
-                  imp: args.importer,
-                });
-                if (rel.startsWith("..")) {
-                  return {
-                    path: args.path,
-                    external: true,
-                  };
-                }
+                return {
+                  path: args.path,
+                  external: true,
+                };
               }
 
               return null;
@@ -215,17 +311,6 @@ export async function bundleNpmPackage(
           }
         },
       },
-      // denoPlugin({}),
-    ],
-    external: [
-      "npm:*",
-      "jsr:*",
-      "http:*",
-      "https:*",
-      "node:*",
-      "vite",
-      "rollup",
-      ...builtinModules,
     ],
   });
 
@@ -287,22 +372,17 @@ export async function bundleNpmPackage(
 
           code += `export var ${name} = __default["${name}"];\n`;
         }
-        console.log({ entry: chunk.entryPoint, result, source, code });
       }
     }
 
     const bundleFile: BundleFile = {
       content: code,
-      filePath: file.path,
+      filePath: path.join(dir, id),
       map,
     };
 
-    console.log({ chunkId: id });
-
     files.set(id, bundleFile);
   }
-
-  console.log("FINAL", files.keys());
 
   return {
     name: pkgJson.name,
@@ -320,7 +400,7 @@ export function reverseLookupNpm(
 
   if (result !== undefined) {
     result = normalizeId(result);
-    if (!result.endsWith(".map") && !result.endsWith(".js")) {
+    if (!/\.(map|[mc]?[tj]s)$/.test(result)) {
       result += ".js";
     }
     return result;
@@ -370,4 +450,5 @@ export function reverseLookupNpmInner(
   }
 
   console.log("FIXME", { part });
+  return `${pkgId}${part.slice(1)}`;
 }

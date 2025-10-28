@@ -18,6 +18,7 @@ import {
   reverseLookupNpm,
 } from "./npm.ts";
 import { SpecMeta } from "./patches/bare_specifier.ts";
+import { SHIMS } from "./shims.ts";
 
 // @ts-ignore Workaround for https://github.com/denoland/deno/issues/30850
 const { default: babelReact } = await import("@babel/preset-react");
@@ -52,10 +53,27 @@ export function deno(): Plugin {
       // TODO: Pass conditions
       ssrLoader = await new Workspace({
         platform: "node",
+        debug: true,
         cachedOnly: true,
+        nodeConditions: [
+          "deno",
+          "import",
+          "module",
+          "node",
+          isDev ? "development" : "production",
+          "default",
+        ],
       }).createLoader();
       browserLoader = await new Workspace({
         platform: "browser",
+        nodeConditions: [
+          "import",
+          "module",
+          "browser",
+          isDev ? "development" : "production",
+          "default",
+        ],
+        debug: true,
         preserveJsx: true,
         cachedOnly: true,
       })
@@ -75,10 +93,21 @@ export function deno(): Plugin {
       }
     },
     async resolveId(id, importer, options) {
+      const loader = options?.ssr ? ssrLoader : browserLoader;
       const platform = options?.ssr ? "ssr" : "browser";
 
       if (id.startsWith("\0deno-resolve::")) {
         id = id.slice("\0deno-resolve::".length);
+
+        if (
+          importer?.startsWith("\0deno-npm::") && !id.startsWith("deno-npm::")
+        ) {
+          const importerId = importer.slice("\0deno-npm::".length);
+          const chunk = npmCache.get(importerId);
+          if (chunk !== undefined) {
+            importer = chunk.filePath;
+          }
+        }
       }
 
       if (BUILTINS.has(id)) {
@@ -91,7 +120,6 @@ export function deno(): Plugin {
           external: true,
         };
       }
-      const loader = options?.ssr ? ssrLoader : browserLoader;
 
       if (id.startsWith("/@fs/")) {
         id = id.slice("/@fs".length);
@@ -160,6 +188,8 @@ export function deno(): Plugin {
         return {
           id: `\0deno-npm::${chunkId}`,
         };
+      } else if (id.startsWith("\0deno-npm::")) {
+        return id;
       }
 
       try {
@@ -174,7 +204,7 @@ export function deno(): Plugin {
           ResolutionMode.Import,
         );
 
-        console.log({ id, resolved });
+        console.log({ id, resolved, denoImporter });
 
         if (resolved.startsWith("node:")) {
           return {
@@ -185,7 +215,7 @@ export function deno(): Plugin {
 
         // Load npm bundle if it's an npm specifier.
         const nodeIdx = resolved.lastIndexOf("/node_modules/");
-        npmOptimize: if (nodeIdx > -1) {
+        npmOptimize: if (nodeIdx > -1 && JS_REG.test(resolved)) {
           const endIdx = nodeIdx + "/node_modules/".length;
           const part = resolved.slice(endIdx);
           const match = part.match(NPM_PKG_NAME);
@@ -205,6 +235,11 @@ export function deno(): Plugin {
             path.join(dir, "package.json"),
           );
           console.log({ pkg: pkgJson.name });
+
+          const shimmed = SHIMS[pkgJson.name];
+          if (shimmed !== undefined) {
+            return shimmed;
+          }
 
           let cacheKey = reverseLookupNpm(pkgJson, dir, resolved);
           if (cacheKey === undefined) {
@@ -272,11 +307,6 @@ export function deno(): Plugin {
     },
     async load(id, options) {
       const original = id;
-      // TODO: Not sure where this case comes from
-      if (id.startsWith("deno-npm::")) {
-        id = `\0${id}`;
-        console.log("FIXED", { id, original });
-      }
 
       if (id.startsWith("\0deno-npm::")) {
         const platform = options?.ssr ? "ssr" : "browser";
@@ -286,10 +316,16 @@ export function deno(): Plugin {
           throw new Error(`WWW ${id}`);
         }
 
-        const chunk = npmCache.get(id);
+        let chunk = npmCache.get(id);
         if (chunk === undefined) {
-          console.log(npmCache.keys());
-          throw new Error(`Missing chunk: ${id}. This is a bug in Fresh.`);
+          chunk = npmCache.get(`${id}.js`);
+          if (chunk === undefined) {
+            throw new Error(
+              `Missing chunk: ${id}, known keys:\n${
+                Array.from(npmCache.keys()).map((x) => `- ${x}`).join("\n")
+              }\nThis is a bug in Fresh.`,
+            );
+          }
         }
 
         return {
