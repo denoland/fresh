@@ -4,6 +4,58 @@ import { walk } from "@std/fs/walk";
 import { withTmpDir } from "../../fresh/src/test_utils.ts";
 import { withChildProcessServer } from "../../fresh/tests/test_utils.tsx";
 
+let ensureEsbuildSignedPromise: Promise<void> | null = null;
+
+async function ensureEsbuildSigned() {
+  if (Deno.build.os !== "darwin") {
+    return;
+  }
+
+  if (ensureEsbuildSignedPromise) {
+    return await ensureEsbuildSignedPromise;
+  }
+
+  ensureEsbuildSignedPromise = (async () => {
+    let esbuildPath: string;
+    try {
+      esbuildPath = path.fromFileUrl(
+        import.meta.resolve("npm:esbuild/bin/esbuild"),
+      );
+    } catch (err) {
+      throw new Error(
+        `Failed to resolve esbuild binary location: ${
+          err instanceof Error ? err.message : String(err)
+        }`,
+      );
+    }
+
+    try {
+      const command = new Deno.Command("codesign", {
+        args: ["--force", "--sign", "-", esbuildPath],
+        stdout: "null",
+        stderr: "piped",
+      });
+      const { code, stderr } = await command.output();
+      if (code !== 0) {
+        const message = new TextDecoder().decode(stderr).trim();
+        throw new Error(
+          `codesign exited with code ${code}${message ? ": " + message : ""}`,
+        );
+      }
+    } catch (err) {
+      ensureEsbuildSignedPromise = null;
+      if (err instanceof Deno.errors.NotFound) {
+        throw new Error(
+          "codesign tool was not found. Install Xcode command-line tools or codesign the esbuild binary manually.",
+        );
+      }
+      throw err;
+    }
+  })();
+
+  await ensureEsbuildSignedPromise;
+}
+
 export const DEMO_DIR = path.join(import.meta.dirname!, "..", "demo");
 export const FIXTURE_DIR = path.join(import.meta.dirname!, "fixtures");
 
@@ -76,6 +128,7 @@ export async function launchDevServer(
   fn: (address: string, dir: string) => void | Promise<void>,
   env: Record<string, string> = {},
 ) {
+  await ensureEsbuildSigned();
   await withChildProcessServer(
     {
       cwd: dir,
@@ -90,6 +143,7 @@ export async function spawnDevServer(
   dir: string,
   env: Record<string, string> = {},
 ) {
+  await ensureEsbuildSigned();
   const boot = Promise.withResolvers<void>();
   const p = Promise.withResolvers<void>();
 
@@ -135,6 +189,7 @@ export async function buildVite(
   fixtureDir: string,
   options?: { base?: string },
 ) {
+  await ensureEsbuildSigned();
   const tmp = await withTmpDir({
     dir: path.join(import.meta.dirname!, ".."),
     prefix: "tmp_vite_",
