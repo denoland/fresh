@@ -62,7 +62,11 @@ async function patchProject(dir: string): Promise<void> {
     }
   }
 
-  const ignore = /[/\\]+(.|[^/\\]+_test\..*|tests[^/\\])/;
+  const ignore = (entry: Deno.DirEntry, _full: string) => {
+    return /^(\.|tmp_)/.test(entry.name) ||
+      /_test\.[tj]sx?$/.test(entry.name) ||
+      entry.name === "tests" || entry.name === "test";
+  };
 
   await copyRecursive(
     path.join(import.meta.dirname!, "..", "..", "fresh"),
@@ -77,6 +81,7 @@ async function patchProject(dir: string): Promise<void> {
   );
 
   json.workspace = ["./_linked/*"];
+  json.exclude = [...json.exclude ?? [], "**/_linked/*"];
 
   // assert with this stricter rule, before adding it to initialized projects
   json.lint.rules.include = ["verbatim-module-syntax"];
@@ -101,13 +106,15 @@ async function patchProject(dir: string): Promise<void> {
 async function copyRecursive(
   from: string,
   to: string,
-  ignore?: RegExp,
+  ignore?: (entry: Deno.DirEntry, full: string) => boolean,
 ): Promise<void> {
   for await (const entry of Deno.readDir(from)) {
     const source = path.join(from, entry.name);
     const target = path.join(to, entry.name);
 
-    if (ignore && ignore.test(source)) continue;
+    if (ignore && ignore(entry, source)) {
+      continue;
+    }
 
     if (entry.isFile) {
       try {
@@ -119,7 +126,7 @@ async function copyRecursive(
       }
       await Deno.copyFile(source, target);
     } else if (entry.isDirectory) {
-      await copyRecursive(source, target);
+      await copyRecursive(source, target, ignore);
     }
   }
 }

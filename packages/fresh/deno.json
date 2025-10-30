@@ -25,6 +25,7 @@
     "@std/semver": "jsr:@std/semver@^1.0.6",
     "@std/uuid": "jsr:@std/uuid@^1.0.9",
     "@types/node": "npm:@types/node@^24.2.1",
+    "esbuild-wasm": "npm:esbuild-wasm@^0.25.11",
     "preact": "npm:preact@^10.27.2",
     "preact-render-to-string": "npm:preact-render-to-string@^6.6.3"
   }
