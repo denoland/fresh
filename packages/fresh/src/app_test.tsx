@@ -788,6 +788,27 @@ Deno.test("App support HEAD if only GET is registered", async () => {
   expect(res.status).toEqual(200);
 });
 
+Deno.test(
+  "App support HEAD in .route() when only GET is registered",
+  async () => {
+    const app = new App()
+      .route("/", {
+        handler: {
+          GET() {
+            return { data: {} };
+          },
+        },
+        component: () => <h1>foo</h1>,
+      });
+
+    const server = new FakeServer(app.handler());
+
+    const res = await server.head("/");
+    expect(res.body).toEqual(null);
+    expect(res.status).toEqual(200);
+  },
+);
+
 Deno.test("App - .appWrapper()", async () => {
   const app = new App()
     .appWrapper(({ Component }) => (

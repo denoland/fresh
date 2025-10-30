@@ -93,8 +93,8 @@ Deno.test("fsRoutes - registers HTTP methods on router", async () => {
 
       await res.body?.cancel();
       if (method === "GET" && other === "HEAD") {
-        // When only a HEAD route is registered it should return 404
-        expect(res.status).toEqual(404);
+        // GET route + HEAD request should return 200
+        expect(res.status).toEqual(200);
       } else {
         expect(res.status).toEqual(405);
       }
