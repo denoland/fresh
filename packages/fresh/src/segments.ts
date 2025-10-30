@@ -4,7 +4,7 @@ import { type Method, patternToSegments } from "./router.ts";
 import type { LayoutConfig, Route } from "./types.ts";
 import { type Context, getInternals } from "./context.ts";
 import { recordSpanError, tracer } from "./otel.ts";
-import { HandlerFn, isHandlerByMethod } from "./handlers.ts";
+import { type HandlerFn, isHandlerByMethod } from "./handlers.ts";
 import {
   type AsyncAnyComponent,
   type PageProps,
