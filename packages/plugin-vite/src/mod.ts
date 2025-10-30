@@ -109,6 +109,9 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
                 manifest: true,
 
                 outDir: config.environments?.client?.build?.outDir ??
+                  (config.build?.outDir
+                    ? config.build.outDir + "/client"
+                    : null) ??
                   "_fresh/client",
                 rollupOptions: {
                   preserveEntrySignatures: "strict",
@@ -125,6 +128,9 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
                 copyPublicDir: false,
 
                 outDir: config.environments?.ssr?.build?.outDir ??
+                  (config.build?.outDir
+                    ? config.build.outDir + "/server"
+                    : null) ??
                   "_fresh/server",
                 rollupOptions: {
                   onwarn(warning, handler) {
