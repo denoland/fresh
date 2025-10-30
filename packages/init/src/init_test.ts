@@ -82,12 +82,20 @@ async function patchProject(dir: string): Promise<void> {
   json.lint.rules.include = ["verbatim-module-syntax"];
 
   await Deno.writeTextFile(jsonPath, JSON.stringify(json, null, 2) + "\n");
-  const { code } = await new Deno.Command(Deno.execPath(), {
+  const installProc = await new Deno.Command(Deno.execPath(), {
     cwd: dir,
     args: ["install"],
   }).output();
 
-  expect(code).toEqual(0);
+  if (installProc.code !== 0) {
+    const { stderr, stdout } = getStdOutput(installProc);
+    // deno-lint-ignore no-console
+    console.log(stderr);
+    // deno-lint-ignore no-console
+    console.log(stdout);
+  }
+
+  expect(installProc.code).toEqual(0);
 }
 
 async function copyRecursive(
