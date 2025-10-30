@@ -41,6 +41,7 @@
     "jsr:@std/html@1": "1.0.5",
     "jsr:@std/html@^1.0.5": "1.0.5",
     "jsr:@std/http@^1.0.15": "1.0.21",
+    "jsr:@std/http@^1.0.21": "1.0.21",
     "jsr:@std/internal@^1.0.10": "1.0.12",
     "jsr:@std/internal@^1.0.12": "1.0.12",
     "jsr:@std/internal@^1.0.9": "1.0.12",
@@ -48,6 +49,7 @@
     "jsr:@std/io@0.225.0": "0.225.0",
     "jsr:@std/json@^1.0.2": "1.0.2",
     "jsr:@std/jsonc@1": "1.0.2",
+    "jsr:@std/jsonc@^1.0.2": "1.0.2",
     "jsr:@std/media-types@1": "1.1.0",
     "jsr:@std/media-types@^1.1.0": "1.1.0",
     "jsr:@std/net@^1.0.6": "1.0.6",
@@ -55,12 +57,14 @@
     "jsr:@std/path@^1.0.8": "1.1.2",
     "jsr:@std/path@^1.1.1": "1.1.2",
     "jsr:@std/path@^1.1.2": "1.1.2",
-    "jsr:@std/semver@1": "1.0.5",
+    "jsr:@std/semver@1": "1.0.6",
+    "jsr:@std/semver@^1.0.6": "1.0.6",
     "jsr:@std/streams@1": "1.0.13",
     "jsr:@std/streams@^1.0.13": "1.0.13",
     "jsr:@std/testing@^1.0.12": "1.0.16",
     "jsr:@std/toml@^1.0.3": "1.0.10",
     "jsr:@std/uuid@^1.0.7": "1.0.9",
+    "jsr:@std/uuid@^1.0.9": "1.0.9",
     "jsr:@std/yaml@^1.0.5": "1.0.9",
     "jsr:@zip-js/zip-js@^2.7.52": "2.8.8",
     "npm:@babel/core@^7.28.0": "7.28.5",
@@ -98,9 +102,11 @@
     "npm:postcss@8.5.6": "8.5.6",
     "npm:postcss@^8.5.6": "8.5.6",
     "npm:preact-render-to-string@^6.5.11": "6.6.3_preact@10.27.2",
+    "npm:preact-render-to-string@^6.6.3": "6.6.3_preact@10.27.2",
     "npm:preact@^10.22.0": "10.27.2",
     "npm:preact@^10.26.9": "10.27.2",
     "npm:preact@^10.27.0": "10.27.2",
+    "npm:preact@^10.27.2": "10.27.2",
     "npm:prismjs@^1.29.0": "1.30.0",
     "npm:qs@^6.14.0": "6.14.0",
     "npm:redis@^5.8.2": "5.9.0_@redis+client@5.9.0",
@@ -300,6 +306,9 @@
     },
     "@std/semver@1.0.5": {
       "integrity": "529f79e83705714c105ad0ba55bec0f9da0f24d2f726b6cc1c15e505cc2c0624"
+    },
+    "@std/semver@1.0.6": {
+      "integrity": "b7c98ae2843547cf3f7ac37f3995889e6e4cee0a97b57b57f17f62722843303c"
     },
     "@std/streams@1.0.13": {
       "integrity": "772d208cd0d3e5dac7c1d9e6cdb25842846d136eea4a41a62e44ed4ab0c8dd9e",
@@ -3852,8 +3861,21 @@
       },
       "packages/fresh": {
         "dependencies": [
+          "jsr:@deno/esbuild-plugin@^1.2.0",
+          "jsr:@std/encoding@^1.0.10",
           "jsr:@std/fmt@^1.0.8",
-          "npm:@types/node@^24.2.1"
+          "jsr:@std/fs@^1.0.19",
+          "jsr:@std/html@^1.0.5",
+          "jsr:@std/http@^1.0.21",
+          "jsr:@std/jsonc@^1.0.2",
+          "jsr:@std/media-types@^1.1.0",
+          "jsr:@std/path@^1.1.2",
+          "jsr:@std/semver@^1.0.6",
+          "jsr:@std/uuid@^1.0.9",
+          "npm:@opentelemetry/api@^1.9.0",
+          "npm:@types/node@^24.2.1",
+          "npm:preact-render-to-string@^6.6.3",
+          "npm:preact@^10.27.2"
         ]
       },
       "packages/plugin-tailwindcss-v3": {
