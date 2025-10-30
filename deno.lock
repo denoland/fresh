@@ -89,6 +89,7 @@
     "npm:autoprefixer@^10.4.21": "10.4.21_postcss@8.5.6",
     "npm:cssnano@^6.1.2": "6.1.2_postcss@8.5.6",
     "npm:esbuild-wasm@0.25.7": "0.25.7",
+    "npm:esbuild-wasm@~0.25.11": "0.25.11",
     "npm:esbuild@0.25.7": "0.25.7",
     "npm:esbuild@~0.25.5": "0.25.7",
     "npm:feed@^5.1.0": "5.1.0",
@@ -2250,6 +2251,10 @@
         "es-errors"
       ]
     },
+    "esbuild-wasm@0.25.11": {
+      "integrity": "sha512-60gllbYFIRGzB6KALBB5Va9Wy3VeCi2U0NgmM7r+TFnRgzeEyoCn2D7fhacW2zWbd7MUeTKLDE7RlfYGBQ00bw==",
+      "bin": true
+    },
     "esbuild-wasm@0.25.7": {
       "integrity": "sha512-x3t1BlU59YOMtpwzayHxF4LPVujOvNKqm7y6jPvFKC13J8FmJRCdHPJwHq86er7ik+f7uwGcMbe+6KVzLGmsGw==",
       "bin": true
@@ -3874,6 +3879,7 @@
           "jsr:@std/uuid@^1.0.9",
           "npm:@opentelemetry/api@^1.9.0",
           "npm:@types/node@^24.2.1",
+          "npm:esbuild-wasm@~0.25.11",
           "npm:preact-render-to-string@^6.6.3",
           "npm:preact@^10.27.2"
         ]
