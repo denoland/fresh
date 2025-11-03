@@ -2,6 +2,7 @@ import { expect } from "@std/expect";
 import { App } from "./app.ts";
 import { FakeServer } from "./test_utils.ts";
 import { HttpError } from "./error.ts";
+import { createContext } from "preact";
 
 Deno.test("App - .use()", async () => {
   const app = new App<{ text: string }>()
@@ -959,4 +960,26 @@ Deno.test("App - .mountApp() with both main and inner basePath", async () => {
 
   res = await server.get("/main/services/users");
   expect(res.status).toEqual(404);
+});
+
+Deno.test("App - appWrapper context sharing", async () => {
+  const Ctx = createContext("not ok");
+  const app = new App()
+    .appWrapper((ctx) => {
+      return (
+        <Ctx.Provider value="ok">
+          <ctx.Component />
+        </Ctx.Provider>
+      );
+    })
+    .get("/", (ctx) => {
+      return ctx.render(
+        <Ctx.Consumer>{(value) => <p>{value}</p>}</Ctx.Consumer>,
+      );
+    });
+
+  const server = new FakeServer(app.handler());
+
+  const res = await server.get("/");
+  expect(await res.text()).toContain("<p>ok</p>");
 });

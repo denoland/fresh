@@ -10,7 +10,7 @@ import { expect } from "@std/expect";
 import { FakeServer } from "../src/test_utils.ts";
 import * as path from "@std/path";
 
-Deno.test("Head - ssr - updates title", async () => {
+Deno.test.only("Head - ssr - updates title", async () => {
   const handler = new App()
     .appWrapper(({ Component }) => {
       return (
@@ -40,6 +40,8 @@ Deno.test("Head - ssr - updates title", async () => {
   const res = await server.get("/");
 
   const doc = parseHtml(await res.text());
+
+  doc.debug();
 
   expect(doc.querySelector("title")?.textContent).toEqual("ok");
   expect(doc.querySelector("h1")?.textContent).toEqual("heading");

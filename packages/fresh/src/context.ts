@@ -7,7 +7,6 @@ import {
   isValidElement,
   type VNode,
 } from "preact";
-import { jsxTemplate } from "preact/jsx-runtime";
 import { SpanStatusCode } from "@opentelemetry/api";
 import type { ResolvedFreshConfig } from "./config.ts";
 import type { BuildCache } from "./build_cache.ts";
@@ -21,12 +20,10 @@ import { DEV_ERROR_OVERLAY_URL, PARTIAL_SEARCH_PARAM } from "./constants.ts";
 import { tracer } from "./otel.ts";
 import {
   type ComponentDef,
-  isAsyncAnyComponent,
   type PageProps,
-  renderAsyncAnyComponent,
   renderRouteComponent,
 } from "./render.ts";
-import { renderToString } from "preact-render-to-string";
+import { renderToStringAsync } from "preact-render-to-string";
 
 export interface Island {
   file: string;
@@ -206,8 +203,15 @@ export class Context<State> {
       throw new Error(`Non-JSX element passed to: ctx.render()`);
     }
 
-    const defs = config.skipInheritedLayouts ? [] : this.#internal.layouts;
-    const appDef = config.skipAppWrapper ? null : this.#internal.app;
+    const defs: ComponentDef<unknown, State>[] = [];
+    if (!config.skipAppWrapper && this.#internal.app !== null) {
+      defs.push({ props: null, component: this.#internal.app });
+    }
+
+    if (!config.skipInheritedLayouts && this.#internal.layouts.length > 0) {
+      defs.push(...this.#internal.layouts);
+    }
+
     const props = this as Context<State>;
 
     // Compose final vnode tree
@@ -223,39 +227,6 @@ export class Context<State> {
       }
 
       vnode = result;
-    }
-
-    let appChild = vnode;
-    // deno-lint-ignore no-explicit-any
-    let appVNode: VNode<any>;
-
-    let hasApp = true;
-
-    if (isAsyncAnyComponent(appDef)) {
-      props.Component = () => appChild;
-      const result = await renderAsyncAnyComponent(appDef, props);
-      if (result instanceof Response) {
-        return result;
-      }
-
-      appVNode = result;
-    } else if (appDef !== null) {
-      appVNode = h(appDef, {
-        Component: () => appChild,
-        config: this.config,
-        data: null,
-        error: this.error,
-        info: this.info,
-        isPartial: this.isPartial,
-        params: this.params,
-        req: this.req,
-        state: this.state,
-        url: this.url,
-        route: this.route,
-      });
-    } else {
-      hasApp = false;
-      appVNode = appChild ?? h(Fragment, null);
     }
 
     const headers = init.headers !== undefined
@@ -277,7 +248,7 @@ export class Context<State> {
       headers.set("X-Fresh-Id", partialId);
     }
 
-    const html = tracer.startActiveSpan("render", (span) => {
+    const html = await tracer.startActiveSpan("render", async (span) => {
       span.setAttribute("fresh.span_type", "render");
       const state = new RenderState(
         this,
@@ -295,20 +266,10 @@ export class Context<State> {
       try {
         setRenderState(state);
 
-        let html = renderToString(
-          vnode ?? h(Fragment, null),
-        );
-
-        if (hasApp) {
-          appChild = jsxTemplate([html]);
-          html = renderToString(appVNode);
-        }
-
         if (
           !state.renderedHtmlBody || !state.renderedHtmlHead ||
           !state.renderedHtmlTag
         ) {
-          let fallback: VNode = jsxTemplate([html]);
           if (!state.renderedHtmlBody) {
             let scripts: VNode | null = null;
 
@@ -318,23 +279,22 @@ export class Context<State> {
               scripts = h(FreshScripts, null) as VNode;
             }
 
-            fallback = h("body", null, fallback, scripts);
+            vnode = h("body", null, vnode, scripts);
           }
           if (!state.renderedHtmlHead) {
-            fallback = h(
+            vnode = h(
               Fragment,
               null,
               h("head", null, h("meta", { charset: "utf-8" })),
-              fallback,
+              vnode,
             );
           }
           if (!state.renderedHtmlTag) {
-            fallback = h("html", null, fallback);
+            vnode = h("html", null, vnode);
           }
-
-          html = renderToString(fallback);
         }
 
+        const html = await renderToStringAsync(vnode ?? h(Fragment, null));
         return `<!DOCTYPE html>${html}`;
       } catch (err) {
         if (err instanceof Error) {

@@ -2,6 +2,7 @@ import {
   type Component,
   type ComponentChildren,
   type ComponentType,
+  createContext,
   Fragment,
   h,
   isValidElement,
@@ -58,6 +59,8 @@ interface InternalVNode extends VNode {
 // deno-lint-ignore no-explicit-any
 const options: InternalPreactOptions = preactOptions as any;
 
+const HeadRenderCtx = createContext(false);
+
 export class RenderState {
   nonce: string;
   partialDepth = 0;
@@ -75,6 +78,8 @@ export class RenderState {
   ownerStack: InternalVNode[] = [];
 
   headComponents = new Map<string, VNode>();
+  headPromise = Promise.withResolvers<void>();
+  headPromiseResolved = false;
 
   // TODO: merge into bitmask field
   renderedHtmlTag = false;
@@ -264,39 +269,12 @@ options[OptionsType.DIFF] = (vnode) => {
           RENDER_STATE!.renderedHtmlTag = true;
           break;
         case "head": {
+          if (RENDER_STATE.renderedHtmlHead) {
+            break;
+          }
+          console.log("HEAD");
           RENDER_STATE!.renderedHtmlHead = true;
-
-          const entryAssets = RENDER_STATE.buildCache.getEntryAssets();
-          // deno-lint-ignore no-explicit-any
-          const items: VNode<any>[] = [];
-          if (entryAssets.length > 0) {
-            for (let i = 0; i < entryAssets.length; i++) {
-              const id = entryAssets[i];
-
-              if (id.endsWith(".css")) {
-                items.push(
-                  // deno-lint-ignore no-explicit-any
-                  h("link", { rel: "stylesheet", href: asset(id) } as any),
-                );
-              }
-            }
-          }
-
-          // deno-lint-ignore no-explicit-any
-          items.push(h(RemainingHead, null) as VNode<any>);
-
-          if (Array.isArray(vnode.props.children)) {
-            vnode.props.children.push(...items);
-          } else if (
-            vnode.props.children !== null &&
-            typeof vnode.props.children === "object"
-          ) {
-            // deno-lint-ignore no-explicit-any
-            items.unshift(vnode.props.children as any);
-            vnode.props.children = items;
-          } else {
-            vnode.props.children = items;
-          }
+          vnode.type = HeadRenderer;
 
           break;
         }
@@ -312,6 +290,9 @@ options[OptionsType.DIFF] = (vnode) => {
         case "noscript":
         case "template":
           {
+            if (vnode.type === "title") {
+              console.log(vnode.props);
+            }
             if (PATCHED.has(vnode)) {
               break;
             }
@@ -348,10 +329,12 @@ options[OptionsType.DIFF] = (vnode) => {
             // deno-lint-ignore no-explicit-any
             (vnode as any).type = (props: any) => {
               const value = useContext(HeadContext);
+              const rendering = useContext(HeadRenderCtx);
 
               if (originalKey) {
                 props["data-key"] = originalKey;
               }
+              console.log({ rendering, value, cacheKey });
 
               const vnode = h(originalType, props);
               PATCHED.add(vnode);
@@ -535,8 +518,46 @@ const stringifiers: Stringifiers = {
   },
 };
 
+export async function HeadRenderer(props: { children?: ComponentChildren }) {
+  const children = (!Array.isArray(props.children))
+    ? [props.children]
+    : props.children;
+
+  if (RENDER_STATE !== null) {
+    await RENDER_STATE.headPromise.promise;
+
+    const entryAssets = RENDER_STATE.buildCache.getEntryAssets();
+    if (entryAssets.length > 0) {
+      for (let i = 0; i < entryAssets.length; i++) {
+        const id = entryAssets[i];
+
+        if (id.endsWith(".css")) {
+          children.push(
+            // deno-lint-ignore no-explicit-any
+            h("link", { rel: "stylesheet", href: asset(id) } as any),
+          );
+        }
+      }
+    }
+
+    // deno-lint-ignore no-explicit-any
+    children.push(h(RemainingHead, null) as VNode<any>);
+  }
+
+  console.log("resolved async --> ", RENDER_STATE?.headComponents.keys());
+
+  return h(
+    HeadRenderCtx.Provider,
+    { value: true },
+    h("head", null, children),
+  );
+}
+
 export function FreshScripts() {
   if (RENDER_STATE === null) return null;
+  RENDER_STATE.headPromise.resolve();
+  RENDER_STATE.headPromiseResolved = true;
+
   if (RENDER_STATE.hasRuntimeScript) {
     return null;
   }
