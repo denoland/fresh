@@ -54,7 +54,7 @@ to the headers in every request.
 ```ts
 import { getCookies } from "@std/http";
 
-/** arbitrary headers-object used to showcase API */
+// arbitrary headers-object used to showcase API
 const cookies = getCookies(headers);
 const uuid = cookies["session"];
 ```
@@ -73,22 +73,37 @@ we will create a _session_ cookie and add it to the `Response`.
 ```ts main.ts
 import { getCookies, setCookie } from "@std/http";
 
-/** session middleware */
-app.use(async (ctx) => {
-  const response = await ctx.next();
-  const headers = ctx.req.headers;
-  const cookies = getCookies(headers);
+export interface State {
+  session: string;
+}
+
+// Session middleware
+app.use(async (ctx: Context<State>) => {
+  // Retrieve current session or generate a new one
+  const cookies = getCookies(ctx.req.headers);
   const session = cookies["session"];
+  ctx.state.session = session ?? crypto.randomUUID();
+
+  // Run routes/middleware
+  const response = await ctx.next();
+
+  // Update session cookie if necessary
   if (!session) {
-    const uuid = crypto.randomUUID();
     setCookie(response.headers, {
       name: "session",
-      value: uuid,
+      value: ctx.state.session,
     });
   }
   return response;
 });
+
+// Use `ctx.state.session` in routes/middleware
+app.get(
+  "/",
+  (ctx: Context<State>) =>
+    new Response(`Your session ID is: ${ctx.state.session}`),
+);
 ```
 
-> [info]: This is the most basic implementation. Expanding on this solution
-> could mean adding a database to relate data to a session.
+> [info]: This is a basic implementation. Expanding on this solution could mean
+> adding a database to relate data to a session.
