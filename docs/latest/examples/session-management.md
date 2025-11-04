@@ -30,9 +30,7 @@ associate a random UUID with a request. We will use the global
 to generate a random UUID and the [`@std/http`](https://jsr.io/@std/http)
 package to evaluate the cookies.
 
-> It is
-
-### Creating a _session_ cookie
+### Creating a cookie
 
 ```ts
 import { setCookie } from "@std/http";
@@ -51,7 +49,7 @@ _session_ with a random UUID as its value using `setCookie`.
 Adding this headers-object to a response will make the browser attach the cookie
 to the headers in every request.
 
-### Retrieving a _session_ cookie
+### Retrieving a cookie
 
 ```ts
 import { getCookies } from "@std/http";
