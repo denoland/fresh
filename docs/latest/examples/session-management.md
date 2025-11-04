@@ -71,7 +71,7 @@ cookies from the `Request`. If there is no _session_ cookie already available,
 we will create a _session_ cookie and add it to the `Response`.
 
 ```ts main.ts
-import { getCookie, setCookie } from "@std/http";
+import { getCookies, setCookie } from "@std/http";
 
 /** session middleware */
 app.use(async (ctx) => {
