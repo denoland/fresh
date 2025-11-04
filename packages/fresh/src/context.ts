@@ -7,14 +7,15 @@ import {
   isValidElement,
   type VNode,
 } from "preact";
+import { jsxTemplate } from "preact/jsx-runtime";
 import { SpanStatusCode } from "@opentelemetry/api";
 import type { ResolvedFreshConfig } from "./config.ts";
 import type { BuildCache } from "./build_cache.ts";
 import type { LayoutConfig } from "./types.ts";
 import {
+  asyncRenderStorage,
   FreshScripts,
   RenderState,
-  setRenderState,
 } from "./runtime/server/preact_hooks.ts";
 import { DEV_ERROR_OVERLAY_URL, PARTIAL_SEARCH_PARAM } from "./constants.ts";
 import { tracer } from "./otel.ts";
@@ -23,7 +24,7 @@ import {
   type PageProps,
   renderRouteComponent,
 } from "./render.ts";
-import { renderToStringAsync } from "preact-render-to-string";
+import { renderToString, renderToStringAsync } from "preact-render-to-string";
 
 export interface Island {
   file: string;
@@ -197,6 +198,7 @@ export class Context<State> {
     init: ResponseInit | undefined = {},
     config: LayoutConfig = {},
   ): Promise<Response> {
+    debugger;
     if (arguments.length === 0) {
       throw new Error(`No arguments passed to: ctx.render()`);
     } else if (vnode !== null && !isValidElement(vnode)) {
@@ -256,83 +258,92 @@ export class Context<State> {
         partialId,
       );
 
-      if (this.#additionalStyles !== null) {
-        for (let i = 0; i < this.#additionalStyles.length; i++) {
-          const css = this.#additionalStyles[i];
-          state.islandAssets.add(css);
+      return await asyncRenderStorage.run(state, async () => {
+        const state = asyncRenderStorage.getStore()!;
+
+        console.log("START RENDER");
+        if (this.#additionalStyles !== null) {
+          for (let i = 0; i < this.#additionalStyles.length; i++) {
+            const css = this.#additionalStyles[i];
+            state.islandAssets.add(css);
+          }
         }
-      }
 
-      try {
-        setRenderState(state);
+        try {
+          let html = await renderToStringAsync(vnode ?? h(Fragment, null));
 
-        if (
-          !state.renderedHtmlBody || !state.renderedHtmlHead ||
-          !state.renderedHtmlTag
-        ) {
-          if (!state.renderedHtmlBody) {
-            let scripts: VNode | null = null;
+          if (
+            !state.renderedHtmlBody || !state.renderedHtmlHead ||
+            !state.renderedHtmlTag
+          ) {
+            let fallback = jsxTemplate([html]);
+            if (!state.renderedHtmlBody) {
+              let scripts: VNode | null = null;
 
-            if (
-              this.url.pathname !== this.config.basePath + DEV_ERROR_OVERLAY_URL
-            ) {
-              scripts = h(FreshScripts, null) as VNode;
+              if (
+                this.url.pathname !==
+                  this.config.basePath + DEV_ERROR_OVERLAY_URL
+              ) {
+                scripts = h(FreshScripts, null) as VNode;
+              }
+
+              fallback = h("body", null, fallback, scripts);
+            }
+            if (!state.renderedHtmlHead) {
+              fallback = h(
+                Fragment,
+                null,
+                h("head", null, h("meta", { charset: "utf-8" })),
+                fallback,
+              );
+            }
+            if (!state.renderedHtmlTag) {
+              fallback = h("html", null, fallback);
             }
 
-            vnode = h("body", null, vnode, scripts);
+            html = renderToString(fallback);
           }
-          if (!state.renderedHtmlHead) {
-            vnode = h(
-              Fragment,
-              null,
-              h("head", null, h("meta", { charset: "utf-8" })),
-              vnode,
-            );
-          }
-          if (!state.renderedHtmlTag) {
-            vnode = h("html", null, vnode);
-          }
-        }
 
-        const html = await renderToStringAsync(vnode ?? h(Fragment, null));
-        return `<!DOCTYPE html>${html}`;
-      } catch (err) {
-        if (err instanceof Error) {
-          span.recordException(err);
-        } else {
-          span.setStatus({
-            code: SpanStatusCode.ERROR,
-            message: String(err),
-          });
-        }
-        throw err;
-      } finally {
-        // Add preload headers
-        const basePath = this.config.basePath;
-        const runtimeUrl = state.buildCache.clientEntry.startsWith(".")
-          ? state.buildCache.clientEntry.slice(1)
-          : state.buildCache.clientEntry;
-        let link = `<${
-          encodeURI(`${basePath}${runtimeUrl}`)
-        }>; rel="modulepreload"; as="script"`;
-        state.islands.forEach((island) => {
-          const specifier = `${basePath}${
-            island.file.startsWith(".") ? island.file.slice(1) : island.file
-          }`;
-          link += `, <${
-            encodeURI(specifier)
+          debugger;
+
+          return `<!DOCTYPE html>${html}`;
+        } catch (err) {
+          if (err instanceof Error) {
+            span.recordException(err);
+          } else {
+            span.setStatus({
+              code: SpanStatusCode.ERROR,
+              message: String(err),
+            });
+          }
+          throw err;
+        } finally {
+          // Add preload headers
+          const basePath = this.config.basePath;
+          const runtimeUrl = state.buildCache.clientEntry.startsWith(".")
+            ? state.buildCache.clientEntry.slice(1)
+            : state.buildCache.clientEntry;
+          let link = `<${
+            encodeURI(`${basePath}${runtimeUrl}`)
           }>; rel="modulepreload"; as="script"`;
-        });
+          state.islands.forEach((island) => {
+            const specifier = `${basePath}${
+              island.file.startsWith(".") ? island.file.slice(1) : island.file
+            }`;
+            link += `, <${
+              encodeURI(specifier)
+            }>; rel="modulepreload"; as="script"`;
+          });
 
-        if (link !== "") {
-          headers.append("Link", link);
+          if (link !== "") {
+            headers.append("Link", link);
+          }
+
+          state.clear();
+
+          span.end();
         }
-
-        state.clear();
-        setRenderState(null);
-
-        span.end();
-      }
+      });
     });
     return new Response(html, responseInit);
   }

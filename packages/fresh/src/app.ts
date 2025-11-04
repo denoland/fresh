@@ -432,6 +432,7 @@ export class App<State> {
       try {
         if (handlers.length === 0) return await next();
 
+        debugger;
         const result = await runMiddlewares(handlers, ctx);
         if (!(result instanceof Response)) {
           throw new Error(

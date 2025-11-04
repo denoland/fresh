@@ -36,6 +36,11 @@ import { getCodeFrame } from "../../dev/middlewares/error_overlay/code_frame.ts"
 import { escapeScript } from "../../utils.ts";
 import { HeadContext } from "../head.ts";
 import { useContext } from "preact/hooks";
+import { AsyncLocalStorage } from "node:async_hooks";
+
+export const asyncRenderStorage = new AsyncLocalStorage<RenderState>({
+  name: "render",
+});
 
 interface InternalPreactOptions extends PreactOptions {
   [OptionsType.ATTR](name: string, value: unknown): string | void;
@@ -80,6 +85,7 @@ export class RenderState {
   headComponents = new Map<string, VNode>();
   headPromise = Promise.withResolvers<void>();
   headPromiseResolved = false;
+  headPatched = false;
 
   // TODO: merge into bitmask field
   renderedHtmlTag = false;
@@ -106,17 +112,13 @@ export class RenderState {
   }
 }
 
-let RENDER_STATE: RenderState | null = null;
-export function setRenderState(state: RenderState | null) {
-  RENDER_STATE = state;
-}
-
 const oldVNodeHook = options[OptionsType.VNODE];
 options[OptionsType.VNODE] = (vnode) => {
-  if (RENDER_STATE !== null) {
-    RENDER_STATE.owners.set(vnode, RENDER_STATE!.ownerStack.at(-1)!);
+  const state = asyncRenderStorage.getStore();
+  if (state !== undefined) {
+    state.owners.set(vnode, state.ownerStack.at(-1)!);
     if (vnode.type === "a") {
-      setActiveUrl(vnode, RENDER_STATE.ctx.url.pathname);
+      setActiveUrl(vnode, state.ctx.url.pathname);
     }
   }
   assetHashingHook(vnode, BUILD_ID);
@@ -145,6 +147,13 @@ options[OptionsType.VNODE] = (vnode) => {
         vnode.props.children.push(scripts);
       } else {
         vnode.props.children = [vnode.props.children, scripts];
+      }
+    } else if (vnode.type === "head") {
+      console.log("create head");
+      if (state !== undefined && !state.headPatched) {
+        console.log("patch head");
+        vnode.type = HeadRenderer;
+        state.headPatched = true;
       }
     }
     if (CLIENT_NAV_ATTR in vnode.props) {
@@ -176,25 +185,27 @@ function normalizeKey(key: unknown): string {
 
 const oldDiff = options[OptionsType.DIFF];
 options[OptionsType.DIFF] = (vnode) => {
-  if (RENDER_STATE !== null) {
+  console.log("--> diff", vnode.type);
+  const state = asyncRenderStorage.getStore();
+  if (state !== undefined) {
     patcher: if (
       typeof vnode.type === "function" && vnode.type !== Fragment
     ) {
       if (vnode.type === Partial) {
-        RENDER_STATE.partialDepth++;
+        state.partialDepth++;
 
         const name = (vnode.props as PartialProps).name;
         if (typeof name === "string") {
-          if (RENDER_STATE.encounteredPartials.has(name)) {
+          if (state.encounteredPartials.has(name)) {
             throw new Error(
               `Rendered response contains duplicate partial name: "${name}"`,
             );
           }
 
-          RENDER_STATE.encounteredPartials.add(name);
+          state.encounteredPartials.add(name);
         }
 
-        if (hasIslandOwner(RENDER_STATE, vnode)) {
+        if (hasIslandOwner(state, vnode)) {
           throw new Error(
             `<Partial> components cannot be used inside islands.`,
           );
@@ -202,8 +213,8 @@ options[OptionsType.DIFF] = (vnode) => {
       } else if (
         !PATCHED.has(vnode)
       ) {
-        const island = RENDER_STATE.buildCache.islandRegistry.get(vnode.type);
-        const insideIsland = hasIslandOwner(RENDER_STATE, vnode);
+        const island = state.buildCache.islandRegistry.get(vnode.type);
+        const insideIsland = hasIslandOwner(state, vnode);
         if (island === undefined) {
           if (insideIsland) break patcher;
 
@@ -221,7 +232,7 @@ options[OptionsType.DIFF] = (vnode) => {
           break patcher;
         }
 
-        const { islands, islandProps, islandAssets } = RENDER_STATE;
+        const { islands, islandProps, islandAssets } = state;
 
         if (insideIsland) {
           for (let i = 0; i < island.css.length; i++) {
@@ -241,8 +252,8 @@ options[OptionsType.DIFF] = (vnode) => {
             if (
               name === "children" || (isValidElement(value) && !isSignal(value))
             ) {
-              const slotId = RENDER_STATE!.slots.length;
-              RENDER_STATE!.slots.push({ id: slotId, name, vnode: value });
+              const slotId = state.slots.length;
+              state.slots.push({ id: slotId, name, vnode: value });
               // deno-lint-ignore no-explicit-any
               (props as any)[name] = h(Slot, {
                 name,
@@ -266,20 +277,15 @@ options[OptionsType.DIFF] = (vnode) => {
     } else if (typeof vnode.type === "string") {
       switch (vnode.type) {
         case "html":
-          RENDER_STATE!.renderedHtmlTag = true;
+          state.renderedHtmlTag = true;
           break;
         case "head": {
-          if (RENDER_STATE.renderedHtmlHead) {
-            break;
-          }
-          console.log("HEAD");
-          RENDER_STATE!.renderedHtmlHead = true;
-          vnode.type = HeadRenderer;
-
+          state.renderedHtmlHead = true;
+          console.log("--> render head");
           break;
         }
         case "body":
-          RENDER_STATE!.renderedHtmlBody = true;
+          state.renderedHtmlBody = true;
           break;
         case "title":
         case "meta":
@@ -291,7 +297,7 @@ options[OptionsType.DIFF] = (vnode) => {
         case "template":
           {
             if (vnode.type === "title") {
-              console.log(vnode.props);
+              console.log(vnode.props, "patched", PATCHED.has(vnode));
             }
             if (PATCHED.has(vnode)) {
               break;
@@ -339,14 +345,14 @@ options[OptionsType.DIFF] = (vnode) => {
               const vnode = h(originalType, props);
               PATCHED.add(vnode);
 
-              if (RENDER_STATE !== null) {
+              if (state !== undefined) {
                 if (value) {
-                  RENDER_STATE.headComponents.set(cacheKey, vnode);
+                  state.headComponents.set(cacheKey, vnode);
                   return null;
                 } else if (value !== undefined) {
-                  const cached = RENDER_STATE.headComponents.get(cacheKey);
+                  const cached = state.headComponents.get(cacheKey);
                   if (cached !== undefined) {
-                    RENDER_STATE.headComponents.delete(cacheKey);
+                    state.headComponents.delete(cacheKey);
                     return cached;
                   }
                 }
@@ -360,7 +366,7 @@ options[OptionsType.DIFF] = (vnode) => {
 
       if (
         vnode.key !== undefined &&
-        (RENDER_STATE!.partialDepth > 0 || hasIslandOwner(RENDER_STATE!, vnode))
+        (state.partialDepth > 0 || hasIslandOwner(state, vnode))
       ) {
         (vnode.props as Record<string, unknown>)[DATA_FRESH_KEY] = String(
           vnode.key,
@@ -374,39 +380,43 @@ options[OptionsType.DIFF] = (vnode) => {
 
 const oldRender = options[OptionsType.RENDER];
 options[OptionsType.RENDER] = (vnode) => {
+  const state = asyncRenderStorage.getStore();
   if (
     typeof vnode.type === "function" && vnode.type !== Fragment &&
-    RENDER_STATE !== null
+    state !== undefined
   ) {
-    RENDER_STATE.ownerStack.push(vnode);
+    state.ownerStack.push(vnode);
   }
   oldRender?.(vnode);
 };
 
 const oldDiffed = options[OptionsType.DIFFED];
 options[OptionsType.DIFFED] = (vnode) => {
+  console.log("<-- diffed", vnode.type);
+  const state = asyncRenderStorage.getStore();
   if (
     typeof vnode.type === "function" && vnode.type !== Fragment &&
-    RENDER_STATE !== null
+    state !== undefined
   ) {
-    RENDER_STATE.ownerStack.pop();
+    state.ownerStack.pop();
 
     if (vnode.type === Partial) {
-      RENDER_STATE.partialDepth--;
+      state.partialDepth--;
     }
   }
   oldDiffed?.(vnode);
 };
 
 function RemainingHead() {
-  if (RENDER_STATE !== null) {
+  const state = asyncRenderStorage.getStore();
+  if (state !== undefined) {
     // deno-lint-ignore no-explicit-any
     const items: VNode<any>[] = [];
-    if (RENDER_STATE.headComponents.size > 0) {
-      items.push(...RENDER_STATE.headComponents.values());
+    if (state.headComponents.size > 0) {
+      items.push(...state.headComponents.values());
     }
 
-    RENDER_STATE.islands.forEach((island) => {
+    state.islands.forEach((island) => {
       if (island.css.length > 0) {
         for (let i = 0; i < island.css.length; i++) {
           const css = island.css[i];
@@ -415,7 +425,7 @@ function RemainingHead() {
       }
     });
 
-    RENDER_STATE.islandAssets.forEach((css) => {
+    state.islandAssets.forEach((css) => {
       items.push(h("link", { rel: "stylesheet", href: css }));
     });
 
@@ -432,8 +442,9 @@ interface SlotProps {
   children?: ComponentChildren;
 }
 function Slot(props: SlotProps) {
-  if (RENDER_STATE !== null) {
-    RENDER_STATE.slots[props.id] = null;
+  const state = asyncRenderStorage.getStore();
+  if (state !== undefined) {
+    state.slots[props.id] = null;
   }
   return wrapWithMarker(props.children, "slot", `${props.id}:${props.name}`);
 }
@@ -523,10 +534,14 @@ export async function HeadRenderer(props: { children?: ComponentChildren }) {
     ? [props.children]
     : props.children;
 
-  if (RENDER_STATE !== null) {
-    await RENDER_STATE.headPromise.promise;
+  const state = asyncRenderStorage.getStore();
 
-    const entryAssets = RENDER_STATE.buildCache.getEntryAssets();
+  console.log("--> async");
+
+  if (state !== undefined) {
+    await state.headPromise.promise;
+
+    const entryAssets = state.buildCache.getEntryAssets();
     if (entryAssets.length > 0) {
       for (let i = 0; i < entryAssets.length; i++) {
         const id = entryAssets[i];
@@ -544,7 +559,7 @@ export async function HeadRenderer(props: { children?: ComponentChildren }) {
     children.push(h(RemainingHead, null) as VNode<any>);
   }
 
-  console.log("resolved async --> ", RENDER_STATE?.headComponents.keys());
+  console.log("resolved async --> ", state?.headComponents.keys());
 
   return h(
     HeadRenderCtx.Provider,
@@ -554,15 +569,17 @@ export async function HeadRenderer(props: { children?: ComponentChildren }) {
 }
 
 export function FreshScripts() {
-  if (RENDER_STATE === null) return null;
-  RENDER_STATE.headPromise.resolve();
-  RENDER_STATE.headPromiseResolved = true;
+  const state = asyncRenderStorage.getStore();
 
-  if (RENDER_STATE.hasRuntimeScript) {
+  if (state === undefined) return null;
+  state.headPromise.resolve();
+  state.headPromiseResolved = true;
+
+  if (state.hasRuntimeScript) {
     return null;
   }
-  RENDER_STATE.hasRuntimeScript = true;
-  const { slots } = RENDER_STATE;
+  state.hasRuntimeScript = true;
+  const { slots } = state;
 
   // Remaining slots must be rendered before creating the Fresh runtime
   // script, so that we have the full list of islands rendered
@@ -594,8 +611,8 @@ export interface PartialStateJson {
 }
 
 function FreshRuntimeScript() {
-  const { islands, nonce, ctx, islandProps, partialId, buildCache } =
-    RENDER_STATE!;
+  const state = asyncRenderStorage.getStore();
+  const { islands, nonce, ctx, islandProps, partialId, buildCache } = state!;
   const basePath = ctx.config.basePath;
 
   const islandArr = Array.from(islands);
@@ -669,9 +686,10 @@ function FreshRuntimeScript() {
 }
 
 export function ShowErrorOverlay() {
-  if (RENDER_STATE === null) return null;
+  const state = asyncRenderStorage.getStore();
+  if (state === undefined) return null;
 
-  const { ctx } = RENDER_STATE;
+  const { ctx } = state;
   const error = ctx.error;
 
   if (error === null || error === undefined) return null;
