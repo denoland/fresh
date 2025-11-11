@@ -40,6 +40,30 @@ function findType(
 }
 
 export interface ipFilterOptions {
+  /**
+   * Called when a request is blocked by the IP filter.
+   *
+   * The function receives the remote information and the current request
+   * context and should return a Response (or a Promise resolving to one)
+   * which will be sent back to the client. If not provided, a default
+   * 403 Forbidden response will be used.
+   *
+   * Parameters:
+   * - `remote.addr` - the remote IP address as a string.
+   * - `remote.type` - the network family: "IPv4", "IPv6", or `undefined`.
+   * - `ctx` - the request `Context` which can be used to inspect the
+   *   request or produce a custom response.
+   *
+   * @example
+   * ```ts
+   * const options: ipFilterOptions = {
+   *   onError: (remote, ctx) => {
+   *     console.log(`Blocked ${remote.addr} (${remote.type})`, ctx.url);
+   *     return new Response("Access denied", { status: 401 });
+   *   },
+   * };
+   * ```
+   */
   onError?: <State>(
     remote: {
       addr: string;
@@ -85,7 +109,8 @@ export function ipFilter<State>(
   rules: IpFilterRules,
   options?: ipFilterOptions,
 ): Middleware<State> {
-  const onBlock = options?.onError ?? (() => new Response("Forbidden", { status: 403 }));
+  const onBlock = options?.onError ??
+    (() => new Response("Forbidden", { status: 403 }));
   return function ipFilter<State>(ctx: Context<State>) {
     if (
       ctx.info.remoteAddr.transport !== "udp" &&
