@@ -85,16 +85,13 @@ export function ipFilter<State>(
   rules: IpFilterRules,
   options?: ipFilterOptions,
 ): Middleware<State> {
-  const onBlock = options?.onError ?? (() => blockError());
-
+  const onBlock = options?.onError ?? (() => new Response("Forbidden", { status: 403 }));
   return function ipFilter<State>(ctx: Context<State>) {
     if (
       ctx.info.remoteAddr.transport !== "udp" &&
       ctx.info.remoteAddr.transport !== "tcp"
     ) {
-      throw new TypeError(
-        "Unsupported transport protocol. TCP & UDP is supported.",
-      );
+      return ctx.next();
     }
 
     const addr = ctx.info.remoteAddr.hostname;
