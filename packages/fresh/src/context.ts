@@ -27,6 +27,7 @@ import {
   renderRouteComponent,
 } from "./render.ts";
 import { renderToString } from "preact-render-to-string";
+import { isAsyncIterable, isIterable, isThenable } from "./utils.ts";
 
 export interface Island {
   file: string;
@@ -258,11 +259,7 @@ export class Context<State> {
       appVNode = appChild ?? h(Fragment, null);
     }
 
-    const headers = init.headers !== undefined
-      ? init.headers instanceof Headers
-        ? init.headers
-        : new Headers(init.headers)
-      : new Headers();
+    const headers = getHeadersFromInit(init);
 
     headers.set("Content-Type", "text/html; charset=utf-8");
     const responseInit: ResponseInit = {
@@ -375,5 +372,166 @@ export class Context<State> {
       }
     });
     return new Response(html, responseInit);
+  }
+
+  /**
+   * Respond with text. Sets `Content-Type: text/plain`.
+   * ```tsx
+   * ctx.text("Hello World!");
+   * ```
+   */
+  text(content: string, init?: ResponseInit) {
+    const headers = getHeadersFromInit(init);
+    headers.set("Content-Type", "text/plain; charset=utf-8");
+
+    return new Response(content, { ...init, headers });
+  }
+
+  /**
+   * Respond with html string. Sets `Content-Type: text/html`.
+   * ```tsx
+   * ctx.html("<h1>foo</h1>");
+   * ```
+   */
+  html(content: string, init?: ResponseInit) {
+    const headers = getHeadersFromInit(init);
+    headers.set("Content-Type", "text/html; charset=utf-8");
+
+    return new Response(content, { ...init, headers });
+  }
+
+  /**
+   * Respond with json string, same as `Response.json()`. Sets
+   * `Content-Type: application/json`.
+   * ```tsx
+   * ctx.json({ foo: 123 });
+   * ```
+   */
+  // deno-lint-ignore no-explicit-any
+  json(content: any, init?: ResponseInit) {
+    return Response.json(content, init);
+  }
+
+  /**
+   * Helper to manually enqueue chunks. Encodes text automatically
+   * ```tsx
+   * ctx.stream((controller) => {
+   *   controller.enqueue("foo");
+   *   controller.enqueue("bar");
+   * });
+   * ```
+   * Async works too:
+   *
+   * ```tsx
+   * ctx.stream(async (controller, signal) => {
+   *   controller.enqueue("foo");
+   *   await new Promise(r => setTimeout(r, 1000));
+   *   if (signal.aborted) return;
+   *   controller.enqueue("bar");
+   * });
+   * ```
+   *
+   * Can also be used with sync and async generator
+   * ```tsx
+   * ctx.stream(function* gen() {
+   *   yield "foo";
+   *   yield "bar";
+   * });
+   * ```
+   */
+  stream<U extends string | Uint8Array>(
+    stream: StreamFn<U>,
+    init?: ResponseInit,
+  ): Response {
+    const body = runStreamFn(stream, this.req.signal);
+    return new Response(body, init);
+  }
+}
+
+function getHeadersFromInit(init?: ResponseInit) {
+  if (init === undefined) {
+    return new Headers();
+  }
+
+  return init.headers !== undefined
+    ? init.headers instanceof Headers ? init.headers : new Headers(init.headers)
+    : new Headers();
+}
+
+export type StreamFn<T> = (
+  controller: ReadableStreamDefaultController<T>,
+  signal: AbortSignal,
+) =>
+  | void
+  | Iterable<T, void, unknown>
+  | Promise<void>
+  | AsyncIterable<T, void, unknown>;
+
+type ChunkEncodeFn<T> = (
+  controller: ReadableStreamDefaultController<Uint8Array<ArrayBuffer>>,
+  chunk: T | undefined,
+) => void;
+
+function runStreamFn<T>(
+  fn: StreamFn<T>,
+  signal: AbortSignal,
+): ReadableStream<Uint8Array<ArrayBuffer>> {
+  return new ReadableStream<Uint8Array<ArrayBuffer>>({
+    async start(controller) {
+      const wrapped = wrapStreamController(
+        controller,
+        enqueueEncodedChunk,
+      );
+      const result = fn(wrapped, signal);
+
+      if (isIterable(result)) {
+        for (const chunk of result) {
+          enqueueEncodedChunk(controller, chunk);
+        }
+      } else if (isAsyncIterable(result)) {
+        for await (const chunk of result) {
+          enqueueEncodedChunk(controller, chunk);
+        }
+      } else if (isThenable(result)) {
+        await result;
+      }
+
+      controller.close();
+    },
+  });
+}
+
+function wrapStreamController<T>(
+  controller: ReadableStreamDefaultController<Uint8Array<ArrayBuffer>>,
+  encode: ChunkEncodeFn<T>,
+): ReadableStreamDefaultController<T> {
+  return {
+    get desiredSize() {
+      return controller.desiredSize;
+    },
+    close: () => controller.close,
+    enqueue(chunk) {
+      encode(controller, chunk);
+    },
+    error: (err) => controller.error(err),
+  };
+}
+
+const ENCODER = new TextEncoder();
+
+function enqueueEncodedChunk<T>(
+  controller: ReadableStreamDefaultController<Uint8Array<ArrayBuffer>>,
+  chunk: T | undefined,
+) {
+  if (chunk === undefined) {
+    return controller.enqueue(undefined);
+  }
+
+  if (chunk instanceof Uint8Array) {
+    // deno-lint-ignore no-explicit-any
+    controller.enqueue(chunk as any);
+  } else {
+    const raw = ENCODER.encode(String(chunk));
+    controller.enqueue(raw);
   }
 }

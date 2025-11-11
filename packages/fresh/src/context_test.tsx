@@ -106,3 +106,113 @@ Deno.test("ctx.route - should contain matched route", async () => {
   await server.get("/foo/123");
   expect(route).toEqual("/foo/:id");
 });
+
+Deno.test("ctx.text()", async () => {
+  const app = new App()
+    .get("/", (ctx) => ctx.text("foobar"));
+
+  const server = new FakeServer(app.handler());
+  const res = await server.get("/");
+
+  expect(res.headers.get("Content-Type")).toEqual("text/plain; charset=utf-8");
+  const text = await res.text();
+  expect(text).toEqual("foobar");
+});
+
+Deno.test("ctx.html()", async () => {
+  const app = new App()
+    .get("/", (ctx) => ctx.html("<h1>foo</h1>"));
+
+  const server = new FakeServer(app.handler());
+  const res = await server.get("/");
+
+  expect(res.headers.get("Content-Type")).toEqual("text/html; charset=utf-8");
+  const text = await res.text();
+  expect(text).toEqual("<h1>foo</h1>");
+});
+
+Deno.test("ctx.json()", async () => {
+  const app = new App()
+    .get("/", (ctx) => ctx.json({ foo: 123 }));
+
+  const server = new FakeServer(app.handler());
+  const res = await server.get("/");
+
+  expect(res.headers.get("Content-Type")).toEqual("application/json");
+  const text = await res.text();
+  expect(text).toEqual('{"foo":123}');
+});
+
+Deno.test("ctx.stream() - empty callback", async () => {
+  const app = new App()
+    .get("/", (ctx) => ctx.stream(() => {}));
+
+  const server = new FakeServer(app.handler());
+  const res = await server.get("/");
+  const text = await res.text();
+  expect(text).toEqual("");
+});
+
+Deno.test("ctx.stream() - enqueue values", async () => {
+  const app = new App()
+    .get("/", (ctx) =>
+      ctx.stream((controller) => {
+        controller.enqueue("foo");
+        controller.enqueue(new TextEncoder().encode("bar"));
+      }));
+
+  const server = new FakeServer(app.handler());
+  const res = await server.get("/");
+  const text = await res.text();
+  expect(text).toEqual("foobar");
+});
+
+Deno.test("ctx.stream() - enqueue sync", async () => {
+  const app = new App()
+    .get("/", (ctx) =>
+      ctx.stream((controller) => {
+        controller.enqueue("foo");
+        controller.enqueue("bar");
+      }));
+
+  const server = new FakeServer(app.handler());
+  const res = await server.get("/");
+  const text = await res.text();
+  expect(text).toEqual("foobar");
+});
+
+Deno.test("ctx.stream() - enqueue async", async () => {
+  const app = new App()
+    .get("/", (ctx) =>
+      ctx.stream(async (controller) => {
+        controller.enqueue("foo");
+        await new Promise((r) => setTimeout(r, 50));
+        controller.enqueue("bar");
+      }));
+
+  const server = new FakeServer(app.handler());
+  const res = await server.get("/");
+  const text = await res.text();
+  expect(text).toEqual("foobar");
+});
+
+Deno.test("ctx.stream() - support cancelling stream", async () => {
+  const app = new App()
+    .get("/", (ctx) =>
+      ctx.stream(async (controller, signal) => {
+        controller.enqueue("foo");
+        await new Promise((r) => setTimeout(r, 300));
+        if (signal.aborted) return;
+        controller.enqueue("bar");
+      }));
+
+  const server = new FakeServer(app.handler());
+  const abort = new AbortController();
+  const res = await server.get("/", { signal: abort.signal });
+
+  const p = res.text();
+  await new Promise((r) => setTimeout(r, 100));
+  abort.abort();
+
+  expect(await p).toEqual("foo");
+});
