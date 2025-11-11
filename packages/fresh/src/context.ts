@@ -380,7 +380,7 @@ export class Context<State> {
    * ctx.text("Hello World!");
    * ```
    */
-  text(content: string, init?: ResponseInit) {
+  text(content: string, init?: ResponseInit): Response {
     const headers = getHeadersFromInit(init);
     headers.set("Content-Type", "text/plain; charset=utf-8");
 
@@ -393,7 +393,7 @@ export class Context<State> {
    * ctx.html("<h1>foo</h1>");
    * ```
    */
-  html(content: string, init?: ResponseInit) {
+  html(content: string, init?: ResponseInit): Response {
     const headers = getHeadersFromInit(init);
     headers.set("Content-Type", "text/html; charset=utf-8");
 
@@ -408,7 +408,7 @@ export class Context<State> {
    * ```
    */
   // deno-lint-ignore no-explicit-any
-  json(content: any, init?: ResponseInit) {
+  json(content: any, init?: ResponseInit): Response {
     return Response.json(content, init);
   }
 
