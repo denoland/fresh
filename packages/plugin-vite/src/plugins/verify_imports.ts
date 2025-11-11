@@ -4,6 +4,7 @@ import type { PluginContext } from "rollup";
 import path from "node:path";
 import { pathWithRoot } from "../utils.ts";
 
+/** A diagnostic message for an invalid import */
 export interface ImportCheckDiagnostic {
   type: "warn" | "error";
   message: string;
@@ -11,6 +12,7 @@ export interface ImportCheckDiagnostic {
   hint?: string;
 }
 
+/** A check whether or not an import is valid or not for an environment */
 export type ImportCheck = (
   id: string,
   env: "ssr" | "client",
