@@ -106,3 +106,100 @@ Deno.test("ctx.route - should contain matched route", async () => {
   await server.get("/foo/123");
   expect(route).toEqual("/foo/:id");
 });
+
+Deno.test("ctx.text()", async () => {
+  const app = new App()
+    .get("/", (ctx) => ctx.text("foobar"));
+
+  const server = new FakeServer(app.handler());
+  const res = await server.get("/");
+
+  expect(res.headers.get("Content-Type")).toEqual("text/plain;charset=UTF-8");
+  const text = await res.text();
+  expect(text).toEqual("foobar");
+});
+
+Deno.test("ctx.html()", async () => {
+  const app = new App()
+    .get("/", (ctx) => ctx.html("<h1>foo</h1>"));
+
+  const server = new FakeServer(app.handler());
+  const res = await server.get("/");
+
+  expect(res.headers.get("Content-Type")).toEqual("text/html; charset=utf-8");
+  const text = await res.text();
+  expect(text).toEqual("<h1>foo</h1>");
+});
+
+Deno.test("ctx.json()", async () => {
+  const app = new App()
+    .get("/", (ctx) => ctx.json({ foo: 123 }));
+
+  const server = new FakeServer(app.handler());
+  const res = await server.get("/");
+
+  expect(res.headers.get("Content-Type")).toEqual("application/json");
+  const text = await res.text();
+  expect(text).toEqual('{"foo":123}');
+});
+
+Deno.test("ctx.stream() - enqueue values", async () => {
+  function* gen() {
+    yield "foo";
+    yield new TextEncoder().encode("bar");
+  }
+
+  const app = new App()
+    .get("/", (ctx) => ctx.stream(gen()));
+
+  const server = new FakeServer(app.handler());
+  const res = await server.get("/");
+  const text = await res.text();
+  expect(text).toEqual("foobar");
+});
+
+Deno.test("ctx.stream() - pass function", async () => {
+  const app = new App()
+    .get("/", (ctx) =>
+      ctx.stream(function* () {
+        yield "foo";
+        yield "bar";
+      }));
+
+  const server = new FakeServer(app.handler());
+  const res = await server.get("/");
+  const text = await res.text();
+  expect(text).toEqual("foobar");
+});
+
+Deno.test("ctx.stream() - support iterable", async () => {
+  function* gen() {
+    yield "foo";
+    yield "bar";
+  }
+
+  const app = new App()
+    .get("/", (ctx) => ctx.stream(gen()));
+
+  const server = new FakeServer(app.handler());
+  const res = await server.get("/");
+  const text = await res.text();
+
+  expect(text).toEqual("foobar");
+});
+
+Deno.test("ctx.stream() - support async iterable", async () => {
+  async function* gen() {
+    yield "foo";
+    yield "bar";
+  }
+
+  const app = new App()
+    .get("/", (ctx) => ctx.stream(gen()));
+
+  const server = new FakeServer(app.handler());
+  const res = await server.get("/");
+  const text = await res.text();
+
+  expect(text).toEqual("foobar");
+});

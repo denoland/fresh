@@ -28,6 +28,8 @@ import {
 } from "./render.ts";
 import { renderToString } from "preact-render-to-string";
 
+const ENCODER = new TextEncoder();
+
 export interface Island {
   file: string;
   name: string;
@@ -258,11 +260,7 @@ export class Context<State> {
       appVNode = appChild ?? h(Fragment, null);
     }
 
-    const headers = init.headers !== undefined
-      ? init.headers instanceof Headers
-        ? init.headers
-        : new Headers(init.headers)
-      : new Headers();
+    const headers = getHeadersFromInit(init);
 
     headers.set("Content-Type", "text/html; charset=utf-8");
     const responseInit: ResponseInit = {
@@ -376,4 +374,102 @@ export class Context<State> {
     });
     return new Response(html, responseInit);
   }
+
+  /**
+   * Respond with text. Sets `Content-Type: text/plain`.
+   * ```tsx
+   * app.use(ctx => ctx.text("Hello World!"));
+   * ```
+   */
+  text(content: string, init?: ResponseInit): Response {
+    return new Response(content, init);
+  }
+
+  /**
+   * Respond with html string. Sets `Content-Type: text/html`.
+   * ```tsx
+   * app.get("/", ctx => ctx.html("<h1>foo</h1>"));
+   * ```
+   */
+  html(content: string, init?: ResponseInit): Response {
+    const headers = getHeadersFromInit(init);
+    headers.set("Content-Type", "text/html; charset=utf-8");
+
+    return new Response(content, { ...init, headers });
+  }
+
+  /**
+   * Respond with json string, same as `Response.json()`. Sets
+   * `Content-Type: application/json`.
+   * ```tsx
+   * app.get("/", ctx => ctx.json({ foo: 123 }));
+   * ```
+   */
+  // deno-lint-ignore no-explicit-any
+  json(content: any, init?: ResponseInit): Response {
+    return Response.json(content, init);
+  }
+
+  /**
+   * Helper to stream a sync or async iterable and encode text
+   * automatically.
+   *
+   * ```tsx
+   * function* gen() {
+   *   yield "foo";
+   *   yield "bar";
+   * }
+   *
+   * app.use(ctx => ctx.stream(gen()))
+   * ```
+   *
+   * Or pass in the function directly:
+   *
+   * ```tsx
+   * app.use(ctx => {
+   *   return ctx.stream(function* gen() {
+   *     yield "foo";
+   *     yield "bar";
+   *   });
+   * );
+   * ```
+   */
+  stream<U extends string | Uint8Array>(
+    stream:
+      | Iterable<U>
+      | AsyncIterable<U>
+      | (() => Iterable<U> | AsyncIterable<U>),
+    init?: ResponseInit,
+  ): Response {
+    const raw = typeof stream === "function" ? stream() : stream;
+
+    const body = ReadableStream.from(raw)
+      .pipeThrough(
+        new TransformStream({
+          transform(chunk, controller) {
+            if (chunk instanceof Uint8Array) {
+              // deno-lint-ignore no-explicit-any
+              controller.enqueue(chunk as any);
+            } else if (chunk === undefined) {
+              controller.enqueue(undefined);
+            } else {
+              const raw = ENCODER.encode(String(chunk));
+              controller.enqueue(raw);
+            }
+          },
+        }),
+      );
+
+    return new Response(body, init);
+  }
+}
+
+function getHeadersFromInit(init?: ResponseInit) {
+  if (init === undefined) {
+    return new Headers();
+  }
+
+  return init.headers !== undefined
+    ? init.headers instanceof Headers ? init.headers : new Headers(init.headers)
+    : new Headers();
 }
