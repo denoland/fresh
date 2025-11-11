@@ -24,10 +24,6 @@ export interface IpFilterRules {
   allowList?: string[];
 }
 
-function blockError(): Response {
-  return new Response("Forbidden", { status: 403 });
-}
-
 function findType(
   addr: string,
 ): Deno.NetworkInterfaceInfo["family"] | undefined {
@@ -123,7 +119,7 @@ export function ipFilter<State>(
     const type = findType(addr);
 
     if (type == undefined) {
-      return blockError();
+      return new Response("Forbidden", { status: 403 });
     }
 
     if (matchSubnets(addr, rules.denyList || [])) {
