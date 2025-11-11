@@ -410,37 +410,55 @@ export class Context<State> {
   }
 
   /**
-   * Helper to manually enqueue chunks. Encodes text automatically
-   * ```tsx
-   * ctx.stream((controller) => {
-   *   controller.enqueue("foo");
-   *   controller.enqueue("bar");
-   * });
-   * ```
-   * Async works too:
+   * Helper to stream a sync or async iterable and encode text
+   * automatically.
    *
    * ```tsx
-   * ctx.stream(async (controller, signal) => {
-   *   controller.enqueue("foo");
-   *   await new Promise(r => setTimeout(r, 1000));
-   *   if (signal.aborted) return;
-   *   controller.enqueue("bar");
-   * });
-   * ```
-   *
-   * Can also be used with sync and async generator
-   * ```tsx
-   * ctx.stream(function* gen() {
+   * function* gen() {
    *   yield "foo";
    *   yield "bar";
-   * });
+   * }
+   *
+   * app.use(ctx => ctx.stream(gen()))
+   * ```
+   *
+   * Or pass in the function directly:
+   *
+   * ```tsx
+   * app.use(ctx => {
+   *   return ctx.stream(function* gen() {
+   *     yield "foo";
+   *     yield "bar";
+   *   });
+   * );
    * ```
    */
   stream<U extends string | Uint8Array>(
-    stream: StreamFn<U>,
+    stream:
+      | Iterable<U>
+      | AsyncIterable<U>
+      | (() => Iterable<U> | AsyncIterable<U>),
     init?: ResponseInit,
   ): Response {
-    const body = runStreamFn(stream, this.req.signal);
+    const raw = typeof stream === "function" ? stream() : stream;
+
+    const body = ReadableStream.from(raw)
+      .pipeThrough(
+        new TransformStream({
+          transform(chunk, controller) {
+            if (chunk instanceof Uint8Array) {
+              // deno-lint-ignore no-explicit-any
+              controller.enqueue(chunk as any);
+            } else if (chunk === undefined) {
+              controller.enqueue(undefined);
+            } else {
+              const raw = ENCODER.encode(String(chunk));
+              controller.enqueue(raw);
+            }
+          },
+        }),
+      );
+
     return new Response(body, init);
   }
 }
@@ -479,20 +497,7 @@ function runStreamFn<T>(
         controller,
         enqueueEncodedChunk,
       );
-      const result = fn(wrapped, signal);
-
-      if (isIterable(result)) {
-        for (const chunk of result) {
-          enqueueEncodedChunk(controller, chunk);
-        }
-      } else if (isAsyncIterable(result)) {
-        for await (const chunk of result) {
-          enqueueEncodedChunk(controller, chunk);
-        }
-      } else if (isThenable(result)) {
-        await result;
-      }
-
+      await fn(wrapped, signal);
       controller.close();
     },
   });
