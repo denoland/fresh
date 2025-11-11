@@ -377,20 +377,17 @@ export class Context<State> {
   /**
    * Respond with text. Sets `Content-Type: text/plain`.
    * ```tsx
-   * ctx.text("Hello World!");
+   * app.use(ctx => ctx.text("Hello World!"));
    * ```
    */
   text(content: string, init?: ResponseInit): Response {
-    const headers = getHeadersFromInit(init);
-    headers.set("Content-Type", "text/plain; charset=utf-8");
-
-    return new Response(content, { ...init, headers });
+    return new Response(content, init);
   }
 
   /**
    * Respond with html string. Sets `Content-Type: text/html`.
    * ```tsx
-   * ctx.html("<h1>foo</h1>");
+   * app.get("/", ctx => ctx.html("<h1>foo</h1>"));
    * ```
    */
   html(content: string, init?: ResponseInit): Response {
@@ -404,7 +401,7 @@ export class Context<State> {
    * Respond with json string, same as `Response.json()`. Sets
    * `Content-Type: application/json`.
    * ```tsx
-   * ctx.json({ foo: 123 });
+   * app.get("/", ctx => ctx.json({ foo: 123 }));
    * ```
    */
   // deno-lint-ignore no-explicit-any

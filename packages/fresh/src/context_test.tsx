@@ -114,7 +114,7 @@ Deno.test("ctx.text()", async () => {
   const server = new FakeServer(app.handler());
   const res = await server.get("/");
 
-  expect(res.headers.get("Content-Type")).toEqual("text/plain; charset=utf-8");
+  expect(res.headers.get("Content-Type")).toEqual("text/plain;charset=UTF-8");
   const text = await res.text();
   expect(text).toEqual("foobar");
 });
