@@ -27,7 +27,8 @@ import {
   renderRouteComponent,
 } from "./render.ts";
 import { renderToString } from "preact-render-to-string";
-import { isAsyncIterable, isIterable, isThenable } from "./utils.ts";
+
+const ENCODER = new TextEncoder();
 
 export interface Island {
   file: string;
@@ -471,69 +472,4 @@ function getHeadersFromInit(init?: ResponseInit) {
   return init.headers !== undefined
     ? init.headers instanceof Headers ? init.headers : new Headers(init.headers)
     : new Headers();
-}
-
-export type StreamFn<T> = (
-  controller: ReadableStreamDefaultController<T>,
-  signal: AbortSignal,
-) =>
-  | void
-  | Iterable<T, void, unknown>
-  | Promise<void>
-  | AsyncIterable<T, void, unknown>;
-
-type ChunkEncodeFn<T> = (
-  controller: ReadableStreamDefaultController<Uint8Array<ArrayBuffer>>,
-  chunk: T | undefined,
-) => void;
-
-function runStreamFn<T>(
-  fn: StreamFn<T>,
-  signal: AbortSignal,
-): ReadableStream<Uint8Array<ArrayBuffer>> {
-  return new ReadableStream<Uint8Array<ArrayBuffer>>({
-    async start(controller) {
-      const wrapped = wrapStreamController(
-        controller,
-        enqueueEncodedChunk,
-      );
-      await fn(wrapped, signal);
-      controller.close();
-    },
-  });
-}
-
-function wrapStreamController<T>(
-  controller: ReadableStreamDefaultController<Uint8Array<ArrayBuffer>>,
-  encode: ChunkEncodeFn<T>,
-): ReadableStreamDefaultController<T> {
-  return {
-    get desiredSize() {
-      return controller.desiredSize;
-    },
-    close: () => controller.close,
-    enqueue(chunk) {
-      encode(controller, chunk);
-    },
-    error: (err) => controller.error(err),
-  };
-}
-
-const ENCODER = new TextEncoder();
-
-function enqueueEncodedChunk<T>(
-  controller: ReadableStreamDefaultController<Uint8Array<ArrayBuffer>>,
-  chunk: T | undefined,
-) {
-  if (chunk === undefined) {
-    return controller.enqueue(undefined);
-  }
-
-  if (chunk instanceof Uint8Array) {
-    // deno-lint-ignore no-explicit-any
-    controller.enqueue(chunk as any);
-  } else {
-    const raw = ENCODER.encode(String(chunk));
-    controller.enqueue(raw);
-  }
 }

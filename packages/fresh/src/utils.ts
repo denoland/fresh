@@ -283,22 +283,3 @@ function maybeDot(spec: string): string {
 export function isLazy<T>(value: MaybeLazy<T>): value is Lazy<T> {
   return typeof value === "function";
 }
-
-export function isThenable(value: unknown): value is Promise<unknown> {
-  return value !== null && typeof value === "object" && "then" in value &&
-    typeof value.then === "function";
-}
-
-export function isIterable<T>(value: unknown): value is Iterable<T> {
-  return value !== null && typeof value === "object" &&
-    Symbol.iterator in value &&
-    typeof value[Symbol.iterator] === "function";
-}
-
-export function isAsyncIterable<T>(
-  value: unknown,
-): value is AsyncIterable<T> {
-  return value !== null && typeof value === "object" &&
-    Symbol.asyncIterator in value &&
-    typeof value[Symbol.asyncIterator] === "function";
-}
