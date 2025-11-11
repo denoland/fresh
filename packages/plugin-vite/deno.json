@@ -1,6 +1,6 @@
 {
   "name": "@fresh/plugin-vite",
-  "version": "1.0.5",
+  "version": "1.0.7",
   "license": "MIT",
   "exports": {
     ".": "./src/mod.ts",
@@ -31,13 +31,16 @@
     "@tailwindcss/vite": "npm:@tailwindcss/vite@^4.1.12",
     "@types/babel__core": "npm:@types/babel__core@^7.20.5",
     "@types/node": "npm:@types/node@^24.1.0",
+    "@types/qs": "npm:@types/qs@^6.14.0",
     "feed": "npm:feed@^5.1.0",
     "fresh": "jsr:@fresh/core@^2.0.0",
     "ioredis": "npm:ioredis@^5.7.0",
     "mime-db": "npm:mime-db@^1.54.0",
     "pg": "npm:pg@^8.16.3",
     "preact": "npm:preact@^10.26.9",
+    "qs": "npm:qs@^6.14.0",
     "rollup-plugin-visualizer": "npm:rollup-plugin-visualizer@^6.0.3",
+    "stripe": "npm:stripe@^19.1.0",
     "vite": "npm:vite@^7.1.4",
     "vite-plugin-inspect": "npm:vite-plugin-inspect@^11.3.2"
   }

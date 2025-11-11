@@ -5,7 +5,7 @@ import * as semver from "@std/semver";
 import initConfig from "../deno.json" with { type: "json" };
 
 // Keep these as is, as we replace these version in our release script
-const FRESH_VERSION = "2.1.2";
+const FRESH_VERSION = "2.1.4";
 const FRESH_TAILWIND_VERSION = "1.0.0";
 const FRESH_VITE_PLUGIN = "1.0.0";
 const PREACT_VERSION = "10.27.2";
@@ -86,6 +86,7 @@ export async function initProject(
     builder?: boolean | null;
     help?: boolean | null;
     h?: boolean | null;
+    skipInstall?: boolean | null;
   } = {},
 ): Promise<void> {
   const freshVersion = await getLatestVersion("@fresh/core", FRESH_VERSION);
@@ -559,7 +560,7 @@ if (Deno.args.includes("build")) {
   }
 
   const denoJson = {
-    nodeModulesDir: "auto",
+    nodeModulesDir: "manual",
     tasks: {
       check: "deno fmt --check . && deno lint . && deno check",
       dev: "deno run -A --watch=static/,routes/ dev.ts",
@@ -761,6 +762,15 @@ This will watch the project directory and restart as necessary.`;
 
       await writeFile(".vscode/tailwind.json", tailwindCustomData);
     }
+  }
+
+  if (!flags.skipInstall) {
+    console.log("Installing dependencies...");
+    await new Deno.Command(Deno.execPath(), {
+      cwd: unresolvedDirectory,
+      args: ["install"],
+    }).output();
+    console.log("Installing dependencies...%cdone!", "color: green");
   }
 
   // Specifically print unresolvedDirectory, rather than resolvedDirectory in order to

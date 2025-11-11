@@ -357,7 +357,8 @@ function applyCommandsInner<State>(
       }
       case CommandType.FsRoute: {
         const items = cmd.getItems();
-        applyCommandsInner(root, router, items, basePath);
+        const base = mergePath(basePath, cmd.pattern, true);
+        applyCommandsInner(root, router, items, base);
         break;
       }
       default:

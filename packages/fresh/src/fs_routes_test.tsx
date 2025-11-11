@@ -14,6 +14,7 @@ import * as path from "@std/path";
 
 async function createServer<T>(
   files: Record<string, string | Uint8Array | FreshFsMod<T>>,
+  mountPath?: string,
 ): Promise<FakeServer> {
   const fs = createFakeFs(files);
 
@@ -26,7 +27,7 @@ async function createServer<T>(
   });
 
   const app = new App<T>()
-    .fsRoutes();
+    .fsRoutes(mountPath);
 
   const buildCache = new MockBuildCache<T>(fsFiles, "development");
   setBuildCache<T>(app, buildCache, "development");
@@ -92,8 +93,8 @@ Deno.test("fsRoutes - registers HTTP methods on router", async () => {
 
       await res.body?.cancel();
       if (method === "GET" && other === "HEAD") {
-        // When only a HEAD route is registered it should return 404
-        expect(res.status).toEqual(404);
+        // GET route + HEAD request should return 200
+        expect(res.status).toEqual(200);
       } else {
         expect(res.status).toEqual(405);
       }
@@ -1638,4 +1639,25 @@ Deno.test("fsRoutes - ignores test files in routes folder", async () => {
   expect(rawFiles.some((f) => f.filePath.includes("bar.test.ts"))).toBe(false);
   expect(rawFiles.some((f) => f.filePath.includes("baz.test.tsx"))).toBe(false);
   expect(rawFiles.some((f) => f.filePath.includes("qux_test.js"))).toBe(false);
+});
+
+Deno.test("fsRoutes - pattern argument", async () => {
+  const server = await createServer({
+    "routes/index.ts": {
+      handler: {
+        GET: () => new Response("ok"),
+      },
+    },
+    "routes/foo.ts": {
+      handler: {
+        GET: () => new Response("ok"),
+      },
+    },
+  }, "/mount");
+
+  let res = await server.get("/mount");
+  expect(await res.text()).toEqual("ok");
+
+  res = await server.get("/mount/foo");
+  expect(await res.text()).toEqual("ok");
 });
