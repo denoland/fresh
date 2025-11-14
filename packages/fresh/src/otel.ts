@@ -1,4 +1,4 @@
-import { type Span, SpanStatusCode, trace } from "@opentelemetry/api";
+import { type Span, SpanStatusCode, trace } from "@marvinh/otel";
 import denoJson from "../deno.json" with { type: "json" };
 
 export const CURRENT_FRESH_VERSION = denoJson.version;

@@ -3808,6 +3808,7 @@
       "jsr:@fresh/build-id@1",
       "jsr:@fresh/core@2",
       "jsr:@marvinh-test/fresh-island@^0.0.3",
+      "jsr:@marvinh/otel@^1.9.0",
       "jsr:@std/async@^1.0.13",
       "jsr:@std/cli@^1.0.19",
       "jsr:@std/collections@^1.1.2",

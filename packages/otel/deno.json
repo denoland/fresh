@@ -1,0 +1,7 @@
+{
+  "name": "@marvinh/otel",
+  "version": "1.9.10",
+  "exports": {
+    ".": "./src/mod.ts"
+  }
+}

@@ -8,7 +8,7 @@ import {
   type VNode,
 } from "preact";
 import { jsxTemplate } from "preact/jsx-runtime";
-import { SpanStatusCode } from "@opentelemetry/api";
+import { SpanStatusCode } from "@marvinh/otel";
 import type { ResolvedFreshConfig } from "./config.ts";
 import type { BuildCache } from "./build_cache.ts";
 import type { LayoutConfig } from "./types.ts";

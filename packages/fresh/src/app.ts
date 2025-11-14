@@ -1,4 +1,4 @@
-import { trace } from "@opentelemetry/api";
+import { trace } from "@marvinh/otel";
 
 import { DENO_DEPLOYMENT_ID } from "@fresh/build-id";
 import * as colors from "@std/fmt/colors";
