@@ -3821,6 +3821,7 @@
       "jsr:@std/http@^1.0.15",
       "jsr:@std/jsonc@1",
       "jsr:@std/media-types@1",
+      "jsr:@std/net@^1.0.6",
       "jsr:@std/path@1",
       "jsr:@std/semver@1",
       "jsr:@std/streams@1",
