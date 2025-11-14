@@ -1,3 +1,13 @@
+/**
+ * Used internally by the `@fresh/plugin-vite` to add HMR support
+ * for Fresh running in the browser.
+ *
+ * **Do not** import this module directly.
+ *
+ * @module
+ * @private
+ */
+
 import type { UpdatePayload } from "vite";
 import { hashCode } from "./shared.ts";
 

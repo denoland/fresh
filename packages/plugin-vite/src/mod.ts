@@ -27,7 +27,32 @@ import { load as stdLoadEnv } from "@std/dotenv";
 import path from "node:path";
 
 export type { FreshViteConfig };
+export type {
+  ImportCheck,
+  ImportCheckDiagnostic,
+} from "./plugins/verify_imports.ts";
 
+/**
+ * Fresh framework support for Vite.
+ *
+ * This plugin uses the Environments feature of Vite to build
+ * both the server and client code for Fresh applications.
+ *
+ * @param config Fresh config options
+ * @returns Vite plugin with Fresh support
+ *
+ * @example Basic usage
+ * ```ts vite.config.ts
+ * import { defineConfig } from "vite";
+ * import { fresh } from "@fresh/plugin-vite";
+ *
+ * export default defineConfig({
+ *   plugins: [
+ *     fresh({ serverEntry: "server.ts" })
+ *   ],
+ * });
+ * ```
+ */
 export function fresh(config?: FreshViteConfig): Plugin[] {
   const fConfig: ResolvedFreshViteConfig = {
     serverEntry: config?.serverEntry ?? "main.ts",
