@@ -11,7 +11,7 @@ import { getBuildCache } from "../context.ts";
  * app.use(staticFiles());
  * ```
  */
-export function staticFiles<T>(): Middleware<T> {
+export function staticFiles<T>(serveDir = "/static"): Middleware<T> {
   return async function freshServeStaticFiles(ctx) {
     const { req, url, config } = ctx;
 
@@ -20,14 +20,17 @@ export function staticFiles<T>(): Middleware<T> {
 
     let pathname = decodeURIComponent(url.pathname);
     if (config.basePath) {
-      pathname = pathname !== config.basePath
-        ? pathname.slice(config.basePath.length)
-        : "/";
+      pathname =
+        pathname !== config.basePath
+          ? pathname.slice(config.basePath.length)
+          : "/";
     }
 
     // Fast path bail out
     const startTime = performance.now() + performance.timeOrigin;
-    const file = await buildCache.readFile(pathname);
+
+    const modifiedPath = pathname.replace("/static", serveDir);
+    const file = await buildCache.readFile(modifiedPath);
     if (pathname === "/" || file === null) {
       // Optimization: Prevent long responses for favicon.ico requests
       if (pathname === "/favicon.ico") {
