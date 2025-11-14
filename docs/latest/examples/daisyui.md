@@ -14,9 +14,9 @@ To get started with daisyUI, make sure you have Tailwind CSS enabled in your
 Fresh project, then install daisyUI and update your configuration.
 
 1. Run `deno i -D npm:daisyui@latest` to install daisyUI
-2. Add daisyUI configuration in `./static/styles.css`:
+2. Add daisyUI configuration in `./assets/styles.css`:
 
-   ```diff static/styles.css
+   ```diff assets/styles.css
      @import "tailwindcss";
    + @plugin "daisyui";
    ```
