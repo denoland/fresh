@@ -11,7 +11,7 @@ import * as path from "@std/path";
 export function serverEntryPlugin(
   options: ResolvedFreshViteConfig,
 ): Plugin {
-  const modName = "fresh:server_entry";
+  const modName = "fresh-server-entry";
 
   let serverEntry = "";
   let serverOutDir = "";
@@ -57,9 +57,10 @@ export function serverEntryPlugin(
     },
     resolveId: {
       filter: {
-        id: /fresh:server_entry/,
+        id: /fresh-server-entry/,
       },
       handler(id) {
+        console.log("SERVER", id);
         if (id === modName) {
           return `\0${modName}`;
         }
@@ -67,7 +68,7 @@ export function serverEntryPlugin(
     },
     load: {
       filter: {
-        id: /\0fresh:server_entry/,
+        id: /\0fresh-server-entry/,
       },
       handler() {
         let code = generateServerEntry({
@@ -93,6 +94,7 @@ ${code}
 if (import.meta.hot) import.meta.hot.accept();`;
         }
 
+        console.log(code);
         return code;
       },
     },

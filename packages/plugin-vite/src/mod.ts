@@ -102,12 +102,13 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
             // Disallow externals, because it leads to duplicate
             // modules with `preact` vs `npm:preact@*` in the server
             // environment.
-            noExternal: true,
+            // noExternal: true,
+            dedupe: ["preact", "@preact/signals", "preact-render-to-string"],
           },
           optimizeDeps: {
             // Optimize deps somehow leads to duplicate modules or them
             // being placed in the wrong chunks...
-            noDiscovery: true,
+            // noDiscovery: true,
           },
 
           publicDir: pathWithRoot("static", config.root),
@@ -183,7 +184,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
                     return handler(warning);
                   },
                   input: {
-                    "server-entry": "fresh:server_entry",
+                    "server-entry": "fresh-server_entry",
                   },
                 },
               },

@@ -83,24 +83,6 @@ export function deno(): Plugin {
         id = `${url.origin}${id}`;
       }
 
-      // We still want to allow other plugins to participate in
-      // resolution, with us being in front due to `enforce: "pre"`.
-      // But we still want to ignore everything `vite:resolve` does
-      // because we're kinda replacing that plugin here.
-      const tmp = await this.resolve(id, importer, options);
-      if (tmp && tmp.resolvedBy !== "vite:resolve") {
-        if (tmp.external && !/^https?:\/\//.test(tmp.id)) {
-          return tmp;
-        }
-
-        // A plugin namespaced it, we should not attempt to resolve it.
-        if (tmp.id.startsWith("\0")) {
-          return tmp;
-        }
-
-        id = tmp.id;
-      }
-
       // Plugins may return lower cased drive letters on windows
       if (!isHttp && path.isAbsolute(id)) {
         id = path.toFileUrl(path.normalize(id))
@@ -118,6 +100,7 @@ export function deno(): Plugin {
           denoImporter,
           ResolutionMode.Import,
         );
+        // console.log({ id, resolved });
 
         if (resolved.startsWith("node:")) {
           return {
@@ -130,37 +113,78 @@ export function deno(): Plugin {
           return null;
         }
 
-        const type = getDenoType(id, options.attributes.type ?? "default");
-        if (
-          type !== RequestedModuleType.Default ||
-          /^(https?|jsr|npm):/.test(resolved)
-        ) {
-          return toDenoSpecifier(resolved, type);
-        }
-
         if (resolved.startsWith("file://")) {
           resolved = path.fromFileUrl(resolved);
+        } else if (
+          resolved.startsWith("http:") || resolved.startsWith("https")
+        ) {
+          return toDenoSpecifier(resolved, RequestedModuleType.Default);
         }
 
         return {
           id: resolved,
-          meta: {
-            deno: {
-              type,
-            },
-          },
         };
       } catch {
         // ignore
       }
     },
-    async load(id, options) {
-      const loader = options?.ssr ? ssrLoader : browserLoader;
+    load: {
+      filter: { id: [/.*/] },
+      async handler(id, options) {
+        if (options?.ssr) {
+          console.log({ load: id });
+        }
 
-      if (isDenoSpecifier(id)) {
-        const { type, specifier } = parseDenoSpecifier(id);
+        const loader = options?.ssr ? ssrLoader : browserLoader;
 
-        const result = await loader.load(specifier, type);
+        if (isDenoSpecifier(id)) {
+          const { type, specifier } = parseDenoSpecifier(id);
+
+          const result = await loader.load(specifier, type);
+          if (result.kind === "external") {
+            return null;
+          }
+
+          const code = new TextDecoder().decode(result.code);
+
+          const maybeJsx = babelTransform({
+            ssr: !!options?.ssr,
+            media: result.mediaType,
+            code,
+            id: specifier,
+            isDev,
+          });
+          if (maybeJsx !== null) {
+            return maybeJsx;
+          }
+
+          return {
+            code,
+          };
+        }
+
+        if (id.startsWith("\0")) {
+          id = id.slice(1);
+        }
+
+        const meta = this.getModuleInfo(id)?.meta.deno as
+          | DenoState
+          | undefined
+          | null;
+
+        if (meta === null || meta === undefined) return;
+
+        // Skip for non-js files like `.css`
+        if (
+          meta.type === RequestedModuleType.Default &&
+          !JS_REG.test(id)
+        ) {
+          return;
+        }
+
+        const url = path.toFileUrl(id);
+
+        const result = await loader.load(url.href, meta.type);
         if (result.kind === "external") {
           return null;
         }
@@ -170,61 +194,18 @@ export function deno(): Plugin {
         const maybeJsx = babelTransform({
           ssr: !!options?.ssr,
           media: result.mediaType,
+          id,
           code,
-          id: specifier,
           isDev,
         });
-        if (maybeJsx !== null) {
+        if (maybeJsx) {
           return maybeJsx;
         }
 
         return {
           code,
         };
-      }
-
-      if (id.startsWith("\0")) {
-        id = id.slice(1);
-      }
-
-      const meta = this.getModuleInfo(id)?.meta.deno as
-        | DenoState
-        | undefined
-        | null;
-
-      if (meta === null || meta === undefined) return;
-
-      // Skip for non-js files like `.css`
-      if (
-        meta.type === RequestedModuleType.Default &&
-        !JS_REG.test(id)
-      ) {
-        return;
-      }
-
-      const url = path.toFileUrl(id);
-
-      const result = await loader.load(url.href, meta.type);
-      if (result.kind === "external") {
-        return null;
-      }
-
-      const code = new TextDecoder().decode(result.code);
-
-      const maybeJsx = babelTransform({
-        ssr: !!options?.ssr,
-        media: result.mediaType,
-        id,
-        code,
-        isDev,
-      });
-      if (maybeJsx) {
-        return maybeJsx;
-      }
-
-      return {
-        code,
-      };
+      },
     },
     transform: {
       filter: {

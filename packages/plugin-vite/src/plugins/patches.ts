@@ -41,7 +41,7 @@ export function patches(): Plugin {
 
         const plugins: babel.PluginItem[] = [
           codeEvalPlugin(options?.ssr ? "ssr" : "client", env),
-          cjsPlugin,
+          // cjsPlugin,
           removePolyfills,
           jsxComments,
           inlineEnvVarsPlugin(env, Deno.env.toObject()),
@@ -49,6 +49,7 @@ export function patches(): Plugin {
 
         const res = babel.transformSync(code, {
           filename: id,
+          sourceMaps: "both",
           babelrc: false,
           compact: true,
           plugins,

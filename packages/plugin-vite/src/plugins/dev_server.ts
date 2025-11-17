@@ -70,7 +70,11 @@ export function devServer(): Plugin[] {
           }
 
           try {
-            const mod = await server.ssrLoadModule("fresh:server_entry");
+            const mod2 = server.environments.ssr.moduleGraph.getModuleById(
+              "\0fresh-server-entry",
+            );
+            console.log(mod2);
+            const mod = await server.ssrLoadModule("fresh-server-entry");
             const req = createRequest(nodeReq, nodeRes);
             const res = (await mod.default.fetch(req)) as Response;
 

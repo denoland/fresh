@@ -1,4 +1,5 @@
 {
+  "links": ["../deno-js-loader/"],
   "nodeModulesDir": "manual",
   "workspace": [
     "./packages/*",
