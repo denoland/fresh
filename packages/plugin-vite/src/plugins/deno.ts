@@ -384,10 +384,10 @@ function babelTransform(
   const result = babel.transformSync(code, {
     filename: id,
     babelrc: false,
-    sourceMaps: "inline",
+    sourceMaps: "both",
     presets: presets,
     plugins: [httpAbsolute(url)],
-    compact: true,
+    compact: false,
   });
 
   if (result !== null && result.code) {

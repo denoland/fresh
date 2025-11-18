@@ -180,6 +180,16 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
                       return;
                     }
 
+                    // Ignore this warnings
+                    if (warning.code === "THIS_IS_UNDEFINED") {
+                      return;
+                    }
+
+                    // Ignore falsy source map errors
+                    if (warning.code === "SOURCEMAP_ERROR") {
+                      return;
+                    }
+
                     return handler(warning);
                   },
                   input: {
