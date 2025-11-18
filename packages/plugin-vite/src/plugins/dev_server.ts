@@ -72,6 +72,12 @@ export function devServer(): Plugin[] {
           try {
             const mod = await server.ssrLoadModule("fresh:server_entry");
             const req = createRequest(nodeReq, nodeRes);
+            mod.setErrorInterceptor((err: unknown) => {
+              if (err instanceof Error) {
+                server.ssrFixStacktrace(err);
+              }
+            });
+
             const res = (await mod.default.fetch(req)) as Response;
 
             // Collect css eagerly to avoid FOUC. This is a workaround for
@@ -101,6 +107,9 @@ export function devServer(): Plugin[] {
 
             await sendResponse(nodeRes, res);
           } catch (err) {
+            if (err instanceof Error) {
+              server.ssrFixStacktrace(err);
+            }
             return next(err);
           }
         });
