@@ -1,5 +1,4 @@
 {
-  "vendor": true,
   "nodeModulesDir": "manual",
   "workspace": [
     "./packages/*",
