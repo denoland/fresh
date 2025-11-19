@@ -1,19 +1,37 @@
 import { parseArgs } from "@std/cli";
-import { createServer, RunnableDevEnvironment } from "vite";
+import { createServer, type RunnableDevEnvironment } from "vite";
 import * as cl from "@std/fmt/colors";
 import { version } from "fresh/internal-dev";
 import { IncomingMessage, Server } from "node:http";
-import { AddressInfo } from "node:net";
+import type { AddressInfo } from "node:net";
+import { toAbsolutePath } from "./utils.ts";
+import { fresh } from "@fresh/plugin-vite";
+import path from "node:path";
+import { FreshServerEntryMod } from "./config.ts";
 
 export interface CliArgs {
   command: "dev" | "build" | "preview";
+  cwd: string;
 }
 
-export function parseCliArgs(args: string[]): CliArgs {
-  const parsedArgs = parseArgs(args, {});
+export function parseCliArgs(args: string[], cwd = Deno.cwd()): CliArgs {
+  const parsed = parseArgs(args, {});
+
+  let command: CliArgs["command"] = "dev";
+
+  if (parsed._.length > 0) {
+    if (parsed._[0] === "build") {
+      command = "build";
+    } else if (parsed._[0] === "preview") {
+      command = "preview";
+    } else {
+      cwd = toAbsolutePath(String(parsed._[0]), cwd);
+    }
+  }
 
   return {
-    command: "dev",
+    command,
+    cwd,
   };
 }
 
@@ -22,12 +40,18 @@ export async function runCli(args: string[]) {
 
   const parsed = parseCliArgs(args);
 
-  const command = "dev";
+  console.log({ parsed });
 
   if (parsed.command === "dev") {
     const viteServer = (await createServer({
       server: { middlewareMode: true },
+      appType: "custom",
       plugins: [
+        fresh({
+          serverEntry: path.join(parsed.cwd, "main.ts"),
+          islandsDir: path.join(parsed.cwd, "islands"),
+          routeDir: path.join(parsed.cwd, "routes"),
+        }),
         {
           name: "foo",
           configureServer(server) {
@@ -63,22 +87,26 @@ export async function runCli(args: string[]) {
     const serverEnv = viteServer.environments.ssr as RunnableDevEnvironment;
 
     const server = Deno.serve(async (req) => {
+      // We're proxying the request to the vite http server because
+      // that's the easiest way to turn a `Request` into a node
+      // request (=`IncomingMessage`) instance.
       const url = new URL(
         req.url,
         `http://${proxyAddr.address}:${proxyAddr.port}`,
       );
       url.hostname = proxyAddr.address;
       url.port = String(proxyAddr.port);
-
-      const clone = req.clone();
-      const res = await fetch(url, clone);
-
-      console.log(url.href, proxyAddr, req.url);
-
-      console.log(await res.text(), res.status);
+      const res = await fetch(url, req);
 
       if (res.status === 404) {
-        const mod = await serverEnv.runner.import("fresh:server_entry");
+        const mod = await serverEnv.runner.import(
+          "fresh:server_entry",
+        ) as FreshServerEntryMod;
+
+        const res = await mod.default.fetch(req);
+        console.log({ mod: mod.default, r2: res.status, req: req.url });
+
+        return res;
       }
 
       return res;
