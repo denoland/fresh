@@ -14,6 +14,7 @@ export function serverEntryPlugin(
   const modName = "fresh:server_entry";
 
   let serverEntry = "";
+  let serverEntryFilename = "";
   let serverOutDir = "";
   let clientOutDir = "";
   let root = "";
@@ -112,6 +113,10 @@ if (import.meta.hot) import.meta.hot.accept();`;
         const json = JSON.parse(manifest.source) as Manifest;
 
         for (const item of Object.values(json)) {
+          if (item.isEntry) {
+            serverEntryFilename = item.file;
+          }
+
           if (item.assets) {
             for (let i = 0; i < item.assets.length; i++) {
               const id = item.assets[i];
@@ -152,7 +157,9 @@ if (import.meta.hot) import.meta.hot.accept();`;
       const outDir = path.dirname(serverOutDir);
       await Deno.writeTextFile(
         path.join(outDir, "server.js"),
-        `import server, { registerStaticFile } from "./server/server-entry.mjs";
+        `import server, { registerStaticFile } from "./server/${
+          serverEntryFilename || "server-entry.mjs"
+        }";
 
 ${registered.join("\n")}
 
