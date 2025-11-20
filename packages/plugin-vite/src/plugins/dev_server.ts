@@ -1,8 +1,18 @@
-import type { DevEnvironment, Plugin } from "vite";
+import {
+  type DevEnvironment,
+  isRunnableDevEnvironment,
+  type Plugin,
+} from "vite";
 import * as path from "@std/path";
 import { ASSET_CACHE_BUST_KEY } from "fresh/internal";
 import { createRequest, sendResponse } from "@remix-run/node-fetch-server";
 import { hashCode } from "../shared.ts";
+
+interface FetchHandler {
+  default: {
+    fetch: (req: Request) => Promise<Response>;
+  };
+}
 
 export function devServer(): Plugin[] {
   let publicDir = "";
@@ -69,16 +79,15 @@ export function devServer(): Plugin[] {
             // Ignore
           }
 
-          try {
-            const mod = await server.ssrLoadModule("fresh:server_entry");
-            const req = createRequest(nodeReq, nodeRes);
-            mod.setErrorInterceptor((err: unknown) => {
-              if (err instanceof Error) {
-                server.ssrFixStacktrace(err);
-              }
-            });
+          if (!isRunnableDevEnvironment(server.environments.ssr)) return;
 
-            const res = (await mod.default.fetch(req)) as Response;
+          try {
+            const mod = await server.environments.ssr.runner.import<unknown>(
+              "fresh:server_entry",
+            ) as FetchHandler;
+
+            const req = createRequest(nodeReq, nodeRes);
+            const res = await mod.default.fetch(req);
 
             // Collect css eagerly to avoid FOUC. This is a workaround for
             // Vite not supporting css natively. It's a bit hacky, but
@@ -107,9 +116,6 @@ export function devServer(): Plugin[] {
 
             await sendResponse(nodeRes, res);
           } catch (err) {
-            if (err instanceof Error) {
-              server.ssrFixStacktrace(err);
-            }
             return next(err);
           }
         });
