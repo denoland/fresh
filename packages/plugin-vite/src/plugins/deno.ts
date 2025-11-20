@@ -47,8 +47,7 @@ export function deno(): Plugin {
         platform: "browser",
         preserveJsx: true,
         cachedOnly: true,
-      })
-        .createLoader();
+      }).createLoader();
     },
     applyToEnvironment() {
       return true;
