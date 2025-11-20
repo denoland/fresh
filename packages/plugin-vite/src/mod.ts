@@ -256,6 +256,6 @@ async function loadEnvFile(envPath: string) {
   try {
     await stdLoadEnv({ envPath, export: true });
   } catch {
-    // Ignoe
+    // Ignore
   }
 }
