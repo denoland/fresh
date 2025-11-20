@@ -176,9 +176,9 @@ export async function updateProject(dir: string) {
   // Update routes folder
   const project = new tsmorph.Project();
 
-  // First pass: count files (without storing them) so we can size the progress
-  // bar while still skipping heavy dirs early.
-  let totalFiles = 0;
+  // First pass: collect file paths so we can size the progress bar and avoid
+  // walking the tree twice.
+  const filesToProcess: string[] = [];
   let userFileCount = 0;
   for await (
     const entry of walk(dir, {
@@ -188,9 +188,10 @@ export async function updateProject(dir: string) {
       skip: [SKIP_DIRS],
     })
   ) {
-    totalFiles++;
+    filesToProcess.push(entry.path);
     if (!HIDE_FILES.test(entry.path)) userFileCount++;
   }
+  const totalFiles = filesToProcess.length;
 
   // deno-lint-ignore no-console
   console.log(colors.cyan(`📁 Found ${userFileCount} files to process`));
@@ -219,15 +220,8 @@ export async function updateProject(dir: string) {
   // Second pass: process each file one-by-one to keep memory flat. We add a
   // SourceFile, transform it, then immediately forget it so ts-morph releases
   // the AST from memory.
-  for await (
-    const entry of walk(dir, {
-      includeDirs: false,
-      includeFiles: true,
-      exts: ["js", "jsx", "ts", "tsx"],
-      skip: [SKIP_DIRS],
-    })
-  ) {
-    const sourceFile = project.addSourceFileAtPath(entry.path);
+  for (const filePath of filesToProcess) {
+    const sourceFile = project.addSourceFileAtPath(filePath);
     try {
       const wasModified = await updateFile(sourceFile);
       if (wasModified) {
