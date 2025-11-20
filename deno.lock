@@ -69,12 +69,12 @@
     "jsr:@zip-js/zip-js@^2.7.52": "2.8.8",
     "npm:@babel/core@^7.28.0": "7.28.5",
     "npm:@babel/preset-react@^7.27.1": "7.28.5_@babel+core@7.28.5",
-    "npm:@mjackson/node-fetch-server@0.7": "0.7.0",
     "npm:@opentelemetry/api@^1.9.0": "1.9.0",
     "npm:@preact/signals@2": "2.3.2_preact@10.27.2",
     "npm:@preact/signals@^2.2.1": "2.3.2_preact@10.27.2",
     "npm:@prefresh/vite@^2.4.8": "2.4.11_preact@10.27.2_vite@7.1.12__@types+node@24.9.2__picomatch@4.0.3_@types+node@24.9.2",
     "npm:@radix-ui/themes@^3.2.1": "3.2.1_react@19.1.1_react-dom@19.1.1__react@19.1.1",
+    "npm:@remix-run/node-fetch-server@0.12": "0.12.0",
     "npm:@supabase/postgrest-js@^1.21.4": "1.21.4",
     "npm:@tailwindcss/postcss@^4.1.10": "4.1.16",
     "npm:@tailwindcss/vite@^4.1.12": "4.1.16_vite@7.1.12__@types+node@24.9.2__picomatch@4.0.3_@types+node@24.9.2",
@@ -736,9 +736,6 @@
         "@jridgewell/resolve-uri",
         "@jridgewell/sourcemap-codec"
       ]
-    },
-    "@mjackson/node-fetch-server@0.7.0": {
-      "integrity": "sha512-un8diyEBKU3BTVj3GzlTPA1kIjCkGdD+AMYQy31Gf9JCkfoZzwgJ79GUtHrF2BN3XPNMLpubbzPcxys+a3uZEw=="
     },
     "@nodelib/fs.scandir@2.1.5": {
       "integrity": "sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==",
@@ -1551,6 +1548,9 @@
       "dependencies": [
         "@redis/client"
       ]
+    },
+    "@remix-run/node-fetch-server@0.12.0": {
+      "integrity": "sha512-oeg8w8aJJSuq1fCx85jCkcgTfI6On7sKwWVSO4/OW5AvTBuosAIwnuBd/LYeU/I7lYPOTW2NXhUfyfpyeexs4w=="
     },
     "@rollup/pluginutils@4.2.1": {
       "integrity": "sha512-iKnFXr7NkdZAIHiIWE+BX5ULi/ucVFYWD6TbAV+rZctiRTY2PL6tsIKhoIOaoskiWAkgu+VsbXgUVDNLHf+InQ==",
@@ -3894,14 +3894,14 @@
       },
       "packages/plugin-vite": {
         "dependencies": [
-          "jsr:@deno/loader@~0.3.2",
+          "jsr:@deno/loader@~0.3.10",
           "jsr:@fresh/core@2",
           "jsr:@marvinh-test/import-json@^0.0.1",
           "npm:@babel/core@^7.28.0",
           "npm:@babel/preset-react@^7.27.1",
-          "npm:@mjackson/node-fetch-server@0.7",
           "npm:@prefresh/vite@^2.4.8",
           "npm:@radix-ui/themes@^3.2.1",
+          "npm:@remix-run/node-fetch-server@0.12",
           "npm:@tailwindcss/vite@^4.1.12",
           "npm:@types/babel__core@^7.20.5",
           "npm:@types/node@^24.1.0",
