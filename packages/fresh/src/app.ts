@@ -69,6 +69,8 @@ export type ListenOptions =
   >
   & {
     remoteAddress?: string;
+    /** Base path to display in startup message (defaults to config.basePath) */
+    displayBasePath?: string;
   };
 function createOnListen(
   basePath: string,
@@ -466,7 +468,8 @@ export class App<State> {
    */
   async listen(options: ListenOptions = {}): Promise<void> {
     if (!options.onListen) {
-      options.onListen = createOnListen(this.config.basePath, options);
+      const displayBasePath = options.displayBasePath ?? this.config.basePath;
+      options.onListen = createOnListen(displayBasePath, options);
     }
 
     const handler = this.handler();
