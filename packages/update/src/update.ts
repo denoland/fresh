@@ -11,10 +11,8 @@ export const FRESH_VERSION = "2.2.0";
 export const PREACT_VERSION = "10.27.2";
 export const PREACT_SIGNALS_VERSION = "2.5.0";
 
-// Function to filter out node_modules and vendor directories from logs
-const HIDE_FILES = /[\\/]+(node_modules|vendor)[\\/]+/;
-// Directories we should completely skip when walking the tree. This keeps us
-// from loading vendored dependencies (often thousands of files) into ts-morph.
+// Paths we never want to process or surface in logs. Used both for walking the
+// tree (skip) and for hiding vendor-ish paths from user-facing summaries.
 const SKIP_DIRS =
   /(?:[\\/]\.[^\\/]+(?:[\\/]|$)|[\\/](node_modules|vendor|docs|\.git|\.next|\.turbo|_fresh|dist|build|target|\.cache)(?:[\\/]|$))/;
 export interface DenoJson {
@@ -189,7 +187,7 @@ export async function updateProject(dir: string) {
     })
   ) {
     filesToProcess.push(entry.path);
-    if (!HIDE_FILES.test(entry.path)) userFileCount++;
+    if (!SKIP_DIRS.test(entry.path)) userFileCount++;
   }
   const totalFiles = filesToProcess.length;
 
@@ -245,7 +243,7 @@ export async function updateProject(dir: string) {
 
   // Filter modified files to show only user files
   const modifiedFilesToShow = modifiedFilesList.filter((filePath) =>
-    !HIDE_FILES.test(filePath)
+    !SKIP_DIRS.test(filePath)
   );
   const unmodifiedCount = Math.max(
     userFileCount - modifiedFilesToShow.length,
