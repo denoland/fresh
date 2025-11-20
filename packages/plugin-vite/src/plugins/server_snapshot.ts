@@ -48,7 +48,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
       name: "fresh:server-snapshot",
       sharedDuringBuild: true,
       applyToEnvironment(env) {
-        return env.name === "ssr";
+        return env.config.consumer === "server";
       },
       config(_, env) {
         isDev = env.command === "serve";
@@ -348,7 +348,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
         filter: {
           id: /\.(css|less|sass|scss)(\?.*)?$/,
         },
-        handler(_code, id, _options) {
+        handler(_code, id) {
           if (server) {
             const ssrGraph = server.environments.ssr.moduleGraph;
             const mod = ssrGraph.getModuleById(id);
@@ -452,7 +452,7 @@ export default ${JSON.stringify(route.css)}
       name: "fresh-route-css-build-ssr",
       sharedDuringBuild: true,
       applyToEnvironment(env) {
-        return env.name === "ssr";
+        return env.config.consumer === "server";
       },
       async writeBundle(_, bundle) {
         const asset = bundle[".vite/manifest.json"];

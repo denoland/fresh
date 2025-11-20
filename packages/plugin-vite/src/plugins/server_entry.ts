@@ -34,7 +34,7 @@ export function serverEntryPlugin(
     name: "fresh:server_entry",
     sharedDuringBuild: true,
     applyToEnvironment(env) {
-      return env.name === "ssr";
+      return env.config.consumer === "server";
     },
     config(_, env) {
       isDev = env.command === "serve";
@@ -77,7 +77,7 @@ export function serverEntryPlugin(
         });
 
         code += `
-      
+
 export function registerStaticFile(prepared) {
   snapshot.staticFiles.set(prepared.name, {
     name: prepared.name,
