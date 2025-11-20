@@ -76,7 +76,7 @@ function HelloBar() {
       class="bg-gradient-to-r from-blue-200 to-yellow-200 via-green-300 text-black border-b border-green-400 p-4 text-center group"
       href="https://deno.com/blog/fresh-and-vite"
     >
-      Fresh 2 <b>release with vite</b>{" "}
+      Fresh 2 <b>released with Vite</b>{" "}
       <span class="group-hover:underline">→</span>
     </a>
   );
