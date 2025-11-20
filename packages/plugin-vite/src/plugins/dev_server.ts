@@ -118,7 +118,7 @@ export function devServer(): Plugin[] {
     {
       name: "fresh:server_hmr",
       applyToEnvironment(env) {
-        return env.name === "ssr";
+        return env.config.consumer === "server";
       },
       hotUpdate(options) {
         const clientMod = options.server.environments.client.moduleGraph

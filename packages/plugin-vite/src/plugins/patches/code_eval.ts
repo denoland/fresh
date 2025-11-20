@@ -3,7 +3,7 @@ import type { PluginObj, PluginPass, types } from "@babel/core";
 const APPLY_PG_QUIRKS = "applyPgQuirks";
 
 export function codeEvalPlugin(
-  env: "ssr" | "client",
+  env: "server" | "client",
   mode: string,
 ) {
   return (
@@ -41,7 +41,7 @@ export function codeEvalPlugin(
 
 function evaluateExpr(
   t: typeof types,
-  env: "client" | "ssr",
+  env: "server" | "client",
   mode: string,
   node: types.Node,
   state: PluginPass,
@@ -76,9 +76,9 @@ function evaluateExpr(
       node.right.value === "undefined"
     ) {
       if (node.operator === "==" || node.operator === "===") {
-        return env !== "ssr";
+        return env !== "server";
       } else if (node.operator === "!=" || node.operator === "!==") {
-        return env === "ssr";
+        return env === "server";
       }
     } else if (
       // Workaround for npm:pg
@@ -125,7 +125,7 @@ function evaluateExpr(
       if (result !== null) return result;
     } else if (
       // Check: process.foo === "bar"
-      env === "ssr" && t.isMemberExpression(node.left) &&
+      env === "server" && t.isMemberExpression(node.left) &&
       t.isIdentifier(node.left.object) && node.left.object.name === "process" &&
       t.isIdentifier(node.left.property) &&
       !PROCESS_PROPERTIES.has(node.left.property.name)
