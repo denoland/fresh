@@ -1,15 +1,13 @@
-import type { UserConfig } from "vite";
+import type { UserConfig, ResolvedConfig } from "vite";
 
-export interface Config {
-  vite?: UserConfig;
-}
 
-export interface ResolvedConfig {
-  vite: UserConfig;
-}
+export  function parseConfig(config: UserConfig): ResolvedConfig {
 
-export async function parseConfig(configPath: string): Config {
-  return null as any;
+
+  return {
+    appType: config.appType ?? "custom",
+    
+  }
 }
 
 export interface FreshServerEntryMod {
