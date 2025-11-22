@@ -24,17 +24,6 @@ export interface IpFilterRules {
   allowList?: string[];
 }
 
-function findType(
-  addr: string,
-): Deno.NetworkInterfaceInfo["family"] | undefined {
-  if (isIPv4(addr)) {
-    return "IPv4";
-  } else if (isIPv6(addr)) {
-    return "IPv6";
-  }
-  return undefined;
-}
-
 export interface ipFilterOptions {
   /**
    * Called when a request is blocked by the IP filter.
@@ -116,7 +105,7 @@ export function ipFilter<State>(
     }
 
     const addr = ctx.info.remoteAddr.hostname;
-    const type = findType(addr);
+    const type = isIPv4(addr) ? "IPv4" : "IPv6";
 
     if (type == undefined) {
       return new Response("Forbidden", { status: 403 });
