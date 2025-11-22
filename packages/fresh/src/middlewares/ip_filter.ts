@@ -107,10 +107,6 @@ export function ipFilter<State>(
     const addr = ctx.info.remoteAddr.hostname;
     const type = isIPv4(addr) ? "IPv4" : "IPv6";
 
-    if (type == undefined) {
-      return new Response("Forbidden", { status: 403 });
-    }
-
     if (matchSubnets(addr, rules.denyList || [])) {
       return onBlock({ addr, type }, ctx);
     }
