@@ -37,7 +37,7 @@ export type CORSOptions<State> = {
  * @param [options] - The options for the CORS middleware.
  * @returns The Fresh middleware handler function.
  *
- * @example
+ * @example Basic usage
  * ```ts
  * // main.ts or routes/_middleware.ts
  * import { cors } from 'fresh';
@@ -46,19 +46,21 @@ export type CORSOptions<State> = {
  *   cors({ origin: '*' }), // Allow all origins
  *   // other middlewares or main route handler
  * ];
+ * ```
  *
- * // Example with options:
- * // export const handler = [
- * //   cors({
- * //     origin: 'http://example.com',
- * //     allowHeaders: ['X-Custom-Header', 'Upgrade-Insecure-Requests'],
- * //     allowMethods: ['POST', 'GET', 'OPTIONS'],
- * //     exposeHeaders: ['Content-Length', 'X-Kuma-Revision'],
- * //     maxAge: 600,
- * //     credentials: true,
- * //   }),
- * //   // ...
- * // ];
+ * @example Advanced usage
+ * ```ts
+ * export const handler = [
+ *   cors({
+ *     origin: 'http://example.com',
+ *     allowHeaders: ['X-Custom-Header', 'Upgrade-Insecure-Requests'],
+ *     allowMethods: ['POST', 'GET', 'OPTIONS'],
+ *     exposeHeaders: ['Content-Length', 'X-Kuma-Revision'],
+ *     maxAge: 600,
+ *     credentials: true,
+ *   }),
+ *   // ...
+ * ];
  * ```
  */
 export function cors<State>(options?: CORSOptions<State>): Middleware<State> {

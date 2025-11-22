@@ -89,7 +89,12 @@ export function registerStaticFile(prepared) {
 
         if (isDev) {
           code = `import "preact/debug";
+import { setErrorInterceptor as internalErrorIntercept } from "fresh/internal";
 ${code}
+
+export function setErrorInterceptor(fn) {
+  internalErrorIntercept(app, fn);
+}
 if (import.meta.hot) import.meta.hot.accept();`;
         }
 
