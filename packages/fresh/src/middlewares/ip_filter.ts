@@ -126,14 +126,13 @@ export function ipFilter<State>(
       return onBlock({ addr, type }, ctx);
     }
 
-    if (matchSubnets(addr, rules.allowList || [])) {
+    if (
+      (rules.allowList || []).length === 0 ||
+      matchSubnets(addr, rules.allowList || [])
+    ) {
       return ctx.next();
     }
 
-    if ((rules.allowList || []).length === 0) {
-      return ctx.next();
-    } else {
-      return onBlock({ addr, type }, ctx);
-    }
+    return onBlock({ addr, type }, ctx);
   };
 }
