@@ -1,6 +1,6 @@
 import type { Context } from "../context.ts";
 import type { Middleware } from "./mod.ts";
-import { isIPv4, isIPv6, matchSubnets } from "@std/net/unstable-ip";
+import { isIPv4, matchSubnets } from "@std/net/unstable-ip";
 
 /**
  * Configuration rules for IP restriction middleware.
