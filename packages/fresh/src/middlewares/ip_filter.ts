@@ -65,6 +65,9 @@ export interface ipFilterOptions {
  * @param options Options for the IP Restriction middleware.
  * @returns The middleware handler function.
  *
+ * Filters rule priority is denyList, then allowList.
+ * If an IP is in the denyList, it will be blocked regardless of the allowList.
+ *
  * @example Basic usage (with defaults)
  * ```ts
  * const app = new App<State>()

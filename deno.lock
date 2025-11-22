@@ -79,6 +79,16 @@
     "npm:vite@^7.1.5": "7.1.12_@types+node@24.9.2_picomatch@4.0.3"
   },
   "jsr": {
+    "@deno/esbuild-plugin@1.2.0": {
+      "integrity": "04ddd0fca9416d8a2866263928a53b9d5ed08dfca064d64504a0aaf9800c709e",
+      "dependencies": [
+        "jsr:@deno/loader",
+        "jsr:@std/path@^1.1.1"
+      ]
+    },
+    "@deno/loader@0.3.6": {
+      "integrity": "98f08d837c18ece5ba15122264fb29580967407c34e6552e152b8f453a60c2be"
+    },
     "@marvinh-test/fresh-island@0.0.3": {
       "integrity": "6d06b6009b7dfba9bba28e941e03e6ff652c4ef4f2fbfdf4b78741abd6c6c1c6",
       "dependencies": [
@@ -94,6 +104,9 @@
       "dependencies": [
         "jsr:@std/internal@^1.0.12"
       ]
+    },
+    "@std/bytes@1.0.6": {
+      "integrity": "f6ac6adbd8ccd99314045f5703e23af0a68d7f7e58364b47d2c7f408aeb5820a"
     },
     "@std/collections@1.1.3": {
       "integrity": "bf8b0818886df6a32b64c7d3b037a425111f28278d69fd0995aeb62777c986b0"
@@ -131,7 +144,10 @@
       "integrity": "4e2d693f474cae8c16a920fa5e15a3b72267b94b84667f11a50c6dd1cb18d35e"
     },
     "@std/http@1.0.21": {
-      "integrity": "abb5c747651ee6e3ea6139858fd9b1810d2c97f53a5e6722f3b6d27a6d263edc"
+      "integrity": "abb5c747651ee6e3ea6139858fd9b1810d2c97f53a5e6722f3b6d27a6d263edc",
+      "dependencies": [
+        "jsr:@std/encoding"
+      ]
     },
     "@std/internal@1.0.12": {
       "integrity": "972a634fd5bc34b242024402972cd5143eac68d8dffaca5eaa4dba30ce17b027"
@@ -144,6 +160,9 @@
       "dependencies": [
         "jsr:@std/json"
       ]
+    },
+    "@std/media-types@1.1.0": {
+      "integrity": "c9d093f0c05c3512932b330e3cc1fe1d627b301db33a4c2c2185c02471d6eaa4"
     },
     "@std/net@1.0.6": {
       "integrity": "110735f93e95bb9feb95790a8b1d1bf69ec0dc74f3f97a00a76ea5efea25500c"
@@ -164,6 +183,12 @@
       "integrity": "87b2b7ff95afe7209a868732eb013a2707be29a15229f5b57bb13eededff4655",
       "dependencies": [
         "jsr:@std/collections@^1.1.3"
+      ]
+    },
+    "@std/uuid@1.0.9": {
+      "integrity": "44b627bf2d372fe1bd099e2ad41b2be41a777fc94e62a3151006895a037f1642",
+      "dependencies": [
+        "jsr:@std/bytes"
       ]
     },
     "@std/yaml@1.0.9": {
