@@ -2,9 +2,8 @@ import type { AnyComponent } from "preact";
 import type { MaybeLazy, Route, RouteConfig } from "./types.ts";
 import type { HandlerByMethod, RouteHandler } from "./handlers.ts";
 import type { Middleware } from "./middlewares/mod.ts";
-import type { AsyncAnyComponent } from "./render.ts";
+import type { AsyncAnyComponent, PageProps } from "./render.ts";
 import { type HandlerFn, isHandlerByMethod } from "./handlers.ts";
-import type { PageProps } from "./render.ts";
 import {
   type Command,
   CommandType,
