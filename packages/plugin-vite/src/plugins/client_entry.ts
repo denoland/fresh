@@ -15,7 +15,7 @@ export function clientEntryPlugin(options: ResolvedFreshViteConfig): Plugin {
       isDev = env.command === "serve";
     },
     applyToEnvironment(env) {
-      return env.name === "client";
+      return env.config.consumer === "client";
     },
     configResolved(config) {
       clientEntry = pathWithRoot(options.clientEntry, config.root);
