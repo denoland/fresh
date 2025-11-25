@@ -3,6 +3,7 @@ import * as JSONC from "@std/jsonc";
 import * as tsmorph from "ts-morph";
 import * as colors from "@std/fmt/colors";
 import { ProgressBar } from "@std/cli/unstable-progress-bar";
+import { walk } from "@std/fs/walk";
 
 export const SyntaxKind = tsmorph.ts.SyntaxKind;
 
@@ -10,8 +11,10 @@ export const FRESH_VERSION = "2.2.0";
 export const PREACT_VERSION = "10.27.2";
 export const PREACT_SIGNALS_VERSION = "2.5.0";
 
-// Function to filter out node_modules and vendor directories from logs
-const HIDE_FILES = /[\\/]+(node_modules|vendor)[\\/]+/;
+// Paths we never want to process or surface in logs. Used both for walking the
+// tree (skip) and for hiding vendor-ish paths from user-facing summaries.
+const SKIP_DIRS =
+  /(?:[\\/]\.[^\\/]+(?:[\\/]|$)|[\\/](node_modules|vendor|docs|\.git|\.next|\.turbo|_fresh|dist|build|target|\.cache)(?:[\\/]|$))/;
 export interface DenoJson {
   lock?: boolean;
   tasks?: Record<string, string>;
@@ -170,17 +173,28 @@ export async function updateProject(dir: string) {
 
   // Update routes folder
   const project = new tsmorph.Project();
-  const sfs = project.addSourceFilesAtPaths(
-    path.join(dir, "**", "*.{js,jsx,ts,tsx}"),
-  );
 
-  // Filter out node_modules and vendor files for user display
-  const userFiles = sfs.filter((sf) => !HIDE_FILES.test(sf.getFilePath()));
+  // First pass: collect file paths so we can size the progress bar and avoid
+  // walking the tree twice.
+  const filesToProcess: string[] = [];
+  let userFileCount = 0;
+  for await (
+    const entry of walk(dir, {
+      includeDirs: false,
+      includeFiles: true,
+      exts: ["js", "jsx", "ts", "tsx"],
+      skip: [SKIP_DIRS],
+    })
+  ) {
+    filesToProcess.push(entry.path);
+    if (!SKIP_DIRS.test(entry.path)) userFileCount++;
+  }
+  const totalFiles = filesToProcess.length;
 
   // deno-lint-ignore no-console
-  console.log(colors.cyan(`📁 Found ${userFiles.length} files to process`));
+  console.log(colors.cyan(`📁 Found ${userFileCount} files to process`));
 
-  if (sfs.length === 0) {
+  if (totalFiles === 0) {
     // deno-lint-ignore no-console
     console.log(colors.green("🎉 Migration completed successfully!"));
     return;
@@ -195,21 +209,22 @@ export async function updateProject(dir: string) {
 
   // Create a progress bar
   const bar = new ProgressBar({
-    max: sfs.length,
+    max: totalFiles,
     formatter(x) {
       return `[${x.styledTime}] [${x.progressBar}] [${x.value}/${x.max} files]`;
     },
   });
 
-  // process files sequentially to show proper progress
-  await Promise.all(sfs.map(async (sourceFile) => {
+  // Second pass: process each file one-by-one to keep memory flat. We add a
+  // SourceFile, transform it, then immediately forget it so ts-morph releases
+  // the AST from memory.
+  for (const filePath of filesToProcess) {
+    const sourceFile = project.addSourceFileAtPath(filePath);
     try {
       const wasModified = await updateFile(sourceFile);
       if (wasModified) {
         modifiedFilesList.push(sourceFile.getFilePath());
       }
-
-      return wasModified;
     } catch (err) {
       // deno-lint-ignore no-console
       console.error(`Could not process ${sourceFile.getFilePath()}`);
@@ -217,29 +232,34 @@ export async function updateProject(dir: string) {
     } finally {
       completedFiles++;
       bar.value = completedFiles;
+      // Drop the AST to avoid unbounded memory growth
+      sourceFile.forget();
+      project.removeSourceFile(sourceFile);
     }
-  }));
+  }
 
   // Clear the progress line and add a newline
   await bar.stop();
 
   // Filter modified files to show only user files
   const modifiedFilesToShow = modifiedFilesList.filter((filePath) =>
-    !HIDE_FILES.test(filePath)
+    !SKIP_DIRS.test(filePath)
+  );
+  const unmodifiedCount = Math.max(
+    userFileCount - modifiedFilesToShow.length,
+    0,
   );
 
   // add migration summary
   // deno-lint-ignore no-console
   console.log("\n" + colors.bold("📊 Migration Summary:"));
   // deno-lint-ignore no-console
-  console.log(`   Total files processed: ${userFiles.length}`);
+  console.log(`   Total files processed: ${userFileCount}`);
   // deno-lint-ignore no-console
   console.log(`   Successfully modified: ${modifiedFilesToShow.length}`);
   // deno-lint-ignore no-console
   console.log(
-    `   Unmodified (no changes needed): ${
-      userFiles.length - modifiedFilesToShow.length
-    }`,
+    `   Unmodified (no changes needed): ${unmodifiedCount}`,
   );
 
   // Display modified files list (filtered)
