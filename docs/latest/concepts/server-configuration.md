@@ -195,6 +195,11 @@ server: {
    * @default {"0.0.0.0"} */
   hostname?: string;
 
+  /** The unix domain socket path to listen on.
+   *
+   * This will take precedence over the `hostname` and `port` options, if specified. */
+  path?: string;
+
   /** An {@linkcode AbortSignal} to close the server and all connections. */
   signal?: AbortSignal;
 
