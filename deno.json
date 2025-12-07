@@ -94,7 +94,7 @@
     "marked": "npm:marked@^15.0.11",
     "marked-mangle": "npm:marked-mangle@^1.1.9",
     "prismjs": "npm:prismjs@^1.29.0",
-    "vite": "npm:vite@^7.1.5"
+    "vite": "npm:vite@^8.0.0-beta.0"
   },
   "compilerOptions": {
     "lib": ["dom", "dom.asynciterable", "deno.ns", "deno.unstable"],
