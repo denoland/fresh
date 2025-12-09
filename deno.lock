@@ -9,8 +9,8 @@
     "jsr:@deno/esbuild-plugin@^1.2.0": "1.2.0",
     "jsr:@deno/graph@0.86": "0.86.9",
     "jsr:@deno/graph@~0.82.3": "0.82.3",
-    "jsr:@deno/loader@~0.3.2": "0.3.9",
-    "jsr:@deno/loader@~0.3.3": "0.3.9",
+    "jsr:@deno/loader@~0.3.10": "0.3.10",
+    "jsr:@deno/loader@~0.3.3": "0.3.10",
     "jsr:@marvinh-test/fresh-island@^0.0.3": "0.0.3",
     "jsr:@marvinh-test/import-json@^0.0.1": "0.0.1",
     "jsr:@std/assert@^1.0.14": "1.0.15",
@@ -20,8 +20,8 @@
     "jsr:@std/async@^1.0.15": "1.0.15",
     "jsr:@std/bytes@^1.0.5": "1.0.6",
     "jsr:@std/bytes@^1.0.6": "1.0.6",
-    "jsr:@std/cli@^1.0.19": "1.0.23",
-    "jsr:@std/cli@^1.0.23": "1.0.23",
+    "jsr:@std/cli@^1.0.19": "1.0.24",
+    "jsr:@std/cli@^1.0.23": "1.0.24",
     "jsr:@std/collections@^1.1.2": "1.1.3",
     "jsr:@std/collections@^1.1.3": "1.1.3",
     "jsr:@std/crypto@^1.0.5": "1.0.5",
@@ -53,10 +53,10 @@
     "jsr:@std/media-types@1": "1.1.0",
     "jsr:@std/media-types@^1.1.0": "1.1.0",
     "jsr:@std/net@^1.0.6": "1.0.6",
-    "jsr:@std/path@1": "1.1.2",
-    "jsr:@std/path@^1.0.8": "1.1.2",
-    "jsr:@std/path@^1.1.1": "1.1.2",
-    "jsr:@std/path@^1.1.2": "1.1.2",
+    "jsr:@std/path@1": "1.1.3",
+    "jsr:@std/path@^1.0.8": "1.1.3",
+    "jsr:@std/path@^1.1.1": "1.1.3",
+    "jsr:@std/path@^1.1.2": "1.1.3",
     "jsr:@std/semver@1": "1.0.6",
     "jsr:@std/semver@^1.0.6": "1.0.6",
     "jsr:@std/streams@1": "1.0.13",
@@ -69,12 +69,12 @@
     "jsr:@zip-js/zip-js@^2.7.52": "2.8.8",
     "npm:@babel/core@^7.28.0": "7.28.5",
     "npm:@babel/preset-react@^7.27.1": "7.28.5_@babel+core@7.28.5",
-    "npm:@mjackson/node-fetch-server@0.7": "0.7.0",
     "npm:@opentelemetry/api@^1.9.0": "1.9.0",
     "npm:@preact/signals@2": "2.3.2_preact@10.27.2",
     "npm:@preact/signals@^2.2.1": "2.3.2_preact@10.27.2",
     "npm:@prefresh/vite@^2.4.8": "2.4.11_preact@10.27.2_vite@7.1.12__@types+node@24.9.2__picomatch@4.0.3_@types+node@24.9.2",
     "npm:@radix-ui/themes@^3.2.1": "3.2.1_react@19.1.1_react-dom@19.1.1__react@19.1.1",
+    "npm:@remix-run/node-fetch-server@0.12": "0.12.0",
     "npm:@supabase/postgrest-js@^1.21.4": "1.21.4",
     "npm:@tailwindcss/postcss@^4.1.10": "4.1.16",
     "npm:@tailwindcss/vite@^4.1.12": "4.1.16_vite@7.1.12__@types+node@24.9.2__picomatch@4.0.3_@types+node@24.9.2",
@@ -182,8 +182,8 @@
     "@deno/graph@0.86.9": {
       "integrity": "c4f353a695bcc5246c099602977dabc6534eacea9999a35a8cb24e807192e6a1"
     },
-    "@deno/loader@0.3.9": {
-      "integrity": "703d44656f7da0fa4a4a7f8a5105b5b41320821286508c2967b4252a00a2506f"
+    "@deno/loader@0.3.10": {
+      "integrity": "a9c0aa44a0499e7fecef52c29fbc206c1c8f8946388f25d9d0789a23313bfd43"
     },
     "@marvinh-test/fresh-island@0.0.3": {
       "integrity": "6d06b6009b7dfba9bba28e941e03e6ff652c4ef4f2fbfdf4b78741abd6c6c1c6",
@@ -207,8 +207,8 @@
     "@std/bytes@1.0.6": {
       "integrity": "f6ac6adbd8ccd99314045f5703e23af0a68d7f7e58364b47d2c7f408aeb5820a"
     },
-    "@std/cli@1.0.23": {
-      "integrity": "bf95b7a9425ba2af1ae5a6359daf58c508f2decf711a76ed2993cd352498ccca",
+    "@std/cli@1.0.24": {
+      "integrity": "b655a5beb26aa94f98add6bc8889f5fb9bc3ee2cc3fc954e151201f4c4200a5e",
       "dependencies": [
         "jsr:@std/internal@^1.0.12"
       ]
@@ -299,10 +299,10 @@
     "@std/net@1.0.6": {
       "integrity": "110735f93e95bb9feb95790a8b1d1bf69ec0dc74f3f97a00a76ea5efea25500c"
     },
-    "@std/path@1.1.2": {
-      "integrity": "c0b13b97dfe06546d5e16bf3966b1cadf92e1cc83e56ba5476ad8b498d9e3038",
+    "@std/path@1.1.3": {
+      "integrity": "b015962d82a5e6daea980c32b82d2c40142149639968549c649031a230b1afb3",
       "dependencies": [
-        "jsr:@std/internal@^1.0.10"
+        "jsr:@std/internal@^1.0.12"
       ]
     },
     "@std/semver@1.0.5": {
@@ -736,9 +736,6 @@
         "@jridgewell/resolve-uri",
         "@jridgewell/sourcemap-codec"
       ]
-    },
-    "@mjackson/node-fetch-server@0.7.0": {
-      "integrity": "sha512-un8diyEBKU3BTVj3GzlTPA1kIjCkGdD+AMYQy31Gf9JCkfoZzwgJ79GUtHrF2BN3XPNMLpubbzPcxys+a3uZEw=="
     },
     "@nodelib/fs.scandir@2.1.5": {
       "integrity": "sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==",
@@ -1551,6 +1548,9 @@
       "dependencies": [
         "@redis/client"
       ]
+    },
+    "@remix-run/node-fetch-server@0.12.0": {
+      "integrity": "sha512-oeg8w8aJJSuq1fCx85jCkcgTfI6On7sKwWVSO4/OW5AvTBuosAIwnuBd/LYeU/I7lYPOTW2NXhUfyfpyeexs4w=="
     },
     "@rollup/pluginutils@4.2.1": {
       "integrity": "sha512-iKnFXr7NkdZAIHiIWE+BX5ULi/ucVFYWD6TbAV+rZctiRTY2PL6tsIKhoIOaoskiWAkgu+VsbXgUVDNLHf+InQ==",
@@ -3894,14 +3894,14 @@
       },
       "packages/plugin-vite": {
         "dependencies": [
-          "jsr:@deno/loader@~0.3.2",
+          "jsr:@deno/loader@~0.3.10",
           "jsr:@fresh/core@2",
           "jsr:@marvinh-test/import-json@^0.0.1",
           "npm:@babel/core@^7.28.0",
           "npm:@babel/preset-react@^7.27.1",
-          "npm:@mjackson/node-fetch-server@0.7",
           "npm:@prefresh/vite@^2.4.8",
           "npm:@radix-ui/themes@^3.2.1",
+          "npm:@remix-run/node-fetch-server@0.12",
           "npm:@tailwindcss/vite@^4.1.12",
           "npm:@types/babel__core@^7.20.5",
           "npm:@types/node@^24.1.0",
