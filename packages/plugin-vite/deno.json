@@ -1,6 +1,6 @@
 {
   "name": "@fresh/plugin-vite",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "license": "MIT",
   "exports": {
     ".": "./src/mod.ts",
@@ -23,9 +23,9 @@
   "imports": {
     "@babel/core": "npm:@babel/core@^7.28.0",
     "@babel/preset-react": "npm:@babel/preset-react@^7.27.1",
-    "@deno/loader": "jsr:@deno/loader@^0.3.2",
+    "@deno/loader": "jsr:@deno/loader@^0.3.10",
     "@marvinh-test/import-json": "jsr:@marvinh-test/import-json@^0.0.1",
-    "@mjackson/node-fetch-server": "npm:@mjackson/node-fetch-server@^0.7.0",
+    "@remix-run/node-fetch-server": "npm:@remix-run/node-fetch-server@^0.12.0",
     "@prefresh/vite": "npm:@prefresh/vite@^2.4.8",
     "@radix-ui/themes": "npm:@radix-ui/themes@^3.2.1",
     "@tailwindcss/vite": "npm:@tailwindcss/vite@^4.1.12",

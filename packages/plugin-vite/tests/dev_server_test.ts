@@ -523,3 +523,14 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "vite dev - source mapped stack traces",
+  fn: async () => {
+    const res = await fetch(`${demoServer.address()}/tests/throw`);
+    const text = await res.text();
+    expect(text).toContain("throw.tsx:5:11");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});

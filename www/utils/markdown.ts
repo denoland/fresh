@@ -191,7 +191,7 @@ class DefaultRenderer extends Marked.Renderer {
             type="button"
             data-code="${escapeHtml(text)}"
             aria-label="Copy to Clipboard"
-            class="rounded-sm flex items-center justify-center border border-foreground-secondary/30 hover:bg-foreground-secondary/70 data-copied:text-green-300 relative group cursor-pointer w-7 h-7 text-white"
+            class="rounded-sm flex items-center justify-center border border-foreground-secondary/30 hover:bg-foreground-secondary/20 dark:hover:bg-foreground-secondary/70 data-copied:text-green-700 dark:data-copied:text-green-300 relative group cursor-pointer w-7 h-7 dark:text-white"
           >
             <span class="group-copied">
               <svg

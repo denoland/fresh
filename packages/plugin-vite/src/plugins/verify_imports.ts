@@ -4,6 +4,7 @@ import type { PluginContext } from "rollup";
 import path from "node:path";
 import { pathWithRoot } from "../utils.ts";
 
+/** A diagnostic message for an invalid import */
 export interface ImportCheckDiagnostic {
   type: "warn" | "error";
   message: string;
@@ -11,9 +12,10 @@ export interface ImportCheckDiagnostic {
   hint?: string;
 }
 
+/** A check whether or not an import is valid or not for an environment */
 export type ImportCheck = (
   id: string,
-  env: "ssr" | "client",
+  env: string,
 ) => ImportCheckDiagnostic | void;
 
 export interface CheckImportOptions {
@@ -24,7 +26,7 @@ export function checkImports(pluginOptions: CheckImportOptions): Plugin {
   function check(
     options: CheckImportOptions,
     id: string,
-    env: "ssr" | "client",
+    env: "server" | "client",
   ): ImportCheckDiagnostic | undefined {
     for (let i = 0; i < options.checks.length; i++) {
       const check = options.checks[i];
@@ -59,7 +61,7 @@ export function checkImports(pluginOptions: CheckImportOptions): Plugin {
           /[\\/]node_modules[\\/]/,
         ],
       },
-      async handler(id, importer, options) {
+      async handler(id, importer) {
         if (
           importer &&
           (importer.startsWith("\0") || importer.includes("node_modules") ||
@@ -67,24 +69,28 @@ export function checkImports(pluginOptions: CheckImportOptions): Plugin {
         ) {
           return;
         }
-        const env = options.ssr ? "ssr" : "client";
 
         let result: ImportCheckDiagnostic | undefined;
         if (id.startsWith(".")) {
-          const resolved = await this.resolve(id, importer, options);
+          const resolved = await this.resolve(id, importer);
 
           if (resolved !== null) {
-            const key = `${env}::${resolved.id}::${importer}`;
+            const key =
+              `${this.environment.config.consumer}::${resolved.id}::${importer}`;
             if (!seen.has(key)) {
-              result = check(pluginOptions, resolved.id, env);
+              result = check(
+                pluginOptions,
+                resolved.id,
+                this.environment.config.consumer,
+              );
             }
 
             seen.add(key);
           }
         } else {
-          const key = `${env}::${id}::${importer}`;
+          const key = `${this.environment.config.consumer}::${id}::${importer}`;
           if (!seen.has(key)) {
-            result = check(pluginOptions, id, env);
+            result = check(pluginOptions, id, this.environment.config.consumer);
           }
           seen.add(key);
         }
