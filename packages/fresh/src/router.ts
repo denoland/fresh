@@ -265,7 +265,6 @@ export function pathToPattern(
 export function patternToSegments(
   path: string,
   root: string,
-  includeLast: boolean = false,
 ): string[] {
   const out: string[] = [root];
 
@@ -284,7 +283,7 @@ export function patternToSegments(
     }
   }
 
-  if (includeLast && start < path.length - 1) {
+  if (start < path.length - 1) {
     out.push(path.slice(start + 1));
   }
 

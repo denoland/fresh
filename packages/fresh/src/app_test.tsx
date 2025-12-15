@@ -2,6 +2,7 @@ import { expect } from "@std/expect";
 import { App } from "./app.ts";
 import { FakeServer } from "./test_utils.ts";
 import { HttpError } from "./error.ts";
+import { context } from "esbuild";
 
 Deno.test("App - .use()", async () => {
   const app = new App<{ text: string }>()
@@ -31,6 +32,20 @@ Deno.test("App - .use() #2", async () => {
 
   const res = await server.get("/");
   expect(await res.text()).toEqual("ok #1");
+});
+
+Deno.test.only("App - .use() with path", async () => {
+  const app = new App<{ text: string }>()
+    .use("/foo", (ctx) => {
+      ctx.state.text = "ok";
+      return ctx.next();
+    })
+    .get("/foo", (ctx) => new Response(ctx.state.text));
+
+  const server = new FakeServer(app.handler());
+
+  const res = await server.get("/foo");
+  expect(await res.text()).toEqual("ok");
 });
 
 Deno.test("App - .get()", async () => {

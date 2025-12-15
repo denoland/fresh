@@ -53,8 +53,11 @@ export function getOrCreateSegment<State>(
 ): Segment<State> {
   let current = root;
 
-  const segments = patternToSegments(path, root.pattern, includeLast);
+  const segments = patternToSegments(path, root.pattern);
   for (let i = 0; i < segments.length; i++) {
+    if (!includeLast && i === segments.length - 1) {
+      break;
+    }
     const seg = segments[i];
     if (seg === root.pattern) {
       current = root;
@@ -132,10 +135,13 @@ export function segmentToMiddlewares<State>(
       }
     });
 
+    console.log(seg.pattern, seg.middlewares.length);
     if (seg.middlewares.length > 0) {
       result.push(...seg.middlewares);
     }
   }
+
+  console.log(result);
 
   return result;
 }

@@ -219,6 +219,7 @@ function applyCommandsInner<State>(
   commands: Command<State>[],
   basePath: string,
 ) {
+  console.log(commands);
   for (let i = 0; i < commands.length; i++) {
     const cmd = commands[i];
 
@@ -341,6 +342,8 @@ function applyCommandsInner<State>(
         result.push(...fns);
 
         const resPath = toRoutePath(mergePath(basePath, pattern, false));
+
+        console.log(resPath, result);
         if (method === "ALL") {
           router.add("GET", resPath, result);
           router.add("DELETE", resPath, result);
