@@ -714,11 +714,12 @@ export default function Foo(props: PageProps) {
 
   const files = await readFiles(dir);
 
+  // Should leave dependency trees untouched
   expect(files["/node_modules/foo/bar.ts"]).toEqual(
-    `import { IS_BROWSER } from "fresh/runtime";`,
+    `import { IS_BROWSER } from "$fresh/runtime.ts";`,
   );
   expect(files["/vendor/foo/bar.ts"]).toEqual(
-    `import { IS_BROWSER } from "fresh/runtime";`,
+    `import { IS_BROWSER } from "$fresh/runtime.ts";`,
   );
   expect(files["/routes/index.tsx"]).toEqual(
     `import { PageProps } from "fresh";

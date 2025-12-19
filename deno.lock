@@ -116,7 +116,7 @@
     "npm:stripe@^19.1.0": "19.1.0_@types+node@24.9.2",
     "npm:tailwindcss@^3.4.17": "3.4.18_postcss@8.5.6_jiti@1.21.7",
     "npm:tailwindcss@^4.1.10": "4.1.16",
-    "npm:ts-morph@26": "26.0.0",
+    "npm:ts-morph@^27.0.2": "27.0.2",
     "npm:vite-plugin-inspect@^11.3.2": "11.3.3_vite@7.1.12__@types+node@24.9.2__picomatch@4.0.3_@types+node@24.9.2",
     "npm:vite@^7.1.4": "7.1.12_@types+node@24.9.2_picomatch@4.0.3",
     "npm:vite@^7.1.5": "7.1.12_@types+node@24.9.2_picomatch@4.0.3"
@@ -1791,12 +1791,12 @@
     "@trysound/sax@0.2.0": {
       "integrity": "sha512-L7z9BgrNEcYyUYtF+HaEfiS5ebkh9jXqbszz7pC0hRBPaatV0XjSD3+eHrpqFemQfgwiFF0QPIarnIihIDn7OA=="
     },
-    "@ts-morph/common@0.27.0": {
-      "integrity": "sha512-Wf29UqxWDpc+i61k3oIOzcUfQt79PIT9y/MWfAGlrkjg6lBC1hwDECLXPVJAhWjiGbfBCxZd65F/LIZF3+jeJQ==",
+    "@ts-morph/common@0.28.1": {
+      "integrity": "sha512-W74iWf7ILp1ZKNYXY5qbddNaml7e9Sedv5lvU1V8lftlitkc9Pq1A+jlH23ltDgWYeZFFEqGCD1Ies9hqu3O+g==",
       "dependencies": [
-        "fast-glob",
         "minimatch@10.1.1",
-        "path-browserify"
+        "path-browserify",
+        "tinyglobby"
       ]
     },
     "@types/babel__core@7.20.5": {
@@ -3561,8 +3561,8 @@
     "ts-interface-checker@0.1.13": {
       "integrity": "sha512-Y/arvbn+rrz3JCKl9C4kVNfTfSm2/mEp5FSz5EsZSANGPSlQrpRI5M4PKF+mJnE52jOO90PnPSc3Ur3bTQw0gA=="
     },
-    "ts-morph@26.0.0": {
-      "integrity": "sha512-ztMO++owQnz8c/gIENcM9XfCEzgoGphTv+nKpYNM1bgsdOVC/jRZuEBf6N+mLLDNg68Kl+GgUZfOySaRiG1/Ug==",
+    "ts-morph@27.0.2": {
+      "integrity": "sha512-fhUhgeljcrdZ+9DZND1De1029PrE+cMkIP7ooqkLRTrRLTqcki2AstsyJm0vRNbTbVCNJ0idGlbBrfqc7/nA8w==",
       "dependencies": [
         "@ts-morph/common",
         "code-block-writer"
@@ -3848,7 +3848,7 @@
       "npm:redis@^5.8.2",
       "npm:rollup@^4.50.0",
       "npm:tailwindcss@^4.1.10",
-      "npm:ts-morph@26",
+      "npm:ts-morph@^27.0.2",
       "npm:vite@^7.1.5"
     ],
     "members": {
