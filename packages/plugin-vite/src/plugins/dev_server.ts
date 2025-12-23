@@ -1,7 +1,7 @@
 import type { DevEnvironment, Plugin } from "vite";
 import * as path from "@std/path";
 import { ASSET_CACHE_BUST_KEY } from "fresh/internal";
-import { createRequest, sendResponse } from "@mjackson/node-fetch-server";
+import { createRequest, sendResponse } from "@remix-run/node-fetch-server";
 import { hashCode } from "../shared.ts";
 
 export function devServer(): Plugin[] {
@@ -118,7 +118,7 @@ export function devServer(): Plugin[] {
     {
       name: "fresh:server_hmr",
       applyToEnvironment(env) {
-        return env.name === "ssr";
+        return env.config.consumer === "server";
       },
       hotUpdate(options) {
         const clientMod = options.server.environments.client.moduleGraph

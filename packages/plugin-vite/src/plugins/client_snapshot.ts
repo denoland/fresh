@@ -17,7 +17,7 @@ export function clientSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
       name: "fresh:client-snapshot",
       sharedDuringBuild: true,
       applyToEnvironment(env) {
-        return env.name === "client";
+        return env.config.consumer === "client";
       },
 
       async config(cfg, env) {

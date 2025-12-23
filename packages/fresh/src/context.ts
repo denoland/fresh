@@ -83,7 +83,7 @@ export class Context<State> {
   data: unknown = undefined;
   /** Error value if an error was caught (Default: null) */
   error: unknown | null = null;
-  readonly info: Deno.ServeHandlerInfo | Deno.ServeHandlerInfo;
+  readonly info: Deno.ServeHandlerInfo;
   /**
    * Whether the current Request is a partial request.
    *
