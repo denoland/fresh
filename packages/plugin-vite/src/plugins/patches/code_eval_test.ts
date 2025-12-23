@@ -6,7 +6,7 @@ function runTest(
   options: {
     input: string;
     expected: string;
-    env: "client" | "ssr";
+    env: "client" | "server";
     mode: "development" | "production";
   },
 ) {
@@ -45,7 +45,7 @@ Deno.test("code eval - resolve runtime conditional detection", () => {
   });
 
   runTest({
-    env: "ssr",
+    env: "server",
     mode: "development",
     input: `if (typeof process === 'undefined') {
       module.exports = require('./browser.js');
@@ -56,7 +56,7 @@ Deno.test("code eval - resolve runtime conditional detection", () => {
   });
 
   runTest({
-    env: "ssr",
+    env: "server",
     mode: "development",
     input: `if (typeof process !== 'undefined') {
 	module.exports = require('./node.js');
@@ -93,7 +93,7 @@ Deno.test("code eval - resolve process.env.NODE_ENV", () => {
 
 Deno.test("code eval - npm:debug", () => {
   runTest({
-    env: "ssr",
+    env: "server",
     mode: "development",
     input:
       `if (typeof process === 'undefined' || process.type === 'renderer' || process.browser === true || process.__nwjs) {
@@ -107,7 +107,7 @@ Deno.test("code eval - npm:debug", () => {
 
 Deno.test("code eval - npm:pg", () => {
   runTest({
-    env: "ssr",
+    env: "server",
     mode: "development",
     input: `if (typeof process.env.NODE_PG_FORCE_NATIVE !== "undefined") {
 	module.exports = require('./native.js');
@@ -120,7 +120,7 @@ Deno.test("code eval - npm:pg", () => {
 
 Deno.test("code eval - npm:pg #2", () => {
   runTest({
-    env: "ssr",
+    env: "server",
     mode: "development",
     input:
       `const useLegacyCrypto = parseInt(process.versions && process.versions.node && process.versions.node.split('.')[0]) < 15
