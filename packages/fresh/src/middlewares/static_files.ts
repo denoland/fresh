@@ -18,7 +18,8 @@ export function staticFiles<T>(): Middleware<T> {
     const buildCache = getBuildCache(ctx);
     if (buildCache === null) return await ctx.next();
 
-    let pathname = decodeURIComponent(url.pathname);
+    // fix issues[#3657]: because build staticFiles use Url encode the path
+    let pathname = url.pathname;
     if (config.basePath) {
       pathname = pathname !== config.basePath
         ? pathname.slice(config.basePath.length)

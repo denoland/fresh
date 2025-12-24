@@ -43,8 +43,15 @@ export function devServer(): Plugin[] {
             return next();
           }
 
+          const decodePathName: string = decodeURIComponent(
+            url.pathname.slice(1),
+          );
+
           // Check if it's a static file first
-          const staticFilePath = path.join(publicDir, url.pathname.slice(1));
+          const staticFilePath = path.join(
+            publicDir,
+            decodePathName,
+          );
           try {
             const stat = await Deno.stat(staticFilePath);
             if (stat.isFile) {
@@ -57,7 +64,7 @@ export function devServer(): Plugin[] {
           // Check if it's a static/index.html file
           const staticFilePathIndex = path.join(
             publicDir,
-            url.pathname.slice(1),
+            decodePathName,
             "index.html",
           );
           try {

@@ -528,6 +528,23 @@ ${serializedFsRoutes}
 `.replaceAll(/\n[\n]+/g, "\n\n");
 }
 
+export function systemPathToUrlEncoded(systemPath: string) {
+  const normalizedPath = systemPath.replaceAll(WINDOWS_SEPARATOR, "/");
+
+  const pathComponents = normalizedPath.split("/").filter((comp) => comp);
+
+  const encodedComponents = pathComponents.map((comp) =>
+    encodeURIComponent(comp)
+  );
+
+  const encodePath = "/" + encodedComponents.join("/");
+
+  return new URL(
+    encodePath,
+    "http://localhost",
+  ).pathname;
+}
+
 export async function prepareStaticFile(
   item: PendingStaticFile,
   outDir: string,
@@ -536,10 +553,11 @@ export async function prepareStaticFile(
 > {
   const file = await Deno.open(item.filePath);
   const hash = item.hash ? item.hash : await hashContent(file.readable);
-  const url = new URL(item.pathname, "http://localhost");
+  // fix issues[#3657]: system path convert to uri path, only new URL will convert `test %20encodeUri` to `test%20%20encodeUri`
+  const urlEncodePath = systemPathToUrlEncoded(item.pathname);
 
   return {
-    name: url.pathname,
+    name: urlEncodePath,
     hash,
     filePath: path.isAbsolute(item.filePath)
       ? path.relative(outDir, item.filePath)

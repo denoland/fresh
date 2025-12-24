@@ -3794,7 +3794,7 @@
     "https://deno.land/x/imagescript@1.3.0/v2/ops/resize.mjs": "814e78ebce8eaf8f1f918688db7b52a141405e06a36ed4b25d04413d69e7d17b",
     "https://deno.land/x/imagescript@1.3.0/v2/ops/rotate.mjs": "a1b65616717bd2eed8db406affea3263b4674dada46b56441ef38167a187455d",
     "https://deno.land/x/imagescript@1.3.0/v2/util/mem.mjs": "4968d400dae069b4bf0ef4767c1802fd2cc7d15d90eda4cfadf5b4cd19b96c6d",
-    "https://esm.sh/@docsearch/js@3.5.2/es2020/js.mjs": "9b278cf3c0b26feded7d8efeac8e2b50f76bbafcf173a95002944bcc3482830a",
+    "https://esm.sh/@docsearch/js@3.5.2/es2020/js.mjs": "964600b3c133bccfa6a5ffa240e8272a08eeff22f5fea6993aa085cfc9e4d750",
     "https://esm.sh/@docsearch/js@3.5.2?target=es2020": "4bad084f771a1923fe042ece62a9078f482f8642cb0b1acb890905e58586fee7",
     "https://raw.githubusercontent.com/denoland/ga4/main/mod.ts": "36f72ba1c90b5ebdb811427f367cd95fa6772d2de2fb45d6e57550501ee6d476",
     "https://raw.githubusercontent.com/denoland/std/refs/heads/main/_tools/check_docs.ts": "e0bf3d0ddbea93e769f0ad24f16ef2c42311c489165c9e0de9d0876d0411ffdc",
