@@ -1,4 +1,10 @@
-[
+[  
+  {
+    "title": "TKD-Dzwirzyno",
+    "link": "https://tkddzwirzyno.pl",
+    "github": "alphatra/Website-TKDdzwirzyno",
+    "image": "TKD-DZWIRZYNO"
+  },
   {
     "title": "JSR",
     "link": "https://jsr.io/",
