@@ -181,7 +181,11 @@ export class Builder<State = any> {
 
     const appHandler = app.handler();
 
-    const devApp = new App<State>(app.config)
+    // Store original basePath for display purposes
+    const originalBasePath = app.config.basePath;
+
+    const devConfig = { ...app.config, basePath: "/" };
+    const devApp = new App<State>(devConfig)
       .use(liveReload())
       .use(devErrorOverlay())
       .use(automaticWorkspaceFolders(this.config.root))
@@ -200,7 +204,7 @@ export class Builder<State = any> {
     // Boot in parallel to spin up the server quicker. We'll hold
     // requests until the required assets are processed.
     await Promise.all([
-      devApp.listen(options),
+      devApp.listen({ ...options, displayBasePath: originalBasePath }),
       this.#build(buildCache, true),
     ]);
     return;
