@@ -53,6 +53,11 @@
     "image": "d3nodata"
   },
   {
+    "title": "Lairuna.com AI game",
+    "link": "https://lairuna.com",
+    "image": "lairuna"
+  },
+  {
     "title": "Fresh Hacker News",
     "link": "https://fresh-hacker-news.deno.dev/",
     "github": "morinokami/fresh-hacker",
@@ -82,6 +87,7 @@
     "github": "hyprtxt/fresh-strapi.deno.dev",
     "image": "fresh-strapi"
   },
+
   {
     "title": "Portfolio Page",
     "link": "http://adamsobotka.deno.dev/",
