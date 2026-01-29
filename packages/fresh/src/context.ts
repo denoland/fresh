@@ -165,7 +165,7 @@ export class Context<State> {
    * ctx.redirect("//evil.com/");
    * ```
    */
-  redirect(pathOrUrl: string, status = 302): Response {
+  redirect(pathOrUrl: string, status = 307): Response {
     let location = pathOrUrl;
 
     // Disallow protocol relative URLs

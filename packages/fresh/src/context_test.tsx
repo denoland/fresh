@@ -7,24 +7,27 @@ import { BUILD_ID } from "@fresh/build-id";
 import { parseHtml } from "../tests/test_utils.tsx";
 
 Deno.test("FreshReqContext.prototype.redirect", () => {
+  // Default status is now 307 to preserve HTTP method on redirect
+  // See: https://github.com/denoland/fresh/issues/2632
   let res = Context.prototype.redirect("/");
-  expect(res.status).toEqual(302);
+  expect(res.status).toEqual(307);
   expect(res.headers.get("Location")).toEqual("/");
 
   res = Context.prototype.redirect("//evil.com");
-  expect(res.status).toEqual(302);
+  expect(res.status).toEqual(307);
   expect(res.headers.get("Location")).toEqual("/evil.com");
 
   res = Context.prototype.redirect("//evil.com/foo//bar");
-  expect(res.status).toEqual(302);
+  expect(res.status).toEqual(307);
   expect(res.headers.get("Location")).toEqual("/evil.com/foo/bar");
 
   res = Context.prototype.redirect("https://deno.com");
-  expect(res.status).toEqual(302);
+  expect(res.status).toEqual(307);
   expect(res.headers.get("Location")).toEqual("https://deno.com");
 
-  res = Context.prototype.redirect("/", 307);
-  expect(res.status).toEqual(307);
+  // Explicit 302 still works for backward compatibility
+  res = Context.prototype.redirect("/", 302);
+  expect(res.status).toEqual(302);
 });
 
 Deno.test("render asset()", async () => {
