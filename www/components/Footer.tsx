@@ -11,7 +11,7 @@ const LINKS = [
   },
   {
     title: "Code of Conduct",
-    href: "https://github.com/denoland/fresh/blob/main/CODE_OF_CONDUCT.md",
+    href: "https://github.com/denoland/fresh/blob/main/.github/CODE_OF_CONDUCT.md",
   },
 ];
 
