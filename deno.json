@@ -47,6 +47,7 @@
     "@std/collections": "jsr:@std/collections@^1.1.2",
     "@std/dotenv": "jsr:@std/dotenv@^0.225.5",
     "@std/http": "jsr:@std/http@^1.0.15",
+    "@std/net": "jsr:@std/net@^1.0.6",
     "@std/uuid": "jsr:@std/uuid@^1.0.7",
     "@supabase/postgrest-js": "npm:@supabase/postgrest-js@^1.21.4",
     "@types/mime-db": "npm:@types/mime-db@^1.43.6",
