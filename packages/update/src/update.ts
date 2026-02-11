@@ -6,9 +6,9 @@ import { ProgressBar } from "@std/cli/unstable-progress-bar";
 
 export const SyntaxKind = tsmorph.ts.SyntaxKind;
 
-export const FRESH_VERSION = "2.2.0";
-export const PREACT_VERSION = "10.28.2";
-export const PREACT_SIGNALS_VERSION = "2.5.1";
+export const FRESH_VERSION = "2.2.1";
+export const PREACT_VERSION = "10.28.3";
+export const PREACT_SIGNALS_VERSION = "2.7.1";
 
 // Function to filter out node_modules and vendor directories from logs
 const HIDE_FILES = /[\\/]+(node_modules|vendor)[\\/]+/;
