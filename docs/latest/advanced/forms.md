@@ -42,7 +42,7 @@ export const handlers = define.handlers({
   },
 });
 
-export default define.page<typeof handlers>(function Subscribe() {
+export default define.page<typeof handler>(function Subscribe() {
   return (
     <>
       <form method="post">
