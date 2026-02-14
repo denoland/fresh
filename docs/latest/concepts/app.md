@@ -7,7 +7,7 @@ The `App` class is the heart of Fresh and routes incoming requests to the
 correct middlewares. This is where routes, middlewares, layouts and more are
 defined.
 
-```tsx main.ts
+```ts
 const app = new App()
   .use(staticFiles())
   .get("/", () => new Response("hello"))
@@ -20,7 +20,7 @@ app.listen();
 All items are applied from top to bottom. This means that when you defined a
 middleware _after_ a `.get()` handler, it won't be included.
 
-```tsx main.tsx
+```ts
 const app = new App()
   .use((ctx) => {
     // Will be called for all middlewares

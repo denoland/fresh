@@ -8,7 +8,7 @@ structure of the HTML document, typically up until the `<body>`-tag. It is only
 rendered on the server and never on the client. The passed `Component` value
 represents the children of this component.
 
-```tsx main.tsx
+```tsx
 function AppWrapper({ Component }) {
   return (
     <html lang="en">

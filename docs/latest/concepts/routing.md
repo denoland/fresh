@@ -7,6 +7,8 @@ Routing defines which middlewares and routes should respond to a particular
 request.
 
 ```ts main.ts
+import { App } from "fresh";
+
 const app = new App()
   .get("/", () => new Response("hello")) // Responds to: GET /
   .get("/other", () => new Response("other")) // Responds to: GET /other
