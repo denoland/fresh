@@ -1,0 +1,10 @@
+{
+  "name": "@fresh/plugin-dbundle",
+  "version": "0.1.0",
+  "exports": {
+    ".": "./src/mod.ts"
+  },
+  "imports": {
+    "fresh": "jsr:@fresh/core@^2.0.0"
+  }
+}
