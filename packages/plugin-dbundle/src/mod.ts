@@ -30,7 +30,10 @@ function join(...parts: string[]): string {
   const segments: string[] = [];
   for (const seg of joined.split("/")) {
     if (seg === "" || seg === ".") continue;
-    if (seg === ".." && segments.length > 0 && segments[segments.length - 1] !== "..") {
+    if (
+      seg === ".." && segments.length > 0 &&
+      segments[segments.length - 1] !== ".."
+    ) {
       segments.pop();
     } else {
       segments.push(seg);
@@ -85,7 +88,7 @@ interface PluginBuild {
       namespace: string;
       kind: string;
       resolveDir: string;
-    // deno-lint-ignore no-explicit-any
+      // deno-lint-ignore no-explicit-any
     }) => any,
   ): void;
   onLoad(
@@ -93,7 +96,7 @@ interface PluginBuild {
     callback: (args: {
       path: string;
       namespace: string;
-    // deno-lint-ignore no-explicit-any
+      // deno-lint-ignore no-explicit-any
     }) => any,
   ): void;
   onTransform(
@@ -103,7 +106,7 @@ interface PluginBuild {
       path: string;
       namespace: string;
       loader: string;
-    // deno-lint-ignore no-explicit-any
+      // deno-lint-ignore no-explicit-any
     }) => any,
   ): void;
 }
@@ -128,6 +131,8 @@ interface PluginBuild {
  */
 export function freshPlugin(config?: FreshPluginConfig) {
   const root = Deno.env.get("DBUNDLE_ROOT") ?? Deno.cwd();
+
+  // console.log(root);
 
   const resolved: ResolvedConfig = {
     serverEntry: config?.serverEntry ?? "main.ts",
@@ -274,56 +279,6 @@ export function freshPlugin(config?: FreshPluginConfig) {
         const idx = name.indexOf(".module.");
         if (idx > -1) name = name.slice(0, idx);
         return { path: `fresh-route-css::${name}`, namespace: "fresh" };
-      });
-
-      // ------------------------------------------------------------------
-      // Deno module resolution (catch-all for bare specifiers)
-      // ------------------------------------------------------------------
-      build.onResolve({ filter: /^[^./]/ }, (args) => {
-        const specifier = args.specifier;
-
-        // Skip our virtual modules
-        if (specifier.startsWith("fresh:") || specifier.startsWith("fresh-")) {
-          return null;
-        }
-
-        // node: specifiers → external
-        if (specifier.startsWith("node:")) {
-          return { path: specifier, external: true };
-        }
-
-        try {
-          const resolved = import.meta.resolve(specifier);
-
-          if (resolved.startsWith("file://")) {
-            return { path: fromFileUrl(resolved) };
-          }
-
-          if (resolved.startsWith("npm:")) {
-            // Let dbundle resolve from node_modules
-            return null;
-          }
-
-          if (resolved.startsWith("jsr:")) {
-            // JSR — if still jsr: after resolve, let dbundle try
-            return null;
-          }
-
-          if (resolved.startsWith("https:") || resolved.startsWith("http:")) {
-            return { path: resolved, external: true };
-          }
-        } catch {
-          // Resolution failed — treat as external with warning
-          if (!warnedSpecifiers.has(specifier)) {
-            warnedSpecifiers.add(specifier);
-            console.warn(
-              `[fresh] Could not resolve "${specifier}" — treating as external`,
-            );
-          }
-          return { path: specifier, external: true };
-        }
-
-        return null;
       });
 
       // ------------------------------------------------------------------

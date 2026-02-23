@@ -11,6 +11,7 @@ export default {
     server: {
       entry: ["fresh:server-entry"],
       target: "server",
+      runtime: "deno",
       conditions: ["deno", "import", "default"],
       output: { dir: "_fresh/server" },
       depends_on: ["client"],
