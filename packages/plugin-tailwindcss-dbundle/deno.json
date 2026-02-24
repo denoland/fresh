@@ -1,0 +1,11 @@
+{
+  "name": "@fresh/plugin-tailwindcss-dbundle",
+  "version": "0.1.0",
+  "exports": {
+    ".": "./src/mod.ts"
+  },
+  "imports": {
+    "@tailwindcss/node": "npm:@tailwindcss/node@^4.2.1",
+    "@tailwindcss/oxide": "npm:@tailwindcss/oxide@^4.2.1"
+  }
+}

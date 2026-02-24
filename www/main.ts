@@ -4,7 +4,7 @@ console.log("BOOTING SERVER", App);
 
 export const app = new App()
   .use(async (c) => {
-    console.log("DEV SERVER");
+    console.log("DEV SERVER", c.url.pathname);
     return c.next();
   })
   .use(staticFiles())

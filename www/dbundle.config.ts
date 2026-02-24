@@ -1,6 +1,8 @@
 import { freshPlugin } from "../packages/plugin-dbundle/src/mod.ts";
+import tailwindPlugin from "../packages/plugin-tailwindcss-dbundle/src/mod.ts";
 
 export default {
+  publicDir: "static",
   environments: {
     client: {
       entry: ["fresh:client-entry"],
@@ -26,6 +28,7 @@ export default {
   sourceMap: true,
   dev: { port: 8000 },
   plugins: [
+    tailwindPlugin(),
     freshPlugin(),
   ],
 };

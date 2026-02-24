@@ -52,6 +52,35 @@ function toFileUrl(p: string): string {
 }
 
 // ============================================================================
+// Build ID
+// ============================================================================
+
+async function getBuildId(dev: boolean): Promise<string> {
+  const gitRevision = Deno.env.get("DENO_DEPLOYMENT_ID") ??
+    Deno.env.get("DENO_DEPLOY_BUILD_ID") ??
+    Deno.env.get("GITHUB_SHA") ??
+    Deno.env.get("CI_COMMIT_SHA");
+  if (gitRevision !== undefined) {
+    return gitRevision.trim();
+  }
+
+  if (!dev) {
+    try {
+      const bin = Deno.build.os === "windows" ? "git.exe" : "git";
+      const res = await new Deno.Command(bin, { args: ["rev-parse", "HEAD"] })
+        .output();
+      return new TextDecoder().decode(res.stdout).trim();
+    } catch {
+      // ignore
+    }
+  }
+
+  const arr = new Uint32Array(1);
+  crypto.getRandomValues(arr);
+  return String(arr[0]).trim();
+}
+
+// ============================================================================
 // Types
 // ============================================================================
 
@@ -193,9 +222,18 @@ export function freshPlugin(config?: FreshPluginConfig) {
     name: "fresh",
 
     async setup(build: PluginBuild) {
+      // Compute build ID once for use in hooks
+      const buildId = await getBuildId(false);
+
       // ------------------------------------------------------------------
       // Virtual module resolvers
       // ------------------------------------------------------------------
+
+      // @fresh/build-id → virtual module
+      build.onResolve(
+        { filter: /^(jsr:)?@fresh\/build-id(@.*)?$/ },
+        () => ({ path: "fresh:build-id", namespace: "fresh" }),
+      );
 
       // fresh:client-entry
       build.onResolve(
@@ -246,6 +284,19 @@ export function freshPlugin(config?: FreshPluginConfig) {
       // Virtual module loaders (namespace: "fresh")
       // ------------------------------------------------------------------
 
+      // @fresh/build-id
+      build.onLoad(
+        { filter: /^fresh:build-id$/, namespace: "fresh" },
+        () => ({
+          text: `export let BUILD_ID = ${JSON.stringify(buildId)};
+export const DENO_DEPLOYMENT_ID = undefined;
+export function setBuildId(id) {
+  BUILD_ID = id;
+}`,
+          loader: "js",
+        }),
+      );
+
       // fresh:client-entry
       build.onLoad(
         { filter: /^fresh:client-entry$/, namespace: "fresh" },
@@ -280,6 +331,8 @@ export function freshPlugin(config?: FreshPluginConfig) {
             serverEntry: toFileUrl(serverEntry),
             snapshotSpecifier: "fresh:server-snapshot",
           });
+
+          console.log(code);
 
           // Append HTTP server startup for dbundle's module runner
           code += `
@@ -320,7 +373,9 @@ if (import.meta.hot) import.meta.hot.accept();
             const placeholder = `__FRESH_URL_ISLAND_${def.name}__`;
             islandPlaceholders.set(def.name, { varName, placeholder });
             urlImportLines.push(
-              `import ${varName} from ${JSON.stringify(spec)} with { type: "url", env: "client" };`,
+              `import ${varName} from ${
+                JSON.stringify(spec)
+              } with { type: "url", env: "client" };`,
             );
           }
 
