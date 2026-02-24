@@ -3,6 +3,11 @@
  *
  * Replaces @fresh/plugin-vite for use with the dbundle bundler.
  * Handles virtual modules, Deno module resolution, and island/route discovery.
+ *
+ * Uses import attributes (`with { type: "url", env: "client" }`) to make
+ * cross-environment dependencies (islands, client entry) visible to the
+ * bundler. The bundler automatically registers referenced modules as client
+ * entries and resolves the import bindings to chunk URLs at emit time.
  */
 
 import {
@@ -44,12 +49,6 @@ function join(...parts: string[]): string {
 
 function toFileUrl(p: string): string {
   return "file://" + p;
-}
-
-function fromFileUrl(url: string): string {
-  if (url.startsWith("file:///")) return url.slice("file://".length);
-  if (url.startsWith("file://")) return url.slice("file://".length);
-  return url;
 }
 
 // ============================================================================
@@ -132,8 +131,6 @@ interface PluginBuild {
 export function freshPlugin(config?: FreshPluginConfig) {
   const root = Deno.env.get("DBUNDLE_ROOT") ?? Deno.cwd();
 
-  // console.log(root);
-
   const resolved: ResolvedConfig = {
     serverEntry: config?.serverEntry ?? "main.ts",
     clientEntry: config?.clientEntry ?? "client.ts",
@@ -158,15 +155,12 @@ export function freshPlugin(config?: FreshPluginConfig) {
     : join(root, resolved.routeDir);
 
   // State populated during setup
-  const islands = new Map<string, { name: string; chunk: string | null }>();
+  const islands = new Map<string, { name: string }>();
   const islandSpecByName = new Map<string, string>();
   const routeNamer = new UniqueNamer();
   const routeFileToName = new Map<string, string>();
   // deno-lint-ignore no-explicit-any
   const routes: Map<string, FsRouteFileNoMod<any>> = new Map();
-
-  // Track warned specifiers to avoid spam
-  const warnedSpecifiers = new Set<string>();
 
   // Whether FS has been crawled
   let crawled = false;
@@ -184,7 +178,7 @@ export function freshPlugin(config?: FreshPluginConfig) {
     for (const spec of result.islands) {
       const specName = specToName(spec);
       const name = resolved.namer.getUniqueName(specName);
-      islands.set(spec, { name, chunk: null });
+      islands.set(spec, { name });
       islandSpecByName.set(name, spec);
     }
 
@@ -197,28 +191,6 @@ export function freshPlugin(config?: FreshPluginConfig) {
 
   return {
     name: "fresh",
-
-    // The config hook can return partial config to merge
-    async config(_resolvedConfig: Record<string, unknown>) {
-      await ensureCrawled();
-
-      // Add island files as additional client entries
-      const islandEntries: string[] = [];
-      for (const [_spec, def] of islands) {
-        islandEntries.push(`fresh-client-island::${def.name}`);
-      }
-
-      return {
-        environments: {
-          client: {
-            entry: [
-              "fresh:client-entry",
-              ...islandEntries,
-            ],
-          },
-        },
-      };
-    },
 
     async setup(build: PluginBuild) {
       // ------------------------------------------------------------------
@@ -246,17 +218,6 @@ export function freshPlugin(config?: FreshPluginConfig) {
       // fresh-island::* → resolve to the actual island file on disk
       build.onResolve({ filter: /^fresh-island::/ }, (args) => {
         let name = args.specifier.slice("fresh-island::".length);
-        const extIdx = name.lastIndexOf(".");
-        if (extIdx > 0) name = name.slice(0, extIdx);
-
-        const spec = islandSpecByName.get(name);
-        if (spec) return { path: spec };
-        return null;
-      });
-
-      // fresh-client-island::* → resolve to the actual island file on disk
-      build.onResolve({ filter: /^fresh-client-island::/ }, (args) => {
-        let name = args.specifier.slice("fresh-client-island::".length);
         const extIdx = name.lastIndexOf(".");
         if (extIdx > 0) name = name.slice(0, extIdx);
 
@@ -338,20 +299,49 @@ if (import.meta.hot) import.meta.hot.accept();
         async () => {
           await ensureCrawled();
 
+          // Build URL reference imports for the client entry and each island.
+          // These use `with { type: "url", env: "client" }` so the bundler:
+          //   1. Registers each module as a client environment entry
+          //   2. Resolves the import binding to the chunk URL at emit time
+          const urlImportLines: string[] = [];
+          const CLIENT_ENTRY_PLACEHOLDER = "__FRESH_URL_CLIENT_ENTRY__";
+          const clientUrlVar = "__fresh_url_client_entry";
+          urlImportLines.push(
+            `import ${clientUrlVar} from "fresh:client-entry" with { type: "url", env: "client" };`,
+          );
+
+          // Map island name → { varName, placeholder } for post-processing
+          const islandPlaceholders = new Map<
+            string,
+            { varName: string; placeholder: string }
+          >();
+          for (const [spec, def] of islands) {
+            const varName = `__fresh_url_${def.name}`;
+            const placeholder = `__FRESH_URL_ISLAND_${def.name}__`;
+            islandPlaceholders.set(def.name, { varName, placeholder });
+            urlImportLines.push(
+              `import ${varName} from ${JSON.stringify(spec)} with { type: "url", env: "client" };`,
+            );
+          }
+
+          // Pass placeholder strings as `browser` values. generateSnapshotServer
+          // wraps them with JSON.stringify, producing `"__FRESH_URL_ISLAND_X__"`
+          // in the output. We replace those string literals with the variable
+          // references below.
           const islandMods: IslandModChunk[] = Array.from(
             islands.entries(),
           ).map(([id, def]) => ({
             name: def.name,
             server: id,
-            browser: def.chunk ?? `/@id/fresh-island::${def.name}`,
+            browser: islandPlaceholders.get(def.name)!.placeholder,
             css: [],
           }));
 
-          const code = await generateSnapshotServer({
+          let code = await generateSnapshotServer({
             outDir: root,
             staticFiles: [],
             buildId: "",
-            clientEntry: "/@id/fresh:client-entry",
+            clientEntry: CLIENT_ENTRY_PLACEHOLDER,
             entryAssets: [],
             fsRoutesFiles: Array.from(routes.values()),
             islands: islandMods,
@@ -365,6 +355,18 @@ if (import.meta.hot) import.meta.hot.accept();
               return toFileUrl(file);
             },
           });
+
+          // Replace quoted placeholder strings with variable references
+          code = code.replace(
+            JSON.stringify(CLIENT_ENTRY_PLACEHOLDER),
+            clientUrlVar,
+          );
+          for (const [, { varName, placeholder }] of islandPlaceholders) {
+            code = code.replaceAll(JSON.stringify(placeholder), varName);
+          }
+
+          // Prepend the URL reference imports
+          code = urlImportLines.join("\n") + "\n" + code;
 
           return { text: code, loader: "js" };
         },
