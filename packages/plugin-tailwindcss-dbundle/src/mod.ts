@@ -45,13 +45,8 @@ export default function tailwindPlugin() {
           onDependency: () => {},
         });
 
-        // If the CSS doesn't use Tailwind features, skip it
-        if (
-          !(
-            compiler.features &
-            (Features.AtApply | Features.Utilities | Features.ThemeFunction)
-          )
-        ) {
+        // If the CSS doesn't use any Tailwind features, skip it
+        if (compiler.features === Features.None) {
           return null;
         }
 

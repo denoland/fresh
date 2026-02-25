@@ -334,12 +334,24 @@ export function setBuildId(id) {
 
           console.log(code);
 
-          // Append HTTP server startup for dbundle's module runner
+          // Append HTTP server startup for dbundle's module runner.
+          // Uses import.meta.hot.dispose/data to keep Deno.serve alive across
+          // HMR updates — only the request handler is swapped.
           code += `
-// Start HTTP server for dbundle's module runner
-const port = Number(Deno.env.get("DBUNDLE_SERVER_PORT") ?? "8000");
-Deno.serve({ port, hostname: "127.0.0.1" }, app.handler());
-if (import.meta.hot) import.meta.hot.accept();
+const __handler = app.handler();
+if (import.meta.hot) {
+  const __ref = import.meta.hot.data?.handlerRef ?? { current: null };
+  __ref.current = __handler;
+  if (!import.meta.hot.data?.handlerRef) {
+    const __port = Number(Deno.env.get("DBUNDLE_SERVER_PORT") ?? "8000");
+    Deno.serve({ port: __port, hostname: "127.0.0.1" }, (req, info) => __ref.current(req, info));
+  }
+  import.meta.hot.dispose((data) => { data.handlerRef = __ref; });
+  import.meta.hot.accept();
+} else {
+  const __port = Number(Deno.env.get("DBUNDLE_SERVER_PORT") ?? "8000");
+  Deno.serve({ port: __port, hostname: "127.0.0.1" }, __handler);
+}
 `;
 
           return { text: code, loader: "js" };
