@@ -302,6 +302,7 @@ function isJsMediaType(media: MediaType): boolean {
     case MediaType.Unknown:
       return false;
   }
+  return false;
 }
 
 export type DenoSpecifier = string & { __deno: string };
