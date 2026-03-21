@@ -81,6 +81,13 @@ export class RenderState {
   renderedHtmlBody = false;
   renderedHtmlHead = false;
   hasRuntimeScript = false;
+  /** Set to true when any element in the tree renders f-client-nav="true". */
+  clientNavEnabled = false;
+
+  /** True when the page needs Fresh's client runtime (islands or client nav). */
+  get needsClientRuntime(): boolean {
+    return this.islands.size > 0 || this.clientNavEnabled;
+  }
 
   constructor(
     // deno-lint-ignore no-explicit-any
@@ -375,6 +382,17 @@ options[OptionsType.DIFF] = (vnode) => {
           break;
       }
 
+      // Detect f-client-nav="true" on any element in the rendered tree.
+      // We check here in the diff hook (not the vnode hook) so we catch both
+      // VNodes created inside component functions during rendering AND those
+      // pre-created in route handlers before setRenderState was called.
+      if (
+        CLIENT_NAV_ATTR in (vnode.props as Record<string, unknown>) &&
+        (vnode.props as Record<string, unknown>)[CLIENT_NAV_ATTR] === "true"
+      ) {
+        RENDER_STATE!.clientNavEnabled = true;
+      }
+
       if (
         vnode.key !== undefined &&
         (RENDER_STATE!.partialDepth > 0 || hasIslandOwner(RENDER_STATE!, vnode))
@@ -603,7 +621,10 @@ function FreshRuntimeScript() {
         },
       })
     );
-  } else {
+  }
+
+  if (RENDER_STATE!.needsClientRuntime) {
+    // Full-document response that needs the Fresh client runtime.
     const islandImports = islandArr.map((island) => {
       const named = island.exportName === "default"
         ? island.name
@@ -645,6 +666,29 @@ function FreshRuntimeScript() {
       )
     );
   }
+
+  // Static page — no islands, no client nav.
+  // In development, emit only the small HMR script for live reload.
+  if (buildCache.hmrClientEntry !== undefined) {
+    const hmrUrl = buildCache.hmrClientEntry.startsWith(".")
+      ? buildCache.hmrClientEntry.slice(1)
+      : buildCache.hmrClientEntry;
+    return (
+      h(
+        Fragment,
+        null,
+        h("script", {
+          type: "module",
+          nonce,
+          src: `${basePath}${hmrUrl}`,
+        }),
+        buildCache.features.errorOverlay ? h(ShowErrorOverlay, null) : null,
+      )
+    );
+  }
+
+  // Production static page: no client JS at all.
+  return buildCache.features.errorOverlay ? h(ShowErrorOverlay, null) : null;
 }
 
 export function ShowErrorOverlay() {

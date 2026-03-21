@@ -345,25 +345,40 @@ export class Context<State> {
         }
         throw err;
       } finally {
-        // Add preload headers
+        // Add preload headers only when client JS is actually emitted.
         const basePath = this.config.basePath;
-        const runtimeUrl = state.buildCache.clientEntry.startsWith(".")
-          ? state.buildCache.clientEntry.slice(1)
-          : state.buildCache.clientEntry;
-        let link = `<${
-          encodeURI(`${basePath}${runtimeUrl}`)
-        }>; rel="modulepreload"; as="script"`;
-        state.islands.forEach((island) => {
-          const specifier = `${basePath}${
-            island.file.startsWith(".") ? island.file.slice(1) : island.file
-          }`;
-          link += `, <${
-            encodeURI(specifier)
-          }>; rel="modulepreload"; as="script"`;
-        });
+        const linkParts: string[] = [];
 
-        if (link !== "") {
-          headers.append("Link", link);
+        if (state.needsClientRuntime) {
+          const runtimeUrl = state.buildCache.clientEntry.startsWith(".")
+            ? state.buildCache.clientEntry.slice(1)
+            : state.buildCache.clientEntry;
+          linkParts.push(
+            `<${
+              encodeURI(`${basePath}${runtimeUrl}`)
+            }>; rel="modulepreload"; as="script"`,
+          );
+          state.islands.forEach((island) => {
+            const specifier = `${basePath}${
+              island.file.startsWith(".") ? island.file.slice(1) : island.file
+            }`;
+            linkParts.push(
+              `<${encodeURI(specifier)}>; rel="modulepreload"; as="script"`,
+            );
+          });
+        } else if (state.buildCache.hmrClientEntry !== undefined) {
+          const hmrUrl = state.buildCache.hmrClientEntry.startsWith(".")
+            ? state.buildCache.hmrClientEntry.slice(1)
+            : state.buildCache.hmrClientEntry;
+          linkParts.push(
+            `<${
+              encodeURI(`${basePath}${hmrUrl}`)
+            }>; rel="modulepreload"; as="script"`,
+          );
+        }
+
+        if (linkParts.length > 0) {
+          headers.append("Link", linkParts.join(", "));
         }
 
         state.clear();

@@ -63,6 +63,7 @@ export class MemoryBuildCache<State> implements DevBuildCache<State> {
   root: string;
   islandRegistry: ServerIslandRegistry = new Map();
   clientEntry: string;
+  hmrClientEntry: string | undefined = undefined;
   features = { errorOverlay: false };
 
   constructor(
@@ -236,6 +237,7 @@ export class DiskBuildCache<State> implements DevBuildCache<State> {
   root: string;
   islandRegistry: ServerIslandRegistry = new Map();
   clientEntry: string = "";
+  hmrClientEntry: string | undefined = undefined;
   features = { errorOverlay: false };
 
   constructor(

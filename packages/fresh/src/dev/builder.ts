@@ -301,6 +301,13 @@ export class Builder<State = any> {
       "fresh-runtime": new URL(runtimePath, import.meta.url).href,
     };
 
+    if (dev) {
+      entryPoints["fresh-hmr"] = new URL(
+        "../runtime/client/dev_hmr.ts",
+        import.meta.url,
+      ).href;
+    }
+
     const namer = new UniqueNamer();
     for (const spec of this.#islandSpecifiers) {
       const specName = specToName(spec);
@@ -338,6 +345,13 @@ export class Builder<State = any> {
 
       const pathname = `${prefix}${chunkName}`;
       buildCache.islandModNameToChunk.get(name)!.browser = pathname;
+    }
+
+    if (dev) {
+      const hmrChunkName = output.entryToChunk.get("fresh-hmr");
+      if (hmrChunkName !== undefined) {
+        buildCache.hmrClientEntry = `${prefix}${hmrChunkName}`;
+      }
     }
 
     for (let i = 0; i < output.files.length; i++) {

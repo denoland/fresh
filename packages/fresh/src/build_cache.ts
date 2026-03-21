@@ -35,6 +35,8 @@ export interface BuildCache<State = any> {
   root: string;
   islandRegistry: ServerIslandRegistry;
   clientEntry: string;
+  /** Pathname for the HMR-only chunk (development only). Undefined in production. */
+  hmrClientEntry?: string;
   features: {
     errorOverlay: boolean;
   };
