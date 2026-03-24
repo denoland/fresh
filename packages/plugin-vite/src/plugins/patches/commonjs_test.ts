@@ -29,7 +29,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });`;
 
-const DEFAULT_EXPORT = `const _default = exports.default ?? exports;`;
+const DEFAULT_EXPORT = `var _default = exports.default ?? exports;`;
 const DEFAULT_EXPORT_END = `export default _default;
 export var __require = exports;`;
 const IMPORT_REQUIRE = `import { createRequire } from "node:module";
@@ -137,9 +137,8 @@ Deno.test("commonjs - esModule flag only", () => {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-const _default = exports.default ?? exports;
-export default _default;
-export var __require = exports;
+${DEFAULT_EXPORT}
+${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
 });
@@ -152,9 +151,8 @@ Deno.test("commonjs - esModule flag only #2", () => {
 Object.defineProperty(module.exports, "__esModule", {
   value: true
 });
-const _default = exports.default ?? exports;
-export default _default;
-export var __require = exports;
+${DEFAULT_EXPORT}
+${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
 });
@@ -166,9 +164,8 @@ Deno.test("commonjs - esModule flag only minified #3", () => {
 Object.defineProperty(exports, '__esModule', {
   value: !0
 });
-const _default = exports.default ?? exports;
-export default _default;
-export var __require = exports;
+${DEFAULT_EXPORT}
+${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
 });
@@ -369,7 +366,7 @@ Deno.test("commonjs - detect esbuild shims", () => {
 import * as _ns from "./globalThis";
 export * from "./globalThis";
 ${DEFAULT_EXPORT}
-for (var _k in _ns) if (_k !== "default" && _k !== "__esModule" && Object.prototype.hasOwnProperty.call(_ns, _k)) _default[_k] = _ns[_k];
+if (typeof _default !== "object" && typeof _default !== "function") {} else for (var _k in _ns) if (_k !== "default" && _k !== "__esModule" && Object.prototype.hasOwnProperty.call(_ns, _k)) _default[_k] = _ns[_k];
 ${DEFAULT_EXPORT_END}`,
   });
 });
@@ -511,7 +508,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 export * from "./node";
 ${DEFAULT_EXPORT}
-for (var _k in _ns) if (_k !== "default" && _k !== "__esModule" && Object.prototype.hasOwnProperty.call(_ns, _k)) _default[_k] = _ns[_k];
+if (typeof _default !== "object" && typeof _default !== "function") {} else for (var _k in _ns) if (_k !== "default" && _k !== "__esModule" && Object.prototype.hasOwnProperty.call(_ns, _k)) _default[_k] = _ns[_k];
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -709,5 +706,105 @@ const node_events_1 = __importDefault({
   __esModule: true,
   default: _mod.default ?? _mod
 });`,
+  });
+});
+
+// --- New tests for CJS transform fixes ---
+
+Deno.test("commonjs - require.resolve injects createRequire", () => {
+  runTest({
+    input: `var resolved = require.resolve("some-package");`,
+    expected: `${IMPORT_REQUIRE}
+var resolved = require.resolve("some-package");`,
+  });
+});
+
+Deno.test("commonjs - require.resolve with require() both inject createRequire once", () => {
+  runTest({
+    input: `var resolved = require.resolve("some-package");
+if (true) {
+  var mod = require("other");
+}`,
+    expected: `${IMPORT_REQUIRE}
+var resolved = require.resolve("some-package");
+if (true) {
+  var mod = require("other");
+}`,
+  });
+});
+
+Deno.test("commonjs - .mts file treated as ESM", () => {
+  runTest({
+    filename: "foo.mts",
+    input: `export const x = 1;`,
+    expected: `export const x = 1;`,
+  });
+});
+
+Deno.test("commonjs - .cts file treated as CJS", () => {
+  runTest({
+    filename: "foo.cts",
+    input: `module.exports = 42;`,
+    expected: `${INIT}
+module.exports = 42;
+${DEFAULT_EXPORT}
+${DEFAULT_EXPORT_END}`,
+  });
+});
+
+Deno.test("commonjs - __dirname and __filename polyfill", () => {
+  const DIRNAME_IMPORT =
+    `import { fileURLToPath as __cjs_fileURLToPath } from "node:url";
+import { dirname as __cjs_dirname } from "node:path";
+var __filename = __cjs_fileURLToPath(import.meta.url);
+var __dirname = __cjs_dirname(__filename);`;
+  runTest({
+    input: `var dir = __dirname;
+var file = __filename;
+module.exports = { dir: dir, file: file };`,
+    expected: `${INIT}
+${DIRNAME_IMPORT}
+var dir = __dirname;
+var file = __filename;
+module.exports = {
+  dir: dir,
+  file: file
+};
+var _dir = exports.dir;
+var _file = exports.file;
+export { _dir as dir, _file as file };
+${DEFAULT_EXPORT}
+${DEFAULT_EXPORT_END}`,
+  });
+});
+
+Deno.test("commonjs - module.exports.X tracked as named export", () => {
+  runTest({
+    input: `module.exports = function parse() {};
+module.exports.parse = module.exports;
+module.exports.stringify = function stringify() {};`,
+    expected: `${INIT}
+module.exports = function parse() {};
+module.exports.parse = module.exports;
+module.exports.stringify = function stringify() {};
+var _parse = exports.parse;
+var _stringify = exports.stringify;
+export { _parse as parse, _stringify as stringify };
+${DEFAULT_EXPORT}
+${DEFAULT_EXPORT_END}`,
+  });
+});
+
+Deno.test("commonjs - primitive module.exports with namespace re-export guards assignment", () => {
+  runTest({
+    input: `__exportStar(require("./utils"), exports);
+module.exports = "RFC3986";`,
+    expected: `${INIT}
+import * as _ns from "./utils";
+export * from "./utils";
+module.exports = "RFC3986";
+${DEFAULT_EXPORT}
+if (typeof _default !== "object" && typeof _default !== "function") {} else for (var _k in _ns) if (_k !== "default" && _k !== "__esModule" && Object.prototype.hasOwnProperty.call(_ns, _k)) _default[_k] = _ns[_k];
+${DEFAULT_EXPORT_END}`,
   });
 });
