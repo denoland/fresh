@@ -58,11 +58,11 @@
     "esbuild-wasm": "npm:esbuild-wasm@0.25.7",
     "fresh": "jsr:@fresh/core@^2.0.0",
     "mime-db": "npm:mime-db@^1.54.0",
-    "preact": "npm:preact@^10.27.0",
-    "preact-render-to-string": "npm:preact-render-to-string@^6.5.11",
+    "preact": "npm:preact@^10.28.2",
+    "preact-render-to-string": "npm:preact-render-to-string@^6.6.5",
     "$ga4": "https://raw.githubusercontent.com/denoland/ga4/main/mod.ts",
     "@opentelemetry/api": "npm:@opentelemetry/api@^1.9.0",
-    "@preact/signals": "npm:@preact/signals@^2.2.1",
+    "@preact/signals": "npm:@preact/signals@^2.5.1",
     "@std/encoding": "jsr:@std/encoding@1",
     "@std/fmt": "jsr:@std/fmt@^1.0.7",
     "@std/fs": "jsr:@std/fs@1",
@@ -73,7 +73,7 @@
     "@std/semver": "jsr:@std/semver@1",
     "@std/streams": "jsr:@std/streams@1",
 
-    "@astral/astral": "jsr:@astral/astral@^0.5.4",
+    "@astral/astral": "jsr:@astral/astral@^0.5.5",
     "@marvinh-test/fresh-island": "jsr:@marvinh-test/fresh-island@^0.0.3",
     "linkedom": "npm:linkedom@^0.18.10",
     "@std/async": "jsr:@std/async@^1.0.13",
@@ -82,7 +82,7 @@
 
     "@tailwindcss/postcss": "npm:@tailwindcss/postcss@^4.1.10",
     "redis": "npm:redis@^5.8.2",
-    "rollup": "npm:rollup@^4.50.0",
+    "rollup": "npm:rollup@^4.55.1",
     "tailwindcss": "npm:tailwindcss@^4.1.10",
     "postcss": "npm:postcss@8.5.6",
 
@@ -94,7 +94,7 @@
     "marked": "npm:marked@^15.0.11",
     "marked-mangle": "npm:marked-mangle@^1.1.9",
     "prismjs": "npm:prismjs@^1.29.0",
-    "vite": "npm:vite@^7.1.5"
+    "vite": "npm:vite@^7.3.1"
   },
   "compilerOptions": {
     "lib": ["dom", "dom.asynciterable", "deno.ns", "deno.unstable"],
