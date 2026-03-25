@@ -64,7 +64,9 @@ export function deno(): Plugin {
           external: true,
         };
       }
-      const loader = options?.ssr ? ssrLoader : browserLoader;
+      const loader = this.environment.config.consumer === "server"
+        ? ssrLoader
+        : browserLoader;
 
       const original = id;
 
@@ -154,8 +156,10 @@ export function deno(): Plugin {
         // ignore
       }
     },
-    async load(id, options) {
-      const loader = options?.ssr ? ssrLoader : browserLoader;
+    async load(id) {
+      const loader = this.environment.config.consumer === "server"
+        ? ssrLoader
+        : browserLoader;
 
       if (isDenoSpecifier(id)) {
         const { type, specifier } = parseDenoSpecifier(id);
@@ -168,7 +172,7 @@ export function deno(): Plugin {
         const code = new TextDecoder().decode(result.code);
 
         const maybeJsx = babelTransform({
-          ssr: !!options?.ssr,
+          ssr: this.environment.config.consumer === "server",
           media: result.mediaType,
           code,
           id: specifier,
@@ -212,7 +216,7 @@ export function deno(): Plugin {
       const code = new TextDecoder().decode(result.code);
 
       const maybeJsx = babelTransform({
-        ssr: !!options?.ssr,
+        ssr: this.environment.config.consumer === "server",
         media: result.mediaType,
         id,
         code,
@@ -230,10 +234,10 @@ export function deno(): Plugin {
       filter: {
         id: JSX_REG,
       },
-      async handler(_, id, options) {
+      async handler(_, id) {
         // This transform is a hack to be able to re-use Deno's precompile
         // jsx transform.
-        if (!options?.ssr) {
+        if (this.environment.name === "client") {
           return;
         }
 
@@ -384,10 +388,10 @@ function babelTransform(
   const result = babel.transformSync(code, {
     filename: id,
     babelrc: false,
-    sourceMaps: "inline",
+    sourceMaps: "both",
     presets: presets,
     plugins: [httpAbsolute(url)],
-    compact: true,
+    compact: false,
   });
 
   if (result !== null && result.code) {

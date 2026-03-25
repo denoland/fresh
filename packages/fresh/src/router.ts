@@ -42,7 +42,7 @@ export interface RouteResult<T> {
 
 export interface Router<T> {
   add(
-    method: Method | "OPTIONS" | "ALL",
+    method: Method | "ALL",
     pathname: string,
     handlers: T[],
   ): void;

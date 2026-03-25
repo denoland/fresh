@@ -35,14 +35,15 @@ export interface ClientSnapshot {
   entry: string;
 }
 
+/** Configuration options for Fresh when using the Vite plugin */
 export interface FreshViteConfig {
-  /** Path to main server entry file. Default: main.ts */
+  /** Path to main server entry file. Default: `main.ts` */
   serverEntry?: string;
-  /** Path to main client entry file. Default: client.ts */
+  /** Path to main client entry file. Default: `client.ts` */
   clientEntry?: string;
-  /** Path to islands directory. Default: ./islands */
+  /** Path to islands directory. Default: `./islands` */
   islandsDir?: string;
-  /** Path to routes directory. Default: ./routes */
+  /** Path to routes directory. Default: `./routes` */
   routeDir?: string;
   /**
    * Ignore file paths matching any of the provided regexes when
@@ -54,6 +55,13 @@ export interface FreshViteConfig {
    * islands from remote packages.
    */
   islandSpecifiers?: string[];
+  /**
+   * A list of checks that will be performed for imports.
+   *
+   * Can be used to warn or error when certain imports exist in
+   * server or client code. Useful to enforce that some dependencies
+   * are not imported in Islands running in the browser.
+   */
   checkImports?: ImportCheck[];
 }
 

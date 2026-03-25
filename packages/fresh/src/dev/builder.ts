@@ -213,7 +213,7 @@ export class Builder<State = any> {
    * This can also be used for testing to apply a snapshot to a particular
    * {@linkcode App} instance.
    *
-   * @example
+   * @example Testing
    * ```ts
    * const builder = new Builder();
    * const applySnapshot = await builder.build({ snapshot: "memory" });

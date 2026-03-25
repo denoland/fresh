@@ -11,6 +11,7 @@ export default defineConfig({
     }),
     tailwind(),
   ],
+  future: "warn",
   // build: {
   //   rollupOptions: {
   //     output: {
