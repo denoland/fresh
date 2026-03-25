@@ -188,7 +188,9 @@ export async function updateProject(dir: string) {
   }
 
   // deno-lint-ignore no-console
-  console.log(colors.cyan(`📁 Found ${filesToProcess.length} files to process`));
+  console.log(
+    colors.cyan(`📁 Found ${filesToProcess.length} files to process`),
+  );
 
   if (filesToProcess.length === 0) {
     // deno-lint-ignore no-console
