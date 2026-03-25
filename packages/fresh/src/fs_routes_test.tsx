@@ -14,6 +14,7 @@ import * as path from "@std/path";
 
 async function createServer<T>(
   files: Record<string, string | Uint8Array | FreshFsMod<T>>,
+  mountPath?: string,
 ): Promise<FakeServer> {
   const fs = createFakeFs(files);
 
@@ -26,7 +27,7 @@ async function createServer<T>(
   });
 
   const app = new App<T>()
-    .fsRoutes();
+    .fsRoutes(mountPath);
 
   const buildCache = new MockBuildCache<T>(fsFiles, "development");
   setBuildCache<T>(app, buildCache, "development");
@@ -63,15 +64,25 @@ Deno.test("fsRoutes - registers HTTP methods on router", async () => {
     const name = method.toLowerCase() as Lowercase<Method>;
     const res = await server[name]("/all");
     expect(res.status).toEqual(200);
-    expect(await res.text()).toEqual(method);
+
+    if (method === "HEAD") {
+      expect(res.body).toEqual(null);
+    } else {
+      expect(await res.text()).toEqual(method);
+    }
   }
 
   // Check individual routes
   for (const method of methods) {
     const lower = method.toLowerCase() as Lowercase<Method>;
     const res = await server[lower](`/${lower}`);
+
     expect(res.status).toEqual(200);
-    expect(await res.text()).toEqual(method);
+    if (method === "HEAD") {
+      expect(res.body).toEqual(null);
+    } else {
+      expect(await res.text()).toEqual(method);
+    }
 
     // Check that all other methods are forbidden
     for (const other of methods) {
@@ -79,8 +90,14 @@ Deno.test("fsRoutes - registers HTTP methods on router", async () => {
 
       const name = other.toLowerCase() as Lowercase<Method>;
       const res = await server[name](`/${lower}`);
+
       await res.body?.cancel();
-      expect(res.status).toEqual(405);
+      if (method === "GET" && other === "HEAD") {
+        // GET route + HEAD request should return 200
+        expect(res.status).toEqual(200);
+      } else {
+        expect(res.status).toEqual(405);
+      }
     }
   }
 });
@@ -96,7 +113,12 @@ Deno.test("fsRoutes - registers fn handler for every method", async () => {
     const name = method.toLowerCase() as Lowercase<Method>;
     const res = await server[name]("/all");
     expect(res.status).toEqual(200);
-    expect(await res.text()).toEqual("ok");
+
+    if (method === "HEAD") {
+      expect(res.body).toEqual(null);
+    } else {
+      expect(await res.text()).toEqual("ok");
+    }
   }
 
   // Check individual routes
@@ -104,7 +126,12 @@ Deno.test("fsRoutes - registers fn handler for every method", async () => {
     const lower = method.toLowerCase() as Lowercase<Method>;
     const res = await server[lower]("/all");
     expect(res.status).toEqual(200);
-    expect(await res.text()).toEqual("ok");
+
+    if (method === "HEAD") {
+      expect(res.body).toEqual(null);
+    } else {
+      expect(await res.text()).toEqual("ok");
+    }
   }
 });
 
@@ -1563,4 +1590,74 @@ Deno.test("fsRoutes - merge group methods", async () => {
 
   res = await server.post("/bar");
   expect(await res.text()).toEqual("POST ok");
+});
+
+Deno.test("fsRoutes - ignores test files in routes folder", async () => {
+  const fs = createFakeFs({
+    "routes/index.tsx": {
+      default: () => <>index</>,
+    },
+    "routes/index_test.tsx": {
+      default: () => <>index_test</>,
+    },
+    "routes/foo_test.ts": {
+      handler: () => new Response("foo_test"),
+    },
+    "routes/bar.test.ts": {
+      handler: () => new Response("bar_test"),
+    },
+    "routes/baz.test.tsx": {
+      default: () => <>baz_test</>,
+    },
+    "routes/qux_test.js": {
+      handler: () => new Response("qux_test"),
+    },
+    "routes/valid.tsx": {
+      default: () => <>valid</>,
+    },
+  });
+
+  const TEST_FILE_PATTERN = /[._]test\.(?:[tj]sx?|[mc][tj]s)$/;
+  const routeDir = path.join(fs.cwd(), "routes");
+  const rawFiles = await crawlRouteDir(
+    fs,
+    routeDir,
+    [TEST_FILE_PATTERN],
+    () => {},
+  );
+
+  // Only index.tsx and valid.tsx should be found, test files should be filtered out
+  expect(rawFiles.length).toEqual(2);
+  expect(rawFiles.some((f) => f.filePath.includes("index.tsx"))).toBe(true);
+  expect(rawFiles.some((f) => f.filePath.includes("valid.tsx"))).toBe(true);
+
+  // Ensure none of the test files are included
+  expect(rawFiles.some((f) => f.filePath.includes("index_test.tsx"))).toBe(
+    false,
+  );
+  expect(rawFiles.some((f) => f.filePath.includes("foo_test.ts"))).toBe(false);
+  expect(rawFiles.some((f) => f.filePath.includes("bar.test.ts"))).toBe(false);
+  expect(rawFiles.some((f) => f.filePath.includes("baz.test.tsx"))).toBe(false);
+  expect(rawFiles.some((f) => f.filePath.includes("qux_test.js"))).toBe(false);
+});
+
+Deno.test("fsRoutes - pattern argument", async () => {
+  const server = await createServer({
+    "routes/index.ts": {
+      handler: {
+        GET: () => new Response("ok"),
+      },
+    },
+    "routes/foo.ts": {
+      handler: {
+        GET: () => new Response("ok"),
+      },
+    },
+  }, "/mount");
+
+  let res = await server.get("/mount");
+  expect(await res.text()).toEqual("ok");
+
+  res = await server.get("/mount/foo");
+  expect(await res.text()).toEqual("ok");
 });

@@ -307,6 +307,44 @@ Deno.test({
 });
 
 Deno.test({
+  name: "vite dev - route css import",
+  fn: async () => {
+    await withBrowser(async (page) => {
+      await page.goto(`${demoServer.address()}/tests/css`, {
+        waitUntil: "networkidle2",
+      });
+
+      await waitFor(async () => {
+        const color = await page
+          .locator("h1")
+          // deno-lint-ignore no-explicit-any
+          .evaluate((el) => window.getComputedStyle(el as any).color);
+        expect(color).toEqual("rgb(255, 0, 0)");
+        return true;
+      });
+    });
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
+  name: "vite dev - nested islands",
+  fn: async () => {
+    await withBrowser(async (page) => {
+      await page.goto(`${demoServer.address()}/tests/island_nested`, {
+        waitUntil: "networkidle2",
+      });
+
+      await page.locator(".outer-ready").wait();
+      await page.locator(".inner-ready").wait();
+    });
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
   name: "vite dev - remote island",
   fn: async () => {
     const fixture = path.join(FIXTURE_DIR, "remote_island");
@@ -383,6 +421,28 @@ Deno.test({
 });
 
 Deno.test({
+  name: "vite dev - redis",
+  fn: async () => {
+    const res = await fetch(`${demoServer.address()}/tests/redis`);
+    const text = await res.text();
+    expect(text).toContain("<h1>redis</h1>");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite dev - @supabase/postgres-js",
+  fn: async () => {
+    const res = await fetch(`${demoServer.address()}/tests/supabase_pg`);
+    const text = await res.text();
+    expect(text).toContain("<h1>supabase</h1>");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
   name: "vite dev - radix",
   fn: async () => {
     const res = await fetch(`${demoServer.address()}/tests/radix`);
@@ -394,45 +454,124 @@ Deno.test({
 });
 
 Deno.test({
+  name: "vite dev - qs",
+  fn: async () => {
+    const res = await fetch(`${demoServer.address()}/tests/qs`);
+    const text = await res.text();
+    expect(text).toContain("<h1>qs</h1>");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite dev - stripe",
+  fn: async () => {
+    const res = await fetch(`${demoServer.address()}/tests/stripe`);
+    const text = await res.text();
+    expect(text).toContain("<h1>stripe</h1>");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite dev - static index.html",
+  fn: async () => {
+    const res = await fetch(`${demoServer.address()}/test_static/foo`);
+    const text = await res.text();
+    expect(text).toContain("<h1>ok</h1>");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite dev - load .env files",
+  fn: async () => {
+    const res = await fetch(`${demoServer.address()}/tests/env_files`);
+    const json = await res.json();
+    expect(json).toEqual({
+      MY_ENV: "MY_ENV test value",
+      VITE_MY_ENV: "VITE_MY_ENV test value",
+      MY_LOCAL_ENV: "MY_LOCAL_ENV test value",
+      VITE_MY_LOCAL_ENV: "VITE_MY_LOCAL_ENV test value",
+    });
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite dev - support _middleware Array",
+  fn: async () => {
+    const res = await fetch(`${demoServer.address()}/tests/middlewares`);
+    const text = await res.text();
+    expect(text).toEqual("AB");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite dev - support jsx namespace",
+  fn: async () => {
+    const res = await fetch(`${demoServer.address()}/tests/jsx_namespace`);
+    const text = await res.text();
+    expect(text).toContain(`xml:space="preserve"`);
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite dev - source mapped stack traces",
+  fn: async () => {
+    const res = await fetch(`${demoServer.address()}/tests/throw`);
+    const text = await res.text();
+    expect(text).toContain("throw.tsx:5:11");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
   name: "vite dev - client side <Head>",
   fn: async () => {
-    await launchDevServer(DEMO_DIR, async (address) => {
-      await withBrowser(async (page) => {
-        await page.goto(`${address}/tests/head_counter`, {
-          waitUntil: "networkidle2",
-        });
+    await withBrowser(async (page) => {
+      await page.goto(`${demoServer.address()}/tests/head_counter`, {
+        waitUntil: "networkidle2",
+      });
 
-        await page.locator(".ready").wait();
-        await page.locator("button").click();
-        await waitForText(page, ".result", "Count: 1");
+      await page.locator(".ready").wait();
+      await page.locator("button").click();
+      await waitForText(page, ".result", "Count: 1");
 
-        await waitFor(async () => {
-          const title = await page.evaluate(() => document.title);
-          expect(title).toEqual("Count: 1");
-          return true;
-        });
+      await waitFor(async () => {
+        const title = await page.evaluate(() => document.title);
+        expect(title).toEqual("Count: 1");
+        return true;
+      });
 
-        await page.goto(`${address}/tests/head_meta`, {
-          waitUntil: "networkidle2",
-        });
+      await page.goto(`${demoServer.address()}/tests/head_meta`, {
+        waitUntil: "networkidle2",
+      });
 
-        await page.locator(".ready").wait();
+      await page.locator(".ready").wait();
 
-        // await new Promise((r) => setTimeout(r, 200000));
-        await waitFor(async () => {
-          const custom = await page
-            .locator("meta[name='custom']")
-            // deno-lint-ignore no-explicit-any
-            .evaluate((el: any) => el.content);
-          expect(custom).toEqual("ok");
+      await waitFor(async () => {
+        const custom = await page
+          .locator("meta[name='custom']")
+          // deno-lint-ignore no-explicit-any
+          .evaluate((el: any) => el.content);
+        expect(custom).toEqual("ok");
 
-          const custom2 = await page
-            .locator("meta[name='custom-new']")
-            // deno-lint-ignore no-explicit-any
-            .evaluate((el: any) => el.content);
-          expect(custom2).toEqual("ok");
-          return true;
-        });
+        const custom2 = await page
+          .locator("meta[name='custom-new']")
+          // deno-lint-ignore no-explicit-any
+          .evaluate((el: any) => el.content);
+        expect(custom2).toEqual("ok");
+        return true;
       });
     });
   },

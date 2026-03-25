@@ -3,6 +3,7 @@ import {
   generateServerEntry,
   type PendingStaticFile,
   prepareStaticFile,
+  writeCompiledEntry,
 } from "fresh/internal-dev";
 import { pathWithRoot, type ResolvedFreshViteConfig } from "../utils.ts";
 import * as path from "@std/path";
@@ -13,22 +14,38 @@ export function serverEntryPlugin(
   const modName = "fresh:server_entry";
 
   let serverEntry = "";
+  let serverEntryFilename = "";
   let serverOutDir = "";
   let clientOutDir = "";
   let root = "";
+  let basePath = "";
 
   let isDev = false;
 
+  const getAssetPath = (id: string): string => {
+    if (basePath === "/") {
+      return `/${id}`;
+    }
+    // Ensure basePath ends with / and construct the path manually to avoid platform-specific path issues
+    const normalizedBase = basePath.endsWith("/") ? basePath : basePath + "/";
+    return normalizedBase + id;
+  };
+
   return {
     name: "fresh:server_entry",
+    sharedDuringBuild: true,
     applyToEnvironment(env) {
-      return env.name === "ssr";
+      return env.config.consumer === "server";
     },
     config(_, env) {
       isDev = env.command === "serve";
     },
     configResolved(config) {
       root = config.root;
+      basePath = config.base || "/";
+      if (basePath !== "/" && !basePath.endsWith("/")) {
+        basePath += "/";
+      }
       serverEntry = pathWithRoot(options.serverEntry, config.root);
       serverOutDir = pathWithRoot(
         config.environments.ssr.build.outDir,
@@ -61,7 +78,7 @@ export function serverEntryPlugin(
         });
 
         code += `
-      
+
 export function registerStaticFile(prepared) {
   snapshot.staticFiles.set(prepared.name, {
     name: prepared.name,
@@ -73,7 +90,12 @@ export function registerStaticFile(prepared) {
 
         if (isDev) {
           code = `import "preact/debug";
+import { setErrorInterceptor as internalErrorIntercept } from "fresh/internal";
 ${code}
+
+export function setErrorInterceptor(fn) {
+  internalErrorIntercept(app, fn);
+}
 if (import.meta.hot) import.meta.hot.accept();`;
         }
 
@@ -91,6 +113,10 @@ if (import.meta.hot) import.meta.hot.accept();`;
         const json = JSON.parse(manifest.source) as Manifest;
 
         for (const item of Object.values(json)) {
+          if (item.isEntry) {
+            serverEntryFilename = item.file;
+          }
+
           if (item.assets) {
             for (let i = 0; i < item.assets.length; i++) {
               const id = item.assets[i];
@@ -98,7 +124,7 @@ if (import.meta.hot) import.meta.hot.accept();`;
               staticFiles.push({
                 filePath: path.join(serverOutDir, id),
                 hash: null,
-                pathname: `/${id}`,
+                pathname: getAssetPath(id),
               });
             }
           }
@@ -110,7 +136,7 @@ if (import.meta.hot) import.meta.hot.accept();`;
               staticFiles.push({
                 filePath: path.join(serverOutDir, id),
                 hash: null,
-                pathname: `/${id}`,
+                pathname: getAssetPath(id),
               });
             }
           }
@@ -131,7 +157,9 @@ if (import.meta.hot) import.meta.hot.accept();`;
       const outDir = path.dirname(serverOutDir);
       await Deno.writeTextFile(
         path.join(outDir, "server.js"),
-        `import server, { registerStaticFile } from "./server/server-entry.mjs";
+        `import server, { registerStaticFile } from "./server/${
+          serverEntryFilename || "server-entry.mjs"
+        }";
 
 ${registered.join("\n")}
 
@@ -140,6 +168,8 @@ export default {
 };
 `,
       );
+
+      await writeCompiledEntry(outDir);
     },
   };
 }

@@ -10,22 +10,25 @@ export function clientEntryPlugin(options: ResolvedFreshViteConfig): Plugin {
 
   return {
     name: "fresh:client-entry",
+    sharedDuringBuild: true,
     config(_, env) {
       isDev = env.command === "serve";
     },
     applyToEnvironment(env) {
-      return env.name === "client";
+      return env.config.consumer === "client";
     },
     configResolved(config) {
       clientEntry = pathWithRoot(options.clientEntry, config.root);
     },
     resolveId: {
       filter: {
-        id: /(fresh:client-entry|fresh:client-entry-user)/,
+        id: /(fresh:client-entry|fresh:client-entry-user|fresh:client-quirks)/,
       },
       handler(id) {
         if (id === modName) {
           return `\0${modName}`;
+        } else if (id === "fresh:client-quirks") {
+          return "@fresh/plugin-vite/client";
         } else if (id === modNameUser) {
           return clientEntry;
         }
@@ -48,17 +51,7 @@ export function clientEntryPlugin(options: ResolvedFreshViteConfig): Plugin {
 ${isDev ? 'import "preact/debug"' : ""}
 export * from "fresh/runtime-client";
 ${exists ? `import "fresh:client-entry-user";` : ""}
-
-if (import.meta.hot) {
-  import.meta.hot.accept(() => {
-    console.log("accepting")
-  });
-  import.meta.hot.on("fresh:reload", ev => {
-    console.log(ev)
-    window.location.reload();
-  });
-}
-`;
+import "@fresh/plugin-vite/client";`;
       },
     },
   };

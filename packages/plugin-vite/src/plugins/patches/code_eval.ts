@@ -3,7 +3,7 @@ import type { PluginObj, PluginPass, types } from "@babel/core";
 const APPLY_PG_QUIRKS = "applyPgQuirks";
 
 export function codeEvalPlugin(
-  env: "ssr" | "client",
+  env: "server" | "client",
   mode: string,
 ) {
   return (
@@ -34,32 +34,6 @@ export function codeEvalPlugin(
             }
           },
         },
-        CallExpression: {
-          enter(path) {
-            if (
-              t.isMemberExpression(path.node.callee) &&
-              t.isIdentifier(path.node.callee.object) &&
-              t.isIdentifier(path.node.callee.property) &&
-              path.node.callee.object.name === "Object" &&
-              path.node.callee.property.name === "defineProperty" &&
-              path.node.arguments.length >= 2
-            ) {
-              const args = path.node.arguments;
-
-              if (
-                t.isIdentifier(args[0]) && args[0].name === "exports" ||
-                t.isMemberExpression(args[0]) &&
-                  t.isIdentifier(args[0].object) &&
-                  t.isIdentifier(args[0].property) &&
-                  args[0].object.name === "module" &&
-                  args[0].property.name === "exports" &&
-                  t.isStringLiteral(args[1]) && args[1].value === "native"
-              ) {
-                path.remove();
-              }
-            }
-          },
-        },
       },
     };
   };
@@ -67,7 +41,7 @@ export function codeEvalPlugin(
 
 function evaluateExpr(
   t: typeof types,
-  env: "client" | "ssr",
+  env: "server" | "client",
   mode: string,
   node: types.Node,
   state: PluginPass,
@@ -102,9 +76,9 @@ function evaluateExpr(
       node.right.value === "undefined"
     ) {
       if (node.operator === "==" || node.operator === "===") {
-        return env !== "ssr";
+        return env !== "server";
       } else if (node.operator === "!=" || node.operator === "!==") {
-        return env === "ssr";
+        return env === "server";
       }
     } else if (
       // Workaround for npm:pg
@@ -151,7 +125,7 @@ function evaluateExpr(
       if (result !== null) return result;
     } else if (
       // Check: process.foo === "bar"
-      env === "ssr" && t.isMemberExpression(node.left) &&
+      env === "server" && t.isMemberExpression(node.left) &&
       t.isIdentifier(node.left.object) && node.left.object.name === "process" &&
       t.isIdentifier(node.left.property) &&
       !PROCESS_PROPERTIES.has(node.left.property.name)

@@ -4,6 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 import inspect from "vite-plugin-inspect";
 import { copy } from "@std/fs";
 import * as path from "@std/path";
+import { pathWithRoot } from "../packages/plugin-vite/src/utils.ts";
 
 export default defineConfig({
   plugins: [
@@ -20,10 +21,13 @@ function copyDocs(): Plugin {
   return {
     name: "fresh:copy-docs",
     configResolved(config) {
-      serverOutDir = config.environments.ssr.build.outDir;
+      serverOutDir = pathWithRoot(
+        config.environments.ssr.build.outDir,
+        config.root,
+      );
     },
     async writeBundle() {
-      const branches = ["canary", "latest"];
+      const branches = ["canary", "latest", "1.x"];
 
       for (const branch of branches) {
         const source = path.join(import.meta.dirname!, "..", "docs", branch);

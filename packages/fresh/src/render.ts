@@ -61,6 +61,7 @@ export type PageProps<Data = unknown, T = unknown> =
     | "isPartial"
     | "Component"
     | "error"
+    | "route"
   >
   & { data: Data };
 
@@ -85,6 +86,7 @@ export async function renderRouteComponent<State>(
     req: ctx.req,
     state: ctx.state,
     url: ctx.url,
+    route: ctx.route,
   };
 
   if (isAsyncAnyComponent(def.component)) {

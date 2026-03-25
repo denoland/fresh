@@ -1,4 +1,7 @@
 import type { NodePath, PluginObj, types } from "@babel/core";
+import { builtinModules } from "node:module";
+
+const BUILTINS = new Set(builtinModules);
 
 export function cjsPlugin(
   { types: t }: { types: typeof types },
@@ -11,9 +14,20 @@ export function cjsPlugin(
   const ALIASED = "aliased";
   const REEXPORT = "re-export";
   const NEEDS_REQUIRE_IMPORT = "needsRequireImport";
+  const IS_ESM = "isESM";
 
   return {
     name: "fresh-cjs-esm",
+    pre(file) {
+      const filename = file.opts.filename;
+      if (filename) {
+        if (filename.endsWith(".mjs") || filename.endsWith(".cts")) {
+          this.set(IS_ESM, true);
+        } else if (filename.endsWith(".cjs") || filename.endsWith(".cts")) {
+          this.set(IS_ESM, false);
+        }
+      }
+    },
     visitor: {
       Program: {
         enter(path, state) {
@@ -21,8 +35,29 @@ export function cjsPlugin(
           state.set(EXPORTED, new Set<string>());
           state.set(EXPORTED_NAMESPACES, new Set<string>());
           state.set(REEXPORT, null);
+
+          path.traverse({
+            Import(_path, state) {
+              state.set(IS_ESM, true);
+            },
+            ImportDeclaration(_path, state) {
+              state.set(IS_ESM, true);
+            },
+            ExportAllDeclaration(_path, state) {
+              state.set(IS_ESM, true);
+            },
+            ExportDefaultDeclaration(_path, state) {
+              state.set(IS_ESM, true);
+            },
+            ExportNamedDeclaration(_path, state) {
+              state.set(IS_ESM, true);
+            },
+          }, state);
         },
         exit(path, state) {
+          const isESM = state.get(IS_ESM);
+          if (isESM) return;
+
           const body = path.get("body");
           const requires = state.get(REQUIRE_CALLS);
           if (requires !== undefined) {
@@ -42,6 +77,7 @@ export function cjsPlugin(
           const exported = state.get(EXPORTED);
           const exportedNs = state.get(EXPORTED_NAMESPACES);
           const needsRequireImport = state.get(NEEDS_REQUIRE_IMPORT);
+          const hasEsModule = state.get(HAS_ES_MODULE);
 
           if (needsRequireImport) {
             // Inject:
@@ -98,7 +134,28 @@ export function cjsPlugin(
             );
           }
 
-          if (exported.size > 0 || exportedNs.size > 0) {
+          if (exported.size > 0 || exportedNs.size > 0 || hasEsModule) {
+            path.unshiftContainer(
+              "body",
+              t.expressionStatement(
+                t.callExpression(
+                  t.memberExpression(
+                    t.identifier("Object"),
+                    t.identifier("defineProperty"),
+                  ),
+                  [
+                    t.identifier("exports"),
+                    t.stringLiteral("__esModule"),
+                    t.objectExpression([
+                      t.objectProperty(
+                        t.identifier("value"),
+                        t.booleanLiteral(true),
+                      ),
+                    ]),
+                  ],
+                ),
+              ),
+            );
             path.unshiftContainer(
               "body",
               t.expressionStatement(
@@ -153,18 +210,13 @@ export function cjsPlugin(
             );
           }
 
-          const exportNamed = new Map<string, string>();
-
           const idExports: types.ExportSpecifier[] = [];
           for (const name of exported) {
             if (name === "default") {
-              exportNamed.set(name, name);
               continue;
             }
 
             const id = path.scope.generateUidIdentifier(name);
-
-            exportNamed.set(id.name, name);
 
             path.pushContainer(
               "body",
@@ -191,52 +243,144 @@ export function cjsPlugin(
             );
           }
 
-          if (exportNamed.size > 0 || exportedNs.size > 0) {
+          if (exported.size > 0 || exportedNs.size > 0 || hasEsModule) {
             const id = path.scope.generateUidIdentifier("__default");
 
             path.pushContainer(
               "body",
-              t.variableDeclaration("const", [
+              t.variableDeclaration("let", [
                 t.variableDeclarator(
                   id,
-                  t.logicalExpression(
-                    "??",
-                    t.memberExpression(
-                      t.identifier("exports"),
-                      t.identifier("default"),
-                    ),
-                    t.identifier("exports"),
-                  ),
                 ),
               ]),
             );
 
-            for (const [local, exported] of exportNamed.entries()) {
-              if (exported === "default") continue;
-
-              path.pushContainer(
-                "body",
-                t.expressionStatement(
-                  t.assignmentExpression(
-                    "=",
-                    t.memberExpression(id, t.identifier(exported)),
-                    t.identifier(local),
+            path.pushContainer(
+              "body",
+              t.ifStatement(
+                t.logicalExpression(
+                  "&&",
+                  t.logicalExpression(
+                    "&&",
+                    t.binaryExpression(
+                      "===",
+                      t.unaryExpression("typeof", t.identifier("exports")),
+                      t.stringLiteral("object"),
+                    ),
+                    t.binaryExpression(
+                      "!==",
+                      t.identifier("exports"),
+                      t.nullLiteral(),
+                    ),
+                  ),
+                  t.binaryExpression(
+                    "in",
+                    t.stringLiteral("default"),
+                    t.identifier("exports"),
                   ),
                 ),
-              );
-            }
+                t.blockStatement([
+                  t.expressionStatement(
+                    t.assignmentExpression(
+                      "=",
+                      id,
+                      t.memberExpression(
+                        t.identifier("exports"),
+                        t.identifier("default"),
+                      ),
+                    ),
+                  ),
+                ]),
+                t.blockStatement([
+                  t.expressionStatement(
+                    t.assignmentExpression("=", id, t.identifier("exports")),
+                  ),
+                ]),
+              ),
+            );
 
             for (let i = 0; i < mappedNs.length; i++) {
               const mapped = mappedNs[i];
+
+              const key = path.scope.generateUid("k");
               path.pushContainer(
                 "body",
-                t.expressionStatement(
-                  t.callExpression(
-                    t.memberExpression(
-                      t.identifier("Object"),
-                      t.identifier("assign"),
+                t.ifStatement(
+                  t.logicalExpression(
+                    "&&",
+                    t.logicalExpression(
+                      "&&",
+                      t.binaryExpression(
+                        "===",
+                        t.unaryExpression("typeof", t.identifier("exports")),
+                        t.stringLiteral("object"),
+                      ),
+                      t.binaryExpression(
+                        "!==",
+                        t.identifier("exports"),
+                        t.nullLiteral(),
+                      ),
                     ),
-                    [t.cloneNode(id, true), t.identifier(mapped)],
+                    t.unaryExpression(
+                      "!",
+                      t.binaryExpression(
+                        "in",
+                        t.stringLiteral("default"),
+                        t.identifier("exports"),
+                      ),
+                    ),
+                  ),
+                  t.forInStatement(
+                    t.variableDeclaration("var", [
+                      t.variableDeclarator(t.identifier(key)),
+                    ]),
+                    t.identifier(mapped),
+                    t.ifStatement(
+                      t.logicalExpression(
+                        "&&",
+                        t.logicalExpression(
+                          "&&",
+                          t.binaryExpression(
+                            "!==",
+                            t.identifier(key),
+                            t.stringLiteral("default"),
+                          ),
+                          t.binaryExpression(
+                            "!==",
+                            t.identifier(key),
+                            t.stringLiteral("__esModule"),
+                          ),
+                        ),
+                        t.callExpression(
+                          t.memberExpression(
+                            t.memberExpression(
+                              t.memberExpression(
+                                t.identifier("Object"),
+                                t.identifier("prototype"),
+                              ),
+                              t.identifier("hasOwnProperty"),
+                            ),
+                            t.identifier("call"),
+                          ),
+                          [t.identifier(mapped), t.identifier(key)],
+                        ),
+                      ),
+                      t.expressionStatement(
+                        t.assignmentExpression(
+                          "=",
+                          t.memberExpression(
+                            t.cloneNode(id, true),
+                            t.identifier(key),
+                            true,
+                          ),
+                          t.memberExpression(
+                            t.identifier(mapped),
+                            t.identifier(key),
+                            true,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               );
@@ -256,17 +400,33 @@ export function cjsPlugin(
             );
           }
 
-          if (body.length === 0 && state.get(HAS_ES_MODULE)) {
+          if (body.length === 0 && hasEsModule) {
             path.pushContainer("body", t.exportNamedDeclaration(null));
+          } else if (hasEsModule) {
+            path.pushContainer(
+              "body",
+              t.exportNamedDeclaration(
+                t.variableDeclaration(
+                  "var",
+                  [t.variableDeclarator(
+                    t.identifier("__esModule"),
+                    t.memberExpression(
+                      t.identifier("exports"),
+                      t.identifier("__esModule"),
+                    ),
+                  )],
+                ),
+              ),
+            );
           }
         },
       },
       CallExpression(path, state) {
+        if (state.get(IS_ESM)) return;
         const exported = state.get(EXPORTED);
 
         if (isObjEsModuleFlag(t, path.node)) {
           state.set(HAS_ES_MODULE, true);
-          path.remove();
           return;
         }
 
@@ -280,7 +440,8 @@ export function cjsPlugin(
           const mods = state.get(REQUIRE_CALLS) ?? [];
           state.set(REQUIRE_CALLS, mods);
 
-          if (t.isStringLiteral(path.node.arguments[0])) {
+          const source = path.node.arguments[0];
+          if (t.isStringLiteral(source)) {
             // Check if we can hoist it or if we need to keep it.
             let canImport = true;
             let parent: NodePath | null = path.parentPath;
@@ -310,13 +471,9 @@ export function cjsPlugin(
                 path.parentPath?.get("id").isIdentifier() ||
               path.parentPath?.isCallExpression()
             ) {
-              path.replaceWith(
-                t.logicalExpression(
-                  "??",
-                  t.memberExpression(
-                    t.cloneNode(id, true),
-                    t.identifier("__require"),
-                  ),
+              // Vite json processing always adds a default property.
+              if (source.value.endsWith(".json")) {
+                path.replaceWith(
                   t.logicalExpression(
                     "??",
                     t.memberExpression(
@@ -325,8 +482,52 @@ export function cjsPlugin(
                     ),
                     t.cloneNode(id, true),
                   ),
-                ),
-              );
+                );
+              } else if (
+                path.parentPath?.isCallExpression() &&
+                t.isIdentifier(path.parentPath.node.callee) &&
+                path.parentPath.node.callee.name === "__importDefault"
+              ) {
+                if (isNodeBuiltin(source.value)) {
+                  path.replaceWith(t.objectExpression([
+                    t.objectProperty(
+                      t.identifier("__esModule"),
+                      t.booleanLiteral(true),
+                    ),
+                    t.objectProperty(
+                      t.identifier("default"),
+                      t.logicalExpression(
+                        "??",
+                        t.memberExpression(
+                          t.cloneNode(id, true),
+                          t.identifier("default"),
+                        ),
+                        t.cloneNode(id, true),
+                      ),
+                    ),
+                  ]));
+                } else {
+                  path.replaceWith(t.cloneNode(id, true));
+                }
+              } else {
+                path.replaceWith(
+                  t.logicalExpression(
+                    "??",
+                    t.memberExpression(
+                      t.cloneNode(id, true),
+                      t.identifier("__require"),
+                    ),
+                    t.logicalExpression(
+                      "??",
+                      t.memberExpression(
+                        t.cloneNode(id, true),
+                        t.identifier("default"),
+                      ),
+                      t.cloneNode(id, true),
+                    ),
+                  ),
+                );
+              }
               return;
             }
 
@@ -354,6 +555,7 @@ export function cjsPlugin(
       },
       MemberExpression: {
         exit(path, state) {
+          if (state.get(IS_ESM)) return;
           if (
             t.isIdentifier(path.node.object) &&
             path.node.object.name === "exports" &&
@@ -369,21 +571,17 @@ export function cjsPlugin(
       },
       ExpressionStatement: {
         enter(path, state) {
+          if (state.get(IS_ESM)) return;
           // Check: Object.defineProperty(module.exports) "__esModule" ...)
           // Check: Object.defineProperty(exports) "__esModule" ...)
+          // Check: a({}, "__esModule", ...)
           if (
             t.isCallExpression(path.node.expression) &&
-            t.isMemberExpression(path.node.expression.callee) &&
-            t.isIdentifier(path.node.expression.callee.object) &&
-            t.isIdentifier(path.node.expression.callee.property) &&
-            path.node.expression.callee.object.name === "Object" &&
-            path.node.expression.callee.property.name === "defineProperty" &&
-            path.node.expression.arguments.length >= 2 &&
+            path.node.expression.arguments.length === 3 &&
             t.isStringLiteral(path.node.expression.arguments[1]) &&
             path.node.expression.arguments[1].value === "__esModule"
           ) {
             state.set(HAS_ES_MODULE, true);
-            path.remove();
             return;
           }
 
@@ -521,6 +719,7 @@ export function cjsPlugin(
           }
         },
         exit(path, state) {
+          if (state.get(IS_ESM)) return;
           const exported = state.get(EXPORTED);
           const expr = path.get("expression");
 
@@ -529,9 +728,9 @@ export function cjsPlugin(
 
             if (isEsModuleFlag(t, expr.node)) {
               state.set(HAS_ES_MODULE, true);
-              path.remove();
             } else if (left.isMemberExpression()) {
               if (isModuleExports(t, left.node)) {
+                // Should always try to create synthetic default export in this case.
                 exported.add("default");
 
                 if (t.isObjectExpression(expr.node.right)) {
@@ -558,7 +757,6 @@ export function cjsPlugin(
           } else if (expr.isCallExpression()) {
             if (isObjEsModuleFlag(t, expr.node)) {
               state.set(HAS_ES_MODULE, true);
-              path.remove();
             }
           }
         },
@@ -568,7 +766,9 @@ export function cjsPlugin(
           path.remove();
         }
       },
-      ConditionalExpression(path) {
+      ConditionalExpression(path, state) {
+        if (state.get(IS_ESM)) return;
+
         if (
           t.isBinaryExpression(path.node.test) &&
           t.isUnaryExpression(path.node.test.left) &&
@@ -581,6 +781,8 @@ export function cjsPlugin(
         }
       },
       AssignmentExpression(path, state) {
+        if (state.get(IS_ESM)) return;
+
         const exported = state.get(EXPORTED);
         const aliased = state.get(ALIASED);
         if (aliased === undefined) return;
@@ -647,17 +849,16 @@ function isObjEsModuleFlag(
   t: typeof types,
   node: types.CallExpression,
 ): boolean {
-  return t.isMemberExpression(node.callee) &&
-    t.isIdentifier(node.callee.object) &&
-    node.callee.object.name === "Object" &&
-    t.isIdentifier(node.callee.property) &&
-    node.callee.property.name === "defineProperty" &&
-    node.arguments.length === 3 &&
-    (t.isMemberExpression(node.arguments[0]) &&
-        isModuleExports(t, node.arguments[0]) ||
-      t.isIdentifier(node.arguments[0]) &&
-        node.arguments[0].name === "exports") &&
+  return node.arguments.length === 3 &&
     t.isStringLiteral(node.arguments[1]) &&
     node.arguments[1].value === "__esModule" &&
     t.isObjectExpression(node.arguments[2]);
+}
+
+function isNodeBuiltin(specifier: string): boolean {
+  return BUILTINS.has(specifier) || (
+    specifier.startsWith("node:")
+      ? BUILTINS.has(specifier.slice("node:".length))
+      : BUILTINS.has(`node:${specifier}`)
+  );
 }
