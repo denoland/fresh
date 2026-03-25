@@ -42,7 +42,7 @@ export const handlers = define.handlers({
   },
 });
 
-export default define.page<typeof handler>(function Subscribe() {
+export default define.page<typeof handlers>(function Subscribe() {
   return (
     <>
       <form method="post">
@@ -88,7 +88,7 @@ export const handler = define.handlers({
   },
 });
 
-export default define.page<typeof handlers>(function Upload(props) {
+export default define.page<typeof handler>(function Upload(props) {
   const { message } = props.data;
   return (
     <>
