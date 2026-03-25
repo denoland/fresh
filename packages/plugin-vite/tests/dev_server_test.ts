@@ -38,7 +38,6 @@ Deno.test({
     const text = await res.text();
     expect(text).toContain("it works");
 
-    // test space
     const resWithSpace = await fetch(
       `${demoServer.address()}/test%20%2520encodeUri/foo%20%2520encodeUri.txt`,
     );

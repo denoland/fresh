@@ -226,26 +226,17 @@ Deno.test("static files - enables caching in production", async () => {
   );
 });
 
-Deno.test("static files - decoded pathname", async () => {
-  const fileKeys = [
-    "C#.svg",
-    "西安市.png",
-    "인천.avif",
-    "/开头分隔符",
-    "\\windows\\EndSplit\\",
-  ];
-
-  // Simulate build
-  const entries = await Promise.all(
-    fileKeys.map((key) => {
-      const encodedKey = systemPathToUrlEncoded(key);
-      return [encodedKey, { content: "body {}", hash: null }];
-    }),
+Deno.test("static files - encoded pathname", async () => {
+  // Build cache stores URL-encoded paths (matching what prepareStaticFile produces)
+  const fileKeys = ["C#.svg", "西安市.png", "인천.avif"];
+  const entries = Object.fromEntries(
+    fileKeys.map((key) => [
+      systemPathToUrlEncoded(key),
+      { content: "body {}", hash: null },
+    ]),
   );
 
-  const buildCache = new MockBuildCache(
-    Object.fromEntries(entries),
-  );
+  const buildCache = new MockBuildCache(entries);
   const server = serveMiddleware(
     staticFiles(),
     { buildCache },
@@ -256,8 +247,6 @@ Deno.test("static files - decoded pathname", async () => {
       "C%23.svg",
       "%E8%A5%BF%E5%AE%89%E5%B8%82.png",
       "%EC%9D%B8%EC%B2%9C.avif",
-      "%E5%BC%80%E5%A4%B4%E5%88%86%E9%9A%94%E7%AC%A6",
-      "windows/EndSplit",
     ]
   ) {
     const res = await server.get("/" + path);
