@@ -12,13 +12,4 @@ export default defineConfig({
     tailwind(),
   ],
   future: "warn",
-  // build: {
-  //   rollupOptions: {
-  //     output: {
-  //       chunkFileNames: `[hash].mjs`,
-  //       entryFileNames: `[hash].mjs`,
-  //       assetFileNames: `[hash].[ext]`,
-  //     },
-  //   },
-  // },
 });
