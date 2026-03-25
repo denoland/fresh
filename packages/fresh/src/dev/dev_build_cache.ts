@@ -142,7 +142,7 @@ export class MemoryBuildCache<State> implements DevBuildCache<State> {
       for (let i = 0; i < transformed.length; i++) {
         const file = transformed[i];
         const relative = path.relative(this.#config.staticDir, file.path);
-        if (relative.startsWith(".")) {
+        if (relative.startsWith("..")) {
           throw new Error(
             `Processed file resolved outside of static dir ${file.path}`,
           );
@@ -158,7 +158,7 @@ export class MemoryBuildCache<State> implements DevBuildCache<State> {
       try {
         const filePath = path.join(this.#config.staticDir, pathname);
         const relative = path.relative(this.#config.staticDir, filePath);
-        if (!relative.startsWith(".") && (await Deno.stat(filePath)).isFile) {
+        if (!relative.startsWith("..") && (await Deno.stat(filePath)).isFile) {
           const pathname = new URL(relative, "http://localhost").pathname;
           this.addUnprocessedFile(pathname, this.#config.staticDir);
           return this.readFile(pathname);
@@ -301,8 +301,9 @@ export class DiskBuildCache<State> implements DevBuildCache<State> {
         includeDirs: false,
         includeFiles: true,
         followSymlinks: false,
-        // Skip any folder or file starting with a "."
-        skip: [/\/\.[^/]+(\/|$)/],
+        // Skip any folder or file starting with a ".", but allow
+        // ".well-known" for things like PWA manifests
+        skip: [/\/\.(?!well-known)[^/]+(\/|$)/],
       });
 
       for await (const entry of entries) {

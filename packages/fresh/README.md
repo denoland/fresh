@@ -5,3 +5,27 @@ Standards. It’s designed for building high-quality, performant, and personaliz
 web applications.
 
 [Learn more about Fresh](https://fresh.deno.dev/)
+
+## Usage
+
+Generate a new Fresh project with `@fresh/init`:
+
+```sh
+deno run -Ar jsr:@fresh/init
+```
+
+Add middleware, routes, & endpoints as needed via the `routes/` folder or
+directly on the `App` instance.
+
+```tsx
+import { App } from "fresh";
+
+const app = new App()
+  .get("/", () => new Response("hello world"))
+  .get("/jsx", (ctx) => ctx.render(<h1>render JSX!</h1>));
+
+app.listen();
+```
+
+For more information on getting started with Fresh, head on over to the
+[documentation](https://fresh.deno.dev/docs/introduction).

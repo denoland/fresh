@@ -34,6 +34,9 @@ jobs:
           cache: true
           deno-version: ${{ matrix.deno }}
 
+      - name: Install dependencies
+        run: deno install
+
       - name: Verify formatting
         if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v2.x'
         run: deno fmt --check

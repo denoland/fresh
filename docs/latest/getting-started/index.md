@@ -12,7 +12,7 @@ command:
 deno run -Ar jsr:@fresh/init
 ```
 
-This will span a short wizard that guides you through the setup, like the
+This will spawn a short wizard that guides you through the setup, like the
 project name, if you want to use tailwindcss and if you're using vscode. Your
 project folder should look like this:
 
@@ -28,13 +28,43 @@ project folder should look like this:
 │   ├── _app.tsx        # Renders the outer <html> content structure
 │   └── index.tsx       # Renders /
 ├── static/             # Contains static assets like css, logos, etc
-│   └── ...       
+│   └── ...
 │
 ├── client.ts       # Client entry file that's loaded on every page.
 ├── main.ts         # The server entry file of your app
 ├── deno.json       # Contains dependencies, tasks, etc
 └── vite.config.ts  # Vite configuration file
 ```
+
+## Path aliases
+
+Your new project comes with a `@/` path alias pre-configured in `deno.json`.
+This allows you to use absolute imports from your project root instead of
+relative paths:
+
+```tsx routes/about.tsx
+// With @/ alias
+import { define } from "@/utils.ts";
+import { Button } from "@/components/Button.tsx";
+
+// Without alias (relative paths)
+import { define } from "../utils.ts";
+import { Button } from "../components/Button.tsx";
+```
+
+The `@/` alias is configured in your `deno.json` imports section:
+
+```json deno.json
+{
+  "imports": {
+    "@/": "./"
+    // ... other imports
+  }
+}
+```
+
+This makes imports cleaner and easier to refactor, especially as your project
+grows.
 
 Run the `dev` task to launch your app in development mode:
 
@@ -46,13 +76,17 @@ Go to the URL printed in the terminal to view your app.
 
 ![Screenshot of the newly initialized Fresh app showing a counter](/docs/getting-started-1-init.jpg)
 
+> [info]: If you encounter any problems during setup or development, check the
+> [troubleshooting guide](/docs/latest/advanced/troubleshooting) for common
+> issues and solutions.
+
 ## Creating our first route
 
 Let's create a new about page at `/about`. We can do that by adding a new file
 at `routes/about.tsx`.
 
 ```tsx routes/about.tsx
-import { define } from "../utils.ts";
+import { define } from "@/utils.ts";
 
 export default define.page(() => {
   return (
@@ -105,8 +139,8 @@ export function Countdown(props: { target: string }) {
 Let's add the countdown to our about page:
 
 ```tsx routes/about.tsx
-import { define } from "../utils.ts";
-import { Countdown } from "../islands/Countdown.tsx";
+import { define } from "@/utils.ts";
+import { Countdown } from "@/islands/Countdown.tsx";
 
 export default define.page(() => {
   return (

@@ -134,7 +134,28 @@ export function cjsPlugin(
             );
           }
 
-          if (exported.size > 0 || exportedNs.size > 0) {
+          if (exported.size > 0 || exportedNs.size > 0 || hasEsModule) {
+            path.unshiftContainer(
+              "body",
+              t.expressionStatement(
+                t.callExpression(
+                  t.memberExpression(
+                    t.identifier("Object"),
+                    t.identifier("defineProperty"),
+                  ),
+                  [
+                    t.identifier("exports"),
+                    t.stringLiteral("__esModule"),
+                    t.objectExpression([
+                      t.objectProperty(
+                        t.identifier("value"),
+                        t.booleanLiteral(true),
+                      ),
+                    ]),
+                  ],
+                ),
+              ),
+            );
             path.unshiftContainer(
               "body",
               t.expressionStatement(
@@ -467,20 +488,24 @@ export function cjsPlugin(
                 t.isIdentifier(path.parentPath.node.callee) &&
                 path.parentPath.node.callee.name === "__importDefault"
               ) {
-                if (
-                  BUILTINS.has(source.value) ||
-                    source.value.startsWith("node:")
-                    ? BUILTINS.has(source.value.slice("node:".length))
-                    : BUILTINS.has(`node:${source.value}`)
-                ) {
-                  path.replaceWith(t.logicalExpression(
-                    "??",
-                    t.memberExpression(
-                      t.cloneNode(id, true),
-                      t.identifier("default"),
+                if (isNodeBuiltin(source.value)) {
+                  path.replaceWith(t.objectExpression([
+                    t.objectProperty(
+                      t.identifier("__esModule"),
+                      t.booleanLiteral(true),
                     ),
-                    t.cloneNode(id, true),
-                  ));
+                    t.objectProperty(
+                      t.identifier("default"),
+                      t.logicalExpression(
+                        "??",
+                        t.memberExpression(
+                          t.cloneNode(id, true),
+                          t.identifier("default"),
+                        ),
+                        t.cloneNode(id, true),
+                      ),
+                    ),
+                  ]));
                 } else {
                   path.replaceWith(t.cloneNode(id, true));
                 }
@@ -828,4 +853,12 @@ function isObjEsModuleFlag(
     t.isStringLiteral(node.arguments[1]) &&
     node.arguments[1].value === "__esModule" &&
     t.isObjectExpression(node.arguments[2]);
+}
+
+function isNodeBuiltin(specifier: string): boolean {
+  return BUILTINS.has(specifier) || (
+    specifier.startsWith("node:")
+      ? BUILTINS.has(specifier.slice("node:".length))
+      : BUILTINS.has(`node:${specifier}`)
+  );
 }
