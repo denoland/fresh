@@ -507,6 +507,31 @@ Deno.test({
 });
 
 Deno.test({
+  name: "vite build - custom rollup entryFileNames in server.js",
+  fn: async () => {
+    await using res = await buildVite(DEMO_DIR, {
+      rollupOutput: {
+        entryFileNames: "[hash].mjs",
+        chunkFileNames: "[hash].mjs",
+      },
+    });
+
+    const serverJs = await Deno.readTextFile(
+      path.join(res.tmp, "_fresh", "server.js"),
+    );
+
+    // When custom entryFileNames is set, server.js should use the actual
+    // hashed filename from the manifest, not hardcoded "server-entry.mjs"
+    expect(serverJs).not.toContain("server-entry.mjs");
+    expect(serverJs).toMatch(
+      /from "\.\/server\/[a-zA-Z0-9_-]+\.mjs"/,
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
   name: "vite build - env files",
   fn: async () => {
     await launchProd(
