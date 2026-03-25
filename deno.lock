@@ -4013,8 +4013,8 @@
     "https://esm.sh/@docsearch/js@3.5.2/es2020/js.mjs": "964600b3c133bccfa6a5ffa240e8272a08eeff22f5fea6993aa085cfc9e4d750",
     "https://esm.sh/@docsearch/js@3.5.2?target=es2020": "4bad084f771a1923fe042ece62a9078f482f8642cb0b1acb890905e58586fee7",
     "https://raw.githubusercontent.com/denoland/ga4/main/mod.ts": "36f72ba1c90b5ebdb811427f367cd95fa6772d2de2fb45d6e57550501ee6d476",
-    "https://raw.githubusercontent.com/denoland/std/refs/heads/main/_tools/check_docs.ts": "e0bf3d0ddbea93e769f0ad24f16ef2c42311c489165c9e0de9d0876d0411ffdc",
-    "https://raw.githubusercontent.com/denoland/std/refs/heads/main/_tools/utils.ts": "c2e38ed7e7a9a8c0fbaf8d70aa808fb02f2cbb5e71ef18d634feb4b479c6a001"
+    "https://raw.githubusercontent.com/denoland/std/refs/heads/main/_tools/check_docs.ts": "7b87b9503a45f9a197382fbc308637d16906918653628a9ab4bc7388938c851b",
+    "https://raw.githubusercontent.com/denoland/std/refs/heads/main/_tools/utils.ts": "22441d7c8460b2f23ac48b0362178a1d60f9d06ead2496bd397363e6a1ce9105"
   },
   "workspace": {
     "dependencies": [
