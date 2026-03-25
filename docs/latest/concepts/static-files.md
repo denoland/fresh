@@ -22,20 +22,20 @@ When using Fresh with Vite (now the default), **files that you import in your
 JavaScript/TypeScript code should not be placed in the `static/` folder**. This
 prevents file duplication during the build process.
 
-```tsx client.ts
-// ❌ Don't import from static/
+```tsx
+// Don't import from static/
 import "./static/styles.css";
 
-// ✅ Import from outside static/ (e.g., assets/)
+// Import from outside static/ (e.g., assets/)
 import "./assets/styles.css";
 ```
 
 **Rule of thumb:**
 
-- Files **imported in code** (CSS, icons, etc.) → Place outside `static/` (e.g.,
+- Files **imported in code** (CSS, icons, etc.) -- place outside `static/` (e.g.,
   in an `assets/` folder)
 - Files **referenced by URL path** (favicon.ico, fonts, robots.txt, PDFs, etc.)
-  → Place in `static/`
+  -- place in `static/`
 
 When you import a file in your code, Vite processes it through its build
 pipeline, optimizes it, and adds a content hash to the filename for cache
