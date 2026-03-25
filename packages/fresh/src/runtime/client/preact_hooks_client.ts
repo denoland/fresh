@@ -96,9 +96,6 @@ options.vnode = (vnode) => {
           // deno-lint-ignore no-explicit-any
           const v = vnode as VNode<any>;
           const props = vnode.props;
-          // deno-lint-ignore no-explicit-any
-          delete (props as any)._freshPatched;
-
           const key = vnode.key;
           v.type = WrappedHead;
           v.props = {

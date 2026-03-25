@@ -157,7 +157,6 @@ Deno.test("Head - ssr - merge keyed", async () => {
 });
 
 Deno.test({
-  ignore: true, // Temporarily until client perf is fixed
   name: "Head - client - set title",
   fn: async () => {
     const app = new App({})
@@ -180,7 +179,6 @@ Deno.test({
 });
 
 Deno.test({
-  ignore: true, // Temporarily until client perf is fixed
   name: "Head - client - match meta",
   fn: async () => {
     const app = new App({})
@@ -204,9 +202,6 @@ Deno.test({
           ) => ({ name: el.name, content: el.content }));
         });
 
-        // deno-lint-ignore no-console
-        console.log(metas);
-
         expect(metas).toEqual([
           { name: "foo", content: "ok" },
           { name: "bar", content: "not ok" },
@@ -220,7 +215,6 @@ Deno.test({
 });
 
 Deno.test({
-  ignore: true, // Temporarily until client perf is fixed
   name: "Head - client - match style by id",
   fn: async () => {
     const app = new App({})
@@ -244,9 +238,6 @@ Deno.test({
           ) => ({ id: el.id, text: el.textContent }));
         });
 
-        // deno-lint-ignore no-console
-        console.log(styles);
-
         expect(styles).toEqual([
           { id: "", text: "not ok" },
           { id: "style-id", text: "ok" },
@@ -260,7 +251,6 @@ Deno.test({
 });
 
 Deno.test({
-  ignore: true, // Temporarily until client perf is fixed
   name: "Head - client - match key",
   fn: async () => {
     const app = new App({})
@@ -286,9 +276,6 @@ Deno.test({
             text: el.content.textContent,
           }));
         });
-
-        // deno-lint-ignore no-console
-        console.log(tpls);
 
         expect(tpls).toEqual([
           { key: "a", text: "ok" },
