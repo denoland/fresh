@@ -7,9 +7,9 @@ import { walk } from "@std/fs/walk";
 
 export const SyntaxKind = tsmorph.ts.SyntaxKind;
 
-export const FRESH_VERSION = "2.2.0";
-export const PREACT_VERSION = "10.27.2";
-export const PREACT_SIGNALS_VERSION = "2.5.0";
+export const FRESH_VERSION = "2.2.1";
+export const PREACT_VERSION = "10.28.3";
+export const PREACT_SIGNALS_VERSION = "2.7.1";
 
 // Paths we never want to process or surface in logs. Used both for walking the
 // tree (skip) and for hiding vendor-ish paths from user-facing summaries.
