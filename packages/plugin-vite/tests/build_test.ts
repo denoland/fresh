@@ -566,3 +566,38 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+Deno.test({
+  name: "vite build - excludes test files from routes",
+  fn: async () => {
+    const fixture = path.join(FIXTURE_DIR, "test_files_exclusion");
+    await using res = await buildVite(fixture);
+
+    // Verify that test files in routes/ are not bundled
+    const serverAssetsDir = path.join(res.tmp, "_fresh", "server", "assets");
+
+    // List all compiled route files
+    const files: string[] = [];
+    for await (const entry of Deno.readDir(serverAssetsDir)) {
+      if (entry.isFile && entry.name.startsWith("_fresh-route")) {
+        files.push(entry.name);
+      }
+    }
+
+    // Should have index route but NOT test files
+    expect(files.some((f) => f.includes("_fresh-route___index"))).toBe(true);
+    expect(files.some((f) => f.includes("index_test"))).toBe(false);
+    expect(files.some((f) => f.includes("foo.test"))).toBe(false);
+
+    // Verify no test pattern files at all
+    // Note: files with "_test" or ".test" in their name (not just a "tests" folder)
+    const testPatterns = ["_test.", "_test-", ".test."];
+    for (const file of files) {
+      for (const pattern of testPatterns) {
+        expect(file.includes(pattern)).toBe(false);
+      }
+    }
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});

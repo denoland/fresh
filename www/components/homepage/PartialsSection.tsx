@@ -8,7 +8,7 @@ import { ExampleArrow } from "../../components/homepage/ExampleArrow.tsx";
 import { RecipeDemo } from "../../components/homepage/RecipeDemo.tsx";
 import { FancyLink } from "../../components/FancyLink.tsx";
 
-const islandCode = `import { Partial } from "$fresh/runtime.ts";
+const islandCode = `import { Partial } from "fresh/runtime";
 
 export const Recipes = () => (
   <div f-client-nav>

@@ -52,11 +52,10 @@ To deploy the project to the live internet, you can use
 [Deno Deploy](https://deno.com/deploy):
 
 1. Push your project to GitHub.
-2. [Create a Deno Deploy project](https://dash.deno.com/new).
-3. [Link](https://docs.deno.com/deploy/manual/#deploy-your-project) the Deno
-   Deploy project to the **`main.ts`** file in the root of the created
-   repository.
-4. The project will be deployed to a public $project.deno.dev subdomain.
+2. [Create a Deno Deploy project.](https://console.deno.com/new)
+3. Select your GitHub repository.
+4. The project will be deployed to a public $project.$username.deno.net
+   subdomain with no configuration necessary.
 
 For a more in-depth getting started guide, visit the
 [Getting Started](https://fresh.deno.dev/docs/getting-started) page in the Fresh
