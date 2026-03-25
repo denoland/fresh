@@ -16,7 +16,7 @@ Here is an overview of the basic concepts in Fresh:
 - [**App**](/docs/concepts/app) - Holds all the information about your app, like
   routes, etc
 - [**Middleware**](/docs/concepts/middleware) - Respond to a request and return
-  a `Response`. Used to set headers, or pass state to other middelwares. When a
+  a `Response`. Used to set headers, or pass state to other middlewares. When a
   middleware doesn't call the next one and returns a response, it's usually
   called a "handler".
 - [**Context**](/docs/concepts/context) - Passed through every middleware. Use
