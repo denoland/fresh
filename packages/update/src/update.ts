@@ -11,10 +11,10 @@ export const FRESH_VERSION = "2.2.1";
 export const PREACT_VERSION = "10.28.3";
 export const PREACT_SIGNALS_VERSION = "2.7.1";
 
-// Paths we never want to process or surface in logs. Used both for walking the
-// tree (skip) and for hiding vendor-ish paths from user-facing summaries.
+// Directories to skip when walking the project tree. Covers hidden directories,
+// dependency caches, and common build output folders.
 const SKIP_DIRS =
-  /(?:[\\/]\.[^\\/]+(?:[\\/]|$)|[\\/](node_modules|vendor|docs|\.git|\.next|\.turbo|_fresh|dist|build|target|\.cache)(?:[\\/]|$))/;
+  /(?:[\\/]\.[^\\/]+(?:[\\/]|$)|[\\/](node_modules|vendor|\.git|\.next|\.turbo|_fresh|dist|target|\.cache)(?:[\\/]|$))/;
 export interface DenoJson {
   lock?: boolean;
   tasks?: Record<string, string>;
@@ -174,10 +174,8 @@ export async function updateProject(dir: string) {
   // Update routes folder
   const project = new tsmorph.Project();
 
-  // First pass: collect file paths so we can size the progress bar and avoid
-  // walking the tree twice.
+  // Collect file paths so we can size the progress bar.
   const filesToProcess: string[] = [];
-  let userFileCount = 0;
   for await (
     const entry of walk(dir, {
       includeDirs: false,
@@ -187,14 +185,12 @@ export async function updateProject(dir: string) {
     })
   ) {
     filesToProcess.push(entry.path);
-    if (!SKIP_DIRS.test(entry.path)) userFileCount++;
   }
-  const totalFiles = filesToProcess.length;
 
   // deno-lint-ignore no-console
-  console.log(colors.cyan(`📁 Found ${userFileCount} files to process`));
+  console.log(colors.cyan(`📁 Found ${filesToProcess.length} files to process`));
 
-  if (totalFiles === 0) {
+  if (filesToProcess.length === 0) {
     // deno-lint-ignore no-console
     console.log(colors.green("🎉 Migration completed successfully!"));
     return;
@@ -209,7 +205,7 @@ export async function updateProject(dir: string) {
 
   // Create a progress bar
   const bar = new ProgressBar({
-    max: totalFiles,
+    max: filesToProcess.length,
     formatter(x) {
       return `[${x.styledTime}] [${x.progressBar}] [${x.value}/${x.max} files]`;
     },
@@ -241,32 +237,25 @@ export async function updateProject(dir: string) {
   // Clear the progress line and add a newline
   await bar.stop();
 
-  // Filter modified files to show only user files
-  const modifiedFilesToShow = modifiedFilesList.filter((filePath) =>
-    !SKIP_DIRS.test(filePath)
-  );
-  const unmodifiedCount = Math.max(
-    userFileCount - modifiedFilesToShow.length,
-    0,
-  );
-
   // add migration summary
   // deno-lint-ignore no-console
   console.log("\n" + colors.bold("📊 Migration Summary:"));
   // deno-lint-ignore no-console
-  console.log(`   Total files processed: ${userFileCount}`);
+  console.log(`   Total files processed: ${filesToProcess.length}`);
   // deno-lint-ignore no-console
-  console.log(`   Successfully modified: ${modifiedFilesToShow.length}`);
+  console.log(`   Successfully modified: ${modifiedFilesList.length}`);
   // deno-lint-ignore no-console
   console.log(
-    `   Unmodified (no changes needed): ${unmodifiedCount}`,
+    `   Unmodified (no changes needed): ${
+      filesToProcess.length - modifiedFilesList.length
+    }`,
   );
 
-  // Display modified files list (filtered)
-  if (modifiedFilesToShow.length > 0) {
+  // Display modified files list
+  if (modifiedFilesList.length > 0) {
     // deno-lint-ignore no-console
     console.log("\n" + colors.bold("📝 Modified Files:"));
-    modifiedFilesToShow.forEach((filePath) => {
+    modifiedFilesList.forEach((filePath) => {
       // show relative path
       let relativePath = path.relative(dir, filePath);
       // Ensure consistent path separators for logging
