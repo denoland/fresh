@@ -1,10 +1,4 @@
-[  
-  {
-    "title": "TKD-Dzwirzyno",
-    "link": "https://tkddzwirzyno.pl",
-    "github": "alphatra/Website-TKDdzwirzyno",
-    "image": "TKD-DZWIRZYNO"
-  },
+[
   {
     "title": "JSR",
     "link": "https://jsr.io/",
@@ -455,5 +449,11 @@
     "title": "RockPaper",
     "link": "https://rockpaper.mcstech.dev",
     "image": "rock-paper"
+  },
+  {
+    "title": "TKD-Dzwirzyno",
+    "link": "https://tkddzwirzyno.pl",
+    "github": "alphatra/Website-TKDdzwirzyno",
+    "image": "TKD-DZWIRZYNO"
   }
 ]
