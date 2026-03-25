@@ -211,9 +211,8 @@ export async function updateProject(dir: string) {
     },
   });
 
-  // Second pass: process each file one-by-one to keep memory flat. We add a
-  // SourceFile, transform it, then immediately forget it so ts-morph releases
-  // the AST from memory.
+  // Process each file one-by-one to keep memory flat. We add a SourceFile,
+  // transform it, then immediately forget it so ts-morph releases the AST.
   for (const filePath of filesToProcess) {
     const sourceFile = project.addSourceFileAtPath(filePath);
     try {
