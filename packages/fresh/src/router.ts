@@ -105,7 +105,9 @@ export class UrlPatternRouter<T> implements Router<T> {
       byMethod = def.byMethod;
     }
 
-    byMethod[method] = item;
+    if (byMethod[method] === null) {
+      byMethod[method] = item;
+    }
   }
 
   match(method: Method, url: URL): RouteResult<T> {
