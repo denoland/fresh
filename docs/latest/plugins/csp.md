@@ -27,9 +27,9 @@ const app = new App()
 
 ## Nonce-based CSP
 
-For stricter security, you can use nonce-based CSP instead of
-`'unsafe-inline'`. This ensures only inline `<script>` and `<style>` tags
-rendered by Fresh are allowed to execute.
+For stricter security, you can use nonce-based CSP instead of `'unsafe-inline'`.
+This ensures only inline `<script>` and `<style>` tags rendered by Fresh are
+allowed to execute.
 
 ```ts main.ts
 import { csp } from "fresh";
