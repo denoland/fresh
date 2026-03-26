@@ -72,7 +72,7 @@ export type ListenOptions =
   & {
     remoteAddress?: string;
   };
-function createOnListen(
+export function createOnListen(
   basePath: string,
   options: ListenOptions,
 ): (localAddr: Deno.NetAddr) => void {
