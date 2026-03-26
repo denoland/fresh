@@ -35,7 +35,7 @@ export default define.page<typeof handler>(function ThanksForSubscribing(
             </p>
             <a
               href="/#forms-section"
-              class="flex items-center gap-2 max-w-max !mt-4 mx-auto pt-3 pb-2 px-4 border-[1.5px] border-current rounded"
+              class="flex items-center gap-2 max-w-max !mt-4 mx-auto pt-3 pb-2 px-4 border-[1.5px] border-current rounded-sm"
             >
               <svg
                 aria-hidden="true"

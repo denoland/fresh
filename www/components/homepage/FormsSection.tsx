@@ -8,23 +8,21 @@ import { ExampleArrow } from "../homepage/ExampleArrow.tsx";
 import { FancyLink } from "../FancyLink.tsx";
 import { FormSubmitDemo } from "../../islands/FormSubmitDemo.tsx";
 
-const routingCode = `import { Handlers } from "$fresh/server.ts";
+const routingCode = `import { define } from "../utils.ts";
 
-export const handler: Handlers = {
-  async POST(req) {
-    const form = await req.formData();
+export const handler = define.handlers({
+  async POST(ctx) {
+    const form = await ctx.req.formData();
 
     // Do something with the form data here,
     // then redirect user to thank you page
 
-    const headers = new Headers();
-    headers.set("location", "/thanks");
     return new Response(null, {
       status: 303,
-      headers,
+      headers: { location: "/thanks" },
     });
   },
-};`;
+});`;
 
 export function FormsSection() {
   return (
@@ -63,7 +61,7 @@ export function FormsSection() {
             <a href="https://deno.com" class="underline">Deno</a>, it's built on
             web standards.
           </p>
-          <FancyLink href="/docs/concepts/forms" class="mt-2">
+          <FancyLink href="/docs/advanced/forms" class="mt-2">
             Forms in Fresh
           </FancyLink>
         </div>

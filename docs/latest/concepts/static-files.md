@@ -3,49 +3,76 @@ description: |
   Fresh has built-in support for serving static files. This is useful for serving images, CSS, and other static assets.
 ---
 
-Fresh automatically serves static assets placed in a `static/` directory in the
-project root. These assets are served at the root of the webserver, with a
-higher priority than routes. This means that if a given request matches a file
-in the `static/` folder, it is always served, even if there is a route that
-would also match the request.
+Static assets placed in the `static/` directory are served at the root of the
+webserver via the `staticFiles()` middleware. They are streamed directly from
+disk for optimal performance with
+[`ETag`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/ETag)
+headers.
 
-Static asset responses automatically get a `content-type` header assigned based
-on the file extension of the file on disk. Assets are also automatically
-streamed from disk to the client to improve performance and efficiency for both
-user and server.
+```ts main.ts
+import { staticFiles } from "fresh";
 
-Fresh also adds an `etag` header to assets automatically and handles the
-`If-None-Match` header for incoming requests.
-
-### Caching
-
-By default, no caching headers are added to assets. This can be disadvantageous
-in many scenarios, so Fresh makes it easy to serve assets with long cache
-lifetimes too.
-
-The first approach to do this is manual. The client runtime exports an `asset`
-function that takes an absolute path to the static asset and returns a "locked"
-version of this path that contains a build ID for cache busting. When the asset
-is requested at this "locked" path, it will be served with a cache lifetime of
-one year.
-
-```jsx routes/page.tsx
-import { asset } from "$fresh/runtime.ts";
-
-export default function Page() {
-  return (
-    <p>
-      <a href={asset("/brochure.pdf")}>View brochure</a>
-    </p>
-  );
-}
+const app = new App()
+  .use(staticFiles());
 ```
 
-Fresh also does this automatically for `src` and `srcset` attributes in `<img>`
-and `<source>` HTML tags. These will automatically use "locked" paths if Fresh
-deems it safe to do so. You can always opt out of this behaviour per tag, by
-adding the `data-fresh-disable-lock` attribute.
+## Imported assets vs static files
 
-```jsx
-<img src="/user.png" />;
+When using Fresh with Vite (now the default), **files that you import in your
+JavaScript/TypeScript code should not be placed in the `static/` folder**. This
+prevents file duplication during the build process.
+
+```tsx
+// Don't import from static/
+import "./static/styles.css";
+
+// Import from outside static/ (e.g., assets/)
+import "./assets/styles.css";
+```
+
+**Rule of thumb:**
+
+- Files **imported in code** (CSS, icons, etc.): place outside `static/` (e.g.,
+  in an `assets/` folder)
+- Files **referenced by URL path** (favicon.ico, fonts, robots.txt, PDFs, etc.):
+  place in `static/`
+
+When you import a file in your code, Vite processes it through its build
+pipeline, optimizes it, and adds a content hash to the filename for cache
+busting. Keeping these files outside `static/` ensures they're only included
+once in your build output.
+
+## Caching headers
+
+By default, Fresh adds caching headers for the `src` and `srcset` attributes on
+`<img>` and `<source>` tags.
+
+```tsx main.tsx
+// Caching headers will be automatically added
+app.get("/user", (ctx) => ctx.render(<img src="/user.png" />));
+```
+
+You can always opt out of this behaviour per tag, by adding the
+`data-fresh-disable-lock` attribute.
+
+```tsx main.tsx
+// Opt-out of automatic caching headers
+app.get(
+  "/user",
+  (ctx) => ctx.render(<img src="/user.png" data-fresh-disable-lock />),
+);
+```
+
+## Adding caching headers manually
+
+Use the `asset()` function to add caching headers manually. It will be served
+with a cache lifetime of one year.
+
+```tsx routes/about.tsx
+import { asset } from "fresh/runtime";
+
+export default function About() {
+  // Adding caching headers manually
+  return <a href={asset("/brochure.pdf")}>View brochure</a>;
+}
 ```

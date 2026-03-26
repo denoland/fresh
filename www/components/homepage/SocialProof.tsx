@@ -6,7 +6,7 @@ export function SocialProof() {
   return (
     <PageSection>
       <div class="text-center max-w-max mx-auto flex flex-col gap-4">
-        <h2 class="text-gray-600 text-4xl sm:text-5xl md:text-6xl lg:text-7xl sm:tracking-tight sm:leading-[1.1]! font-extrabold text-balance">
+        <h2 class="text-gray-600 text-4xl sm:text-5xl md:text-6xl lg:text-7xl sm:tracking-tight sm:leading-[1.1] font-extrabold text-balance">
           Built for the edge
         </h2>
         <p class="text-xl text-balance max-w-prose mx-auto">
