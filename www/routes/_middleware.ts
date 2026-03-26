@@ -1,4 +1,4 @@
-import type { FreshContext } from "fresh";
+import type { Context } from "fresh";
 import type { Event } from "$ga4";
 import { GA4Report, isDocument, isServerError } from "$ga4";
 
@@ -6,9 +6,9 @@ const GA4_MEASUREMENT_ID = Deno.env.get("GA4_MEASUREMENT_ID");
 
 let showedMissingEnvWarning = false;
 
-function ga4(
+function ga4<T>(
   request: Request,
-  conn: FreshContext,
+  conn: Context<T>,
   response: Response,
   _start: number,
   error?: unknown,
@@ -87,8 +87,8 @@ function ga4(
   });
 }
 
-export async function handler(
-  ctx: FreshContext,
+export async function handler<T>(
+  ctx: Context<T>,
 ): Promise<Response> {
   let err;
   let res: Response;

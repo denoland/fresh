@@ -1,7 +1,11 @@
 _fresh/
-tmp/
+.vite/
 vendor/
 node_modules/
 .docs/
 .DS_Store
-tmp-*
+tmp_*
+coverage/
+vite-inspect/
+.vite-inspect/
+demo/dist/

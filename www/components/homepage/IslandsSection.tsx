@@ -32,7 +32,7 @@ export function IslandsSection() {
       <SideBySide
         mdColSplit="3/2"
         lgColSplit="3/2"
-        reverseOnDesktop={true}
+        reverseOnDesktop
         class="!items-start"
       >
         <div class="flex flex-col gap-4 md:sticky md:top-4">
@@ -80,7 +80,7 @@ export function IslandsSection() {
             />
           </CodeWindow>
           <ExampleArrow class="[transform:rotateY(-180deg)]" />
-          <DemoBox flip={true}>
+          <DemoBox flip>
             <Counter start={3} />
           </DemoBox>
         </div>

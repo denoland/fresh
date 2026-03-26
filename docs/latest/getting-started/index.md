@@ -5,20 +5,154 @@ description: |
   data, handle user interactions, and deploy it.
 ---
 
-In this chapter of the Fresh documentation, you'll be introduced to the
-framework. You'll learn how to create a new project, run it locally, edit and
-create pages, fetch data, handle user interactions, and how to then deploy the
-project to [Deno Deploy][deno-deploy].
+Let's set up your first Fresh project. To create a new project, run this
+command:
 
-The documentation assumes you have Deno 1.45.2 or later installed.
+```sh Terminal
+deno run -Ar jsr:@fresh/init
+```
 
-To install Deno, follow the
-[installation instructions in the Deno manual][manual-installation].
+This will spawn a short wizard that guides you through the setup, like the
+project name, if you want to use tailwindcss and if you're using vscode. Your
+project folder should look like this:
 
-For the best user experience, you should also set up your editor or IDE to play
-nice with Deno. Documentation for this can also be found
-[in the manual][manual-editors].
+```txt-files Project structure
+<project root>
+├── components/         # Store other components here. Can be named differently
+│   └── Button.tsx
+├── islands/            # Components that need JS to run client-side
+│   └── Counter.tsx
+├── routes/             # File system based routes
+│   ├── api/
+│   │   └── [name].tsx  # API route for /api/:name
+│   ├── _app.tsx        # Renders the outer <html> content structure
+│   └── index.tsx       # Renders /
+├── static/             # Contains static assets like css, logos, etc
+│   └── ...
+│
+├── client.ts       # Client entry file that's loaded on every page.
+├── main.ts         # The server entry file of your app
+├── deno.json       # Contains dependencies, tasks, etc
+└── vite.config.ts  # Vite configuration file
+```
 
-[deno-deploy]: https://deno.com/deploy
-[manual-installation]: https://deno.land/manual/getting_started/installation
-[manual-editors]: https://deno.land/manual/getting_started/setup_your_environment
+## Path aliases
+
+Your new project comes with a `@/` path alias pre-configured in `deno.json`.
+This allows you to use absolute imports from your project root instead of
+relative paths:
+
+```tsx routes/about.tsx
+// With @/ alias
+import { define } from "@/utils.ts";
+import { Button } from "@/components/Button.tsx";
+
+// Without alias (relative paths)
+import { define } from "../utils.ts";
+import { Button } from "../components/Button.tsx";
+```
+
+The `@/` alias is configured in your `deno.json` imports section:
+
+```json deno.json
+{
+  "imports": {
+    "@/": "./"
+    // ... other imports
+  }
+}
+```
+
+This makes imports cleaner and easier to refactor, especially as your project
+grows.
+
+Run the `dev` task to launch your app in development mode:
+
+```sh Terminal
+deno task dev
+```
+
+Go to the URL printed in the terminal to view your app.
+
+![Screenshot of the newly initialized Fresh app showing a counter](/docs/getting-started-1-init.jpg)
+
+> [info]: If you encounter any problems during setup or development, check the
+> [troubleshooting guide](/docs/latest/advanced/troubleshooting) for common
+> issues and solutions.
+
+## Creating our first route
+
+Let's create a new about page at `/about`. We can do that by adding a new file
+at `routes/about.tsx`.
+
+```tsx routes/about.tsx
+import { define } from "@/utils.ts";
+
+export default define.page(() => {
+  return (
+    <main>
+      <h1>About</h1>
+      <p>This is the about page.</p>
+    </main>
+  );
+});
+```
+
+If we navigate to `/about` in the browser we'll see our newly created page.
+
+![Screenshot of the /about route](/docs/getting-started-2-about.png)
+
+## Create an island
+
+We're going to create a countdown component that requires JavaScript to function
+in the browser.
+
+Create a new file at `islands/Countdown.tsx`
+
+```tsx islands/Countdown.tsx
+import { useSignal } from "@preact/signals";
+import { useEffect } from "preact/hooks";
+
+export function Countdown(props: { target: string }) {
+  const count = useSignal(10);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (count.value <= 0) {
+        clearInterval(timer);
+      }
+
+      count.value -= 1;
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  if (count.value <= 0) {
+    return <p>Countdown: 🎉</p>;
+  }
+
+  return <p>Countdown: {count}</p>;
+}
+```
+
+Let's add the countdown to our about page:
+
+```tsx routes/about.tsx
+import { define } from "@/utils.ts";
+import { Countdown } from "@/islands/Countdown.tsx";
+
+export default define.page(() => {
+  return (
+    <main>
+      <h1>About</h1>
+      <p>This is the about page.</p>
+      <Countdown />
+    </main>
+  );
+});
+```
+
+Now, we can see our countdown in action:
+
+![Screenshot of the countdown component](/docs/getting-started-3-cotuntdown.png)

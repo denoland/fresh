@@ -31,7 +31,11 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v2
         with:
+          cache: true
           deno-version: ${{ matrix.deno }}
+
+      - name: Install dependencies
+        run: deno install
 
       - name: Verify formatting
         if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v2.x'
@@ -50,3 +54,10 @@ jobs:
 
       - name: Run tests
         run: deno task test
+
+      - name: Check docs
+        run: deno task check:docs
+
+      - name: Build fresh.deno.dev
+        if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v2.x'
+        run: deno task build-www

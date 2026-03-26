@@ -28,7 +28,7 @@ export function ServerCodePage(
   );
 }
 
-export default function PageNotFound(props: PageProps) {
+export default function ErrorPage(props: PageProps) {
   const error = props.error;
   if (error instanceof HttpError) {
     if (error.status === 404) {
@@ -38,6 +38,9 @@ export default function PageNotFound(props: PageProps) {
       });
     }
   }
+
+  // deno-lint-ignore no-console
+  console.error(error);
 
   return ServerCodePage({
     serverCode: 500,

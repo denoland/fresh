@@ -1,4 +1,7 @@
-import FRESH_VERSIONS from "../versions.json" with { type: "json" };
+import FRESH_VERSIONS_1x from "../versions.json" with { type: "json" };
+import LATEST_VERSION_2 from "../packages/fresh/deno.json" with {
+  type: "json",
+};
 
 type RawTableOfContents = Record<
   string,
@@ -15,12 +18,9 @@ interface RawTableOfContentsEntry {
 }
 
 const toc: RawTableOfContents = {
-  canary: {
-    label: "canary",
+  latest: {
+    label: LATEST_VERSION_2.version,
     content: {
-      "the-canary-version": {
-        title: "The canary version",
-      },
       introduction: {
         title: "Introduction",
         link: "latest",
@@ -28,83 +28,89 @@ const toc: RawTableOfContents = {
       "getting-started": {
         title: "Getting Started",
         link: "latest",
-        pages: [
-          ["create-a-project", "Create a project", "link:latest"],
-          ["running-locally", "Running locally", "link:latest"],
-          ["create-a-route", "Create a route", "link:latest"],
-          ["dynamic-routes", "Dynamic routes", "link:latest"],
-          ["custom-handlers", "Custom handlers", "link:latest"],
-          ["form-submissions", "Form submissions", "link:latest"],
-          ["adding-interactivity", "Adding interactivity", "link:latest"],
-          ["deploy-to-production", "Deploy to production", "link:latest"],
-        ],
       },
       concepts: {
         title: "Concepts",
         link: "latest",
         pages: [
-          ["architecture", "Architecture", "link:latest"],
-          ["server-components", "Server Components", "link:latest"],
-          ["routing", "Routing", "link:latest"],
-          ["routes", "Routes", "link:latest"],
-          ["app-wrapper", "App wrapper", "link:latest"],
-          ["layouts", "Layouts", "link:latest"],
-          ["forms", "Forms", "link:latest"],
-          ["islands", "Interactive islands", "link:latest"],
-          ["static-files", "Static files", "link:latest"],
+          ["app", "App", "link:latest"],
           ["middleware", "Middlewares", "link:latest"],
-          ["error-pages", "Error pages", "link:latest"],
-          ["partials", "Partials", "link:latest"],
-          ["data-fetching", "Data fetching", "link:latest"],
-          ["ahead-of-time-builds", "Ahead-of-time Builds", "link:latest"],
-          ["deployment", "Deployment", "link:latest"],
-          ["plugins", "Plugins", "link:latest"],
-          ["updating", "Updating Fresh", "link:latest"],
-          ["server-configuration", "Server configuration", "link:latest"],
+          ["context", "Context", "link:latest"],
+
+          ["routing", "Routing", "link:latest"],
+
+          ["islands", "Islands", "link:latest"],
+          ["static-files", "Static files", "link:latest"],
+
+          ["file-routing", "File routing", "link:latest"],
         ],
       },
-      integrations: {
-        title: "Integrations",
+      advanced: {
+        title: "Advanced",
         link: "latest",
+        pages: [
+          ["app-wrapper", "App wrapper", "link:latest"],
+          ["layouts", "Layouts", "link:latest"],
+          ["error-handling", "Error handling", "link:latest"],
+          ["partials", "Partials", "link:latest"],
+          ["forms", "Forms", "link:latest"],
+          ["define", "Define Helpers", "link:latest"],
+          ["environment-variables", "Environment Variables", "link:latest"],
+          ["head", "Modifying <head>", "link:latest"],
+          ["vite", "Vite Plugin Options", "link:latest"],
+          ["troubleshooting", "Troubleshooting", "link:latest"],
+          ["builder", "Builder (Legacy)", "link:latest"],
+        ],
+      },
+      deployment: {
+        title: "Deployment",
+        link: "latest",
+        pages: [
+          ["deno-deploy", "Deno Deploy", "link:latest"],
+          ["deno-compile", "deno compile", "link:latest"],
+          ["docker", "Docker", "link:latest"],
+          ["cloudflare-workers", "Cloudflare Workers", "link:latest"],
+        ],
+      },
+      testing: {
+        title: "Testing",
+        link: "latest",
+      },
+      plugins: {
+        title: "Plugins",
+        link: "latest",
+        pages: [
+          ["cors", "cors", "link:latest"],
+          ["csrf", "csrf", "link:latest"],
+          ["csp", "csp", "link:latest"],
+          ["trailing-slashes", "trailingSlashes", "link:latest"],
+        ],
       },
       examples: {
         title: "Examples",
         link: "latest",
         pages: [
-          ["migration-guide", "Migration Guide", "link:canary"],
-          ["migrating-to-tailwind", "Migrating to Tailwind", "link:latest"],
-          ["modifying-the-head", "Modifying the <head>", "link:latest"],
-          ["writing-tests", "Writing tests", "link:latest"],
-          [
-            "changing-the-src-dir",
-            "Changing the source directory",
-            "link:latest",
-          ],
-          ["using-twind-v1", "Using Twind v1", "link:latest"],
-          ["init-the-server", "Initializing the server", "link:latest"],
-          [
-            "using-fresh-canary-version",
-            "Using Fresh canary version",
-            "link:latest",
-          ],
-          ["dealing-with-cors", "Dealing with CORS", "link:latest"],
-          ["creating-a-crud-api", "Creating a CRUD API", "link:latest"],
-          ["handling-complex-routes", "Handling complex routes", "link:latest"],
-          ["rendering-markdown", "Rendering markdown", "link:latest"],
+          ["migration-guide", "Migration Guide", "link:latest"],
+          ["daisyui", "daisyUI", "link:latest"],
+          ["markdown", "Rendering Markdown", "link:latest"],
           ["rendering-raw-html", "Rendering raw HTML", "link:latest"],
           [
             "sharing-state-between-islands",
             "Sharing state between islands",
             "link:latest",
           ],
-          ["using-csp", "Using CSP", "link:latest"],
-          ["active-links", "Styling active links", "link:latest"],
+          ["active-links", "Active links", "link:latest"],
+          ["session-management", "Session management", "link:latest"],
         ],
+      },
+      contributing: {
+        title: "Contributing",
+        link: "latest",
       },
     },
   },
-  latest: {
-    label: FRESH_VERSIONS[0],
+  "1.x": {
+    label: FRESH_VERSIONS_1x[0],
     content: {
       introduction: {
         title: "Introduction",

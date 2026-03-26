@@ -6,7 +6,7 @@ export function SocialProof() {
   return (
     <PageSection>
       <div class="text-center max-w-max mx-auto flex flex-col gap-4">
-        <h2 class="text-gray-600 text-4xl sm:text-5xl md:text-6xl lg:text-7xl sm:tracking-tight sm:leading-[1.1]! font-extrabold text-balance">
+        <h2 class="text-gray-600 text-4xl sm:text-5xl md:text-6xl lg:text-7xl sm:tracking-tight sm:leading-[1.1] font-extrabold text-balance">
           Built for the edge
         </h2>
         <p class="text-xl text-balance max-w-prose mx-auto">
@@ -25,7 +25,7 @@ export function SocialProof() {
         />
       </a>
       <div class="flex flex-col gap-8 items-center justify-center -mt-8 md:-mt-16 lg:-mt-32">
-        <DemoBox flip={true}>
+        <DemoBox flip>
           <blockquote class="text-center italic text-lg sm:text-xl md:text-2xl lg:text-2xl xl:text-3xl max-w-screen-md text-gray-700 text-balance font-normal border-l-yellow-300 mx-auto my-4">
             <span class="font-semibold inline-block transform scale-150 relative -left-3 top-1 leading-none">
               “

@@ -10,7 +10,6 @@ simplicity.
 
 Some stand-out features:
 
-- Just-in-time rendering on the edge.
 - Island based client hydration for maximum interactivity.
 - Zero runtime overhead: no JS is shipped to the client by default.
 - No configuration necessary.
@@ -24,39 +23,39 @@ The [documentation](https://fresh.deno.dev/docs/introduction) is available on
 
 ## 🚀 Getting started
 
-Install the latest [Deno CLI](https://deno.land/) version.
+Install the latest [Deno CLI](https://deno.com/) version.
 
 You can scaffold a new project by running the Fresh init script. To scaffold a
 project run the following:
 
 ```sh
-deno run -A -r https://fresh.deno.dev
+deno run -Ar jsr:@fresh/init
 ```
 
 Then navigate to the newly created project folder:
 
 ```
-cd deno-fresh-demo
+cd fresh-project
 ```
 
 From within your project folder, start the development server using the
 `deno task` command:
 
 ```
-deno task start
+deno task dev
 ```
 
-Now open http://localhost:8000 in your browser to view the page. You make
+Now open http://localhost:5173 in your browser to view the page. You make
 changes to the project source code and see them reflected in your browser.
 
 To deploy the project to the live internet, you can use
 [Deno Deploy](https://deno.com/deploy):
 
 1. Push your project to GitHub.
-2. [Create a Deno Deploy project](https://dash.deno.com/new).
-3. [Link](https://deno.com/deploy/docs/projects#enabling) the Deno Deploy
-   project to the **`main.ts`** file in the root of the created repository.
-4. The project will be deployed to a public $project.deno.dev subdomain.
+2. [Create a Deno Deploy project.](https://console.deno.com/new)
+3. Select your GitHub repository.
+4. The project will be deployed to a public $project.$username.deno.net
+   subdomain with no configuration necessary.
 
 For a more in-depth getting started guide, visit the
 [Getting Started](https://fresh.deno.dev/docs/getting-started) page in the Fresh
@@ -65,7 +64,7 @@ docs.
 ## Contributing
 
 We appreciate your help! To contribute, please read our
-[contributing instructions](https://deno.com/manual/references/contributing#submitting-a-pr-to-fresh).
+[contributing guideline](./.github/CONTRIBUTING.md).
 
 ## Adding your project to the showcase
 

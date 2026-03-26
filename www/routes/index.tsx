@@ -47,17 +47,15 @@ export const handler = define.handlers({
   },
 });
 
-export default define.page<typeof handler>(function MainPage(props) {
-  const origin = `${props.url.protocol}//${props.url.host}`;
-
+export default define.page<typeof handler>(function MainPage() {
   return (
-    <div class="flex flex-col min-h-screen">
+    <div class="flex flex-col min-h-screen bg-white">
       <div class="bg-transparent flex flex-col relative z-10">
         <HelloBar />
         <Header title="" active="/" />
       </div>
       <div class="flex flex-col -mt-20 relative">
-        <Hero origin={origin} />
+        <Hero />
         <Simple />
         <RenderingSection />
         <IslandsSection />
@@ -76,10 +74,9 @@ function HelloBar() {
   return (
     <a
       class="bg-gradient-to-r from-blue-200 to-yellow-200 via-green-300 text-black border-b border-green-400 p-4 text-center group"
-      href="https://deno.com/blog/fresh-1.6"
+      href="https://deno.com/blog/fresh-and-vite"
     >
-      <b>Fresh v1.6</b> has been released with <b>Tailwind CSS</b>,{" "}
-      <b>better Plugin API</b> and more{" "}
+      Fresh 2 <b>released with Vite</b>{" "}
       <span class="group-hover:underline">→</span>
     </a>
   );

@@ -12,7 +12,7 @@ export function SidebarCategory(props: {
     <li class="my-2 block">
       <a
         href={href}
-        class="text-gray-900 hover:text-gray-600 aria-[current]:text-green-700 aria-[current]:hover:underline font-bold"
+        class="text-foreground-secondary hover:text-gray-600 dark:hover:text-green-300 aria-[current]:text-fresh-green dark:aria-[current]:text-green-300 aria-[current]:hover:underline font-bold"
       >
         {title}
       </a>
@@ -36,7 +36,7 @@ export function SidebarEntry(props: {
     <li class="py-[1px]">
       <a
         href={href}
-        class="aria-[current]:text-green-700 aria-[current]:border-green-600 aria-[current]:bg-green-50 border-l-4 border-transparent px-4 py-0.5 transition-colors hover:text-green-500 font-normal block"
+        class="aria-[current]:text-fresh-green aria-[current]:border-green-600 dark:aria-[current]:text-green-300 aria-[current]:bg-fresh-green/5 dark:hover:text-green-300 border-l-4 border-transparent px-4 py-0.5 transition-colors hover:text-fresh-green/80 font-normal block"
       >
         {title}
       </a>
