@@ -1,8 +1,7 @@
 export { extractYaml as frontMatter } from "@std/front-matter";
 
 import * as Marked from "marked";
-import { HttpError } from "fresh";
-import { asset } from "fresh/runtime";
+import { asset, HttpError } from "fresh";
 import { escape as escapeHtml } from "@std/html";
 import { mangle } from "marked-mangle";
 import GitHubSlugger from "github-slugger";
