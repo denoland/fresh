@@ -276,7 +276,7 @@ Deno.test("static files - fallthrough", async () => {
     })
     .get("/", (ctx) => new Response(ctx.state.text));
 
-  setBuildCache(app, buildCache);
+  setBuildCache(app, buildCache, "production");
 
   const server = new FakeServer(app.handler());
 
