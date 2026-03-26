@@ -170,6 +170,99 @@ Deno.test("compileMiddlewares - lazy middlewares", async () => {
   expect(called).toEqual(1);
 });
 
+Deno.test("compileMiddlewares - single middleware", async () => {
+  const server = serveMiddleware<{ text: string }>(
+    compileMiddlewares([() => new Response("single")]),
+  );
+
+  const res = await server.get("/");
+  expect(await res.text()).toEqual("single");
+});
+
+Deno.test("compileMiddlewares - post-processing after next()", async () => {
+  type State = { text: string };
+
+  const middlewares: Middleware<State>[] = [
+    async (ctx) => {
+      const res = await ctx.next();
+      const text = await res.text();
+      return new Response(`wrapped(${text})`);
+    },
+    () => new Response("inner"),
+  ];
+
+  const server = serveMiddleware<State>(
+    compileMiddlewares(middlewares),
+  );
+
+  const res = await server.get("/");
+  expect(await res.text()).toEqual("wrapped(inner)");
+});
+
+Deno.test("compileMiddlewares - concurrent requests share compiled chain", async () => {
+  type State = { text: string };
+  let concurrency = 0;
+  let maxConcurrency = 0;
+
+  const middlewares: Middleware<State>[] = [
+    async (ctx) => {
+      concurrency++;
+      if (concurrency > maxConcurrency) maxConcurrency = concurrency;
+      // Yield to let other requests enter the middleware
+      await new Promise((r) => setTimeout(r, 10));
+      const res = await ctx.next();
+      concurrency--;
+      return res;
+    },
+    (ctx) => new Response(ctx.url.pathname),
+  ];
+
+  const compiled = compileMiddlewares(middlewares);
+  const server = serveMiddleware<State>(compiled);
+
+  // Fire concurrent requests
+  const results = await Promise.all([
+    server.get("/a").then((r) => r.text()),
+    server.get("/b").then((r) => r.text()),
+    server.get("/c").then((r) => r.text()),
+  ]);
+
+  expect(results).toEqual(["/a", "/b", "/c"]);
+  expect(maxConcurrency).toBeGreaterThan(1);
+});
+
+Deno.test("compileMiddlewares - onError callback", async () => {
+  const errors: unknown[] = [];
+  const middlewares: Middleware<{ text: string }>[] = [
+    () => {
+      throw new Error("test error");
+    },
+  ];
+
+  const server = serveMiddleware<{ text: string }>(
+    compileMiddlewares(middlewares, (err) => errors.push(err)),
+  );
+
+  try {
+    await server.get("/");
+  } catch {
+    // ignore
+  }
+
+  expect(errors.length).toEqual(1);
+  expect(errors[0]).toBeInstanceOf(Error);
+});
+
+Deno.test("compileMiddlewares - empty array falls through to next", async () => {
+  const server = serveMiddleware<{ text: string }>(
+    compileMiddlewares([]),
+    { next: () => Promise.resolve(new Response("fallthrough")) },
+  );
+
+  const res = await server.get("/");
+  expect(await res.text()).toEqual("fallthrough");
+});
+
 Deno.test("compileMiddlewares - calls last next", async () => {
   const middlewares: Middleware<{ text: string }>[] = [
     (ctx) => ctx.next(),
