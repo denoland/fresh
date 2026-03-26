@@ -1,4 +1,4 @@
-import Prism from "prismjs";
+import { Prism } from "../utils/prism.ts";
 
 export function CodeBlock(
   { code, lang }: { code: string; lang: "js" | "ts" | "jsx" | "md" | "bash" },
