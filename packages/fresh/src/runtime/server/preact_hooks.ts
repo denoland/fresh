@@ -132,6 +132,18 @@ options[OptionsType.VNODE] = (vnode) => {
       );
     }
   } else if (typeof vnode.type === "string") {
+    // Auto-inject nonce onto inline script/style tags
+    if (
+      RENDER_STATE !== null &&
+      (vnode.type === "script" || vnode.type === "style")
+    ) {
+      // deno-lint-ignore no-explicit-any
+      const props = vnode.props as any;
+      if (!props.nonce) {
+        props.nonce = RENDER_STATE.nonce;
+      }
+    }
+
     if (vnode.type === "body") {
       const scripts = h(FreshScripts, null);
       if (vnode.props.children == null) {

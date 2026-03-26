@@ -366,6 +366,9 @@ export class Context<State> {
           headers.append("Link", link);
         }
 
+        // Expose the nonce so CSP middleware can use it
+        headers.set("X-Fresh-Nonce", state.nonce);
+
         state.clear();
         setRenderState(null);
 
