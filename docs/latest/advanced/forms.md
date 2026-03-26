@@ -88,7 +88,7 @@ export const handler = define.handlers({
   },
 });
 
-export default define.page<typeof handlers>(function Upload(props) {
+export default define.page<typeof handler>(function Upload(props) {
   const { message } = props.data;
   return (
     <>

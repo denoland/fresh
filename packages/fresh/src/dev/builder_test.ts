@@ -282,6 +282,42 @@ Deno.test({
 });
 
 Deno.test({
+  name: "Builder - .well-known static files",
+  fn: async () => {
+    await using _tmp = await withTmpDir();
+    const tmp = _tmp.dir;
+
+    const foo = path.join(tmp, ".well-known", "foo.json");
+    await Deno.mkdir(path.dirname(foo), { recursive: true });
+    await Deno.writeTextFile(foo, JSON.stringify({ ok: true }));
+
+    const builder = new Builder({
+      outDir: path.join(tmp, "dist"),
+      staticDir: tmp,
+    });
+    const app = new App().use(staticFiles());
+    const abort = new AbortController();
+    const port = 8011;
+    await builder.listen(() => Promise.resolve(app), {
+      port,
+      signal: abort.signal,
+    });
+
+    const res = await fetch(
+      `http://localhost:${port}/.well-known/foo.json`,
+    );
+    const json = await res.json();
+    await abort.abort();
+
+    expect(res.ok).toBe(true);
+    expect(res.status).toBe(200);
+    expect(json).toEqual({ ok: true });
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
   name: "Builder - write prod routePattern",
   fn: async () => {
     const root = path.join(import.meta.dirname!, "..", "..");

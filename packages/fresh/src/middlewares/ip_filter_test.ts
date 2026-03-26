@@ -2,31 +2,23 @@ import { App } from "../app.ts";
 import type { Context } from "../context.ts";
 import {
   ipFilter,
-  type ipFilterOptions,
+  type IpFilterOptions,
   type IpFilterRules,
 } from "./ip_filter.ts";
 import { expect } from "@std/expect";
 
 function testHandler<T>(
-  remortAddr: string,
+  remoteAddr: string,
   ipFilterRules: IpFilterRules,
-  options?: ipFilterOptions,
+  options?: IpFilterOptions,
 ): (request: Request) => Promise<Response> {
-  function remoteHostOverRide(ctx: Context<T>) {
-    (ctx.info.remoteAddr as { hostname: string }).hostname = remortAddr;
+  function remoteHostOverride(ctx: Context<T>) {
+    (ctx.info.remoteAddr as { hostname: string }).hostname = remoteAddr;
     return ctx.next();
   }
 
-  if (!options) {
-    return new App<T>()
-      .use(remoteHostOverRide)
-      .use(ipFilter(ipFilterRules))
-      .all("/", () => new Response("hello"))
-      .handler();
-  }
-
   return new App<T>()
-    .use(remoteHostOverRide)
+    .use(remoteHostOverride)
     .use(ipFilter(ipFilterRules, options))
     .all("/", () => new Response("hello"))
     .handler();
@@ -35,7 +27,7 @@ function testHandler<T>(
 async function createTest(
   addr: string,
   ipFilterRules: IpFilterRules,
-  options?: ipFilterOptions,
+  options?: IpFilterOptions,
 ): Promise<number> {
   const handler = testHandler(addr, ipFilterRules, options);
 
@@ -47,7 +39,7 @@ async function createTest(
 Deno.test("ipFilter - no option", async () => {
   expect(await createTest("192.168.1.10", {})).toBe(200);
 });
-Deno.test("ipFilter - set ipFilterRules deny only", async () => {
+Deno.test("ipFilter - deny only", async () => {
   const ipFilterRules = {
     denyList: ["192.168.1.10", "2001:db8::1"],
   };
@@ -58,7 +50,7 @@ Deno.test("ipFilter - set ipFilterRules deny only", async () => {
   expect(await createTest("2001:db8::2", ipFilterRules)).toBe(200);
 });
 
-Deno.test("ipFilter - set ipFilterRules arrow only", async () => {
+Deno.test("ipFilter - allow only", async () => {
   const ipFilterRules = {
     allowList: ["192.168.1.10", "2001:db8::1"],
   };
@@ -68,10 +60,8 @@ Deno.test("ipFilter - set ipFilterRules arrow only", async () => {
   expect(await createTest("2001:db8::2", ipFilterRules)).toBe(403);
 });
 
-// arrow and deny
-// deny の方が優先されるを英語で
 // When both allow and deny are set, deny takes precedence
-Deno.test("ipFilter - set ipFilterRules arrow and deny", async () => {
+Deno.test("ipFilter - allow and deny", async () => {
   const ipFilterRules = {
     denyList: ["192.168.1.10", "2001:db8::1"],
     allowList: ["192.168.1.10", "2001:db8::1"],
@@ -80,26 +70,24 @@ Deno.test("ipFilter - set ipFilterRules arrow and deny", async () => {
   expect(await createTest("2001:db8::1", ipFilterRules)).toBe(403);
 });
 
-// adapt subnet mask
-Deno.test("ipFilter - adapt subnet mask", async () => {
+Deno.test("ipFilter - subnet mask", async () => {
   const ipFilterRules = {
     denyList: ["192.168.1.0/24"],
   };
   expect(await createTest("192.168.1.10", ipFilterRules)).toBe(403);
 });
 
-// onError
-Deno.test("ipFilter - custom onError", async () => {
+Deno.test("ipFilter - custom onBlocked", async () => {
   const ipFilterRules = {
     denyList: ["192.168.1.0/24"],
   };
 
-  const customOnError: ipFilterOptions = {
-    onError: () => {
-      return new Response("custom onError", { status: 401 });
+  const options: IpFilterOptions = {
+    onBlocked: () => {
+      return new Response("custom blocked", { status: 401 });
     },
   };
 
-  expect(await createTest("192.168.1.10", ipFilterRules, customOnError))
+  expect(await createTest("192.168.1.10", ipFilterRules, options))
     .toBe(401);
 });

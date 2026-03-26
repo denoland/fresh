@@ -24,7 +24,7 @@ export interface IpFilterRules {
   allowList?: string[];
 }
 
-export interface ipFilterOptions {
+export interface IpFilterOptions {
   /**
    * Called when a request is blocked by the IP filter.
    *
@@ -35,24 +35,24 @@ export interface ipFilterOptions {
    *
    * Parameters:
    * - `remote.addr` - the remote IP address as a string.
-   * - `remote.type` - the network family: "IPv4", "IPv6", or `undefined`.
+   * - `remote.type` - the network family: "IPv4" or "IPv6".
    * - `ctx` - the request `Context` which can be used to inspect the
    *   request or produce a custom response.
    *
    * @example
    * ```ts
-   * const options: ipFilterOptions = {
-   *   onError: (remote, ctx) => {
+   * const options: IpFilterOptions = {
+   *   onBlocked: (remote, ctx) => {
    *     console.log(`Blocked ${remote.addr} (${remote.type})`, ctx.url);
    *     return new Response("Access denied", { status: 401 });
    *   },
    * };
    * ```
    */
-  onError?: <State>(
+  onBlocked?: <State>(
     remote: {
       addr: string;
-      type: Deno.NetworkInterfaceInfo["family"] | undefined;
+      type: Deno.NetworkInterfaceInfo["family"];
     },
     ctx: Context<State>,
   ) => Response | Promise<Response>;
@@ -77,27 +77,25 @@ export interface ipFilterOptions {
  * }));
  * ```
  *
- * @example Custom error handling
+ * @example Custom blocked handler
  * ```ts
- * const customOnError: ipFilterOptions = {
- *   onError: (remote, ctx) => {
+ * app.use(ipFilter({
+ *   denyList: ["192.168.1.10", "2001:db8::1"]
+ * }, {
+ *   onBlocked: (remote, ctx) => {
  *     console.log(
  *       `Request URL: ${ctx.url}, Blocked IP: ${remote.addr} of type ${remote.type}`,
  *     );
- *
- *     return new Response("custom onError", { status: 401 });
+ *     return new Response("Access denied", { status: 401 });
  *   },
- * };
- * app.use(ipFilter({
- *   denyList: ["192.168.1.10", "2001:db8::1"]
- * }, customOnError));
+ * }));
  * ```
  */
 export function ipFilter<State>(
   rules: IpFilterRules,
-  options?: ipFilterOptions,
+  options?: IpFilterOptions,
 ): Middleware<State> {
-  const onBlock = options?.onError ??
+  const onBlock = options?.onBlocked ??
     (() => new Response("Forbidden", { status: 403 }));
   return function ipFilter<State>(ctx: Context<State>) {
     if (
