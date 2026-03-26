@@ -61,3 +61,7 @@ jobs:
       - name: Build fresh.deno.dev
         if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v2.x'
         run: deno task build-www
+
+      - name: Check links
+        if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v2.x'
+        run: deno task check:links
