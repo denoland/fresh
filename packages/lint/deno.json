@@ -8,6 +8,7 @@
       "src/**/*.ts",
       "deno.json",
       "README.md"
-    ]
+    ],
+    "exclude": ["src/**/*.test.ts"]
   }
 }
