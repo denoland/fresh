@@ -106,10 +106,6 @@ const toc: RawTableOfContents = {
       contributing: {
         title: "Contributing",
         link: "latest",
-        pages: [
-          ["local-development", "Local Development", "link:latest"],
-          ["testing", "Testing Changes", "link:latest"],
-        ],
       },
     },
   },
