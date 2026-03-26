@@ -295,7 +295,7 @@ export async function updateProject(dir: string) {
   // deno-lint-ignore no-console
   console.log(
     `   Unmodified (no changes needed): ${
-      userFiles.length - modifiedFilesToShow.length
+      filesToProcess.length - modifiedFilesList.length
     }`,
   );
 
