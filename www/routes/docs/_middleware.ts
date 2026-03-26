@@ -1,13 +1,13 @@
-import type { FreshContext } from "fresh";
+import type { Context } from "fresh";
 
 const REDIRECTS: Record<string, string> = {
   "/docs/getting-started/fetching-data":
     "/docs/getting-started/custom-handlers",
+  "/docs/canary/examples/modifying-the-head": "/docs/advanced/head",
+  "/docs/canary/concepts/builder": "/docs/advanced/builder",
 };
 
-export async function handler(
-  ctx: FreshContext,
-) {
+export async function handler<T>(ctx: Context<T>) {
   // Redirect from old doc URLs to new ones
   const redirect = REDIRECTS[ctx.url.pathname];
   if (redirect) {

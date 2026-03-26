@@ -23,6 +23,12 @@
     "image": "deno-saaskit"
   },
   {
+    "title": "Shoaib Hossain Portfolio",
+    "link": "https://sihab.deno.dev",
+    "github": "mrsihab/fresh-portfolio",
+    "image": "mrsihab"
+  },
+  {
     "title": "Deno Merch",
     "link": "https://merch.deno.com/",
     "github": "denoland/merch",
@@ -35,10 +41,10 @@
     "image": "fresh"
   },
   {
-    "title": "Paquet",
-    "link": "https://paquet.app",
-    "github": "notangelmario/paquet",
-    "image": "Paquet"
+    "title": "Beyond Better",
+    "link": "https://beyondbetter.app",
+    "github": "Beyond-Better/bb",
+    "image": "beyondbetter"
   },
   {
     "title": "Video Poker Academy",
@@ -423,9 +429,61 @@
     "image": "wtfcongress"
   },
   {
+    "title": "PUBG Items",
+    "link": "https://pubgitems.info",
+    "image": "pubgitems"
+  },
+  {
     "title": "Zhi's Blog",
     "link": "https://zhi.deno.dev",
     "github": "SisyphusZheng/me",
     "image": "zhiblog"
+  },
+  {
+    "title": "Moatez's desktop",
+    "link": "https://moatez-bejaoui.deno.dev",
+    "github": "https://github.com/MoatezNG",
+    "image": "moatez-desktop"
+  },
+  {
+    "title": "Retro Ranker",
+    "link": "https://retroranker.site",
+    "github": "https://github.com/Nergy101/retro-ranker",
+    "image": "retro-ranker"
+  },
+  {
+    "title": "RockPaper",
+    "link": "https://rockpaper.mcstech.dev",
+    "image": "rock-paper"
+  },
+  {
+    "title": "TKD-Dzwirzyno",
+    "link": "https://tkddzwirzyno.pl",
+    "github": "alphatra/Website-TKDdzwirzyno",
+    "image": "TKD-DZWIRZYNO"
+  },
+  {
+    "title": "Deno Sandbox API Test Game",
+    "link": "https://deno-sandbox-api-test.octo8080x.deno.net/",
+    "github": "https://github.com/Octo8080X/deno-sandbox-api-test",
+    "image": "deno-sandbox-api-test-game"
+  },
+  {
+    "title": "VailNote",
+    "link": "https://vailnote.com/",
+    "github": "emilkrebs/vailnote",
+    "image": "vailnote"
+  },
+  {
+    "title": "WeeWoo Study",
+    "link": "https://weewoo.study",
+    "github": "https://github.com/briansimoni/weewoo.study",
+    "image": "weewoo.study"
+  },
+  {
+    "title": "boxdgrid",
+    "link": "https://boxdgrid.deno.dev",
+    "github": "wfrancescons/boxdgrid",
+    "image": "boxdgrid"
   }
 ]

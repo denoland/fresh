@@ -46,7 +46,7 @@ export function FormSubmitDemo() {
       <button
         type="submit"
         value="Submit"
-        class="pt-2 pb-1 px-3 rounded border-current border-[1.5px] font-semibold"
+        class="pt-2 pb-1 px-3 rounded-sm border-current border-[1.5px] font-semibold"
       >
         Submit
       </button>

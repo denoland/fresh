@@ -49,7 +49,7 @@ function RoundedButton(props: JSX.HTMLAttributes<HTMLButtonElement>) {
         touchAction: "manipulation",
       }}
       {...props}
-      class="p-3 rounded-full border-2 border-current bg-white/20 hover:bg-white/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-green-200 disabled:cursor-default"
+      class="p-3 rounded-full border-2 border-current bg-white/20 hover:bg-white/50 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-green-200 disabled:cursor-default"
     />
   );
 }
