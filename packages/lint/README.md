@@ -23,4 +23,7 @@ This is a plugin with custom rules specifically for Fresh.
 
 ## Rules
 
-TODO: COMING SOON!
+| Rule ID                 | Description                                                  |
+| ----------------------- | ------------------------------------------------------------ |
+| `handler-export`        | Warn when exporting `handlers` over `handler`                |
+| `server-event-handlers` | Warn when code attempts to use event handlers in server code |
