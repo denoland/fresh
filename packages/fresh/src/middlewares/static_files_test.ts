@@ -6,7 +6,10 @@ import { ASSET_CACHE_BUST_KEY } from "../constants.ts";
 import { BUILD_ID } from "@fresh/build-id";
 import type { Command } from "../commands.ts";
 import type { ServerIslandRegistry } from "../context.ts";
-import { getContentType } from "../dev/dev_build_cache.ts";
+import {
+  getContentType,
+  systemPathToUrlEncoded,
+} from "../dev/dev_build_cache.ts";
 
 class MockBuildCache implements BuildCache {
   root = "";
@@ -223,12 +226,17 @@ Deno.test("static files - enables caching in production", async () => {
   );
 });
 
-Deno.test("static files - decoded pathname", async () => {
-  const buildCache = new MockBuildCache({
-    "C#.svg": { content: "body {}", hash: null },
-    "西安市.png": { content: "body {}", hash: null },
-    "인천.avif": { content: "body {}", hash: null },
-  });
+Deno.test("static files - encoded pathname", async () => {
+  // Build cache stores URL-encoded paths (matching what prepareStaticFile produces)
+  const fileKeys = ["C#.svg", "西安市.png", "인천.avif"];
+  const entries = Object.fromEntries(
+    fileKeys.map((key) => [
+      systemPathToUrlEncoded(key),
+      { content: "body {}", hash: null },
+    ]),
+  );
+
+  const buildCache = new MockBuildCache(entries);
   const server = serveMiddleware(
     staticFiles(),
     { buildCache },

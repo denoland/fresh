@@ -103,6 +103,10 @@ const toc: RawTableOfContents = {
           ["session-management", "Session management", "link:latest"],
         ],
       },
+      contributing: {
+        title: "Contributing",
+        link: "latest",
+      },
     },
   },
   "1.x": {
