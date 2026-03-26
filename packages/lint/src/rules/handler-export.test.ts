@@ -44,7 +44,7 @@ Deno.test("fresh/handler-export - err", () => {
     expect(d.range).toEqual(range);
     expect(d.id).toBe("fresh/handler-export");
     expect(d.message).toBe(
-      'Fresh middlewares must be exported as "handler" but got "handlers" instead.',
+      'Fresh routes must export "handler" instead of "handlers".',
     );
     expect(d.hint).toBe('Did you mean "handler"?');
   }
