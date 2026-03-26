@@ -6,11 +6,17 @@ import { NO_VISITOR, pathSegments } from "../utils.ts";
  * Disallows `on*` attributes for JSX components inside the
  * `routes/` directory, as these components are rendered on the server.
  *
+ * It will also warn when passing a function as prop to a custom element,
+ * as functions cannot be serialized to HTML on the server.
+ *
  * @example
  * ```tsx
  * // routes/index.ts
  * <button onClick={() => {}} />
  *      // ^^^^^^^^^^^^^^^^^^ invalid handler
+ *
+ * <MyComponent handler={() => {}} />
+ *           // ^^^^^^^^^^^^^^^^^^ invalid handler
  * ```
  *
  * The `(_islands)` directory is excluded from this lint rule.
@@ -24,6 +30,7 @@ const MESSAGE = "Server components cannot install client side event handlers.";
 const HINT =
   "Remove this property or turn the enclosing component into an island";
 
+// Note: This selector will match any function passed as a prop to a custom element, not just event handlers.
 const CUSTOM_ELEMENT_FN_EXPR_ATTR_SELECTOR =
   'JSXOpeningElement[name.type="JSXIdentifier"][name.name=/-/] > JSXAttribute[name.type="JSXIdentifier"]:has(> JSXExpressionContainer[expression.type=/^(FunctionExpression|ArrowFunctionExpression)$/])';
 const HTML_ELEMENT_ON_ATTR_SELECTOR =
