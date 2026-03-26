@@ -16,20 +16,50 @@ import { patches } from "./plugins/patches.ts";
 import process from "node:process";
 import {
   specToName,
+  TEST_FILE_PATTERN,
   UniqueNamer,
   UPDATE_INTERVAL,
   updateCheck,
 } from "@fresh/core/internal-dev";
 import { checkImports } from "./plugins/verify_imports.ts";
 import { isBuiltin } from "node:module";
+import { load as stdLoadEnv } from "@std/dotenv";
+import path from "node:path";
 
+export type { FreshViteConfig };
+export type {
+  ImportCheck,
+  ImportCheckDiagnostic,
+} from "./plugins/verify_imports.ts";
+
+/**
+ * Fresh framework support for Vite.
+ *
+ * This plugin uses the Environments feature of Vite to build
+ * both the server and client code for Fresh applications.
+ *
+ * @param config Fresh config options
+ * @returns Vite plugin with Fresh support
+ *
+ * @example Basic usage
+ * ```ts vite.config.ts
+ * import { defineConfig } from "vite";
+ * import { fresh } from "@fresh/plugin-vite";
+ *
+ * export default defineConfig({
+ *   plugins: [
+ *     fresh({ serverEntry: "server.ts" })
+ *   ],
+ * });
+ * ```
+ */
 export function fresh(config?: FreshViteConfig): Plugin[] {
   const fConfig: ResolvedFreshViteConfig = {
     serverEntry: config?.serverEntry ?? "main.ts",
     clientEntry: config?.clientEntry ?? "client.ts",
     islandsDir: config?.islandsDir ?? "islands",
     routeDir: config?.routeDir ?? "routes",
-    ignore: config?.ignore ?? [],
+    ignore: config?.ignore ?? [TEST_FILE_PATTERN],
     islandSpecifiers: new Map(),
     namer: new UniqueNamer(),
     checkImports: config?.checkImports ?? [],
@@ -48,10 +78,15 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
     }
   });
 
+  let isDev = false;
+
   const plugins: Plugin[] = [
     {
       name: "fresh",
+      sharedDuringBuild: true,
       config(config, env) {
+        isDev = env.command === "serve";
+
         return {
           esbuild: {
             jsx: "automatic",
@@ -99,12 +134,14 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
                 manifest: true,
 
                 outDir: config.environments?.client?.build?.outDir ??
+                  (config.build?.outDir
+                    ? config.build.outDir + "/client"
+                    : null) ??
                   "_fresh/client",
                 rollupOptions: {
                   preserveEntrySignatures: "strict",
                   input: {
                     "client-entry": "fresh:client-entry",
-                    "client-snapshot": "fresh:client-snapshot",
                   },
                 },
               },
@@ -116,6 +153,9 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
                 copyPublicDir: false,
 
                 outDir: config.environments?.ssr?.build?.outDir ??
+                  (config.build?.outDir
+                    ? config.build.outDir + "/server"
+                    : null) ??
                   "_fresh/server",
                 rollupOptions: {
                   onwarn(warning, handler) {
@@ -140,6 +180,16 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
                       return;
                     }
 
+                    // Ignore this warnings
+                    if (warning.code === "THIS_IS_UNDEFINED") {
+                      return;
+                    }
+
+                    // Ignore falsy source map errors
+                    if (warning.code === "SOURCEMAP_ERROR") {
+                      return;
+                    }
+
                     return handler(warning);
                   },
                   input: {
@@ -151,7 +201,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
           },
         };
       },
-      configResolved(vConfig) {
+      async configResolved(vConfig) {
         // Run update check in background
         updateCheck(UPDATE_INTERVAL).catch(() => {});
 
@@ -163,18 +213,29 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
           const name = fConfig.namer.getUniqueName(specName);
           fConfig.islandSpecifiers.set(spec, name);
         });
+
+        const envDir = pathWithRoot(
+          vConfig.envDir || vConfig.root,
+          vConfig.root,
+        );
+
+        await loadEnvFile(path.join(envDir, ".env"));
+        await loadEnvFile(path.join(envDir, ".env.local"));
+        const mode = isDev ? "development" : "production";
+        await loadEnvFile(path.join(envDir, `.env.${mode}`));
+        await loadEnvFile(path.join(envDir, `.env.${mode}.local`));
       },
     },
     serverEntryPlugin(fConfig),
     patches(),
     ...serverSnapshot(fConfig),
     clientEntryPlugin(fConfig),
-    clientSnapshot(fConfig),
+    ...clientSnapshot(fConfig),
     buildIdPlugin(),
     ...devServer(),
     prefresh({
       include: [/\.[cm]?[tj]sx?$/],
-      exclude: [/node_modules/],
+      exclude: [/node_modules/, /[\\/]+deno[\\/]+npm[\\/]+/],
       parserPlugins: [
         "importMeta",
         "explicitResourceManagement",
@@ -189,4 +250,12 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
   }
 
   return plugins;
+}
+
+async function loadEnvFile(envPath: string) {
+  try {
+    await stdLoadEnv({ envPath, export: true });
+  } catch {
+    // Ignore
+  }
 }

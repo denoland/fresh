@@ -154,6 +154,12 @@ export let setBuildCache: <State>(
   cache: BuildCache<State>,
   mode: "development" | "production",
 ) => void;
+export let setErrorInterceptor: <State>(
+  app: App<State>,
+  fn: (err: unknown) => void,
+) => void;
+
+const NOOP = () => {};
 
 /**
  * Create an application instance that passes the incoming `Request`
@@ -162,6 +168,7 @@ export let setBuildCache: <State>(
 export class App<State> {
   #getBuildCache: () => BuildCache<State> | null = () => null;
   #commands: Command<State>[] = [];
+  #onError: (err: unknown) => void = NOOP;
 
   static {
     getBuildCache = (app) => app.#getBuildCache();
@@ -169,6 +176,9 @@ export class App<State> {
       app.config.root = cache.root;
       app.config.mode = mode;
       app.#getBuildCache = () => cache;
+    };
+    setErrorInterceptor = (app, fn) => {
+      app.#onError = fn;
     };
   }
 
@@ -328,9 +338,15 @@ export class App<State> {
       const cmd = app.#commands[i];
 
       if (cmd.type !== CommandType.App && cmd.type !== CommandType.NotFound) {
+        // Apply the inner app's basePath if it exists
+        let effectivePattern = cmd.pattern;
+        if (app.config.basePath) {
+          effectivePattern = mergePath(app.config.basePath, cmd.pattern, false);
+        }
+
         const clone = {
           ...cmd,
-          pattern: mergePath(path, cmd.pattern, true),
+          pattern: mergePath(path, effectivePattern, true),
           includeLastSegment: cmd.pattern === "/" || cmd.includeLastSegment,
         };
         this.#commands.push(clone);
@@ -362,7 +378,7 @@ export class App<State> {
         DENO_DEPLOYMENT_ID !== undefined
       ) {
         throw new Error(
-          `Could not find _fresh directory. Maybe you forgot to run "deno task build"?`,
+          `Could not find _fresh directory. Maybe you forgot to run "deno task build" or maybe you're trying to run "main.ts" directly instead of "_fresh/server.js"?`,
         );
       } else {
         buildCache = new MockBuildCache([], this.config.mode);
@@ -426,11 +442,15 @@ export class App<State> {
       try {
         if (handlers.length === 0) return await next();
 
-        const result = await runMiddlewares(handlers, ctx);
+        const result = await runMiddlewares(handlers, ctx, this.#onError);
         if (!(result instanceof Response)) {
           throw new Error(
             `Expected a "Response" instance to be returned, but got: ${result}`,
           );
+        }
+
+        if (method === "HEAD") {
+          return new Response(null, result);
         }
 
         return result;

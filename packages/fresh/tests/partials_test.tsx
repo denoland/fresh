@@ -1404,10 +1404,6 @@ Deno.test({
 
       await page.locator(".update").click();
 
-      await page.waitForFunction(() => {
-        const url = new URL(window.location.href);
-        return url.pathname === "/partial";
-      });
       await page.locator(".done").wait();
       await waitForText(page, ".output", "1");
     });
@@ -2347,19 +2343,25 @@ Deno.test({
       assertMetaContent(doc, "og:foo", "og value foo");
       assertMetaContent(doc, "og:bar", "og value bar");
 
-      const color = await page
-        .locator<HTMLHeadingElement>("h1")
-        .evaluate((el) => {
-          return globalThis.getComputedStyle(el).color;
-        });
-      expect(color).toEqual("rgb(255, 0, 0)");
+      await waitFor(async () => {
+        const color = await page
+          .locator<HTMLHeadingElement>("h1")
+          .evaluate((el) => {
+            return globalThis.getComputedStyle(el).color;
+          });
+        expect(color).toEqual("rgb(255, 0, 0)");
+        return true;
+      });
 
-      const textColor = await page
-        .locator<HTMLParagraphElement>("p")
-        .evaluate((el) => {
-          return globalThis.getComputedStyle(el).color;
-        });
-      expect(textColor).toEqual("rgb(0, 128, 0)");
+      await waitFor(async () => {
+        const textColor = await page
+          .locator<HTMLParagraphElement>("p")
+          .evaluate((el) => {
+            return globalThis.getComputedStyle(el).color;
+          });
+        expect(textColor).toEqual("rgb(0, 128, 0)");
+        return true;
+      });
     });
   },
 });
@@ -2655,6 +2657,46 @@ Deno.test({
 
       const title = await page.evaluate(() => document.title);
       expect(title).toEqual("after update");
+    });
+  },
+});
+
+Deno.test({
+  name: "partials - button should not update history",
+  fn: async () => {
+    const app = testApp()
+      .get("/other", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <Partial name="foo">
+              <h1 class="done">other</h1>
+            </Partial>
+          </Doc>,
+        );
+      })
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav>
+              <button type="button" f-partial="/other">click</button>
+              <Partial name="foo">
+                <h1 class="init">foo</h1>
+              </Partial>
+              <SelfCounter />
+            </div>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".ready").wait();
+      await page.locator("button").click();
+      await page.locator(".done").wait();
+
+      const rawUrl = await page.evaluate(() => window.location.href);
+      const url = new URL(rawUrl);
+      expect(`${url.pathname}${url.search}`).toEqual("/");
     });
   },
 });

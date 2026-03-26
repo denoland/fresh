@@ -637,6 +637,50 @@ Deno.test("App - .route() with *", async () => {
   expect(await res.text()).toEqual("ok");
 });
 
+Deno.test("App - .route() handler returns headers", async () => {
+  const app = new App()
+    .route("/", {
+      handler: () => {
+        const headers = new Headers();
+        headers.set("X-Foo", "foo");
+        return { data: {}, headers };
+      },
+      component() {
+        return <h1>foo</h1>;
+      },
+    })
+    .route("/obj", {
+      handler: () => {
+        return { data: {}, headers: { "X-Foo": "foo" } };
+      },
+      component() {
+        return <h1>foo</h1>;
+      },
+    })
+    .route("/arr", {
+      handler: () => {
+        return { data: {}, headers: [["X-Foo", "foo"]] };
+      },
+      component() {
+        return <h1>foo</h1>;
+      },
+    });
+
+  const server = new FakeServer(app.handler());
+
+  let res = await server.get("/");
+  expect(await res.text()).toContain("<h1>foo</h1>");
+  expect(res.headers.get("X-Foo")).toEqual("foo");
+
+  res = await server.get("/obj");
+  expect(await res.text()).toContain("<h1>foo</h1>");
+  expect(res.headers.get("X-Foo")).toEqual("foo");
+
+  res = await server.get("/arr");
+  expect(await res.text()).toContain("<h1>foo</h1>");
+  expect(res.headers.get("X-Foo")).toEqual("foo");
+});
+
 Deno.test("App - .use() - lazy", async () => {
   const app = new App<{ text: string }>()
     // deno-lint-ignore require-await
@@ -680,23 +724,90 @@ Deno.test("App - .get/post/patch/put/delete/head/all() - lazy", async () => {
   const server = new FakeServer(app.handler());
 
   let res = await server.get("/");
+  expect(res.status).toEqual(200);
   expect(await res.text()).toEqual("ok");
 
   res = await server.post("/");
+  expect(res.status).toEqual(200);
   expect(await res.text()).toEqual("ok");
 
   res = await server.put("/");
+  expect(res.status).toEqual(200);
   expect(await res.text()).toEqual("ok");
 
   res = await server.patch("/");
+  expect(res.status).toEqual(200);
   expect(await res.text()).toEqual("ok");
 
   res = await server.delete("/");
+  expect(res.status).toEqual(200);
   expect(await res.text()).toEqual("ok");
 
   res = await server.head("/");
-  expect(await res.text()).toEqual("ok");
+  expect(res.status).toEqual(200);
+  expect(res.body).toEqual(null);
 });
+
+Deno.test("App prefer .head over .get", async () => {
+  const app = new App()
+    .get(
+      "/",
+      () => Promise.resolve(() => new Response("not ok", { status: 500 })),
+    )
+    .head("/", () => Promise.resolve(() => new Response("ok")))
+    .get(
+      "/:id",
+      () => Promise.resolve(() => new Response("not ok", { status: 500 })),
+    )
+    .head("/:id", () => Promise.resolve(() => new Response("ok")));
+
+  const server = new FakeServer(app.handler());
+
+  let res = await server.head("/");
+  expect(res.body).toEqual(null);
+  expect(res.status).toEqual(200);
+
+  res = await server.head("/foo");
+  expect(res.body).toEqual(null);
+  expect(res.status).toEqual(200);
+});
+
+Deno.test("App support HEAD if only GET is registered", async () => {
+  const app = new App()
+    .get("/", () => Promise.resolve(() => new Response("ok")))
+    .get("/:id", () => Promise.resolve(() => new Response("ok")));
+
+  const server = new FakeServer(app.handler());
+
+  let res = await server.head("/");
+  expect(res.body).toEqual(null);
+  expect(res.status).toEqual(200);
+
+  res = await server.head("/foo");
+  expect(res.body).toEqual(null);
+  expect(res.status).toEqual(200);
+});
+
+Deno.test(
+  "App support HEAD in .route() when only GET is registered",
+  async () => {
+    const app = new App()
+      .route("/", {
+        handler: {
+          GET() {
+            return { data: {} };
+          },
+        },
+        component: () => <h1>foo</h1>,
+      });
+
+    const server = new FakeServer(app.handler());
+
+    const res = await server.head("/");
+    expect(res.body).toEqual(null);
+    expect(res.status).toEqual(200);
+  },
+);
 
 Deno.test("App - .appWrapper()", async () => {
   const app = new App()
@@ -776,4 +887,76 @@ Deno.test("App - ctx.render() without app wrapper or layout", async () => {
 
   const res = await server.get("/");
   expect(await res.text()).toContain("<body>index<");
+});
+
+Deno.test("App - .mountApp() with basePath", async () => {
+  const innerApp = new App({ basePath: "/api" })
+    .get("/users", () => new Response("users"));
+
+  const app = new App()
+    .get("/", () => new Response("home"))
+    .mountApp("/v1", innerApp);
+
+  const server = new FakeServer(app.handler());
+
+  let res = await server.get("/");
+  expect(await res.text()).toEqual("home");
+
+  // Fixed behavior: inner app's basePath is now applied
+  res = await server.get("/v1/api/users");
+  expect(await res.text()).toEqual("users");
+
+  // Routes without the full basePath should not work
+  res = await server.get("/v1/users");
+  expect(res.status).toEqual(404);
+});
+
+Deno.test("App - .mountApp() with main app basePath", async () => {
+  const innerApp = new App()
+    .get("/data", () => new Response("data"));
+
+  const app = new App({ basePath: "/main" })
+    .get("/", () => new Response("home"))
+    .mountApp("/sub", innerApp);
+
+  const server = new FakeServer(app.handler());
+
+  let res = await server.get("/main");
+  expect(await res.text()).toEqual("home");
+
+  res = await server.get("/main/sub/data");
+  expect(await res.text()).toEqual("data");
+
+  // Should not work without main basePath
+  res = await server.get("/sub/data");
+  expect(res.status).toEqual(404);
+});
+
+Deno.test("App - .mountApp() with both main and inner basePath", async () => {
+  const innerApp = new App({ basePath: "/api/v2" })
+    .get("/users", () => new Response("users"))
+    .get("/posts", () => new Response("posts"));
+
+  const app = new App({ basePath: "/main" })
+    .get("/", () => new Response("home"))
+    .mountApp("/services", innerApp);
+
+  const server = new FakeServer(app.handler());
+
+  let res = await server.get("/main");
+  expect(await res.text()).toEqual("home");
+
+  // Both basePaths should be applied: main basePath + mount path + inner basePath
+  res = await server.get("/main/services/api/v2/users");
+  expect(await res.text()).toEqual("users");
+
+  res = await server.get("/main/services/api/v2/posts");
+  expect(await res.text()).toEqual("posts");
+
+  // Partial paths should not work
+  res = await server.get("/services/api/v2/users");
+  expect(res.status).toEqual(404);
+
+  res = await server.get("/main/services/users");
+  expect(res.status).toEqual(404);
 });

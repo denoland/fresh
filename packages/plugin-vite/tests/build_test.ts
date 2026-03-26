@@ -1,5 +1,9 @@
 import { expect } from "@std/expect";
-import { waitForText, withBrowser } from "../../fresh/tests/test_utils.tsx";
+import {
+  waitFor,
+  waitForText,
+  withBrowser,
+} from "../../fresh/tests/test_utils.tsx";
 import {
   buildVite,
   DEMO_DIR,
@@ -28,6 +32,19 @@ Deno.test({
 });
 
 Deno.test({
+  name: "vite build - creates compiled entry",
+  fn: async () => {
+    const stat = await Deno.stat(
+      path.join(viteResult.tmp, "_fresh", "compiled-entry.js"),
+    );
+
+    expect(stat.isFile).toEqual(true);
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
   name: "vite build - serves static files",
   fn: async () => {
     await launchProd(
@@ -36,6 +53,12 @@ Deno.test({
         const res = await fetch(`${address}/test_static/foo.txt`);
         const text = await res.text();
         expect(text).toEqual("it works");
+
+        const resWithSpace = await fetch(
+          `${address}/test%20%2520encodeUri/foo%20%2520encodeUri.txt`,
+        );
+        const textWithSpace = await resWithSpace.text();
+        expect(textWithSpace).toEqual("space it works");
       },
     );
   },
@@ -58,6 +81,27 @@ Deno.test({
 
           await page.locator("button").click();
           await waitForText(page, "button", "count: 1");
+        });
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite build - nested islands",
+  fn: async () => {
+    await launchProd(
+      { cwd: viteResult.tmp },
+      async (address) => {
+        await withBrowser(async (page) => {
+          await page.goto(`${address}/tests/island_nested`, {
+            waitUntil: "networkidle2",
+          });
+
+          await page.locator(".outer-ready").wait();
+          await page.locator(".inner-ready").wait();
         });
       },
     );
@@ -371,6 +415,33 @@ Deno.test({
 });
 
 Deno.test({
+  name: "vite build - route css import",
+  fn: async () => {
+    await launchProd(
+      { cwd: viteResult.tmp },
+      async (address) => {
+        await withBrowser(async (page) => {
+          await page.goto(`${address}/tests/css`, {
+            waitUntil: "networkidle2",
+          });
+
+          await waitFor(async () => {
+            const color = await page
+              .locator("h1")
+              // deno-lint-ignore no-explicit-any
+              .evaluate((el) => window.getComputedStyle(el as any).color);
+            expect(color).toEqual("rgb(255, 0, 0)");
+            return true;
+          });
+        });
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
   name: "vite build - remote island",
   fn: async () => {
     const fixture = path.join(FIXTURE_DIR, "remote_island");
@@ -409,30 +480,6 @@ Deno.test({
 });
 
 Deno.test({
-  name: "vite build - throw when using Deno.* global inside an island",
-  fn: async () => {
-    const fixture = path.join(FIXTURE_DIR, "deno_global_island");
-
-    await expect(buildVite(fixture)).rejects.toThrow(
-      "The Deno.* global cannot be used in the browser",
-    );
-  },
-  sanitizeOps: false,
-  sanitizeResources: false,
-});
-
-Deno.test({
-  name: "vite build - don't throw when using Deno.* global in ssr",
-  fn: async () => {
-    const fixture = path.join(FIXTURE_DIR, "deno_global_ssr");
-
-    await buildVite(fixture);
-  },
-  sanitizeOps: false,
-  sanitizeResources: false,
-});
-
-Deno.test({
   name: "vite build - static index.html",
   fn: async () => {
     await launchProd(
@@ -441,8 +488,150 @@ Deno.test({
         const res = await fetch(`${address}/test_static/foo`);
         const text = await res.text();
         expect(text).toContain("<h1>ok</h1>");
+
+        const resWithSpace = await fetch(`${address}/test%20%2520encodeUri`);
+        const textWithSpace = await resWithSpace.text();
+        expect(textWithSpace).toContain("<h1>ok</h1>");
       },
     );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite build - base path asset handling",
+  fn: async () => {
+    await using res = await buildVite(DEMO_DIR, { base: "/my-app/" });
+
+    // Read the generated server.js to check asset paths
+    const serverJs = await Deno.readTextFile(
+      path.join(res.tmp, "_fresh", "server.js"),
+    );
+
+    // Asset paths should include the base path /my-app/
+    expect(serverJs).toContain('"/my-app/assets/');
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite build - custom rollup entryFileNames in server.js",
+  fn: async () => {
+    await using res = await buildVite(DEMO_DIR, {
+      rollupOutput: {
+        entryFileNames: "[hash].mjs",
+        chunkFileNames: "[hash].mjs",
+      },
+    });
+
+    const serverJs = await Deno.readTextFile(
+      path.join(res.tmp, "_fresh", "server.js"),
+    );
+
+    // When custom entryFileNames is set, server.js should use the actual
+    // hashed filename from the manifest, not hardcoded "server-entry.mjs"
+    expect(serverJs).not.toContain("server-entry.mjs");
+    expect(serverJs).toMatch(
+      /from "\.\/server\/[a-zA-Z0-9_-]+\.mjs"/,
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite build - env files",
+  fn: async () => {
+    await launchProd(
+      { cwd: viteResult.tmp },
+      async (address) => {
+        const res = await fetch(`${address}/tests/env_files`);
+        const json = await res.json();
+        expect(json).toEqual({
+          MY_ENV: "MY_ENV test value",
+          VITE_MY_ENV: "VITE_MY_ENV test value",
+          MY_LOCAL_ENV: "MY_LOCAL_ENV test value",
+          VITE_MY_LOCAL_ENV: "VITE_MY_LOCAL_ENV test value",
+        });
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite build - support _middleware Array",
+  fn: async () => {
+    await launchProd(
+      { cwd: viteResult.tmp },
+      async (address) => {
+        const res = await fetch(`${address}/tests/middlewares`);
+        const text = await res.text();
+        expect(text).toEqual("AB");
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite build - island named after global object (Map)",
+  fn: async () => {
+    const fixture = path.join(FIXTURE_DIR, "island_global_name");
+    await using res = await buildVite(fixture);
+
+    await launchProd(
+      { cwd: res.tmp },
+      async (address) => {
+        const response = await fetch(address);
+        const html = await response.text();
+
+        // Verify the fix: UniqueNamer prefixes "Map" with underscore to prevent shadowing
+        // Without the fix: import Map from "..." and boot({Map}, ...) - shadows global Map
+        // With the fix: import _Map_N from "..." and boot({_Map_N}, ...) - no shadowing
+        expect(html).toMatch(/import.*_Map(_\d+)?.*from/);
+        expect(html).toMatch(/boot\(\s*\{\s*_Map(_\d+)?\s*\}/);
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite build - excludes test files from routes",
+  fn: async () => {
+    const fixture = path.join(FIXTURE_DIR, "test_files_exclusion");
+    await using res = await buildVite(fixture);
+
+    // Verify that test files in routes/ are not bundled
+    const serverAssetsDir = path.join(res.tmp, "_fresh", "server", "assets");
+
+    // List all compiled route files
+    const files: string[] = [];
+    for await (const entry of Deno.readDir(serverAssetsDir)) {
+      if (entry.isFile && entry.name.startsWith("_fresh-route")) {
+        files.push(entry.name);
+      }
+    }
+
+    // Should have index route but NOT test files
+    expect(files.some((f) => f.includes("_fresh-route___index"))).toBe(true);
+    expect(files.some((f) => f.includes("index_test"))).toBe(false);
+    expect(files.some((f) => f.includes("foo.test"))).toBe(false);
+
+    // Verify no test pattern files at all
+    // Note: files with "_test" or ".test" in their name (not just a "tests" folder)
+    const testPatterns = ["_test.", "_test-", ".test."];
+    for (const file of files) {
+      for (const pattern of testPatterns) {
+        expect(file.includes(pattern)).toBe(false);
+      }
+    }
   },
   sanitizeOps: false,
   sanitizeResources: false,

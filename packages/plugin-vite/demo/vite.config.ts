@@ -6,7 +6,10 @@ import tailwind from "@tailwindcss/vite";
 export default defineConfig({
   plugins: [
     inspect(),
-    fresh(),
+    fresh({
+      islandSpecifiers: ["@marvinh-test/fresh-island"],
+    }),
     tailwind(),
   ],
+  future: "warn",
 });

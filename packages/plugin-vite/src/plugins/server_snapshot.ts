@@ -46,8 +46,9 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
   return [
     {
       name: "fresh:server-snapshot",
+      sharedDuringBuild: true,
       applyToEnvironment(env) {
-        return env.name === "ssr";
+        return env.config.consumer === "server";
       },
       config(_, env) {
         isDev = env.command === "serve";
@@ -240,42 +241,36 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
                 }
               }
 
-              const namer = new UniqueNamer();
-              if (chunk.name === "client-snapshot") {
-                for (const id of chunk.dynamicImports ?? []) {
-                  const mod = manifest[id];
+              if (chunk.name?.startsWith("fresh-island__")) {
+                const name = chunk.name.slice("fresh-island__".length);
+                let serverPath = path.join(root, chunk.src ?? chunk.file);
+                const idx = chunk.src?.indexOf("deno::") ?? -1;
 
-                  let serverPath = path.join(root, mod.src ?? id);
-                  const idx = mod.src?.indexOf("deno::") ?? -1;
-
-                  if (idx > -1 && mod.src) {
-                    const src = mod.src
-                      .slice(idx)
-                      .replace(
-                        /(https?):\/([^/])/,
-                        (_m, protocol, rest) => {
-                          return `${protocol}://${rest}`;
-                        },
-                      );
-                    serverPath = resolvedIslandSpecs.get(src)!;
-                  }
-
-                  let spec = pathToSpec(clientOutDir, mod.file);
-
-                  if (spec.startsWith("./")) {
-                    spec = spec.slice(1);
-                  }
-
-                  const chunkCss = mod.css?.map((id) => `/${id}`) ?? [];
-
-                  const name = namer.getUniqueName(specToName(id));
-                  islandMods.push({
-                    name,
-                    browser: spec,
-                    server: serverPath,
-                    css: chunkCss,
-                  });
+                if (idx > -1 && chunk.src) {
+                  const src = chunk.src
+                    .slice(idx)
+                    .replace(
+                      /(https?):\/([^/])/,
+                      (_m, protocol, rest) => {
+                        return `${protocol}://${rest}`;
+                      },
+                    );
+                  serverPath = resolvedIslandSpecs.get(src)!;
                 }
+
+                let spec = pathToSpec(clientOutDir, chunk.file);
+
+                if (spec.startsWith("./")) {
+                  spec = spec.slice(1);
+                }
+
+                const chunkCss = chunk.css?.map((id) => `/${id}`) ?? [];
+                islandMods.push({
+                  name,
+                  browser: spec,
+                  server: serverPath,
+                  css: chunkCss,
+                });
               }
             }
 
@@ -351,9 +346,9 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
       },
       transform: {
         filter: {
-          id: /\.module\.(css|less|sass)(\?.*)?$/,
+          id: /\.(css|less|sass|scss)(\?.*)?$/,
         },
-        handler(_code, id, _options) {
+        handler(_code, id) {
           if (server) {
             const ssrGraph = server.environments.ssr.moduleGraph;
             const mod = ssrGraph.getModuleById(id);
@@ -395,6 +390,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
     },
     {
       name: "fresh:island-resolver",
+      sharedDuringBuild: true,
       resolveId: {
         filter: {
           id: /^fresh-island::.*/,
@@ -413,6 +409,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
     },
     {
       name: "fresh:route-css",
+      sharedDuringBuild: true,
       resolveId: {
         filter: {
           id: /^(\/@id\/)?fresh-route-css::/,
@@ -453,8 +450,9 @@ export default ${JSON.stringify(route.css)}
     },
     {
       name: "fresh-route-css-build-ssr",
+      sharedDuringBuild: true,
       applyToEnvironment(env) {
-        return env.name === "ssr";
+        return env.config.consumer === "server";
       },
       async writeBundle(_, bundle) {
         const asset = bundle[".vite/manifest.json"];
@@ -481,6 +479,7 @@ export default ${JSON.stringify(route.css)}
     },
     {
       name: "fresh:route-resolver",
+      sharedDuringBuild: true,
       resolveId: {
         filter: {
           id: /^fresh-route::/,

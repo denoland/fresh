@@ -8,13 +8,16 @@ import "prismjs/components/prism-bash.js";
 import "prismjs/components/prism-yaml.js";
 import "prismjs/components/prism-ignore.js";
 
+// deno-lint-ignore no-explicit-any
+const languages = Prism.languages as any;
+
 /** Extends `sh` with `deno` as a function token in Shell/Bash languages */
-Prism.languages.sh.deno = {
+languages.sh.deno = {
   pattern: /(^|[\s;|&]|[<>]\()(?:deno)(?=$|[)\s;|&])/,
   lookbehind: true,
   alias: "function",
 };
-Prism.languages.bash.deno = Prism.languages.sh.deno;
+languages.bash.deno = languages.sh.deno;
 
 /**
  * Adds `txt-files` language for file-structure code blocks.

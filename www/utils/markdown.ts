@@ -8,8 +8,6 @@ import { mangle } from "marked-mangle";
 import GitHubSlugger from "github-slugger";
 import { Prism } from "./prism.ts";
 
-const slugger = new GitHubSlugger();
-
 Marked.marked.use(mangle());
 
 const ADMISSION_REG = /^\[(info|warn|tip)\]:\s/;
@@ -85,6 +83,7 @@ export interface MarkdownHeading {
 
 class DefaultRenderer extends Marked.Renderer {
   headings: MarkdownHeading[] = [];
+  slugger = new GitHubSlugger();
 
   override text(
     token: Marked.Tokens.Text | Marked.Tokens.Escape | Marked.Tokens.Tag,
@@ -136,7 +135,7 @@ class DefaultRenderer extends Marked.Renderer {
       slugInput = slugInput.slice(1, -2);
     }
 
-    const slug = slugger.slug(slugInput);
+    const slug = this.slugger.slug(slugInput);
     const text = this.parser.parseInline(tokens);
     this.headings.push({ id: slug, html: text, level: depth });
     return `<h${depth} id="${slug}"><a class="md-anchor" tabindex="-1" href="#${slug}">${text}<span aria-hidden="true">#</span></a></h${depth}>`;
@@ -176,14 +175,58 @@ class DefaultRenderer extends Marked.Renderer {
 
     if (title || icon) {
       const image = icon
-        ? `<img src="${icon.src}" alt="${icon.text}" title="${icon.text}">`
+        ? `<img src="${icon.src}" alt="${icon.text}" title="${icon.text}" width="20" height="20">`
         : "";
 
       out += `<div class="fenced-code-header">
-        <span class="fenced-code-title lang-${lang}">
-          ${image}
-          ${title ? escapeHtml(String(title)) : "&nbsp;"}
+        <span class="fenced-code-title lang-${lang} w-full">
+          <span class="flex items-center gap-2">
+            ${image}
+            ${title ? escapeHtml(String(title)) : "&nbsp;"}
+          </span>
         </span>
+        ${
+        icon && icon.text !== "Text"
+          ? `<button
+            type="button"
+            data-code="${escapeHtml(text)}"
+            aria-label="Copy to Clipboard"
+            class="rounded-sm flex items-center justify-center border border-foreground-secondary/30 hover:bg-foreground-secondary/20 dark:hover:bg-foreground-secondary/70 data-copied:text-green-700 dark:data-copied:text-green-300 relative group cursor-pointer w-7 h-7 dark:text-white"
+          >
+            <span class="group-copied">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-width={3}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            </span>
+            <span class="group-not-copied">
+              <svg
+                class="h-4 w-4"
+                viewBox="0 0 15 15"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+              >
+                <path
+                  d="M1.55566 2.7C1.55566 2.03726 2.09292 1.5 2.75566 1.5H8.75566C9.41841 1.5 9.95566 2.03726 9.95566 2.7V5.1H12.3557C13.0184 5.1 13.5557 5.63726 13.5557 6.3V12.3C13.5557 12.9627 13.0184 13.5 12.3557 13.5H6.35566C5.69292 13.5 5.15566 12.9627 5.15566 12.3V9.9H2.75566C2.09292 9.9 1.55566 9.36274 1.55566 8.7V2.7ZM6.35566 9.9V12.3H12.3557V6.3H9.95566V8.7C9.95566 9.36274 9.41841 9.9 8.75566 9.9H6.35566ZM8.75566 8.7V2.7L2.75566 2.7V8.7H8.75566Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </span>
+          </button>`
+          : ""
+      }
       </div>`;
     }
 

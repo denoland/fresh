@@ -138,12 +138,12 @@ that.
 
 ### Usage
 
-1. Set `nodeModulesDir` in `deno.json` to `"auto"` or `"manual"`
+1. Set `nodeModulesDir` in `deno.json` to `"manual"`
 
 ```diff deno.json
   {
     "name": "@example/my-cool-project"
-+   "nodeModulesDir": "auto",
++   "nodeModulesDir": "manual",
     "imports": {
       ...
     }

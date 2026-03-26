@@ -1,13 +1,15 @@
-import type { Plugin } from "vite";
+import type { DevEnvironment, Plugin } from "vite";
 import * as path from "@std/path";
 import { ASSET_CACHE_BUST_KEY } from "fresh/internal";
-import { createRequest, sendResponse } from "@mjackson/node-fetch-server";
+import { createRequest, sendResponse } from "@remix-run/node-fetch-server";
+import { hashCode } from "../shared.ts";
 
 export function devServer(): Plugin[] {
   let publicDir = "";
   return [
     {
       name: "fresh:dev_server",
+      sharedDuringBuild: true,
       configResolved(config) {
         publicDir = config.publicDir;
       },
@@ -41,8 +43,10 @@ export function devServer(): Plugin[] {
             return next();
           }
 
+          const decodedPathname = decodeURIComponent(url.pathname.slice(1));
+
           // Check if it's a static file first
-          const staticFilePath = path.join(publicDir, url.pathname.slice(1));
+          const staticFilePath = path.join(publicDir, decodedPathname);
           try {
             const stat = await Deno.stat(staticFilePath);
             if (stat.isFile) {
@@ -55,7 +59,7 @@ export function devServer(): Plugin[] {
           // Check if it's a static/index.html file
           const staticFilePathIndex = path.join(
             publicDir,
-            url.pathname.slice(1),
+            decodedPathname,
             "index.html",
           );
           try {
@@ -67,13 +71,47 @@ export function devServer(): Plugin[] {
             // Ignore
           }
 
-          const mod = await server.ssrLoadModule("fresh:server_entry");
-
           try {
+            const mod = await server.ssrLoadModule("fresh:server_entry");
             const req = createRequest(nodeReq, nodeRes);
-            const res = await mod.default.fetch(req);
+            mod.setErrorInterceptor((err: unknown) => {
+              if (err instanceof Error) {
+                server.ssrFixStacktrace(err);
+              }
+            });
+
+            const res = (await mod.default.fetch(req)) as Response;
+
+            // Collect css eagerly to avoid FOUC. This is a workaround for
+            // Vite not supporting css natively. It's a bit hacky, but
+            // gets the job done.
+            if (
+              url.pathname !== "/__inspect" &&
+              res.headers.get("Content-Type")?.includes("text/html")
+            ) {
+              const collected = await collectCss(
+                "fresh:client-entry",
+                server.environments.client,
+              );
+
+              let html = await res.text();
+
+              const styles = collected.join("\n");
+              html = html.replace("</head>", styles + "</head>");
+
+              const newRes = new Response(html, {
+                status: res.status,
+                headers: res.headers,
+              });
+              await sendResponse(nodeRes, newRes);
+              return;
+            }
+
             await sendResponse(nodeRes, res);
           } catch (err) {
+            if (err instanceof Error) {
+              server.ssrFixStacktrace(err);
+            }
             return next(err);
           }
         });
@@ -82,7 +120,7 @@ export function devServer(): Plugin[] {
     {
       name: "fresh:server_hmr",
       applyToEnvironment(env) {
-        return env.name === "ssr";
+        return env.config.consumer === "server";
       },
       hotUpdate(options) {
         const clientMod = options.server.environments.client.moduleGraph
@@ -103,4 +141,57 @@ export function devServer(): Plugin[] {
       },
     },
   ];
+}
+
+async function collectCss(
+  id: string,
+  env: DevEnvironment,
+) {
+  const seen = new Set<string>();
+  const queue: string[] = [id];
+  const out: string[] = [];
+
+  let current: string | undefined;
+  while ((current = queue.pop()) !== undefined) {
+    if (seen.has(current)) continue;
+    seen.add(current);
+
+    let mod = env.moduleGraph.idToModuleMap.get(current);
+    if (mod === undefined || mod.transformResult === null) {
+      // During development assets are loaded lazily, so we need
+      // to trigger processing manually.
+      await env.fetchModule(current);
+      mod = env.moduleGraph.idToModuleMap.get(current) ??
+        env.moduleGraph.idToModuleMap.get(`\0${current}`);
+
+      if (mod === undefined) continue;
+    }
+
+    if (
+      (current.endsWith(".scss") ||
+        current.endsWith(".css")) && mod.transformResult
+    ) {
+      // Since vite stores everything as a JS file we need to
+      // extract the CSS out of the JS
+      const match = mod.transformResult.code.match(
+        /__vite__css\s+=\s+("(?:\\\\|\\"|[^"])*")/,
+      );
+
+      if (match !== null) {
+        const content = JSON.parse(match[1]);
+        out.push(
+          `<style type="text/css" vite-module-id="${
+            hashCode(id)
+          }">${content}</style>`,
+        );
+      }
+    }
+
+    mod.importedModules.forEach((m) => {
+      if (m.id === null) return;
+      queue.push(m.id);
+    });
+  }
+
+  return out;
 }
