@@ -25,6 +25,43 @@ const app = new App()
   .get("/", () => new Response("hello"));
 ```
 
+## Nonce-based CSP
+
+For stricter security, you can use nonce-based CSP instead of
+`'unsafe-inline'`. This ensures only inline `<script>` and `<style>` tags
+rendered by Fresh are allowed to execute.
+
+```ts main.ts
+import { csp } from "fresh";
+
+const app = new App()
+  .use(csp({ useNonce: true }))
+  .get("/", (ctx) => {
+    return ctx.render(
+      <html>
+        <head>
+          <style>{"body { color: red; }"}</style>
+        </head>
+        <body>
+          <h1>Hello</h1>
+        </body>
+      </html>,
+    );
+  });
+```
+
+When `useNonce` is enabled:
+
+- Fresh automatically injects a unique `nonce` attribute onto every inline
+  `<script>` and `<style>` tag during server rendering.
+- The CSP header replaces `'unsafe-inline'` with `'nonce-{value}'` in both
+  `script-src` and `style-src` directives.
+- Each request gets a fresh nonce, so the value cannot be predicted by an
+  attacker.
+- If a tag already has an explicit `nonce` attribute, it is preserved.
+- Non-rendered responses (e.g. API routes returning JSON) fall back to
+  `'unsafe-inline'` since there is no rendering step to generate a nonce.
+
 ## Options
 
 See the [API docs](https://jsr.io/@fresh/core/doc/~/csp) for a list of all
