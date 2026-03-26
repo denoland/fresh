@@ -23,7 +23,7 @@ This is a plugin with custom rules specifically for Fresh.
 
 ## Rules
 
-| Rule ID                 | Description                                                  |
-| ----------------------- | ------------------------------------------------------------ |
-| `handler-export`        | Warn when exporting `handlers` over `handler`                |
-| `server-event-handlers` | Warn when code attempts to use event handlers in server code |
+| Rule ID                 | Description                                                                        |
+| ----------------------- | ---------------------------------------------------------------------------------- |
+| `handler-export`        | Warn when exporting `handlers` over `handler`                                      |
+| `server-event-handlers` | Warn when code attempts to use event handlers or functions as props in server code |
