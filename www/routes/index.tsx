@@ -5,13 +5,10 @@ import Footer from "../components/Footer.tsx";
 import Header from "../components/Header.tsx";
 import { CTA } from "../components/homepage/CTA.tsx";
 import { Hero } from "../components/homepage/Hero.tsx";
-import { IslandsSection } from "../components/homepage/IslandsSection.tsx";
-import { PartialsSection } from "../components/homepage/PartialsSection.tsx";
-import { RenderingSection } from "../components/homepage/RenderingSection.tsx";
-import { FormsSection } from "../components/homepage/FormsSection.tsx";
-import { Simple } from "../components/homepage/Simple.tsx";
 import { SocialProof } from "../components/homepage/SocialProof.tsx";
 import { DenoSection } from "../components/homepage/DenoSection.tsx";
+import { WhyFresh } from "../components/homepage/WhyFresh.tsx";
+import { CodeTourSection } from "../components/homepage/CodeTourSection.tsx";
 import { define } from "../utils/state.ts";
 
 export const handler = define.handlers({
@@ -27,10 +24,9 @@ export const handler = define.handlers({
       });
     }
 
-    ctx.state.title =
-      "Fresh - The simple, approachable, productive web framework.";
+    ctx.state.title = "Fresh - The web framework that stays out of your way.";
     ctx.state.description =
-      "Fresh features just-in-time edge rendering, island based interactivity, and zero-configuration TypeScript support. Fast to write; fast to run.";
+      "Fresh is a Deno web framework with server rendering, island-based interactivity, and zero-config TypeScript. Ship fast, stay simple.";
     ctx.state.ogImage = new URL(asset("/og-image.webp"), ctx.url).href;
 
     return page();
@@ -56,11 +52,8 @@ export default define.page<typeof handler>(function MainPage() {
       </div>
       <div class="flex flex-col -mt-20 relative">
         <Hero />
-        <Simple />
-        <RenderingSection />
-        <IslandsSection />
-        <FormsSection />
-        <PartialsSection />
+        <WhyFresh />
+        <CodeTourSection />
         <SocialProof />
         <DenoSection />
         <CTA />

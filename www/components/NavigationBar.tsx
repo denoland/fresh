@@ -10,8 +10,16 @@ export default function NavigationBar(
       href: "/docs",
     },
     {
+      name: "Examples",
+      href: "/examples",
+    },
+    {
       name: "Blog",
       href: "https://deno.com/blog?tag=fresh",
+    },
+    {
+      name: "Community",
+      href: "/community",
     },
   ];
   const isHome = props.active == "/";
