@@ -15,8 +15,7 @@ import { NO_VISITOR, pathSegments } from "../utils.ts";
 
 export const RULE_NAME = "handler-export";
 
-const MESSAGE =
-  'Fresh middlewares must be exported as "handler" but got "handlers" instead.';
+const MESSAGE = 'Fresh routes must export "handler" instead of "handlers".';
 const HINT = 'Did you mean "handler"?';
 
 const HANDLERS_NAME = "handlers";
