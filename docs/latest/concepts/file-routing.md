@@ -46,6 +46,15 @@ Example project structure:
         └── index.tsx
 ```
 
+**Special directories inside `routes/`:**
+
+- **`(_islands)`** — Files in this directory are treated as
+  [islands](/docs/concepts/islands), just like files in the top-level `islands/`
+  folder. This lets you co-locate islands next to the routes that use them.
+- **`(_components)`** — A conventional directory for non-island components that
+  are only used by nearby routes. Fresh does not treat these files specially —
+  the parentheses just prevent them from becoming routes.
+
 File names are mapped to route patterns as follows:
 
 - File extensions are ignored.
