@@ -7,7 +7,7 @@ import {
   withBrowserApp,
 } from "./test_utils.tsx";
 import { expect } from "@std/expect";
-import { FakeServer } from "../src/test_utils.ts";
+import { FakeServer, integrationTest } from "../src/test_utils.ts";
 import * as path from "@std/path";
 
 Deno.test("Head - ssr - updates title", async () => {
@@ -151,171 +151,159 @@ Deno.test("Head - ssr - merge keyed", async () => {
   expect(last?.textContent).toEqual("ok");
 });
 
-Deno.test({
+integrationTest({
   ignore: true, // Temporarily until client perf is fixed
   name: "Head - client - set title",
-  fn: async () => {
-    const applyCache = await buildProd({
-      root: path.join(import.meta.dirname!, "fixture_head"),
+}, async () => {
+  const applyCache = await buildProd({
+    root: path.join(import.meta.dirname!, "fixture_head"),
+  });
+
+  const app = new App({})
+    .use(staticFiles())
+    .fsRoutes();
+
+  applyCache(app);
+
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(`${address}/title`);
+
+    await page.locator(".ready").wait();
+    await page.locator("button").click();
+
+    await waitFor(async () => {
+      const title = await page.evaluate(() => document.title);
+      return title === "Count: 1";
     });
-
-    const app = new App({})
-      .use(staticFiles())
-      .fsRoutes();
-
-    applyCache(app);
-
-    await withBrowserApp(app, async (page, address) => {
-      await page.goto(`${address}/title`);
-
-      await page.locator(".ready").wait();
-      await page.locator("button").click();
-
-      await waitFor(async () => {
-        const title = await page.evaluate(() => document.title);
-        return title === "Count: 1";
-      });
-    });
-  },
-  sanitizeOps: false,
-  sanitizeResources: false,
+  });
 });
 
-Deno.test({
+integrationTest({
   ignore: true, // Temporarily until client perf is fixed
   name: "Head - client - match meta",
-  fn: async () => {
-    const applyCache = await buildProd({
-      root: path.join(import.meta.dirname!, "fixture_head"),
-    });
+}, async () => {
+  const applyCache = await buildProd({
+    root: path.join(import.meta.dirname!, "fixture_head"),
+  });
 
-    const app = new App({})
-      .use(staticFiles())
-      .fsRoutes();
+  const app = new App({})
+    .use(staticFiles())
+    .fsRoutes();
 
-    applyCache(app);
+  applyCache(app);
 
-    await withBrowserApp(app, async (page, address) => {
-      await page.goto(`${address}/meta`);
-      await page.locator(".ready").wait();
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(`${address}/meta`);
+    await page.locator(".ready").wait();
 
-      await waitFor(async () => {
-        const metas = await page.evaluate(() => {
-          const metas = Array.from(
-            document.querySelectorAll("meta[name]"),
-          ) as HTMLMetaElement[];
+    await waitFor(async () => {
+      const metas = await page.evaluate(() => {
+        const metas = Array.from(
+          document.querySelectorAll("meta[name]"),
+        ) as HTMLMetaElement[];
 
-          return metas.map((
-            el: HTMLMetaElement,
-          ) => ({ name: el.name, content: el.content }));
-        });
-
-        try {
-          expect(metas).toEqual([
-            { name: "foo", content: "ok" },
-            { name: "bar", content: "not ok" },
-          ]);
-          return true;
-        } catch {
-          return false;
-        }
+        return metas.map((
+          el: HTMLMetaElement,
+        ) => ({ name: el.name, content: el.content }));
       });
+
+      try {
+        expect(metas).toEqual([
+          { name: "foo", content: "ok" },
+          { name: "bar", content: "not ok" },
+        ]);
+        return true;
+      } catch {
+        return false;
+      }
     });
-  },
-  sanitizeOps: false,
-  sanitizeResources: false,
+  });
 });
 
-Deno.test({
+integrationTest({
   ignore: true, // Temporarily until client perf is fixed
   name: "Head - client - match style by id",
-  fn: async () => {
-    const applyCache = await buildProd({
-      root: path.join(import.meta.dirname!, "fixture_head"),
-    });
+}, async () => {
+  const applyCache = await buildProd({
+    root: path.join(import.meta.dirname!, "fixture_head"),
+  });
 
-    const app = new App({})
-      .use(staticFiles())
-      .fsRoutes();
+  const app = new App({})
+    .use(staticFiles())
+    .fsRoutes();
 
-    applyCache(app);
+  applyCache(app);
 
-    await withBrowserApp(app, async (page, address) => {
-      await page.goto(`${address}/id`);
-      await page.locator(".ready").wait();
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(`${address}/id`);
+    await page.locator(".ready").wait();
 
-      await waitFor(async () => {
-        const styles = await page.evaluate(() => {
-          const els = Array.from(
-            document.querySelectorAll("head style"),
-          ) as HTMLStyleElement[];
+    await waitFor(async () => {
+      const styles = await page.evaluate(() => {
+        const els = Array.from(
+          document.querySelectorAll("head style"),
+        ) as HTMLStyleElement[];
 
-          return els.map((
-            el: HTMLStyleElement,
-          ) => ({ id: el.id, text: el.textContent }));
-        });
-
-        try {
-          expect(styles).toEqual([
-            { id: "", text: "not ok" },
-            { id: "style-id", text: "ok" },
-          ]);
-          return true;
-        } catch {
-          return false;
-        }
+        return els.map((
+          el: HTMLStyleElement,
+        ) => ({ id: el.id, text: el.textContent }));
       });
+
+      try {
+        expect(styles).toEqual([
+          { id: "", text: "not ok" },
+          { id: "style-id", text: "ok" },
+        ]);
+        return true;
+      } catch {
+        return false;
+      }
     });
-  },
-  sanitizeOps: false,
-  sanitizeResources: false,
+  });
 });
 
-Deno.test({
+integrationTest({
   ignore: true, // Temporarily until client perf is fixed
   name: "Head - client - match key",
-  fn: async () => {
-    const applyCache = await buildProd({
-      root: path.join(import.meta.dirname!, "fixture_head"),
-    });
+}, async () => {
+  const applyCache = await buildProd({
+    root: path.join(import.meta.dirname!, "fixture_head"),
+  });
 
-    const app = new App({})
-      .use(staticFiles())
-      .fsRoutes();
+  const app = new App({})
+    .use(staticFiles())
+    .fsRoutes();
 
-    applyCache(app);
+  applyCache(app);
 
-    await withBrowserApp(app, async (page, address) => {
-      await page.goto(`${address}/key`);
-      await page.locator(".ready").wait();
+  await withBrowserApp(app, async (page, address) => {
+    await page.goto(`${address}/key`);
+    await page.locator(".ready").wait();
 
-      await waitFor(async () => {
-        const tpls = await page.evaluate(() => {
-          const els = Array.from(
-            document.querySelectorAll("head template"),
-          ) as HTMLTemplateElement[];
+    await waitFor(async () => {
+      const tpls = await page.evaluate(() => {
+        const els = Array.from(
+          document.querySelectorAll("head template"),
+        ) as HTMLTemplateElement[];
 
-          return els.map((
-            el: HTMLTemplateElement,
-          ) => ({
-            key: el.getAttribute("data-key"),
-            text: el.content.textContent,
-          }));
-        });
-
-        try {
-          expect(tpls).toEqual([
-            { key: "a", text: "ok" },
-            { key: "b", text: "not ok" },
-            { key: null, text: "not ok" },
-          ]);
-          return true;
-        } catch {
-          return false;
-        }
+        return els.map((
+          el: HTMLTemplateElement,
+        ) => ({
+          key: el.getAttribute("data-key"),
+          text: el.content.textContent,
+        }));
       });
+
+      try {
+        expect(tpls).toEqual([
+          { key: "a", text: "ok" },
+          { key: "b", text: "not ok" },
+          { key: null, text: "not ok" },
+        ]);
+        return true;
+      } catch {
+        return false;
+      }
     });
-  },
-  sanitizeOps: false,
-  sanitizeResources: false,
+  });
 });
