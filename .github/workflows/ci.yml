@@ -19,10 +19,6 @@ jobs:
             echo "::error::PR title must start with feat:, fix:, test:, chore:, or ci:"
             exit 1
           fi
-          if echo "$TITLE" | grep -qP '[A-Z]'; then
-            echo "::error::PR title must be all lowercase"
-            exit 1
-          fi
 
   test:
     runs-on: ${{ matrix.os }}
