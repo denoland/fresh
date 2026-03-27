@@ -95,8 +95,7 @@ can also be caused by other problems in your deployment configuration.
 If you see errors in VS Code like `Cannot find module 'fresh/runtime'` or see a
 lot of TypeScript errors, you likely have not installed the Deno extension. You
 can easily find it inside VS Code's extension browser (identifier:
-`denoland.vscode-deno`) or get it from the
-[marketplace](https://marketplace.visualstudio.com/items?itemName=denoland.vscode-deno).
+`denoland.vscode-deno`).
 
 Once installed and enabled, the currently installed Deno version should appear
 in the bottom status bar. If this does not happen automatically, you can enable

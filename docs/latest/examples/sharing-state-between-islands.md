@@ -4,8 +4,7 @@ description: |
 ---
 
 All of this content is lifted from this great
-[example](https://fresh-with-signals.deno.dev/) by Luca. The source can be found
-[here](https://github.com/lucacasonato/fresh-with-signals).
+[example](https://github.com/lucacasonato/fresh-with-signals) by Luca.
 
 ## Multiple Sibling Islands with Independent State
 
