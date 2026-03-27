@@ -57,6 +57,7 @@ const toc: RawTableOfContents = {
           ["partials", "Partials", "link:latest"],
           ["forms", "Forms", "link:latest"],
           ["define", "Define Helpers", "link:latest"],
+          ["serialization", "Serialization", "link:latest"],
           ["environment-variables", "Environment Variables", "link:latest"],
           ["head", "Modifying <head>", "link:latest"],
           ["vite", "Vite Plugin Options", "link:latest"],
