@@ -5,7 +5,7 @@ description: |
 
 Define helpers can be used to shorten the amount of types you have to type
 yourself in code. They are entirely optional as some developers prefer the
-explicitness of types, other's like the convenience of `define.*` helpers.
+explicitness of types, others like the convenience of `define.*` helpers.
 
 Without define helpers:
 

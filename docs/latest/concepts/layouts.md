@@ -68,7 +68,7 @@ structure like this:
 ```txt-files Project structure
 └── <root>/routes
     ├── sub
-    │   ├── _layout_.tsx
+    │   ├── _layout.tsx
     │   ├── special.tsx  # should not inherit layouts
     │   └── index.tsx
     └── _layout.tsx

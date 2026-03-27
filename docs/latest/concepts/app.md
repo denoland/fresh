@@ -28,7 +28,7 @@ const app = new App()
   })
   .get("/", () => new Response("hello"))
   .use((ctx) => {
-    // Will only be called for `/about
+    // Will only be called for `/about`
     return ctx.next();
   })
   .get("/about", (ctx) => ctx.render(<h1>About me</h1>));

@@ -183,7 +183,7 @@ tailwind(builder, app, {
 
 ### Tailwindcss v3
 
-If can't update to the current version of tailwindcss we have a dedicated
+If you can't update to the current version of tailwindcss we have a dedicated
 `@fresh/plugin-tailwindcss-v3` plugin that uses tailwindcss v3. That way you can
 decided on your own when it's best to update to v4.
 

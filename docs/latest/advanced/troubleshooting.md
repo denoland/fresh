@@ -55,7 +55,7 @@ anymore and you should use the relevant npm package directly from npm.
 
 > [info]: Not using `esm.sh` solves many issues and footguns with duplicate
 > Preact versions in your app. If you're seeing strange JavaScript errors in the
-> browser in your app than this is likely the cause.
+> browser in your app then this is likely the cause.
 
 ## Attach a debugger
 

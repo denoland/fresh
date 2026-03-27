@@ -155,4 +155,4 @@ export default define.page(() => {
 
 Now, we can see our countdown in action:
 
-![Screenshot of the countdown component](/docs/getting-started-3-cotuntdown.png)
+![Screenshot of the countdown component](/docs/getting-started-3-countdown.png)

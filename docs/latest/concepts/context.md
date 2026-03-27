@@ -56,7 +56,7 @@ matched.
 
 ```ts
 app.get("/foo/:id", (ctx) => {
-  console.log(ctx.route); // Logs: "/foo/:id
+  console.log(ctx.route); // Logs: "/foo/:id"
   // ...
 });
 ```

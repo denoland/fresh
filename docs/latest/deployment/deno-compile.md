@@ -17,4 +17,4 @@ deno compile --output my-app --include _fresh -A _fresh/compiled-entry.js
 The compiled entry supports two environment variables out of the box:
 
 - `PORT` to set the port number (`PORT=4000 my-app`)
-- `HOSTNAME` to set the host name number (`HOSTNAME=0.0.0.0 my-app`)
+- `HOSTNAME` to set the host name (`HOSTNAME=0.0.0.0 my-app`)

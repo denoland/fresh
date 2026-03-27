@@ -58,7 +58,7 @@ Fresh ships with the following middlewares built-in:
 ## Filesystem-based middlewares
 
 With file system based routing you can define a middleware in a `_middleware.ts`
-file inside the `routes/` folder or any of it's subfolders.
+file inside the `routes/` folder or any of its subfolders.
 
 ```ts routes/_middleware.ts
 import { define } from "../utils.ts";
