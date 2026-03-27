@@ -2,6 +2,10 @@
 description: "Create re-usable layouts across routes"
 ---
 
+This page covers **programmatic layouts** defined via `app.layout()`. If you're
+using file-based routing, see [Layouts (file-based)](/docs/concepts/layouts)
+instead.
+
 Layouts are plain Preact components that are inherited based on the matching
 pattern. When you have a section on your site where all pages share the same
 HTML structure and only the content changes, a layout is a neat way to abstract

@@ -3,6 +3,10 @@ description: |
   Add a layout to provide common meta tags, context for application sub routes, and common layout.
 ---
 
+This page covers **file-based layouts** using `_layout.tsx` files. If you're
+defining routes programmatically with `new App()`, see
+[Layouts (programmatic)](/docs/advanced/layouts) instead.
+
 A layout is defined in a `_layout.tsx` file in any sub directory (at any level)
 under the `routes/` folder. It must contain a default export that is a regular
 Preact component. Only one such layout is allowed per sub directory.
