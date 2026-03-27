@@ -156,3 +156,18 @@ export default define.page(() => {
 Now, we can see our countdown in action:
 
 ![Screenshot of the countdown component](/docs/getting-started-3-countdown.png)
+
+## Next steps
+
+Now that you have a working Fresh project, here are some things to explore:
+
+- [**Routing**](/docs/concepts/routing) - Learn about route patterns, dynamic
+  parameters, and method-specific handlers
+- [**Data Fetching**](/docs/concepts/data-fetching) - Load data on the server
+  and pass it to page components
+- [**Islands**](/docs/concepts/islands) - Understand how Fresh's partial
+  hydration works and what can be passed as props
+- [**Middleware**](/docs/concepts/middleware) - Add authentication, logging, or
+  custom headers to your routes
+- [**Architecture**](/docs/concepts/architecture) - See how requests flow
+  through the entire framework
