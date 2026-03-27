@@ -7,6 +7,23 @@ on:
     branches: [main]
 
 jobs:
+  pr-title:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR title
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          if ! echo "$TITLE" | grep -qP '^(feat|fix|test|chore|ci):'; then
+            echo "::error::PR title must start with feat:, fix:, test:, chore:, or ci:"
+            exit 1
+          fi
+          if echo "$TITLE" | grep -qP '[A-Z]'; then
+            echo "::error::PR title must be all lowercase"
+            exit 1
+          fi
+
   test:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
