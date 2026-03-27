@@ -89,7 +89,7 @@ export const config: RouteConfig = {
   skipInheritedLayouts: true, // Skip already inherited layouts
 };
 
-export default define.layout(() => {
+export default define.page(() => {
   return <p>Hello world</p>;
 });
 ```

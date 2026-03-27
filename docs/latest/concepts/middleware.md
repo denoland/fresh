@@ -52,8 +52,9 @@ const middleware = define.middleware(async (ctx) => {
 Fresh ships with the following middlewares built-in:
 
 - [cors()](/docs/plugins/cors) - Set CORS HTTP headers
-- [csrf()](/docs/plugins/csrf) - Set CSRF HTTP headers
-- [trailingSlash()](/docs/plugins/trailing-slashes) - Enforce trailing slashes
+- [csrf()](/docs/plugins/csrf) - CSRF protection
+- [csp()](/docs/plugins/csp) - Content Security Policy headers
+- [trailingSlashes()](/docs/plugins/trailing-slashes) - Enforce trailing slashes
 
 ## Filesystem-based middlewares
 

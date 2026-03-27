@@ -171,7 +171,7 @@ For more information on how to use tailwindcss, check out
 You can customize the tailwind plugin via the following options:
 
 ```ts dev.ts
-tailwind(builder, app, {
+tailwind(builder, {
   // Exclude certain files from processing
   exclude: ["/admin/**", "*.temp.css"],
   // Force optimization (defaults to production mode)

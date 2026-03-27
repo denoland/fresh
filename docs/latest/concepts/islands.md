@@ -102,7 +102,7 @@ that is needed for the islands to the browser.
 export default (props: { foo: string }) => <>{props.foo}</>;
 ```
 
-```tsx route/index.tsx
+```tsx routes/index.tsx
 import MyIsland from "../islands/my-island.tsx";
 import OtherIsland from "../islands/other-island.tsx";
 

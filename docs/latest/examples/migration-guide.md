@@ -292,7 +292,7 @@ To render JSX in general, use the `ctx.render()` function:
 
 ```tsx
 const app = new App()
-  .get("/", () => ctx.render(<h1>hello</h1>));
+  .get("/", (ctx) => ctx.render(<h1>hello</h1>));
 ```
 
 ## `createHandler`
