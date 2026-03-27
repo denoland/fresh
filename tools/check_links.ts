@@ -5,10 +5,15 @@ import { createBuilder } from "vite";
 
 const www = path.join(import.meta.dirname!, "..", "www");
 
+const totalStart = performance.now();
+
 // deno-lint-ignore no-console
 console.log("Building www...");
+let stepStart = performance.now();
 const builder = await createBuilder({ root: www });
 await builder.buildApp();
+// deno-lint-ignore no-console
+console.log(`Build completed in ${((performance.now() - stepStart) / 1000).toFixed(1)}s`);
 
 const EXCLUDED_EXTENSIONS = new Set([
   ".ts",
@@ -49,6 +54,9 @@ const visitedPages = new Set<string>();
 const failedLinks: FailedLink[] = [];
 const emptyLinks: EmptyLink[] = [];
 
+// deno-lint-ignore no-console
+console.log("Starting server and crawling links...");
+stepStart = performance.now();
 await launchProd({ cwd: www }, async (address) => {
   const rootUrl = new URL(address);
   const queue: Array<{ url: URL; referrer: string }> = [
@@ -57,8 +65,10 @@ await launchProd({ cwd: www }, async (address) => {
 
   const CONCURRENCY = 10;
 
+  const slowPages: Array<{ pathname: string; ms: number }> = [];
+
   async function processUrl(current: { url: URL; referrer: string }) {
-    Deno.stdout.writeSync(new TextEncoder().encode("."));
+    const fetchStart = performance.now();
 
     let res: Response;
     try {
@@ -93,6 +103,11 @@ await launchProd({ cwd: www }, async (address) => {
     }
 
     const text = await res.text();
+    const elapsed = performance.now() - fetchStart;
+    if (elapsed > 1000) {
+      slowPages.push({ pathname: current.url.pathname, ms: Math.round(elapsed) });
+    }
+    Deno.stdout.writeSync(new TextEncoder().encode("."));
     const doc = new DOMParser().parseFromString(text, "text/html");
 
     for (const link of doc.querySelectorAll("a")) {
@@ -146,14 +161,26 @@ await launchProd({ cwd: www }, async (address) => {
       await Promise.all(batch.map(processUrl));
     }
   }
+
+  if (slowPages.length > 0) {
+    slowPages.sort((a, b) => b.ms - a.ms);
+    // deno-lint-ignore no-console
+    console.log(`\nSlow pages (>1s):`);
+    for (const p of slowPages) {
+      // deno-lint-ignore no-console
+      console.log(`  ${(p.ms / 1000).toFixed(1)}s ${p.pathname}`);
+    }
+  }
 });
 
 // deno-lint-ignore no-console
 console.log();
 // deno-lint-ignore no-console
-console.log();
+console.log(`\nCrawl completed in ${((performance.now() - stepStart) / 1000).toFixed(1)}s`);
 // deno-lint-ignore no-console
 console.log(`Pages checked: ${visitedPages.size}`);
+// deno-lint-ignore no-console
+console.log(`Total time: ${((performance.now() - totalStart) / 1000).toFixed(1)}s`);
 
 if (emptyLinks.length > 0) {
   // deno-lint-ignore no-console
