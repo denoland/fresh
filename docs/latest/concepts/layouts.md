@@ -28,7 +28,7 @@ set by middleware is available via `props.state`.
 ```tsx routes/sub/_layout.tsx
 import { define } from "../../utils.ts";
 
-export default define.layout({ Component, state }) => {
+export default define.layout(({ Component, state }) => {
   // do something with state here
   return (
     <div class="layout">

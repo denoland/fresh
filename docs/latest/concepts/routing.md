@@ -16,7 +16,7 @@ const app = new App()
     const id = ctx.params.id;
     return new Response(`Book id: ${id}`);
   })
-  .get("/blog/:post/comments", () => {
+  .get("/blog/:post/comments", (ctx) => {
     // Responds to: GET /blog/my-post/comments, /blog/hello/comments, etc
     const post = ctx.params.post;
     return new Response(`Blog post comments for post: ${post}`);
