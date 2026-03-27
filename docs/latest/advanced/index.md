@@ -15,5 +15,6 @@ This section of the documentation describes advanced functionality of Fresh.
 - [Environment variables](/docs/advanced/environment-variables) - Use env vars in islands
 - [Modifying &lt;head&gt;](/docs/advanced/head) - Manage meta tags, titles, and styles
 - [Vite plugin options](/docs/advanced/vite) - Configure the Fresh Vite plugin
+- [API Reference](/docs/advanced/api-reference) - All public exports from Fresh
 - [Troubleshooting](/docs/advanced/troubleshooting) - Common issues and solutions
 - [Builder (Legacy)](/docs/advanced/builder) - Pre-Vite build system
