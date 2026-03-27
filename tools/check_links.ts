@@ -55,13 +55,9 @@ await launchProd({ cwd: www }, async (address) => {
     { url: rootUrl, referrer: "(start)" },
   ];
 
-  while (queue.length > 0) {
-    const current = queue.pop()!;
-    const pathname = current.url.pathname;
+  const CONCURRENCY = 10;
 
-    if (visitedPages.has(pathname)) continue;
-    visitedPages.add(pathname);
-
+  async function processUrl(current: { url: URL; referrer: string }) {
     Deno.stdout.writeSync(new TextEncoder().encode("."));
 
     let res: Response;
@@ -78,7 +74,7 @@ await launchProd({ cwd: www }, async (address) => {
         status: 0,
         referrer: current.referrer,
       });
-      continue;
+      return;
     }
 
     if (res.status >= 400) {
@@ -88,12 +84,12 @@ await launchProd({ cwd: www }, async (address) => {
         referrer: current.referrer,
       });
       await res.body?.cancel();
-      continue;
+      return;
     }
 
     if (!res.headers.get("content-type")?.includes("text/html")) {
       await res.body?.cancel();
-      continue;
+      return;
     }
 
     const text = await res.text();
@@ -135,6 +131,19 @@ await launchProd({ cwd: www }, async (address) => {
       if (visitedPages.has(nextUrl.pathname)) continue;
 
       queue.push({ url: nextUrl, referrer: current.url.pathname });
+    }
+  }
+
+  while (queue.length > 0) {
+    const batch: Array<{ url: URL; referrer: string }> = [];
+    while (queue.length > 0 && batch.length < CONCURRENCY) {
+      const current = queue.pop()!;
+      if (visitedPages.has(current.url.pathname)) continue;
+      visitedPages.add(current.url.pathname);
+      batch.push(current);
+    }
+    if (batch.length > 0) {
+      await Promise.all(batch.map(processUrl));
     }
   }
 });
