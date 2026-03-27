@@ -22,6 +22,7 @@ jobs:
         uses: denoland/setup-deno@v2
         with:
           cache: true
+          deno-version: canary
 
       - name: Install dependencies
         run: deno install
