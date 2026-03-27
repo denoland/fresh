@@ -48,6 +48,10 @@ function WrappedHead(
         matched = document.head.querySelector(
           `head [name="${props.name}"]`,
         ) as HTMLElement ?? null;
+      } else if (originalType === "link" && props.rel) {
+        matched = document.head.querySelector(
+          `head link[rel="${props.rel}"]`,
+        ) as HTMLElement ?? null;
       } else if (originalType === "base") {
         matched = document.head.querySelector(originalType) ?? null;
       }

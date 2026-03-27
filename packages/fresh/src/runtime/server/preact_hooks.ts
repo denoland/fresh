@@ -337,6 +337,8 @@ options[OptionsType.DIFF] = (vnode) => {
                   continue;
                 } else if (originalType === "meta" && key === "content") {
                   continue;
+                } else if (originalType === "link" && key === "href") {
+                  continue;
                 }
 
                 cacheKey += `::${props[key]}`;
