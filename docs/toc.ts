@@ -91,6 +91,7 @@ const toc: RawTableOfContents = {
         title: "Examples",
         link: "latest",
         pages: [
+          ["api-routes", "API Routes", "link:latest"],
           ["migration-guide", "Migration Guide", "link:latest"],
           ["daisyui", "daisyUI", "link:latest"],
           ["markdown", "Rendering Markdown", "link:latest"],
