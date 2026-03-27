@@ -13,7 +13,9 @@ let stepStart = performance.now();
 const builder = await createBuilder({ root: www });
 await builder.buildApp();
 // deno-lint-ignore no-console
-console.log(`Build completed in ${((performance.now() - stepStart) / 1000).toFixed(1)}s`);
+console.log(
+  `Build completed in ${((performance.now() - stepStart) / 1000).toFixed(1)}s`,
+);
 
 const EXCLUDED_EXTENSIONS = new Set([
   ".ts",
@@ -105,7 +107,10 @@ await launchProd({ cwd: www }, async (address) => {
     const text = await res.text();
     const elapsed = performance.now() - fetchStart;
     if (elapsed > 1000) {
-      slowPages.push({ pathname: current.url.pathname, ms: Math.round(elapsed) });
+      slowPages.push({
+        pathname: current.url.pathname,
+        ms: Math.round(elapsed),
+      });
     }
     Deno.stdout.writeSync(new TextEncoder().encode("."));
     const doc = new DOMParser().parseFromString(text, "text/html");
@@ -176,11 +181,17 @@ await launchProd({ cwd: www }, async (address) => {
 // deno-lint-ignore no-console
 console.log();
 // deno-lint-ignore no-console
-console.log(`\nCrawl completed in ${((performance.now() - stepStart) / 1000).toFixed(1)}s`);
+console.log(
+  `\nCrawl completed in ${
+    ((performance.now() - stepStart) / 1000).toFixed(1)
+  }s`,
+);
 // deno-lint-ignore no-console
 console.log(`Pages checked: ${visitedPages.size}`);
 // deno-lint-ignore no-console
-console.log(`Total time: ${((performance.now() - totalStart) / 1000).toFixed(1)}s`);
+console.log(
+  `Total time: ${((performance.now() - totalStart) / 1000).toFixed(1)}s`,
+);
 
 if (emptyLinks.length > 0) {
   // deno-lint-ignore no-console
