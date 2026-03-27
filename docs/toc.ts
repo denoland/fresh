@@ -33,6 +33,7 @@ const toc: RawTableOfContents = {
         title: "Concepts",
         link: "latest",
         pages: [
+          ["architecture", "Architecture", "link:latest"],
           ["app", "App", "link:latest"],
           ["middleware", "Middlewares", "link:latest"],
           ["context", "Context", "link:latest"],
