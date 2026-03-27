@@ -1,6 +1,6 @@
 ---
 description: |
-  Error pages can be used to customize the page that is shown when an error occurs in the application.
+  How to use environment variables in Fresh, including public variables that are inlined into island bundles.
 ---
 
 Environment variables in Deno are typically read via `Deno.env.get()` or

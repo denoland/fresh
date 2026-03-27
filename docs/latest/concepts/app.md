@@ -1,6 +1,6 @@
 ---
 description: |
-  Add a global app wrapper to provide common meta tags or context for application routes.
+  The App class is the heart of Fresh, used to define routes, middlewares, layouts and more.
 ---
 
 The `App` class is the heart of Fresh and routes incoming requests to the

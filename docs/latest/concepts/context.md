@@ -1,5 +1,5 @@
 ---
-description: Plugins can add new functionality to Fresh without requiring significant complexity.
+description: The Context object is shared across all middlewares and provides access to the request, URL, params, state, and response helpers.
 ---
 
 The `Context` instance is shared across all middlewares in Fresh. Use it to
