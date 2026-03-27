@@ -3,8 +3,6 @@ import NavigationBar from "./NavigationBar.tsx";
 export default function Header(props: { title: string; active: string }) {
   const isHome = props.active == "/";
   const isDocs = props.active == "/docs";
-  const isShowcase = props.active == "/showcase";
-
   return (
     <header
       class={[
@@ -13,7 +11,6 @@ export default function Header(props: { title: string; active: string }) {
         isDocs
           ? "h-20 max-w-screen-2xl w-full sticky top-0 bg-background-primary  z-50 backdrop-blur-xs"
           : "",
-        isShowcase ? "max-w-screen-xl w-full" : "",
       ].join(" ")}
       f-client-nav={false}
     >
