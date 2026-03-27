@@ -76,3 +76,18 @@ export default function About() {
   return <a href={asset("/brochure.pdf")}>View brochure</a>;
 }
 ```
+
+For `<img>` tags with a `srcset` attribute, use `assetSrcSet()`:
+
+```tsx routes/gallery.tsx
+import { assetSrcSet } from "fresh/runtime";
+
+export default function Gallery() {
+  return (
+    <img
+      src="/photo.jpg"
+      srcset={assetSrcSet("/photo-640.jpg 640w, /photo-1280.jpg 1280w")}
+    />
+  );
+}
+```

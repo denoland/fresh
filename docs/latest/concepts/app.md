@@ -17,6 +17,23 @@ const app = new App()
 app.listen();
 ```
 
+## Configuration
+
+The `App` constructor accepts an options object:
+
+```ts
+const app = new App({
+  // Serve the app from a sub-path instead of root.
+  // All routes will be prefixed with this path.
+  basePath: "/my-app",
+});
+```
+
+With `basePath: "/my-app"`, a route registered at `/about` will respond to
+`/my-app/about`. This is useful when Fresh runs behind a reverse proxy or is
+mounted alongside other apps. The base path is available in handlers via
+`ctx.config.basePath`.
+
 All items are applied from top to bottom. This means that when you defined a
 middleware _after_ a `.get()` handler, it won't be included.
 
