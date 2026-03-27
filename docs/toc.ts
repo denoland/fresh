@@ -38,6 +38,7 @@ const toc: RawTableOfContents = {
           ["context", "Context", "link:latest"],
 
           ["routing", "Routing", "link:latest"],
+          ["data-fetching", "Data Fetching", "link:latest"],
 
           ["islands", "Islands", "link:latest"],
           ["signals", "Signals", "link:latest"],
