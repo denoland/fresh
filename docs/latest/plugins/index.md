@@ -22,4 +22,11 @@ const addXFreshHeader = define.middleware(async (ctx) => {
 
 Learn more about [middlewares](/docs/concepts/middleware).
 
-TODO: Show more ways
+## Built-in plugins
+
+Fresh ships with the following plugins:
+
+- [cors()](/docs/plugins/cors) - Set CORS HTTP headers
+- [csrf()](/docs/plugins/csrf) - CSRF protection
+- [csp()](/docs/plugins/csp) - Content Security Policy headers
+- [trailingSlashes()](/docs/plugins/trailing-slashes) - Enforce trailing slash behavior

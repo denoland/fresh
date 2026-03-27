@@ -257,7 +257,18 @@ app.fsRoutes("/foo/bar");
 
 ## `.route()`
 
-TODO
+Register a route with a component and optional handlers for data loading.
+
+```tsx
+app.route("/about", {
+  component: (ctx) => <h1>About {ctx.data.name}</h1>,
+  handlers: {
+    GET(ctx) {
+      return page({ name: "Fresh" });
+    },
+  },
+});
+```
 
 ## `.appWrapper()`
 
@@ -282,9 +293,13 @@ app.onError("*", (ctx) => {
 });
 ```
 
-Setting a route:
+Setting a route with a component:
 
-TODO
+```tsx
+app.onError((ctx) => {
+  return ctx.render(<h1>Oops! Something went wrong.</h1>);
+});
+```
 
 ## `.notFound()`
 
@@ -296,7 +311,13 @@ app.notFound(() => {
 });
 ```
 
-TODO: Route
+With a component:
+
+```tsx
+app.notFound((ctx) => {
+  return ctx.render(<h1>Page not found</h1>);
+});
+```
 
 ## `.mountApp()`
 
