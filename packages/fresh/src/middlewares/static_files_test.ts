@@ -1,5 +1,5 @@
 import { staticFiles } from "./static_files.ts";
-import { serveMiddleware } from "../test_utils.ts";
+import { FakeServer, serveMiddleware } from "../test_utils.ts";
 import type { BuildCache, StaticFile } from "../build_cache.ts";
 import { expect } from "@std/expect";
 import { ASSET_CACHE_BUST_KEY } from "../constants.ts";
@@ -10,6 +10,7 @@ import {
   getContentType,
   systemPathToUrlEncoded,
 } from "../dev/dev_build_cache.ts";
+import { App, setBuildCache } from "../app.ts";
 
 class MockBuildCache implements BuildCache {
   root = "";
@@ -260,16 +261,34 @@ Deno.test("static files - fallthrough", async () => {
     "foo.css": { content: "body {}", hash: null },
   });
 
-  const server = serveMiddleware(
-    staticFiles(),
-    { buildCache, next: () => Promise.resolve(new Response("it works")) },
-  );
+  let called: string[] = [];
+  const app = new App<{ text: string }>()
+    .use((ctx) => {
+      ctx.state.text = "it";
+      called.push("before");
+      return ctx.next();
+    })
+    .use(staticFiles())
+    .use((ctx) => {
+      ctx.state.text += " works";
+      called.push("after");
+      return ctx.next();
+    })
+    .get("/", (ctx) => new Response(ctx.state.text));
+
+  setBuildCache(app, buildCache, "production");
+
+  const server = new FakeServer(app.handler());
 
   let res = await server.get("foo.css");
   let text = await res.text();
   expect(text).toEqual("body {}");
+  expect(called).toEqual(["before"]);
+
+  called = [];
 
   res = await server.get("/");
   text = await res.text();
   expect(text).toEqual("it works");
+  expect(called).toEqual(["before", "after"]);
 });
