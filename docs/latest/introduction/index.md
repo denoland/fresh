@@ -19,6 +19,11 @@ const app = new App()
 app.listen();
 ```
 
+## Requirements
+
+- [Deno](https://deno.com/) v2.1 or later
+- TypeScript is supported out of the box (no configuration needed)
+
 ## Quick Start
 
 Create a new Fresh app by running:
