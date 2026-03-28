@@ -24,13 +24,18 @@ ENV DENO_DEPLOYMENT_ID=${GIT_REVISION}
 WORKDIR /app
 
 COPY . .
+RUN deno install --allow-scripts
 RUN deno task build
-RUN deno cache _fresh/server.js
 
 EXPOSE 8000
 
-CMD ["serve", "-A", "_fresh/server.js"]
+CMD ["deno", "serve", "-A", "_fresh/server.js"]
 ```
+
+> [!NOTE]
+> The `deno install --allow-scripts` step is required to populate `node_modules`
+> and run any post-install scripts needed by npm packages (e.g. Tailwind CSS).
+> This must happen before `deno task build`.
 
 To build your Docker image inside of a Git repository:
 

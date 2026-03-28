@@ -3,7 +3,14 @@ description: "Create a production build of your app"
 ---
 
 When shipping an app to production, we can run a build step that optimizes
-assets for consumption in the browser. This step can be invoked by running:
+assets for consumption in the browser. First, make sure dependencies are
+installed:
+
+```sh Terminal
+deno install --allow-scripts
+```
+
+Then run the build:
 
 ```sh Terminal
 deno task build
