@@ -4,9 +4,9 @@ description: |
 ---
 
 [Signals](https://preactjs.com/guide/v10/signals/) are Preact's reactive
-primitive for managing state in islands. When a signal's value changes, any
-component that reads it re-renders automatically — no need for `setState` or
-manual subscriptions.
+primitive for managing state in [islands](/docs/concepts/islands). When a
+signal's value changes, any component that reads it re-renders automatically -
+no need for `setState` or manual subscriptions.
 
 ## Creating signals
 
@@ -78,7 +78,7 @@ export default function Home() {
 }
 ```
 
-Both sliders share the same signal — moving one updates the other. When the same
+Both sliders share the same signal - moving one updates the other. When the same
 signal object is passed to multiple islands, Fresh preserves the reference so
 they stay synchronized.
 
@@ -126,8 +126,8 @@ for more patterns.
 
 ## Serialization
 
-When signals are passed as island props, Fresh handles serialization
-automatically:
+When signals are passed as island props, Fresh handles
+[serialization](/docs/advanced/serialization) automatically:
 
 - The signal's current value is extracted on the server via `.peek()`
 - On the client, the value is wrapped back into a live `signal()` or
@@ -135,5 +135,5 @@ automatically:
 - Circular references and duplicate signal references are preserved
 
 The signal's inner value must itself be serializable (see
-[Islands — Passing props](/docs/concepts/islands#passing-props-to-islands) for
+[Islands - Passing props](/docs/concepts/islands#passing-props-to-islands) for
 the full list of supported types).

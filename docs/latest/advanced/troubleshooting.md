@@ -41,7 +41,7 @@ already been resolved in the latest version of Fresh.
 
 Fresh 1.x heavily relied on [esm.sh](https://esm.sh/) to be able to use npm
 packages with Fresh. This continued a bit through the early alpha versions of
-Fresh 2. With the move to [`vite`](https://vite.dev/) this is not necessary
+Fresh 2. With the move to [`vite`](/docs/advanced/vite) this is not necessary
 anymore and you should use the relevant npm package directly from npm.
 
 ```diff deno.json

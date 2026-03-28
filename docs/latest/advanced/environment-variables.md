@@ -9,7 +9,7 @@ see
 [how to use Environment Variables in Deno](https://docs.deno.com/runtime/reference/env_variables/).
 
 On top of that Fresh automatically inlines all environment variables whose names
-start with `FRESH_PUBLIC_` during bundling of islands.
+start with `FRESH_PUBLIC_` during bundling of [islands](/docs/concepts/islands).
 
 > [info]: This inlining step occurs when building the app (`deno task build`).
 > Environment variables inside islands cannot be read at runtime.

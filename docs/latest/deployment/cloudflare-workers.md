@@ -5,7 +5,8 @@ description: "Deploy Fresh on Cloudflare Workers"
 Deploy Fresh to Cloudflare Workers by following these instructions:
 
 1. Run `deno install --allow-scripts npm:@cloudflare/vite-plugin npm:wrangler`
-2. Add the cloudflare plugin in your vite configuration file:
+2. Add the cloudflare plugin in your [vite](/docs/advanced/vite) configuration
+   file:
 
 ```diff vite.config.ts
   import { defineConfig } from "vite";

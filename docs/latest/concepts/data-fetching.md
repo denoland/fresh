@@ -83,8 +83,8 @@ between handler and component.
 
 ## Passing state from middleware
 
-Middleware can set values on `ctx.state` that are available to all downstream
-handlers and components:
+[Middleware](/docs/concepts/middleware) can set values on `ctx.state` that are
+available to all downstream handlers and components:
 
 ```ts routes/_middleware.ts
 import { define } from "@/utils.ts";

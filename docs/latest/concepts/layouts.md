@@ -27,7 +27,7 @@ Preact component. Only one such layout is allowed per sub directory.
 The component to be wrapped is received via props, in addition to a few other
 things. This allows for the introduction of a global container functioning as a
 template which can be conditioned based on state and params. Note that any state
-set by middleware is available via `props.state`.
+set by [middleware](/docs/concepts/middleware) is available via `props.state`.
 
 ```tsx routes/sub/_layout.tsx
 import { define } from "../../utils.ts";

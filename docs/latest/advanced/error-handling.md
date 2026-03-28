@@ -66,7 +66,8 @@ const app = new App()
 ```
 
 Accessing an unknown route like `/invalid` will trigger the `notFound`
-middleware. Contrary to generic error pages this handler cannot be nested.
+[middleware](/docs/concepts/middleware). Contrary to generic error pages this
+handler cannot be nested.
 
 ## Throwing HTTP errors
 
@@ -116,4 +117,4 @@ app.onError("*", (ctx) => {
 ```
 
 `HttpError` is also available in the browser via `fresh/runtime` for use in
-island code.
+[island code](/docs/concepts/islands).

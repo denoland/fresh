@@ -189,8 +189,8 @@ export default define.page(function CartPage() {
 ```
 
 The `cart` signal is created per-render (not at module level), so each request
-gets its own independent cart. Fresh serializes the signal and passes it to both
-islands, keeping them in sync on the client.
+gets its own independent cart. Fresh [serializes](/docs/advanced/serialization)
+the signal and passes it to both islands, keeping them in sync on the client.
 
 > [!CAUTION]
 > Avoid creating signals at the module level (e.g.

@@ -4,7 +4,7 @@ description: |
 ---
 
 A route that exports only `handlers` (no default component export) becomes an
-API endpoint — it returns responses directly instead of rendering HTML.
+API endpoint - it returns responses directly instead of rendering HTML.
 
 ## Basic JSON API
 
@@ -69,7 +69,8 @@ export const handlers = define.handlers((ctx) => {
 
 ## Programmatic API routes
 
-API routes can also be defined directly on the app without file-based routing:
+API routes can also be defined directly on the app without
+[file-based routing](/docs/concepts/file-routing):
 
 ```ts main.ts
 const app = new App()

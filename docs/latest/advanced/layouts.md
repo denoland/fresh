@@ -39,7 +39,7 @@ If you browse to the `/` route, Fresh will render the following HTML
 ## Multiple layouts
 
 You can register multiple layouts for different paths. Layouts are inherited
-from parent paths — a layout at `"*"` applies to all routes, and more specific
+from parent paths - a layout at `"*"` applies to all routes, and more specific
 layouts are added on top:
 
 ```ts main.ts
@@ -67,7 +67,7 @@ const app = new App()
 
 ## Options
 
-Ignore the app wrapper component:
+Ignore the [app wrapper](/docs/concepts/app) component:
 
 ```ts main.ts
 app.layout("/foo/bar", MyComponent, { skipAppWrapper: true });

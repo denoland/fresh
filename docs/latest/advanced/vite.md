@@ -5,7 +5,8 @@ description: |
 
 Fresh 2 uses [Vite](https://vite.dev/) for development and production builds.
 The Fresh Vite plugin handles JSX configuration, Hot Module Replacement (HMR),
-island discovery, client/server code splitting, and React-to-Preact aliasing.
+[island](/docs/concepts/islands) discovery, client/server code splitting, and
+React-to-Preact aliasing.
 
 ## Configuration
 

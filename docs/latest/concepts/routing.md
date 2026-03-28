@@ -46,7 +46,7 @@ This means the registration order matters for dynamic routes:
 const app = new App()
   // This is checked first since it's registered first
   .get("/posts/featured", () => new Response("Featured posts"))
-  // This is checked second — won't match "/posts/featured" because it's
+  // This is checked second - won't match "/posts/featured" because it's
   // already handled above
   .get("/posts/:id", (ctx) => new Response(`Post: ${ctx.params.id}`));
 ```

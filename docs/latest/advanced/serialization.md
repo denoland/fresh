@@ -3,9 +3,10 @@ description: |
   What types can be passed as island props, how Fresh serializes data between server and client, and common pitfalls.
 ---
 
-When Fresh renders a page on the server, island props must be serialized to JSON
-and sent to the browser for hydration. Fresh uses a custom serialization system
-that supports more types than standard `JSON.stringify`.
+When Fresh renders a page on the server, [island](/docs/concepts/islands) props
+must be serialized to JSON and sent to the browser for hydration. Fresh uses a
+custom serialization system that supports more types than standard
+`JSON.stringify`.
 
 ## Supported types
 
@@ -25,7 +26,7 @@ The following types can be passed as island props:
 | `Set`                                | Values must be serializable                                    |
 | `Map`                                | Keys and values must be serializable                           |
 | `Uint8Array`                         | Binary data                                                    |
-| `Signal`                             | From `@preact/signals` — see [Signals](/docs/concepts/signals) |
+| `Signal`                             | From `@preact/signals` - see [Signals](/docs/concepts/signals) |
 | `Computed Signal`                    | Read-only signals                                              |
 | JSX Elements                         | Server-rendered JSX passed to islands                          |
 
@@ -33,17 +34,17 @@ The following types can be passed as island props:
 
 The following **cannot** be passed as island props:
 
-- **Functions and closures** — there is no way to transfer executable code
-- **Class instances** — only plain objects are supported (no custom prototypes)
-- **Symbols** — not representable in JSON
-- **WeakMap / WeakSet** — cannot be enumerated
-- **Streams, Promises** — async values cannot be frozen for transfer
+- **Functions and closures** - there is no way to transfer executable code
+- **Class instances** - only plain objects are supported (no custom prototypes)
+- **Symbols** - not representable in JSON
+- **WeakMap / WeakSet** - cannot be enumerated
+- **Streams, Promises** - async values cannot be frozen for transfer
 
 ```tsx
-// WRONG — functions cannot be serialized
+// WRONG - functions cannot be serialized
 <MyIsland onClick={() => console.log("clicked")} />
 
-// WRONG — class instance loses its prototype
+// WRONG - class instance loses its prototype
 <MyIsland data={new MyCustomClass()} />
 ```
 
@@ -70,7 +71,7 @@ When a `Signal` is detected in island props:
    reactive signal
 
 If the same signal object is passed to multiple islands, it is serialized once
-and all islands receive the same signal instance on the client — keeping them
+and all islands receive the same signal instance on the client - keeping them
 synchronized.
 
 Computed signals are serialized by reading their current value and wrapping it
@@ -96,5 +97,5 @@ runtime error during serialization. Keep island props to plain data:
 ### Large props
 
 Every byte of serialized props is embedded in the HTML and parsed on the client.
-Keep island props small — pass IDs or minimal data, and fetch the rest
+Keep island props small - pass IDs or minimal data, and fetch the rest
 client-side if needed.

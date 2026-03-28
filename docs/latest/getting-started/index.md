@@ -22,10 +22,10 @@ project folder should look like this:
 │   └── Button.tsx
 ├── islands/            # Components that need JS to run client-side
 │   └── Counter.tsx
-├── routes/             # File system based routes
+├── routes/             # [File system based routes](/docs/concepts/file-routing)
 │   ├── api/
 │   │   └── [name].tsx  # API route for /api/:name
-│   ├── _app.tsx        # Renders the outer <html> content structure
+│   ├── [_app.tsx](/docs/concepts/app)        # Renders the outer <html> content structure
 │   └── index.tsx       # Renders /
 ├── static/             # Contains static assets like css, logos, etc
 │   └── ...
@@ -33,7 +33,7 @@ project folder should look like this:
 ├── client.ts       # Client entry file that's loaded on every page.
 ├── main.ts         # The server entry file of your app
 ├── deno.json       # Contains dependencies, tasks, etc
-└── vite.config.ts  # Vite configuration file
+└── [vite.config.ts](/docs/advanced/vite)  # Vite configuration file
 ```
 
 ## Path aliases

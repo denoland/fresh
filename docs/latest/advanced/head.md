@@ -12,12 +12,13 @@ is a crucial element in HTML to set metadata for a page. It allows you to:
 - Include JavaScript code with `<script>`
 
 > [info]: The outer HTML structure including `<head>` is typically created
-> inside `_app.tsx`.
+> inside [`_app.tsx`](/docs/concepts/app).
 
 ## Passing metadata from `ctx.state`
 
-For simple scenarios passing metadata along from a handler or a middleware by
-writing to `ctx.state` is often sufficient.
+For simple scenarios passing metadata along from a handler or a
+[middleware](/docs/concepts/middleware) by writing to `ctx.state` is often
+sufficient.
 
 ```tsx routes/_app.tsx
 import { define } from "../util.ts";
@@ -39,8 +40,8 @@ export default define.page((ctx) => {
 
 ## Using the `<Head>`-component
 
-For more complex scenarios, or to set page metadata from islands, Fresh ships
-with the `<Head>`-component.
+For more complex scenarios, or to set page metadata from
+[islands](/docs/concepts/islands), Fresh ships with the `<Head>`-component.
 
 > [info]: The `<Head>` component is not dynamic by default. It will not
 > automatically update the document title or other head elements on the client

@@ -1,6 +1,6 @@
 ---
 description: |
-  Define helpers are a less TypeScripty way to declare middlewares, routes and layouts
+  Define helpers are a less TypeScripty way to declare [middlewares](/docs/concepts/middleware), routes and [layouts](/docs/concepts/layouts)
 ---
 
 Define helpers can be used to shorten the amount of types you have to type
@@ -72,7 +72,7 @@ export default define.page<typeof handler>((props) => {
 });
 ```
 
-There is also a `define.layout()` helper for layouts:
+There is also a `define.layout()` helper for [layouts](/docs/concepts/layouts):
 
 ```tsx
 export default define.layout((props) => {

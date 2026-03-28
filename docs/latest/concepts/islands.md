@@ -39,8 +39,9 @@ const app = new App()
 
 ## Passing props to islands
 
-Passing props to islands is supported, but only if the props are serializable.
-Fresh can serialize the following types of values:
+Passing props to islands is supported, but only if the props are
+[serializable](/docs/advanced/serialization). Fresh can serialize the following
+types of values:
 
 - Primitive types `string`, `number`, `boolean`, `bigint`, `undefined`, and
   `null`
@@ -53,7 +54,7 @@ Fresh can serialize the following types of values:
 - Collections `Map` and `Set`
 - Plain objects with string keys and serializable values
 - Arrays containing serializable values
-- Preact Signals (if the inner value is serializable)
+- Preact [Signals](/docs/concepts/signals) (if the inner value is serializable)
 
 Circular references are supported. If an object or signal is referenced multiple
 times, it is only serialized once and the references are restored upon
@@ -174,7 +175,7 @@ export function MyElement() {
 
 ### Using third-party web components
 
-Third-party web component libraries work the same way — import and register them
+Third-party web component libraries work the same way - import and register them
 inside an island:
 
 ```tsx islands/ThirdPartyElement.tsx

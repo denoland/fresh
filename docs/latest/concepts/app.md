@@ -4,8 +4,8 @@ description: |
 ---
 
 The `App` class is the heart of Fresh and routes incoming requests to the
-correct middlewares. This is where routes, middlewares, layouts and more are
-defined.
+correct [middlewares](/docs/concepts/middleware). This is where routes,
+middlewares, [layouts](/docs/concepts/layouts) and more are defined.
 
 ```ts main.ts
 const app = new App()
@@ -259,8 +259,8 @@ app.all("/api/foo", async () => {
 
 ## `.fsRoute()`
 
-Injects all file-based routes, middlewares, layouts and error pages to the app
-instance.
+Injects all [file-based routes](/docs/concepts/file-routing), middlewares,
+layouts and [error pages](/docs/advanced/error-handling) to the app instance.
 
 ```ts
 app.fsRoutes();
@@ -397,7 +397,7 @@ app.listen({ port: 4000 });
 > **Important:** `.listen()` is only used when running your app directly with
 > `deno run -A main.ts`. The default project setup uses `deno task dev` (Vite
 > dev server) and `deno task start` (`deno serve`), which spawn their own
-> servers — calling `.listen()` alongside these will create a second server and
+> servers - calling `.listen()` alongside these will create a second server and
 > cause `AddrInUse` errors.
 >
 > To customize the port in the default setup:

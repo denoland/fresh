@@ -7,7 +7,8 @@ This page collects common patterns you'll encounter when building Fresh apps.
 
 ## Protected routes
 
-Use middleware to check authentication and redirect unauthenticated users:
+Use [middleware](/docs/concepts/middleware) to check authentication and redirect
+unauthenticated users:
 
 ```ts routes/dashboard/_middleware.ts
 import { define } from "@/utils.ts";

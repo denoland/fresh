@@ -18,9 +18,9 @@ const app = new App()
 
 ## Imported assets vs static files
 
-When using Fresh with Vite (now the default), **files that you import in your
-JavaScript/TypeScript code should not be placed in the `static/` folder**. This
-prevents file duplication during the build process.
+When using Fresh with [Vite](/docs/advanced/vite) (now the default), **files
+that you import in your JavaScript/TypeScript code should not be placed in the
+`static/` folder**. This prevents file duplication during the build process.
 
 ```tsx
 // Don't import from static/

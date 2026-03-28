@@ -11,16 +11,17 @@ requests flow through your application.
 
 Fresh creates spans for:
 
-- **Middleware execution** — each middleware in the chain
-- **Route handler execution** — handler function calls
-- **Rendering** — server-side page rendering
-- **Static file serving** — file lookups and responses
-- **Lazy route loading** — dynamic imports of route modules
+- **[Middleware](/docs/concepts/middleware) execution** - each middleware in the
+  chain
+- **Route handler execution** - handler function calls
+- **Rendering** - server-side page rendering
+- **Static file serving** - file lookups and responses
+- **Lazy route loading** - dynamic imports of route modules
 
 ## Enabling tracing
 
 Fresh uses the `@opentelemetry/api` package (the vendor-neutral API). Spans are
-created automatically — you just need to provide an OpenTelemetry SDK and
+created automatically - you just need to provide an OpenTelemetry SDK and
 exporter to collect them.
 
 If no exporter is configured, the spans are silently discarded (no performance
@@ -41,5 +42,5 @@ This exports traces to an OTLP-compatible collector (configure the endpoint with
 
 ### With Deno Deploy
 
-[Deno Deploy](https://deno.com/deploy) collects Fresh traces automatically when
-using the Fresh preset — no configuration needed.
+[Deno Deploy](/docs/deployment/deno-deploy) collects Fresh traces automatically
+when using the Fresh preset - no configuration needed.
