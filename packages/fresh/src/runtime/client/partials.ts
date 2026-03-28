@@ -402,7 +402,17 @@ export async function applyPartials(res: Response): Promise<void> {
     } else if (child.nodeName === "SCRIPT") {
       const script = child as HTMLScriptElement;
       if (script.src === `${INTERNAL_PREFIX}/fresh-runtime.js`) return;
-      // TODO: What to do with script tags?
+
+      // Append data scripts (e.g. application/ld+json for SEO structured
+      // data) to the document head. Skip executable script types to
+      // avoid unintended re-execution.
+      const t = script.type;
+      if (
+        t !== "" && t !== "module" && t !== "text/javascript" &&
+        t !== "importmap"
+      ) {
+        document.head.appendChild(script);
+      }
     } else if (child.nodeName === "STYLE") {
       const style = child as HTMLStyleElement;
       // TODO: Do we need a smarter merging strategy?
