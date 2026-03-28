@@ -26,7 +26,6 @@ import {
   MediaType,
   RequestedModuleType,
   ResolutionMode,
-  Workspace,
 } from "@deno/loader";
 
 // @ts-ignore Workaround for https://github.com/denoland/deno/issues/30850
