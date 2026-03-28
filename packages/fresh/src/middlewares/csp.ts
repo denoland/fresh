@@ -51,12 +51,20 @@ export function csp<State>(options: CSPOptions = {}): Middleware<State> {
     "upgrade-insecure-requests",
   ];
 
-  const cspDirectives = [...defaultCsp, ...csp];
+  // User-provided directives override defaults with the same name
+  const userDirectiveNames = new Set(
+    csp.map((d) => d.split(" ")[0]),
+  );
+  const merged = defaultCsp.filter((d) =>
+    !userDirectiveNames.has(d.split(" ")[0])
+  );
+  merged.push(...csp);
+
   if (reportTo) {
-    cspDirectives.push(`report-to csp-endpoint`);
-    cspDirectives.push(`report-uri ${reportTo}`); // deprecated but some browsers still use it
+    merged.push(`report-to csp-endpoint`);
+    merged.push(`report-uri ${reportTo}`); // deprecated but some browsers still use it
   }
-  const cspString = cspDirectives.join("; ");
+  const cspString = merged.join("; ");
 
   return async (ctx) => {
     const res = await ctx.next();
