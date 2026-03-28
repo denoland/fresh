@@ -77,5 +77,10 @@ the matching element:
 5. No matching element was found, Fresh will create a new one and append it to
    `<head>`
 
+When multiple `<Head>` components render an element with the same key, the
+**last one rendered wins**. Since Fresh renders top-down (app wrapper → layout →
+route → page component), a route page can override defaults set in `_app.tsx`
+by using the same `key` prop.
+
 > [info]: The `<title>`-tag is automatically deduplicated, even without a `key`
 > prop.
