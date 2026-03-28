@@ -39,7 +39,7 @@ export default define.layout(({ Component, state }) => {
       <Component />
     </div>
   );
-})
+});
 ```
 
 ## Async layouts

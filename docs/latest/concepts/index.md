@@ -30,8 +30,8 @@ Here is an overview of the basic concepts in Fresh:
 - [**Islands**](/docs/concepts/islands) - Render interactive Preact components
   on the client
 - [**Signals**](/docs/concepts/signals) - Reactive state management for islands
-- [**Static Files**](/docs/concepts/static-files) - Serve images, CSS, and
-  other assets
+- [**Static Files**](/docs/concepts/static-files) - Serve images, CSS, and other
+  assets
 - [**File Routing**](/docs/concepts/file-routing) - Convention-based routing
   from the filesystem
 

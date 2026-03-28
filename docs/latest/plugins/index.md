@@ -29,4 +29,5 @@ Fresh ships with the following plugins:
 - [cors()](/docs/plugins/cors) - Set CORS HTTP headers
 - [csrf()](/docs/plugins/csrf) - CSRF protection
 - [csp()](/docs/plugins/csp) - Content Security Policy headers
-- [trailingSlashes()](/docs/plugins/trailing-slashes) - Enforce trailing slash behavior
+- [trailingSlashes()](/docs/plugins/trailing-slashes) - Enforce trailing slash
+  behavior

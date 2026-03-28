@@ -9,8 +9,8 @@ assets for consumption in the browser. This step can be invoked by running:
 deno task build
 ```
 
-> [info]: This runs `vite build` under the hood. If you're migrating from
-> Fresh 1.x and still have a `dev.ts` file, see the
+> [info]: This runs `vite build` under the hood. If you're migrating from Fresh
+> 1.x and still have a `dev.ts` file, see the
 > [migration guide](/docs/examples/migration-guide) for updating your tasks.
 
 Once completed, it will have created a `_fresh` folder in the project directory

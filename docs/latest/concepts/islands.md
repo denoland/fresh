@@ -117,8 +117,8 @@ import OtherIsland from "../islands/other-island.tsx";
 
 ## Rendering islands on client only
 
-When using client-only APIs, like `EventSource` or `navigator.getUserMedia`,
-the component would error during server-side rendering. Use the `IS_BROWSER`
+When using client-only APIs, like `EventSource` or `navigator.getUserMedia`, the
+component would error during server-side rendering. Use the `IS_BROWSER`
 constant from `fresh/runtime` to guard browser-only code. It is `false` on the
 server and `true` in the browser:
 

@@ -22,7 +22,7 @@ export const handlers = define.handlers({
 A `GET /api/users` request returns:
 
 ```json
-[{"id":1,"name":"Alice"},{"id":2,"name":"Bob"}]
+[{ "id": 1, "name": "Alice" }, { "id": 2, "name": "Bob" }]
 ```
 
 ## Method-specific handlers

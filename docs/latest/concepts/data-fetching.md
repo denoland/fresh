@@ -110,14 +110,14 @@ export default define.page((ctx) => {
 
 Page components receive these properties:
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `data` | `Data` | Data returned by the handler via `page()` |
-| `url` | `URL` | The request URL |
-| `params` | `Record<string, string>` | Route parameters (e.g. `:id`) |
-| `req` | `Request` | The original HTTP request |
-| `state` | `State` | Shared state set by middleware |
-| `route` | `string \| null` | The matched route pattern |
-| `error` | `unknown \| null` | Caught error (on error pages) |
-| `isPartial` | `boolean` | Whether this is a partial request |
-| `Component` | `FunctionComponent` | Child component (in layouts) |
+| Property    | Type                     | Description                               |
+| ----------- | ------------------------ | ----------------------------------------- |
+| `data`      | `Data`                   | Data returned by the handler via `page()` |
+| `url`       | `URL`                    | The request URL                           |
+| `params`    | `Record<string, string>` | Route parameters (e.g. `:id`)             |
+| `req`       | `Request`                | The original HTTP request                 |
+| `state`     | `State`                  | Shared state set by middleware            |
+| `route`     | `string \| null`         | The matched route pattern                 |
+| `error`     | `unknown \| null`        | Caught error (on error pages)             |
+| `isPartial` | `boolean`                | Whether this is a partial request         |
+| `Component` | `FunctionComponent`      | Child component (in layouts)              |

@@ -20,8 +20,8 @@ update by running it in your project directory:
 deno run -Ar jsr:@fresh/update
 ```
 
-This will apply most API changes made in Fresh 2 automatically, like
-changing `$fresh/server.ts` imports to `fresh`.
+This will apply most API changes made in Fresh 2 automatically, like changing
+`$fresh/server.ts` imports to `fresh`.
 
 ## Getting `main.ts` and `dev.ts` ready
 

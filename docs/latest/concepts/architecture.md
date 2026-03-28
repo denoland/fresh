@@ -124,8 +124,8 @@ next. The app wrapper (`_app.tsx`) wraps everything.
 
 ### Build and deploy
 
-Fresh uses [Vite](https://vite.dev/) to bundle island JavaScript for
-production. The `deno task build` command:
+Fresh uses [Vite](https://vite.dev/) to bundle island JavaScript for production.
+The `deno task build` command:
 
 1. Discovers all islands and their dependencies
 2. Bundles client-side JavaScript with code splitting

@@ -3,31 +3,31 @@ description: |
   What types can be passed as island props, how Fresh serializes data between server and client, and common pitfalls.
 ---
 
-When Fresh renders a page on the server, island props must be serialized to
-JSON and sent to the browser for hydration. Fresh uses a custom serialization
-system that supports more types than standard `JSON.stringify`.
+When Fresh renders a page on the server, island props must be serialized to JSON
+and sent to the browser for hydration. Fresh uses a custom serialization system
+that supports more types than standard `JSON.stringify`.
 
 ## Supported types
 
 The following types can be passed as island props:
 
-| Type | Notes |
-|------|-------|
-| `string`, `number`, `boolean` | Primitive types |
-| `null`, `undefined` | |
-| `bigint` | |
-| `NaN`, `Infinity`, `-Infinity`, `-0` | Special numeric values |
-| `Array` | Including sparse arrays |
-| Plain objects | Objects with string keys and serializable values |
-| `Date` | |
-| `URL` | |
-| `RegExp` | Including flags |
-| `Set` | Values must be serializable |
-| `Map` | Keys and values must be serializable |
-| `Uint8Array` | Binary data |
-| `Signal` | From `@preact/signals` — see [Signals](/docs/concepts/signals) |
-| `Computed Signal` | Read-only signals |
-| JSX Elements | Server-rendered JSX passed to islands |
+| Type                                 | Notes                                                          |
+| ------------------------------------ | -------------------------------------------------------------- |
+| `string`, `number`, `boolean`        | Primitive types                                                |
+| `null`, `undefined`                  |                                                                |
+| `bigint`                             |                                                                |
+| `NaN`, `Infinity`, `-Infinity`, `-0` | Special numeric values                                         |
+| `Array`                              | Including sparse arrays                                        |
+| Plain objects                        | Objects with string keys and serializable values               |
+| `Date`                               |                                                                |
+| `URL`                                |                                                                |
+| `RegExp`                             | Including flags                                                |
+| `Set`                                | Values must be serializable                                    |
+| `Map`                                | Keys and values must be serializable                           |
+| `Uint8Array`                         | Binary data                                                    |
+| `Signal`                             | From `@preact/signals` — see [Signals](/docs/concepts/signals) |
+| `Computed Signal`                    | Read-only signals                                              |
+| JSX Elements                         | Server-rendered JSX passed to islands                          |
 
 ## Not serializable
 
@@ -58,7 +58,7 @@ const shared = { value: 42 };
 const data = { a: shared, b: shared };
 
 // `data.a` and `data.b` will reference the same object on the client
-<MyIsland data={data} />
+<MyIsland data={data} />;
 ```
 
 ## How signals are serialized
@@ -95,6 +95,6 @@ runtime error during serialization. Keep island props to plain data:
 
 ### Large props
 
-Every byte of serialized props is embedded in the HTML and parsed on the
-client. Keep island props small — pass IDs or minimal data, and fetch the rest
+Every byte of serialized props is embedded in the HTML and parsed on the client.
+Keep island props small — pass IDs or minimal data, and fetch the rest
 client-side if needed.

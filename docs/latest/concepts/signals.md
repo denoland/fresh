@@ -37,7 +37,7 @@ Use `computed` to derive values from other signals. Computed signals update
 automatically when their dependencies change:
 
 ```tsx islands/TemperatureConverter.tsx
-import { useSignal, useComputed } from "@preact/signals";
+import { useComputed, useSignal } from "@preact/signals";
 
 export default function TemperatureConverter() {
   const celsius = useSignal(20);
@@ -78,9 +78,9 @@ export default function Home() {
 }
 ```
 
-Both sliders share the same signal — moving one updates the other. When the
-same signal object is passed to multiple islands, Fresh preserves the reference
-so they stay synchronized.
+Both sliders share the same signal — moving one updates the other. When the same
+signal object is passed to multiple islands, Fresh preserves the reference so
+they stay synchronized.
 
 ## Shared state across islands
 

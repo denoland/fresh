@@ -54,8 +54,8 @@ const app = new App()
 ## HTTP method handlers
 
 Fresh provides method-specific route registration via `.get()`, `.post()`,
-`.put()`, `.delete()`, `.head()`, `.patch()`, and `.options()`. Each method
-only responds to its matching HTTP verb.
+`.put()`, `.delete()`, `.head()`, `.patch()`, and `.options()`. Each method only
+responds to its matching HTTP verb.
 
 Use `.all()` to respond to any HTTP method:
 
