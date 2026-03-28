@@ -61,7 +61,6 @@
     "mime-db": "npm:mime-db@^1.54.0",
     "preact": "npm:preact@^10.28.2",
     "preact-render-to-string": "npm:preact-render-to-string@^6.6.5",
-    "$ga4": "https://raw.githubusercontent.com/denoland/ga4/main/mod.ts",
     "@opentelemetry/api": "npm:@opentelemetry/api@^1.9.0",
     "@preact/signals": "npm:@preact/signals@^2.5.1",
     "@std/encoding": "jsr:@std/encoding@1",
