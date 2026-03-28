@@ -13,7 +13,7 @@ A handler fetches data and returns it with `page()`. The page component receives
 it in `props.data`:
 
 ```tsx routes/projects/[id].tsx
-import { page } from "fresh";
+import { HttpError, page } from "fresh";
 import { define } from "@/utils.ts";
 
 interface Data {
@@ -60,6 +60,7 @@ For simpler cases, you can fetch data directly in an async component without a
 separate handler:
 
 ```tsx routes/projects/[id].tsx
+import { HttpError } from "fresh";
 import { define } from "@/utils.ts";
 
 export default define.page(async (ctx) => {
@@ -96,12 +97,19 @@ export default define.middleware(async (ctx) => {
 ```
 
 ```tsx routes/dashboard.tsx
+import { page } from "fresh";
 import { define } from "@/utils.ts";
 
+export const handler = define.handlers({
+  GET(ctx) {
+    if (!ctx.state.user) {
+      return ctx.redirect("/login");
+    }
+    return page();
+  },
+});
+
 export default define.page((ctx) => {
-  if (!ctx.state.user) {
-    return ctx.redirect("/login");
-  }
   return <h1>Welcome, {ctx.state.user.name}</h1>;
 });
 ```
@@ -117,7 +125,9 @@ Page components receive these properties:
 | `params`    | `Record<string, string>` | Route parameters (e.g. `:id`)             |
 | `req`       | `Request`                | The original HTTP request                 |
 | `state`     | `State`                  | Shared state set by middleware            |
+| `config`    | `ResolvedFreshConfig`    | The resolved Fresh configuration          |
 | `route`     | `string \| null`         | The matched route pattern                 |
+| `info`      | `Deno.ServeHandlerInfo`  | Server connection info                    |
 | `error`     | `unknown \| null`        | Caught error (on error pages)             |
 | `isPartial` | `boolean`                | Whether this is a partial request         |
 | `Component` | `FunctionComponent`      | Child component (in layouts)              |

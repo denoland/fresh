@@ -119,8 +119,9 @@ at `routes/blog/post.tsx` inherits layouts from:
 1. `routes/_layout.tsx` (root layout)
 2. `routes/blog/_layout.tsx` (section layout)
 
-The innermost layout wraps the page component, and each outer layout wraps the
-next. The app wrapper (`_app.tsx`) wraps everything.
+Layouts nest from the outside in: the root layout is outermost, each deeper
+layout wraps closer to the page, and the innermost layout directly wraps the
+page component. The app wrapper (`_app.tsx`) wraps everything.
 
 ### Build and deploy
 

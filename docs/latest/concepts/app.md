@@ -283,7 +283,7 @@ Register a route with a component and optional handlers for data loading.
 ```tsx
 app.route("/about", {
   component: (ctx) => <h1>About {ctx.data.name}</h1>,
-  handlers: {
+  handler: {
     GET(ctx) {
       return page({ name: "Fresh" });
     },
@@ -317,8 +317,8 @@ app.onError("*", (ctx) => {
 Setting a route with a component:
 
 ```tsx
-app.onError((ctx) => {
-  return ctx.render(<h1>Oops! Something went wrong.</h1>);
+app.onError("*", {
+  component: (ctx) => <h1>Oops! {String(ctx.error)}</h1>,
 });
 ```
 

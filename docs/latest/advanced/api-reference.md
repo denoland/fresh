@@ -43,6 +43,8 @@ import { App, createDefine, HttpError, page, staticFiles } from "fresh";
 | `ListenOptions`                       | Options for `app.listen()`.                                                          |
 | `Island`                              | Island component type.                                                               |
 | `Method`                              | HTTP method union type.                                                              |
+| `RouteData`                           | Data type returned by route handlers via `page()`.                                   |
+| `Lazy` / `MaybeLazy`                  | Utility types for lazily-loaded routes and middleware.                               |
 | `CORSOptions`                         | Options for `cors()`.                                                                |
 | `CsrfOptions`                         | Options for `csrf()`.                                                                |
 | `CSPOptions`                          | Options for `csp()`.                                                                 |
@@ -86,7 +88,8 @@ import { Builder } from "fresh/dev";
 
 **Types:**
 
-| Export                                                   | Description                  |
-| -------------------------------------------------------- | ---------------------------- |
-| `BuildOptions`                                           | Options for `new Builder()`. |
-| `OnTransformArgs` / `OnTransformOptions` / `TransformFn` | Build plugin hook types.     |
+| Export                                                   | Description                   |
+| -------------------------------------------------------- | ----------------------------- |
+| `BuildOptions`                                           | Options for `new Builder()`.  |
+| `ResolvedBuildConfig`                                    | Resolved build configuration. |
+| `OnTransformArgs` / `OnTransformOptions` / `TransformFn` | Build plugin hook types.      |

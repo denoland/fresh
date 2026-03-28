@@ -52,6 +52,7 @@ export default function handler(ctx) {
 Return different formats based on the `Accept` header:
 
 ```ts routes/api/users/[id].ts
+import { HttpError } from "fresh";
 import { define } from "@/utils.ts";
 
 export const handlers = define.handlers({
@@ -105,13 +106,14 @@ session example.
 Access URL search params from the context:
 
 ```ts routes/search.tsx
+import { page } from "fresh";
 import { define } from "@/utils.ts";
 
 export const handlers = define.handlers({
   GET(ctx) {
     const query = ctx.url.searchParams.get("q") ?? "";
-    const page = Number(ctx.url.searchParams.get("page") ?? "1");
-    const results = search(query, page);
+    const pageNum = Number(ctx.url.searchParams.get("page") ?? "1");
+    const results = search(query, pageNum);
     return page({ query, results });
   },
 });
@@ -145,6 +147,8 @@ return page(data, {
 Return a streaming response from a handler:
 
 ```ts routes/api/stream.ts
+import { define } from "@/utils.ts";
+
 export const handlers = define.handlers({
   GET() {
     const body = new ReadableStream({
