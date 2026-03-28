@@ -536,6 +536,29 @@ Deno.test({
   sanitizeResources: false,
 });
 
+// issue: https://github.com/denoland/fresh/issues/3653
+Deno.test({
+  name: "vite dev - CJS module import",
+  fn: async () => {
+    const res = await fetch(`${demoServer.address()}/tests/commonjs`);
+    const text = await res.text();
+    expect(text).toContain("<h1>ok</h1>");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite dev - maxmind CJS",
+  fn: async () => {
+    const res = await fetch(`${demoServer.address()}/tests/maxmind`);
+    const text = await res.text();
+    expect(text).toContain("<h1>maxmind</h1>");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
 Deno.test({
   name: "vite dev - source mapped stack traces",
   fn: async () => {

@@ -636,3 +636,33 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
 });
+
+// issue: https://github.com/denoland/fresh/issues/3653
+// CJS dependencies that work in dev must also work in production builds.
+Deno.test({
+  name: "vite build - CJS packages work in production",
+  fn: async () => {
+    await launchProd(
+      { cwd: viteResult.tmp },
+      async (address) => {
+        const routes: [string, string][] = [
+          ["/tests/commonjs", "<h1>ok</h1>"],
+          ["/tests/qs", "<h1>qs</h1>"],
+          ["/tests/stripe", "<h1>stripe</h1>"],
+          ["/tests/pg", "<h1>pg</h1>"],
+          ["/tests/ioredis", "<h1>ioredis</h1>"],
+          ["/tests/redis", "<h1>redis</h1>"],
+          ["/tests/supabase_pg", "<h1>supabase</h1>"],
+        ];
+
+        for (const [route, expected] of routes) {
+          const res = await fetch(`${address}${route}`);
+          const text = await res.text();
+          expect(text).toContain(expected);
+        }
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
