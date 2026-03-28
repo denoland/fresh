@@ -93,6 +93,16 @@ export const config: RouteConfig = {
 // ...
 ```
 
+You can also load additional CSS files for a specific route:
+
+```ts routes/dashboard.tsx
+import { RouteConfig } from "fresh";
+
+export const config: RouteConfig = {
+  css: ["./assets/dashboard.css"],
+};
+```
+
 ## Route Groups
 
 When working with [layouts](/docs/advanced/layouts) or
