@@ -20,7 +20,7 @@ interface Data {
   project: { name: string; stars: number };
 }
 
-export const handlers = define.handlers({
+export const handler = define.handlers({
   async GET(ctx) {
     const project = await db.projects.findOne(ctx.params.id);
     if (!project) {
@@ -30,7 +30,7 @@ export const handlers = define.handlers({
   },
 });
 
-export default define.page<typeof handlers>(({ data }) => {
+export default define.page<typeof handler>(({ data }) => {
   return (
     <div>
       <h1>{data.project.name}</h1>
@@ -40,8 +40,8 @@ export default define.page<typeof handlers>(({ data }) => {
 });
 ```
 
-The `define.page<typeof handlers>` generic links the handler's return type to
-the component's props, giving you full autocompletion on `data`.
+The `define.page<typeof handler>` generic links the handler's return type to the
+component's props, giving you full autocompletion on `data`.
 
 ## Setting response headers and status
 

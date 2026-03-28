@@ -103,7 +103,9 @@ When an `HttpError` is thrown, Fresh catches it and invokes the error handler.
 You can check the status code in your error handler:
 
 ```ts main.ts
-app.onError((ctx) => {
+import { HttpError } from "fresh";
+
+app.onError("*", (ctx) => {
   if (ctx.error instanceof HttpError) {
     const status = ctx.error.status;
     return new Response("oops", { status });

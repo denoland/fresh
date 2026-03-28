@@ -30,18 +30,20 @@ available in any downstream handler or component via `ctx.state.user`.
 Handle URL migrations with middleware:
 
 ```ts routes/_middleware.ts
+import { define } from "@/utils.ts";
+
 const REDIRECTS: Record<string, string> = {
   "/old-page": "/new-page",
   "/blog/old-slug": "/blog/new-slug",
 };
 
-export default function handler(ctx) {
+export default define.middleware((ctx) => {
   const redirect = REDIRECTS[ctx.url.pathname];
   if (redirect) {
     return ctx.redirect(redirect, 301);
   }
   return ctx.next();
-}
+});
 ```
 
 > [info]: `ctx.redirect()` includes protection against open redirect attacks.
@@ -55,7 +57,7 @@ Return different formats based on the `Accept` header:
 import { HttpError } from "fresh";
 import { define } from "@/utils.ts";
 
-export const handlers = define.handlers({
+export const handler = define.handlers({
   async GET(ctx) {
     const user = await db.users.find(ctx.params.id);
     if (!user) {
@@ -77,8 +79,9 @@ Use the `@std/http` cookie utilities:
 
 ```ts routes/_middleware.ts
 import { getCookies, setCookie } from "@std/http";
+import { define } from "@/utils.ts";
 
-export default async function handler(ctx) {
+export default define.middleware(async (ctx) => {
   const cookies = getCookies(ctx.req.headers);
   ctx.state.theme = cookies["theme"] ?? "light";
 
@@ -95,7 +98,7 @@ export default async function handler(ctx) {
   });
 
   return response;
-}
+});
 ```
 
 See [Session management](/docs/examples/session-management) for a complete
@@ -109,7 +112,7 @@ Access URL search params from the context:
 import { page } from "fresh";
 import { define } from "@/utils.ts";
 
-export const handlers = define.handlers({
+export const handler = define.handlers({
   GET(ctx) {
     const query = ctx.url.searchParams.get("q") ?? "";
     const pageNum = Number(ctx.url.searchParams.get("page") ?? "1");
@@ -121,15 +124,17 @@ export const handlers = define.handlers({
 
 ## Adding response headers
 
-Set custom headers in middleware or handlers:
+Set custom headers in middleware:
 
 ```ts routes/_middleware.ts
-export default async function handler(ctx) {
+import { define } from "@/utils.ts";
+
+export default define.middleware(async (ctx) => {
   const response = await ctx.next();
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-Content-Type-Options", "nosniff");
   return response;
-}
+});
 ```
 
 Or set headers on a specific route using `page()`:
@@ -149,7 +154,7 @@ Return a streaming response from a handler:
 ```ts routes/api/stream.ts
 import { define } from "@/utils.ts";
 
-export const handlers = define.handlers({
+export const handler = define.handlers({
   GET() {
     const body = new ReadableStream({
       start(controller) {
@@ -172,7 +177,9 @@ export const handlers = define.handlers({
 Fresh runs on Deno, so you can upgrade HTTP connections to WebSockets directly:
 
 ```ts routes/api/ws.ts
-export const handlers = define.handlers({
+import { define } from "@/utils.ts";
+
+export const handler = define.handlers({
   GET(ctx) {
     const { socket, response } = Deno.upgradeWebSocket(ctx.req);
 
@@ -196,9 +203,11 @@ export const handlers = define.handlers({
 Use middleware with `URLPattern` to route based on subdomains:
 
 ```ts routes/_middleware.ts
+import { define } from "@/utils.ts";
+
 const SUBDOMAIN_PATTERN = new URLPattern({ hostname: ":sub.example.com" });
 
-export default async function handler(ctx) {
+export default define.middleware(async (ctx) => {
   const match = SUBDOMAIN_PATTERN.exec(ctx.req.url);
   if (match) {
     const sub = match.hostname.groups["sub"];
@@ -214,7 +223,7 @@ export default async function handler(ctx) {
     }
   }
   return ctx.next();
-}
+});
 ```
 
 ## Proxying requests
@@ -226,7 +235,7 @@ import { define } from "@/utils.ts";
 
 const UPSTREAM = "https://api.example.com";
 
-export const handlers = define.handlers({
+export const handler = define.handlers({
   async GET(ctx) {
     const url = new URL(ctx.params.path, UPSTREAM);
     url.search = ctx.url.search;
@@ -273,11 +282,13 @@ when `HeavyFeature` renders in the browser.
 Measure how long request processing takes:
 
 ```ts routes/_middleware.ts
-export default async function handler(ctx) {
+import { define } from "@/utils.ts";
+
+export default define.middleware(async (ctx) => {
   const start = performance.now();
   const response = await ctx.next();
   const duration = performance.now() - start;
   response.headers.set("Server-Timing", `total;dur=${duration.toFixed(1)}`);
   return response;
-}
+});
 ```
