@@ -271,21 +271,27 @@ export function patternToSegments(
 
   if (path === "/" || path === "*" || path === "/*") return out;
 
+  // Strip optional groups like {/:param}? before segmenting, so that
+  // /api{/:opt}?/endpoint produces the same segments as /api/endpoint.
+  // This ensures middleware registered at /api applies to routes with
+  // optional parameters under /api.
+  const cleaned = path.replace(/\{[^}]*\}\??/g, "");
+
   let start = -1;
-  for (let i = 0; i < path.length; i++) {
-    const ch = path[i];
+  for (let i = 0; i < cleaned.length; i++) {
+    const ch = cleaned[i];
 
     if (ch === "/") {
       if (i > 0) {
-        const raw = path.slice(start + 1, i);
+        const raw = cleaned.slice(start + 1, i);
         out.push(raw);
       }
       start = i;
     }
   }
 
-  if (includeLast && start < path.length - 1) {
-    out.push(path.slice(start + 1));
+  if (includeLast && start < cleaned.length - 1) {
+    out.push(cleaned.slice(start + 1));
   }
 
   return out;

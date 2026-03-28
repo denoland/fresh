@@ -152,6 +152,14 @@ Deno.test("patternToSegments", () => {
   expect(patternToSegments("/foo/", "")).toEqual(["", "foo"]);
 
   expect(patternToSegments("/foo/bar", "", true)).toEqual(["", "foo", "bar"]);
+
+  // Optional params with {/...}? syntax should not split on / inside braces
+  expect(patternToSegments("/api{/:opt}?/endpoint", "")).toEqual(["", "api"]);
+  expect(patternToSegments("/api{/:opt}?/endpoint", "", true)).toEqual([
+    "",
+    "api",
+    "endpoint",
+  ]);
 });
 
 Deno.test("mergePath", () => {
