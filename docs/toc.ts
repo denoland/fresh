@@ -62,6 +62,7 @@ const toc: RawTableOfContents = {
           ["environment-variables", "Environment Variables", "link:latest"],
           ["head", "Modifying <head>", "link:latest"],
           ["vite", "Vite Plugin Options", "link:latest"],
+          ["opentelemetry", "OpenTelemetry", "link:latest"],
           ["api-reference", "API Reference", "link:latest"],
           ["troubleshooting", "Troubleshooting", "link:latest"],
           ["builder", "Builder (Legacy)", "link:latest"],
