@@ -29,9 +29,11 @@ export function devServer(): Plugin[] {
           // Don't cache in dev
           url.searchParams.delete(ASSET_CACHE_BUST_KEY);
 
-          // Check if it's a vite url
+          // Check if it's a vite url or a node_modules asset (e.g. fonts
+          // referenced from CSS in npm packages)
           if (
             IGNORE_URLS.test(url.pathname) ||
+            url.pathname.startsWith("/node_modules/") ||
             server.environments.client.moduleGraph.urlToModuleMap.has(
               url.pathname,
             ) ||
