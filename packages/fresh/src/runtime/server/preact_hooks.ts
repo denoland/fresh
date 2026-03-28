@@ -35,6 +35,7 @@ import { getCodeFrame } from "../../dev/middlewares/error_overlay/code_frame.ts"
 import { escapeScript } from "../../utils.ts";
 import { HeadContext } from "../head.ts";
 import { useContext } from "preact/hooks";
+import { isSpanContextValid, trace } from "@opentelemetry/api";
 
 interface InternalPreactOptions extends PreactOptions {
   [OptionsType.ATTR](name: string, value: unknown): string | void;
@@ -279,6 +280,24 @@ options[OptionsType.DIFF] = (vnode) => {
                   h("link", { rel: "stylesheet", href: asset(id) } as any),
                 );
               }
+            }
+          }
+
+          // Inject W3C traceparent meta tag when OpenTelemetry is active,
+          // enabling client-side tracing to connect to the server span.
+          const activeSpan = trace.getActiveSpan();
+          if (activeSpan) {
+            const spanCtx = activeSpan.spanContext();
+            if (isSpanContextValid(spanCtx)) {
+              const flags = (spanCtx.traceFlags & 1) ? "01" : "00";
+              items.push(
+                // deno-lint-ignore no-explicit-any
+                h("meta", {
+                  name: "traceparent",
+                  content:
+                    `00-${spanCtx.traceId}-${spanCtx.spanId}-${flags}`,
+                } as any),
+              );
             }
           }
 
