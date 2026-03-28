@@ -33,7 +33,7 @@ export const Recipes = () => (
 
 export function PartialsSection() {
   return (
-    <PageSection>
+    <PageSection id="partials">
       <SideBySide
         mdColSplit="3/2"
         lgColSplit="3/2"
