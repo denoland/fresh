@@ -231,12 +231,20 @@ document.addEventListener("submit", async (e) => {
       return;
     }
 
+    const hasExplicitPartial = e.submitter?.hasAttribute(PARTIAL_ATTR) ||
+      e.submitter?.hasAttribute("formaction") ||
+      el.hasAttribute(PARTIAL_ATTR);
+
     const rawPartialUrl = e.submitter?.getAttribute(PARTIAL_ATTR) ??
       e.submitter?.getAttribute("formaction") ??
       el.getAttribute(PARTIAL_ATTR) ?? el.action;
     const rawActionUrl = e.submitter?.getAttribute("formaction") ?? el.action;
 
-    if (rawPartialUrl !== "") {
+    // Only intercept forms that explicitly opt in to partial navigation
+    // via f-partial or formaction. Without this check, every form inside
+    // f-client-nav would be intercepted because el.action is always
+    // non-empty (defaults to the current URL).
+    if (hasExplicitPartial && rawPartialUrl !== "") {
       e.preventDefault();
 
       const partialUrl = new URL(rawPartialUrl, location.href);
