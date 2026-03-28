@@ -24,6 +24,7 @@ const EXCLUDED_PREFIXES = [
   "javascript:",
   "vscode:",
   "data:",
+  "https://github.com/denoland/fresh/edit/",
 ];
 
 interface FailedLink {
