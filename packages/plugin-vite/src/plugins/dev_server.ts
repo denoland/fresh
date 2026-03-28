@@ -14,7 +14,13 @@ export function devServer(): Plugin[] {
         publicDir = config.publicDir;
       },
       configureServer(server) {
-        const IGNORE_URLS = /^\/(@(vite|fs|id)|\.vite)\//;
+        // Build the ignore pattern accounting for the configured base path.
+        // Vite prefixes virtual module URLs with the base (e.g. /ui/@id/...),
+        // so we need to match both /@ and /base/@.
+        const base = server.config.base.replace(/\/$/, "");
+        const IGNORE_URLS = new RegExp(
+          `^(${base})?/(@(vite|fs|id)|\\.vite)/`,
+        );
 
         server.middlewares.use(async (nodeReq, nodeRes, next) => {
           const serverCfg = server.config.server;
