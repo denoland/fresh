@@ -187,6 +187,83 @@ export const handlers = define.handlers({
 });
 ```
 
+## Subdomain routing
+
+Use middleware with `URLPattern` to route based on subdomains:
+
+```ts routes/_middleware.ts
+const SUBDOMAIN_PATTERN = new URLPattern({ hostname: ":sub.example.com" });
+
+export default async function handler(ctx) {
+  const match = SUBDOMAIN_PATTERN.exec(ctx.req.url);
+  if (match) {
+    const sub = match.hostname.groups["sub"];
+    ctx.state.subdomain = sub;
+
+    // Route to different handlers based on subdomain
+    if (sub === "api") {
+      return ctx.next(); // Let API routes handle it
+    }
+    if (sub !== "www") {
+      // Tenant-specific logic
+      ctx.state.tenant = await getTenant(sub);
+    }
+  }
+  return ctx.next();
+}
+```
+
+## Proxying requests
+
+Forward requests to an upstream server from a route handler:
+
+```ts routes/api/[...path].ts
+import { define } from "@/utils.ts";
+
+const UPSTREAM = "https://api.example.com";
+
+export const handlers = define.handlers({
+  async GET(ctx) {
+    const url = new URL(ctx.params.path, UPSTREAM);
+    url.search = ctx.url.search;
+
+    const response = await fetch(url, {
+      headers: ctx.req.headers,
+    });
+
+    return new Response(response.body, {
+      status: response.status,
+      headers: response.headers,
+    });
+  },
+});
+```
+
+This is useful for proxying to backend services or working around CORS
+restrictions during development.
+
+## Lazy-loading island content
+
+Use Preact's `lazy()` and `<Suspense>` to code-split heavy components inside
+an island, so their JavaScript is only loaded when needed:
+
+```tsx islands/HeavyFeature.tsx
+import { lazy, Suspense } from "preact/compat";
+
+const Chart = lazy(() => import("../components/Chart.tsx"));
+
+export function HeavyFeature() {
+  return (
+    <Suspense fallback={<p>Loading chart...</p>}>
+      <Chart />
+    </Suspense>
+  );
+}
+```
+
+The `Chart` component's code is split into a separate chunk and only fetched
+when `HeavyFeature` renders in the browser.
+
 ## Timing middleware
 
 Measure how long request processing takes:
