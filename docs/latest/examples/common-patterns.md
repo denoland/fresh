@@ -244,8 +244,8 @@ restrictions during development.
 
 ## Lazy-loading island content
 
-Use Preact's `lazy()` and `<Suspense>` to code-split heavy components inside
-an island, so their JavaScript is only loaded when needed:
+Use Preact's `lazy()` and `<Suspense>` to code-split heavy components inside an
+island, so their JavaScript is only loaded when needed:
 
 ```tsx islands/HeavyFeature.tsx
 import { lazy, Suspense } from "preact/compat";

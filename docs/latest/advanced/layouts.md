@@ -44,8 +44,8 @@ layouts are added on top:
 
 ```ts main.ts
 const app = new App()
-  .layout("*", MainLayout)           // Applied to all routes
-  .layout("/admin/*", AdminLayout)   // Added on top for /admin/* routes
+  .layout("*", MainLayout) // Applied to all routes
+  .layout("/admin/*", AdminLayout) // Added on top for /admin/* routes
   .get("/", (ctx) => ctx.render(<h1>Home</h1>))
   .get("/admin/dashboard", (ctx) => ctx.render(<h1>Dashboard</h1>));
 ```
@@ -61,7 +61,7 @@ Use `skipInheritedLayouts` to replace all inherited layouts with a single one:
 const app = new App()
   .layout("*", MainLayout)
   .layout("/landing", LandingLayout, { skipInheritedLayouts: true })
-  .get("/", (ctx) => ctx.render(<h1>Home</h1>))        // Uses MainLayout
+  .get("/", (ctx) => ctx.render(<h1>Home</h1>)) // Uses MainLayout
   .get("/landing", (ctx) => ctx.render(<h1>Landing</h1>)); // Uses only LandingLayout
 ```
 

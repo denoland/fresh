@@ -174,8 +174,8 @@ export function MyElement() {
 
 ### Using third-party web components
 
-Third-party web component libraries work the same way — import and register
-them inside an island:
+Third-party web component libraries work the same way — import and register them
+inside an island:
 
 ```tsx islands/ThirdPartyElement.tsx
 import { useEffect } from "preact/hooks";

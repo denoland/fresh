@@ -193,7 +193,8 @@ gets its own independent cart. Fresh serializes the signal and passes it to both
 islands, keeping them in sync on the client.
 
 > [!CAUTION]
-> Avoid creating signals at the module level (e.g. `export const cart =
-> signal([])` in a utility file). Module-level state is shared across all
-> requests on the server, which means different users would see the same cart.
-> Always create signals inside components or handlers.
+> Avoid creating signals at the module level (e.g.
+> `export const cart =
+> signal([])` in a utility file). Module-level state is
+> shared across all requests on the server, which means different users would
+> see the same cart. Always create signals inside components or handlers.
