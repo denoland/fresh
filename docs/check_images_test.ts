@@ -47,7 +47,9 @@ Deno.test("all doc image references point to existing files", async () => {
 
   if (errors.length > 0) {
     throw new Error(
-      `Found ${errors.length} broken image reference(s):\n\n${errors.join("\n")}`,
+      `Found ${errors.length} broken image reference(s):\n\n${
+        errors.join("\n")
+      }`,
     );
   }
 });
