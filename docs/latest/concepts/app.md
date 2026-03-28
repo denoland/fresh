@@ -373,7 +373,8 @@ frameworks.
 
 ## `.listen()`
 
-Spawns a server and listens for incoming connections.
+Spawns a server and listens for incoming connections. This calls `Deno.serve()`
+internally.
 
 ```ts
 const app = new App()
@@ -388,3 +389,15 @@ aspects.
 ```ts
 app.listen({ port: 4000 });
 ```
+
+> **Important:** `.listen()` is only used when running your app directly with
+> `deno run -A main.ts`. The default project setup uses `deno task dev` (Vite
+> dev server) and `deno task start` (`deno serve`), which spawn their own
+> servers — calling `.listen()` alongside these will create a second server and
+> cause `AddrInUse` errors.
+>
+> To customize the port in the default setup:
+>
+> - **Dev:** set `server.port` in `vite.config.ts`
+> - **Prod:** pass `--port` to `deno serve` in your task, e.g.
+>   `"start": "deno serve --port 4000 -A _fresh/server.js"`
