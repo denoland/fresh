@@ -70,6 +70,48 @@ Deno.test("UrlPatternRouter - wrong + correct method", () => {
   });
 });
 
+Deno.test("UrlPatternRouter - trailing slash matches route without slash", () => {
+  const router = new UrlPatternRouter();
+  const A = () => {};
+  router.add("GET", "/wissen", [A]);
+
+  const res = router.match("GET", new URL("/wissen/", "http://localhost"));
+  expect(res).toEqual({
+    params: Object.create(null),
+    handlers: [A],
+    methodMatch: true,
+    pattern: "/wissen",
+  });
+});
+
+Deno.test("UrlPatternRouter - no trailing slash matches route with slash", () => {
+  const router = new UrlPatternRouter();
+  const A = () => {};
+  router.add("GET", "/wissen/", [A]);
+
+  const res = router.match("GET", new URL("/wissen", "http://localhost"));
+  expect(res).toEqual({
+    params: Object.create(null),
+    handlers: [A],
+    methodMatch: true,
+    pattern: "/wissen/",
+  });
+});
+
+Deno.test("UrlPatternRouter - root trailing slash does not double-match", () => {
+  const router = new UrlPatternRouter();
+  const A = () => {};
+  router.add("GET", "/", [A]);
+
+  const res = router.match("GET", new URL("/", "http://localhost"));
+  expect(res).toEqual({
+    params: Object.create(null),
+    handlers: [A],
+    methodMatch: true,
+    pattern: "/",
+  });
+});
+
 Deno.test("UrlPatternRouter - convert patterns automatically", () => {
   const router = new UrlPatternRouter();
   const A = () => {};
