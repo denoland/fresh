@@ -77,6 +77,10 @@ export function freshSsrTransform(
     // Resolve bare specifiers that @deno/vite-plugin might miss
     // (e.g. imports from Fresh's virtual modules like fresh:server-snapshot)
     async resolveId(id, _importer, options) {
+      if (id.includes("marvinh")) {
+        console.log(`[FRESH:RESOLVE] GOT "${id}"`);
+      }
+
       // Skip if already handled or starts with known prefixes
       if (
         isDenoSpecifier(id) ||
@@ -99,16 +103,21 @@ export function freshSsrTransform(
           ResolutionMode.Import,
         );
         if (resolved && resolved !== id) {
+          console.log(`[fresh:ssr-transform] resolved "${id}" -> "${resolved}"`);
           // Re-resolve the result through the plugin pipeline
           // so @deno/vite-plugin can create the proper deno:: specifier
           const result = await this.resolve(resolved, undefined, {
             ...options,
             skipSelf: true,
           });
+          console.log(`[fresh:ssr-transform] re-resolved -> ${result?.id ?? "null"}`);
           return result;
         }
-      } catch {
+      } catch (e) {
         // Not resolvable by Deno — let Vite handle it
+        if (id.includes("marvinh")) {
+          console.log(`[fresh:ssr-transform] FAILED "${id}": ${e}`);
+        }
       }
     },
     transform: {
