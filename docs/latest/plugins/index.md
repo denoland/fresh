@@ -22,6 +22,37 @@ const addXFreshHeader = define.middleware(async (ctx) => {
 
 Learn more about [middlewares](/docs/concepts/middleware).
 
+## Creating reusable plugins
+
+Since Fresh plugins are just middlewares and route handlers, creating a
+reusable plugin is as simple as exporting a function that returns a middleware:
+
+```ts plugins/request-id.ts
+import type { MiddlewareFn } from "fresh";
+
+export function requestId(): MiddlewareFn<{ requestId: string }> {
+  return async (ctx) => {
+    ctx.state.requestId = crypto.randomUUID();
+    const res = await ctx.next();
+    res.headers.set("X-Request-Id", ctx.state.requestId);
+    return res;
+  };
+}
+```
+
+```ts main.ts
+import { App, staticFiles } from "fresh";
+import { requestId } from "./plugins/request-id.ts";
+
+const app = new App()
+  .use(staticFiles())
+  .use(requestId())
+  .fsRoutes();
+```
+
+For more complex plugins, you can combine multiple middlewares, add routes, or
+use the [`Builder`](/docs/advanced/builder) hooks for build-time processing.
+
 ## Built-in plugins
 
 Fresh ships with the following plugins:
