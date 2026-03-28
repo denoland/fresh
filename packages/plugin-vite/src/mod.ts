@@ -4,7 +4,15 @@ import {
   pathWithRoot,
   type ResolvedFreshViteConfig,
 } from "./utils.ts";
-import { deno } from "./plugins/deno.ts";
+// @deno/vite-plugin handles Deno specifier resolution and loading.
+// Fresh layers on top with Preact JSX transforms and SSR precompile.
+// TODO: Replace path import with "npm:@deno/vite-plugin" once published
+import denoPlugin from "../../../../deno-vite-plugin/dist/index.js";
+import type { DenoPluginOptions } from "../../../../deno-vite-plugin/dist/index.d.ts";
+import {
+  createFreshOnLoad,
+  freshSsrTransform,
+} from "./plugins/deno_transforms.ts";
 import prefresh from "@prefresh/vite";
 import { serverEntryPlugin } from "./plugins/server_entry.ts";
 import { clientEntryPlugin } from "./plugins/client_entry.ts";
@@ -246,7 +254,16 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
   ];
 
   if (typeof process.versions.deno === "string") {
-    plugins.push(deno());
+    const denoOpts: DenoPluginOptions = {
+      environments: {
+        ssr: { platform: "node", cachedOnly: true },
+        client: { platform: "browser", preserveJsx: true, cachedOnly: true },
+      },
+      onLoad: createFreshOnLoad(isDev),
+    };
+    // deno-lint-ignore no-explicit-any
+    plugins.push(...denoPlugin(denoOpts) as any);
+    plugins.push(freshSsrTransform());
   }
 
   return plugins;
