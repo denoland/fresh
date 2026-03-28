@@ -1,3 +1,4 @@
+import { page } from "fresh";
 import { Partial } from "fresh/runtime";
 import { define } from "../../utils/state.ts";
 
@@ -9,7 +10,7 @@ export const handler = define.handlers({
         headers: { location: "/#partials" },
       });
     }
-    return ctx.render();
+    return page();
   },
 });
 
