@@ -7,15 +7,19 @@ The `App` class is the heart of Fresh and routes incoming requests to the
 correct middlewares. This is where routes, middlewares, layouts and more are
 defined.
 
-```tsx main.ts
+```ts main.ts
 const app = new App()
   .use(staticFiles())
-  .get("/", () => new Response("hello"))
-  .get("/about", (ctx) => ctx.render(<h1>About me</h1>));
+  .get("/", () => new Response("hello"));
 
 // Start server
 app.listen();
 ```
+
+> [!TIP]
+> To use JSX in your `main` file (e.g. with `ctx.render(<h1>Hello</h1>)`),
+> rename it to `main.tsx` and set `serverEntry: "main.tsx"` in the `fresh()`
+> plugin options in `vite.config.ts`.
 
 ## Configuration
 
@@ -37,7 +41,7 @@ mounted alongside other apps. The base path is available in handlers via
 All items are applied from top to bottom. This means that when you defined a
 middleware _after_ a `.get()` handler, it won't be included.
 
-```tsx main.tsx
+```ts main.ts
 const app = new App()
   .use((ctx) => {
     // Will be called for all middlewares
@@ -48,7 +52,7 @@ const app = new App()
     // Will only be called for `/about`
     return ctx.next();
   })
-  .get("/about", (ctx) => ctx.render(<h1>About me</h1>));
+  .get("/about", () => new Response("About me"));
 ```
 
 ## `.use()`
