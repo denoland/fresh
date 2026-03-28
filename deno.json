@@ -54,7 +54,7 @@
     "@types/node": "npm:@types/node@^24.3.0",
     "@types/pg": "npm:@types/pg@^8.15.5",
     "@types/prismjs": "npm:@types/prismjs@^1.26.5",
-    "docsearch": "https://esm.sh/@docsearch/js@3.5.2?target=es2020",
+    "docsearch": "npm:@docsearch/js@^3.5.2",
     "esbuild": "npm:esbuild@0.25.7",
     "esbuild-wasm": "npm:esbuild-wasm@0.25.7",
     "fresh": "jsr:@fresh/core@^2.0.0",
@@ -91,7 +91,7 @@
 
     "@std/front-matter": "jsr:@std/front-matter@^1.0.5",
     "github-slugger": "npm:github-slugger@^2.0.0",
-    "imagescript": "https://deno.land/x/imagescript@1.3.0/mod.ts",
+    "imagescript": "jsr:@matmen/imagescript@^1.3.0",
     "marked": "npm:marked@^15.0.11",
     "marked-mangle": "npm:marked-mangle@^1.1.9",
     "prismjs": "npm:prismjs@^1.29.0",

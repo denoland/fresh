@@ -14,6 +14,7 @@
     "jsr:@fresh/core@2": "2.2.0",
     "jsr:@marvinh-test/fresh-island@^0.0.3": "0.0.3",
     "jsr:@marvinh-test/import-json@^0.0.1": "0.0.1",
+    "jsr:@matmen/imagescript@^1.3.0": "1.3.1",
     "jsr:@std/assert@^1.0.14": "1.0.16",
     "jsr:@std/assert@^1.0.15": "1.0.16",
     "jsr:@std/async@1": "1.0.16",
@@ -71,6 +72,7 @@
     "jsr:@zip-js/zip-js@^2.7.52": "2.8.13",
     "npm:@babel/core@^7.28.0": "7.28.5",
     "npm:@babel/preset-react@^7.27.1": "7.28.5_@babel+core@7.28.5",
+    "npm:@docsearch/js@^3.5.2": "3.9.0_@algolia+client-search@5.50.0_search-insights@2.17.3",
     "npm:@opentelemetry/api@^1.9.0": "1.9.0",
     "npm:@preact/signals@2": "2.5.1_preact@10.29.0",
     "npm:@preact/signals@^2.2.1": "2.5.1_preact@10.29.0",
@@ -225,6 +227,9 @@
     },
     "@marvinh-test/import-json@0.0.1": {
       "integrity": "12d3030cfb8406b71ea798249fee12f8617cb1259748092638a05b72a7727fcf"
+    },
+    "@matmen/imagescript@1.3.1": {
+      "integrity": "8b3d4fc6a4597259ede419497c7dce9cc523bfdc0fa25f95a33dfab2135cc59b"
     },
     "@std/assert@1.0.16": {
       "integrity": "6a7272ed1eaa77defe76e5ff63ca705d9c495077e2d5fd0126d2b53fc5bd6532",
@@ -392,6 +397,146 @@
     }
   },
   "npm": {
+    "@algolia/abtesting@1.16.0": {
+      "integrity": "sha512-alHFZ68/i9qLC/muEB07VQ9r7cB8AvCcGX6dVQi2PNHhc/ZQRmmFAv8KK1ay4UiseGSFr7f0nXBKsZ/jRg7e4g==",
+      "dependencies": [
+        "@algolia/client-common",
+        "@algolia/requester-browser-xhr",
+        "@algolia/requester-fetch",
+        "@algolia/requester-node-http"
+      ]
+    },
+    "@algolia/autocomplete-core@1.17.9_@algolia+client-search@5.50.0_algoliasearch@5.50.0_search-insights@2.17.3": {
+      "integrity": "sha512-O7BxrpLDPJWWHv/DLA9DRFWs+iY1uOJZkqUwjS5HSZAGcl0hIVCQ97LTLewiZmZ402JYUrun+8NqFP+hCknlbQ==",
+      "dependencies": [
+        "@algolia/autocomplete-plugin-algolia-insights",
+        "@algolia/autocomplete-shared"
+      ]
+    },
+    "@algolia/autocomplete-plugin-algolia-insights@1.17.9_search-insights@2.17.3_@algolia+client-search@5.50.0_algoliasearch@5.50.0": {
+      "integrity": "sha512-u1fEHkCbWF92DBeB/KHeMacsjsoI0wFhjZtlCq2ddZbAehshbZST6Hs0Avkc0s+4UyBGbMDnSuXHLuvRWK5iDQ==",
+      "dependencies": [
+        "@algolia/autocomplete-shared",
+        "search-insights"
+      ]
+    },
+    "@algolia/autocomplete-preset-algolia@1.17.9_@algolia+client-search@5.50.0_algoliasearch@5.50.0": {
+      "integrity": "sha512-Na1OuceSJeg8j7ZWn5ssMu/Ax3amtOwk76u4h5J4eK2Nx2KB5qt0Z4cOapCsxot9VcEN11ADV5aUSlQF4RhGjQ==",
+      "dependencies": [
+        "@algolia/autocomplete-shared",
+        "@algolia/client-search",
+        "algoliasearch"
+      ]
+    },
+    "@algolia/autocomplete-shared@1.17.9_@algolia+client-search@5.50.0_algoliasearch@5.50.0": {
+      "integrity": "sha512-iDf05JDQ7I0b7JEA/9IektxN/80a2MZ1ToohfmNS3rfeuQnIKI3IJlIafD0xu4StbtQTghx9T3Maa97ytkXenQ==",
+      "dependencies": [
+        "@algolia/client-search",
+        "algoliasearch"
+      ]
+    },
+    "@algolia/client-abtesting@5.50.0": {
+      "integrity": "sha512-mfgUdLQNxOAvCZUGzPQxjahEWEPuQkKlV0ZtGmePOa9ZxIQZlk31vRBNbM6ScU8jTH41SCYE77G/lCifDr1SVw==",
+      "dependencies": [
+        "@algolia/client-common",
+        "@algolia/requester-browser-xhr",
+        "@algolia/requester-fetch",
+        "@algolia/requester-node-http"
+      ]
+    },
+    "@algolia/client-analytics@5.50.0": {
+      "integrity": "sha512-5mjokeKYyPaP3Q8IYJEnutI+O4dW/Ixxx5IgsSxT04pCfGqPXxTOH311hTQxyNpcGGEOGrMv8n8Z+UMTPamioQ==",
+      "dependencies": [
+        "@algolia/client-common",
+        "@algolia/requester-browser-xhr",
+        "@algolia/requester-fetch",
+        "@algolia/requester-node-http"
+      ]
+    },
+    "@algolia/client-common@5.50.0": {
+      "integrity": "sha512-emtOvR6dl3rX3sBJXXbofMNHU1qMQqQSWu319RMrNL5BWoBqyiq7y0Zn6cjJm7aGHV/Qbf+KCCYeWNKEMPI3BQ=="
+    },
+    "@algolia/client-insights@5.50.0": {
+      "integrity": "sha512-IerGH2/hcj/6bwkpQg/HHRqmlGN1XwygQWythAk0gZFBrghs9danJaYuSS3ShzLSVoIVth4jY5GDPX9Lbw5cgg==",
+      "dependencies": [
+        "@algolia/client-common",
+        "@algolia/requester-browser-xhr",
+        "@algolia/requester-fetch",
+        "@algolia/requester-node-http"
+      ]
+    },
+    "@algolia/client-personalization@5.50.0": {
+      "integrity": "sha512-3idPJeXn5L0MmgP9jk9JJqblrQ/SguN93dNK9z9gfgyupBhHnJMOEjrRYcVgTIfvG13Y04wO+Q0FxE2Ut8PVbA==",
+      "dependencies": [
+        "@algolia/client-common",
+        "@algolia/requester-browser-xhr",
+        "@algolia/requester-fetch",
+        "@algolia/requester-node-http"
+      ]
+    },
+    "@algolia/client-query-suggestions@5.50.0": {
+      "integrity": "sha512-q7qRoWrQK1a8m5EFQEmPlo7+pg9mVQ8X5jsChtChERre0uS2pdYEDixBBl0ydBSGkdGbLUDufcACIhH/077E4g==",
+      "dependencies": [
+        "@algolia/client-common",
+        "@algolia/requester-browser-xhr",
+        "@algolia/requester-fetch",
+        "@algolia/requester-node-http"
+      ]
+    },
+    "@algolia/client-search@5.50.0": {
+      "integrity": "sha512-Jc360x4yqb3eEg4OY4KEIdGePBxZogivKI+OGIU8aLXgAYPTECvzeOBc90312yHA1hr3AeRlAFl0rIc8lQaIrQ==",
+      "dependencies": [
+        "@algolia/client-common",
+        "@algolia/requester-browser-xhr",
+        "@algolia/requester-fetch",
+        "@algolia/requester-node-http"
+      ]
+    },
+    "@algolia/ingestion@1.50.0": {
+      "integrity": "sha512-OS3/Viao+NPpyBbEY3tf6hLewppG+UclD+9i0ju56mq2DrdMJFCkEky6Sk9S5VPcbLzxzg3BqBX6u9Q35w19aQ==",
+      "dependencies": [
+        "@algolia/client-common",
+        "@algolia/requester-browser-xhr",
+        "@algolia/requester-fetch",
+        "@algolia/requester-node-http"
+      ]
+    },
+    "@algolia/monitoring@1.50.0": {
+      "integrity": "sha512-/znwgSiGufpbJVIoDmeQaHtTq+OMdDawFRbMSJVv+12n79hW+qdQXS8/Uu3BD3yn0BzgVFJEvrsHrCsInZKdhw==",
+      "dependencies": [
+        "@algolia/client-common",
+        "@algolia/requester-browser-xhr",
+        "@algolia/requester-fetch",
+        "@algolia/requester-node-http"
+      ]
+    },
+    "@algolia/recommend@5.50.0": {
+      "integrity": "sha512-dHjUfu4jfjdQiKDpCpAnM7LP5yfG0oNShtfpF5rMCel6/4HIoqJ4DC4h5GKDzgrvJYtgAhblo0AYBmOM00T+lQ==",
+      "dependencies": [
+        "@algolia/client-common",
+        "@algolia/requester-browser-xhr",
+        "@algolia/requester-fetch",
+        "@algolia/requester-node-http"
+      ]
+    },
+    "@algolia/requester-browser-xhr@5.50.0": {
+      "integrity": "sha512-bffIbUljAWnh/Ctu5uScORajuUavqmZ0ACYd1fQQeSSYA9NNN83ynO26pSc2dZRXpSK0fkc1//qSSFXMKGu+aw==",
+      "dependencies": [
+        "@algolia/client-common"
+      ]
+    },
+    "@algolia/requester-fetch@5.50.0": {
+      "integrity": "sha512-y0EwNvPGvkM+yTAqqO6Gpt9wVGm3CLDtpLvNEiB3VGvN3WzfkjZGtLUsG/ru2kVJIIU7QcV0puuYgEpBeFxcJg==",
+      "dependencies": [
+        "@algolia/client-common"
+      ]
+    },
+    "@algolia/requester-node-http@5.50.0": {
+      "integrity": "sha512-xpwefe4fCOWnZgXCbkGpqQY6jgBSCf2hmgnySbyzZIccrv3SoashHKGPE4x6vVG+gdHrGciMTAcDo9HOZwH22Q==",
+      "dependencies": [
+        "@algolia/client-common"
+      ]
+    },
     "@alloc/quick-lru@5.2.0": {
       "integrity": "sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw=="
     },
@@ -574,6 +719,29 @@
       "dependencies": [
         "@babel/helper-string-parser",
         "@babel/helper-validator-identifier"
+      ]
+    },
+    "@docsearch/css@3.9.0": {
+      "integrity": "sha512-cQbnVbq0rrBwNAKegIac/t6a8nWoUAn8frnkLFW6YARaRmAQr5/Eoe6Ln2fqkUCZ40KpdrKbpSAmgrkviOxuWA=="
+    },
+    "@docsearch/js@3.9.0_@algolia+client-search@5.50.0_search-insights@2.17.3": {
+      "integrity": "sha512-4bKHcye6EkLgRE8ze0vcdshmEqxeiJM77M0JXjef7lrYZfSlMunrDOCqyLjiZyo1+c0BhUqA2QpFartIjuHIjw==",
+      "dependencies": [
+        "@docsearch/react",
+        "preact"
+      ]
+    },
+    "@docsearch/react@3.9.0_search-insights@2.17.3_@algolia+client-search@5.50.0": {
+      "integrity": "sha512-mb5FOZYZIkRQ6s/NWnM98k879vu5pscWqTLubLFBO87igYYT4VzVazh4h5o/zCvTIZgEt3PvsCOMOswOUo9yHQ==",
+      "dependencies": [
+        "@algolia/autocomplete-core",
+        "@algolia/autocomplete-preset-algolia",
+        "@docsearch/css",
+        "algoliasearch",
+        "search-insights"
+      ],
+      "optionalPeers": [
+        "search-insights"
       ]
     },
     "@esbuild/aix-ppc64@0.25.7": {
@@ -2032,6 +2200,25 @@
     },
     "@types/qs@6.14.0": {
       "integrity": "sha512-eOunJqu0K1923aExK6y8p6fsihYEn/BYuQ4g0CxAAgFc4b/ZLN4CrsRZ55srTdqoiLzU2B2evC+apEIxprEzkQ=="
+    },
+    "algoliasearch@5.50.0": {
+      "integrity": "sha512-yE5I83Q2s8euVou8Y3feXK08wyZInJWLYXgWO6Xti9jBUEZAGUahyeQ7wSZWkifLWVnQVKEz5RAmBlXG5nqxog==",
+      "dependencies": [
+        "@algolia/abtesting",
+        "@algolia/client-abtesting",
+        "@algolia/client-analytics",
+        "@algolia/client-common",
+        "@algolia/client-insights",
+        "@algolia/client-personalization",
+        "@algolia/client-query-suggestions",
+        "@algolia/client-search",
+        "@algolia/ingestion",
+        "@algolia/monitoring",
+        "@algolia/recommend",
+        "@algolia/requester-browser-xhr",
+        "@algolia/requester-fetch",
+        "@algolia/requester-node-http"
+      ]
     },
     "ansi-regex@5.0.1": {
       "integrity": "sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ=="
@@ -3565,6 +3752,9 @@
     "scheduler@0.26.0": {
       "integrity": "sha512-NlHwttCI/l5gCPR3D1nNXtWABUmBwvZpEQiD4IXSbIDq8BzLIK/7Ir5gTFSGZDUu37K5cMNp0hFtzO38sC7gWA=="
     },
+    "search-insights@2.17.3": {
+      "integrity": "sha512-RQPdCYTa8A68uM2jwxoY842xDhvx3E5LFL1LxvxCNMev4o5mLuokczhzjAgGwUZBAmOKZknArSxLKmXtIi2AxQ=="
+    },
     "semver@6.3.1": {
       "integrity": "sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA==",
       "bin": true
@@ -4024,6 +4214,7 @@
       "jsr:@fresh/build-id@1",
       "jsr:@fresh/core@2",
       "jsr:@marvinh-test/fresh-island@^0.0.3",
+      "jsr:@matmen/imagescript@^1.3.0",
       "jsr:@std/async@^1.0.13",
       "jsr:@std/cli@^1.0.19",
       "jsr:@std/collections@^1.1.2",
@@ -4042,6 +4233,7 @@
       "jsr:@std/streams@1",
       "jsr:@std/testing@^1.0.12",
       "jsr:@std/uuid@^1.0.7",
+      "npm:@docsearch/js@^3.5.2",
       "npm:@opentelemetry/api@^1.9.0",
       "npm:@preact/signals@^2.5.1",
       "npm:@supabase/postgrest-js@^1.21.4",
