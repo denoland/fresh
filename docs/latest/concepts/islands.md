@@ -134,3 +134,67 @@ export function MyIsland() {
   return <div></div>;
 }
 ```
+
+## Using Custom Elements (Web Components)
+
+[Custom elements](https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements)
+can be used in Fresh, but they must be registered client-side since
+`customElements.define()` is a browser API.
+
+### Registering a custom element
+
+Use an island to register and render custom elements:
+
+```tsx islands/MyElement.tsx
+import { useEffect } from "preact/hooks";
+import { IS_BROWSER } from "fresh/runtime";
+
+export function MyElement() {
+  useEffect(() => {
+    if (customElements.get("my-greeting")) return;
+
+    customElements.define(
+      "my-greeting",
+      class extends HTMLElement {
+        connectedCallback() {
+          const name = this.getAttribute("name") ?? "World";
+          this.innerHTML = `<p>Hello, ${name}!</p>`;
+        }
+      },
+    );
+  }, []);
+
+  if (!IS_BROWSER) {
+    return <div></div>;
+  }
+
+  return <my-greeting name="Fresh" />;
+}
+```
+
+### Using third-party web components
+
+Third-party web component libraries work the same way — import and register
+them inside an island:
+
+```tsx islands/ThirdPartyElement.tsx
+import { useEffect } from "preact/hooks";
+import { IS_BROWSER } from "fresh/runtime";
+
+export function ShoelaceButton() {
+  useEffect(() => {
+    // Import the library's registration script
+    import("@shoelace-style/shoelace/dist/components/button/button.js");
+  }, []);
+
+  if (!IS_BROWSER) {
+    return <button>Click me</button>;
+  }
+
+  return <sl-button variant="primary">Click me</sl-button>;
+}
+```
+
+> [!TIP]
+> Return a plain HTML fallback from the server-side branch (`!IS_BROWSER`) so
+> the page is usable before JavaScript loads.
