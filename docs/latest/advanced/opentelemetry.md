@@ -4,8 +4,8 @@ description: |
 ---
 
 Fresh automatically instruments key operations with
-[OpenTelemetry](https://opentelemetry.io/) spans, giving you visibility into
-how requests flow through your application.
+[OpenTelemetry](https://opentelemetry.io/) spans, giving you visibility into how
+requests flow through your application.
 
 ## What's instrumented
 
@@ -19,8 +19,8 @@ Fresh creates spans for:
 
 ## Enabling tracing
 
-Fresh uses the `@opentelemetry/api` package (the vendor-neutral API). Spans
-are created automatically — you just need to provide an OpenTelemetry SDK and
+Fresh uses the `@opentelemetry/api` package (the vendor-neutral API). Spans are
+created automatically — you just need to provide an OpenTelemetry SDK and
 exporter to collect them.
 
 If no exporter is configured, the spans are silently discarded (no performance
@@ -36,10 +36,10 @@ Enable it with the `OTEL_DENO` environment variable:
 OTEL_DENO=true deno task start
 ```
 
-This exports traces to an OTLP-compatible collector (configure the endpoint
-with `OTEL_EXPORTER_OTLP_ENDPOINT`).
+This exports traces to an OTLP-compatible collector (configure the endpoint with
+`OTEL_EXPORTER_OTLP_ENDPOINT`).
 
 ### With Deno Deploy
 
-[Deno Deploy](https://deno.com/deploy) collects Fresh traces automatically
-when using the Fresh preset — no configuration needed.
+[Deno Deploy](https://deno.com/deploy) collects Fresh traces automatically when
+using the Fresh preset — no configuration needed.

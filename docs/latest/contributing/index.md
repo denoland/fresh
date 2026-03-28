@@ -98,5 +98,5 @@ Some tests may fail locally but pass in CI (`Could not find server address`,
   errors early
 - Keep PRs focused — one feature or fix per PR
 - Add or update tests for any behavior changes
-- Follow existing code style — the repository uses `deno fmt` for formatting
-  and `deno lint` for linting
+- Follow existing code style — the repository uses `deno fmt` for formatting and
+  `deno lint` for linting

@@ -24,8 +24,8 @@ Learn more about [middlewares](/docs/concepts/middleware).
 
 ## Creating reusable plugins
 
-Since Fresh plugins are just middlewares and route handlers, creating a
-reusable plugin is as simple as exporting a function that returns a middleware:
+Since Fresh plugins are just middlewares and route handlers, creating a reusable
+plugin is as simple as exporting a function that returns a middleware:
 
 ```ts plugins/request-id.ts
 import type { MiddlewareFn } from "fresh";

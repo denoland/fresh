@@ -19,7 +19,8 @@ This section of the documentation describes advanced functionality of Fresh.
 - [Modifying &lt;head&gt;](/docs/advanced/head) - Manage meta tags, titles, and
   styles
 - [Vite plugin options](/docs/advanced/vite) - Configure the Fresh Vite plugin
-- [OpenTelemetry](/docs/advanced/opentelemetry) - Built-in tracing and observability
+- [OpenTelemetry](/docs/advanced/opentelemetry) - Built-in tracing and
+  observability
 - [API Reference](/docs/advanced/api-reference) - All public exports from Fresh
 - [Troubleshooting](/docs/advanced/troubleshooting) - Common issues and
   solutions
