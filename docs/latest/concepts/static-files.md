@@ -97,3 +97,58 @@ export default function Gallery() {
   );
 }
 ```
+
+## Image optimization
+
+Fresh does not include a built-in image optimization pipeline, but since Fresh 2
+uses Vite, you can use Vite plugins or external services to optimize images.
+
+### Build-time optimization with Vite
+
+[vite-imagetools](https://github.com/JonasKruckenberg/imagetools) lets you
+import images with query parameters to resize, convert formats, and generate
+`srcset` at build time:
+
+```ts
+deno add -D npm:vite-imagetools
+```
+
+```ts vite.config.ts
+import { defineConfig } from "vite";
+import { fresh } from "@fresh/plugin-vite";
+import { imagetools } from "vite-imagetools";
+
+export default defineConfig({
+  plugins: [fresh(), imagetools()],
+});
+```
+
+Then import optimized images directly:
+
+```tsx
+import heroAvif from "../static/hero.jpg?format=avif&w=800";
+
+export default function Page() {
+  return <img src={heroAvif} alt="Hero" width={800} />;
+}
+```
+
+### CDN image services
+
+For dynamic optimization without a build step, use a CDN image service that
+transforms images on-the-fly:
+
+- [Cloudflare Images](https://developers.cloudflare.com/images/)
+- [imgix](https://imgix.com/)
+- [Cloudinary](https://cloudinary.com/)
+
+These services resize, compress, and convert images to modern formats (WebP,
+AVIF) based on URL parameters, with automatic caching at the edge.
+
+### Best practices
+
+- Use modern formats (WebP, AVIF) with `<picture>` fallbacks
+- Provide responsive images with `srcset` and `sizes` attributes
+- Set `width` and `height` on `<img>` tags to prevent layout shift
+- Use `loading="lazy"` for below-the-fold images
+- Use `asset()` / `assetSrcSet()` for cache-busted URLs
