@@ -395,7 +395,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
         filter: {
           id: /^fresh-island::.*/,
         },
-        handler(id) {
+        async handler(id) {
           let name = id.slice("fresh-island::".length);
 
           if (JS_REG.test(name)) {
@@ -403,7 +403,12 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
           }
 
           const spec = islandSpecByName.get(name);
-          if (spec !== undefined) return spec;
+          if (spec !== undefined) {
+            // Re-resolve through the plugin pipeline so deno-specifiers
+            // (jsr:, https:) are handled correctly.
+            const resolved = await this.resolve(spec);
+            return resolved ?? spec;
+          }
         },
       },
     },

@@ -148,10 +148,15 @@ if (import.meta.hot) {
         filter: {
           id: /^fresh-client-island::/,
         },
-        handler(id) {
+        async handler(id) {
           const name = id.slice("fresh-client-island::".length);
           const full = entryToIsland.get(name);
-          return full;
+          if (full !== undefined) {
+            // Re-resolve through the plugin pipeline so deno-specifiers
+            // (jsr:, https:) are handled correctly.
+            const resolved = await this.resolve(full);
+            return resolved ?? full;
+          }
         },
       },
     },
