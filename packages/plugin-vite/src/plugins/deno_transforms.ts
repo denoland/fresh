@@ -51,24 +51,65 @@ export function createFreshOnLoad(isDev: boolean) {
 }
 
 /**
- * Vite plugin that handles SSR precompile JSX re-transform.
- * This runs as a `transform` hook on JSX files in the server environment,
- * re-loading them through Deno's loader to get the precompiled JSX output.
+ * Vite plugin that handles:
+ * 1. Resolving bare specifiers from Fresh's virtual modules through Deno's loader
+ * 2. SSR precompile JSX re-transform
  */
-export function freshSsrTransform(): Plugin {
-  let ssrLoader: Loader;
+export function freshSsrTransform(
+  getLoader: () => Promise<Loader>,
+): Plugin {
+  let ssrLoader: Loader | null = null;
+
+  async function loader(): Promise<Loader> {
+    if (!ssrLoader) {
+      ssrLoader = await getLoader();
+    }
+    return ssrLoader;
+  }
 
   return {
     name: "fresh:ssr-transform",
+    enforce: "pre",
     sharedDuringBuild: true,
     applyToEnvironment() {
       return true;
     },
-    async configResolved() {
-      ssrLoader = await new Workspace({
-        platform: "node",
-        cachedOnly: true,
-      }).createLoader();
+    // Resolve bare specifiers that @deno/vite-plugin might miss
+    // (e.g. imports from Fresh's virtual modules like fresh:server-snapshot)
+    async resolveId(id, _importer, options) {
+      // Skip if already handled or starts with known prefixes
+      if (
+        isDenoSpecifier(id) ||
+        id.startsWith(".") ||
+        id.startsWith("/") ||
+        id.startsWith("\0") ||
+        id.startsWith("node:") ||
+        id.startsWith("npm:") ||
+        id.startsWith("jsr:")
+      ) {
+        return;
+      }
+
+      // Try to resolve through the Deno loader's import map
+      try {
+        const l = await loader();
+        const resolved = l.resolveSync(
+          id,
+          undefined,
+          ResolutionMode.Import,
+        );
+        if (resolved && resolved !== id) {
+          // Re-resolve the result through the plugin pipeline
+          // so @deno/vite-plugin can create the proper deno:: specifier
+          const result = await this.resolve(resolved, undefined, {
+            ...options,
+            skipSelf: true,
+          });
+          return result;
+        }
+      } catch {
+        // Not resolvable by Deno — let Vite handle it
+      }
     },
     transform: {
       filter: {
@@ -98,12 +139,13 @@ export function freshSsrTransform(): Plugin {
         }
 
         try {
-          const resolved = await ssrLoader.resolve(
+          const l = await loader();
+          const resolved = await l.resolve(
             actualId,
             undefined,
             ResolutionMode.Import,
           );
-          const result = await ssrLoader.load(
+          const result = await l.load(
             resolved,
             RequestedModuleType.Default,
           );

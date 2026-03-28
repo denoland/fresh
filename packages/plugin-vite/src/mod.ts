@@ -13,6 +13,14 @@ import {
   createFreshOnLoad,
   freshSsrTransform,
 } from "./plugins/deno_transforms.ts";
+
+// Import @deno/loader at module load time (before Vite changes CWD)
+// so the Workspace discovers the correct deno.json.
+// @ts-ignore Dynamic import at module level
+const _denoLoader: Promise<typeof import("@deno/loader")> | null =
+  typeof process !== "undefined" && typeof process.versions?.deno === "string"
+    ? import("@deno/loader")
+    : null;
 import prefresh from "@prefresh/vite";
 import { serverEntryPlugin } from "./plugins/server_entry.ts";
 import { clientEntryPlugin } from "./plugins/client_entry.ts";
@@ -254,6 +262,16 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
   ];
 
   if (typeof process.versions.deno === "string") {
+    // Shared loader for SSR — create eagerly so the Workspace uses
+    // the CWD before Vite changes it to the project root.
+    const ssrLoaderPromise = _denoLoader!.then(({ Workspace }) =>
+      new Workspace({
+        platform: "node",
+        cachedOnly: true,
+      }).createLoader()
+    );
+    const getSSRLoader = () => ssrLoaderPromise;
+
     const denoOpts: DenoPluginOptions = {
       environments: {
         ssr: { platform: "node", cachedOnly: true },
@@ -263,7 +281,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
     };
     // deno-lint-ignore no-explicit-any
     plugins.push(...denoPlugin(denoOpts) as any);
-    plugins.push(freshSsrTransform());
+    plugins.push(freshSsrTransform(getSSRLoader));
   }
 
   return plugins;
