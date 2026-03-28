@@ -5,6 +5,9 @@ description: |
 
 This page lists all public exports from Fresh's entry points.
 
+> [info]: You can also explore Fresh's full API documentation on JSR:
+> [`@fresh/core`](https://jsr.io/@fresh/core/doc)
+
 ## `fresh`
 
 The main entry point for server-side code.
