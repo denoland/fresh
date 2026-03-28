@@ -536,6 +536,24 @@ Deno.test({
   sanitizeResources: false,
 });
 
+// issue: https://github.com/denoland/fresh/issues/3666
+Deno.test({
+  name: "vite dev - basePath does not intercept Vite URLs",
+  fn: async () => {
+    const fixture = path.join(FIXTURE_DIR, "basepath");
+    await launchDevServer(fixture, async (address) => {
+      // `address` already includes the base path (e.g. http://localhost:PORT/ui)
+      // Vite's /@vite/client should be accessible at {base}/@vite/client
+      // Without the fix, Fresh's dev server intercepted this and returned 404.
+      const viteClientRes = await fetch(`${address}/@vite/client`);
+      await viteClientRes.body?.cancel();
+      expect(viteClientRes.status).toEqual(200);
+    });
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
 Deno.test({
   name: "vite dev - source mapped stack traces",
   fn: async () => {
