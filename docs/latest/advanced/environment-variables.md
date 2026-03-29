@@ -1,6 +1,6 @@
 ---
 description: |
-  Error pages can be used to customize the page that is shown when an error occurs in the application.
+  How to use environment variables in Fresh, including public variables that are inlined into island bundles.
 ---
 
 Environment variables in Deno are typically read via `Deno.env.get()` or
@@ -9,7 +9,7 @@ see
 [how to use Environment Variables in Deno](https://docs.deno.com/runtime/reference/env_variables/).
 
 On top of that Fresh automatically inlines all environment variables whose names
-start with `FRESH_PUBLIC_` during bundling of islands.
+start with `FRESH_PUBLIC_` during bundling of [islands](/docs/concepts/islands).
 
 > [info]: This inlining step occurs when building the app (`deno task build`).
 > Environment variables inside islands cannot be read at runtime.
