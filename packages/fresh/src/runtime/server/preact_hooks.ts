@@ -292,8 +292,8 @@ options[OptionsType.DIFF] = (vnode) => {
               const flags = (spanCtx.traceFlags & 1) ? "01" : "00";
               const traceparent =
                 `00-${spanCtx.traceId}-${spanCtx.spanId}-${flags}`;
-              // deno-lint-ignore no-explicit-any
               items.push(
+                // deno-lint-ignore no-explicit-any
                 h("meta", { name: "traceparent", content: traceparent }) as any,
               );
             }
