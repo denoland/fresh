@@ -28,7 +28,7 @@ export default function MyIsland() {
 An island can be used anywhere like a regular Preact component. Fresh will take
 care of making it interactive on the client.
 
-```tsx main.ts
+```tsx main.tsx
 import { App, staticFiles } from "fresh";
 import MyIsland from "./islands/my-island.tsx";
 
