@@ -48,13 +48,13 @@ Initialize a new Fresh project. This will create all the necessary files
 for a new project.
 
 To generate a project in the './foobar' subdirectory:
-    ${colors.rgb8("deno run -Ar jsr:@fresh/init ./foobar", 245)}
+    ${colors.rgb8("deno create @fresh/init ./foobar", 245)}
 
 To generate a project in the current directory:
-    ${colors.rgb8("deno run -Ar jsr:@fresh/init .", 245)}
+    ${colors.rgb8("deno create @fresh/init .", 245)}
 
 ${colors.rgb8("USAGE:", 3)}
-    ${colors.rgb8("deno run -Ar jsr:@fresh/init [DIRECTORY]", 245)}
+    ${colors.rgb8("deno create @fresh/init [DIRECTORY]", 245)}
 
 ${colors.rgb8("OPTIONS:", 3)}
     ${colors.rgb8("--force", 2)}      Overwrite existing files
