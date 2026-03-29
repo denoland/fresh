@@ -201,6 +201,13 @@ export default function LogView() {
 > children from existing ones, leading to subtle rendering bugs. Fresh will log
 > a warning if it detects a missing key on an append/prepend partial.
 
+## View Transitions
+
+Partial updates can be animated using the browser's
+[View Transitions API](/docs/advanced/view-transitions). Add `f-view-transition`
+alongside `f-client-nav` to enable smooth animated transitions between pages
+with zero JavaScript animation code.
+
 ## Bypassing or disabling Partials
 
 If you want to exempt a particular element from triggering a partial request

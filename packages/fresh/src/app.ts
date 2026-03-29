@@ -3,11 +3,7 @@ import { trace } from "@opentelemetry/api";
 import { DENO_DEPLOYMENT_ID } from "@fresh/build-id";
 import * as colors from "@std/fmt/colors";
 import { setBasePath } from "./runtime/shared.ts";
-import {
-  type MaybeLazyMiddleware,
-  type Middleware,
-  runMiddlewares,
-} from "./middlewares/mod.ts";
+import type { MaybeLazyMiddleware, Middleware } from "./middlewares/mod.ts";
 import { Context } from "./context.ts";
 import { mergePath, type Method, UrlPatternRouter } from "./router.ts";
 import type { FreshConfig, ResolvedFreshConfig } from "./config.ts";
@@ -432,12 +428,13 @@ export class App<State> {
 
     setBasePath(this.config.basePath);
 
-    const router = new UrlPatternRouter<MaybeLazyMiddleware<State>>();
+    const router = new UrlPatternRouter<Middleware<State>>();
 
-    const { rootMiddlewares } = applyCommands(
+    const { rootHandler } = applyCommands(
       router,
       this.#commands,
       this.config.basePath,
+      this.#onError,
     );
 
     return async (
@@ -450,7 +447,7 @@ export class App<State> {
 
       const method = req.method.toUpperCase() as Method;
       const matched = router.match(method, url);
-      let { params, pattern, handlers, methodMatch } = matched;
+      let { params, pattern, item: handler, methodMatch } = matched;
 
       const span = trace.getActiveSpan();
       if (span && pattern) {
@@ -461,7 +458,7 @@ export class App<State> {
       let next: () => Promise<Response>;
 
       if (pattern === null || !methodMatch) {
-        handlers = rootMiddlewares;
+        handler = rootHandler;
       }
 
       if (matched.pattern !== null && !methodMatch) {
@@ -487,9 +484,7 @@ export class App<State> {
       );
 
       try {
-        if (handlers.length === 0) return await next();
-
-        const result = await runMiddlewares(handlers, ctx, this.#onError);
+        const result = await (handler !== null ? handler(ctx) : next());
         if (!(result instanceof Response)) {
           throw new Error(
             `Expected a "Response" instance to be returned, but got: ${result}`,

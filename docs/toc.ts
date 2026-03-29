@@ -54,6 +54,7 @@ const toc: RawTableOfContents = {
           ["layouts", "Layouts", "link:latest"],
           ["error-handling", "Error handling", "link:latest"],
           ["partials", "Partials", "link:latest"],
+          ["view-transitions", "View Transitions", "link:latest"],
           ["forms", "Forms", "link:latest"],
           ["define", "Define Helpers", "link:latest"],
           ["serialization", "Serialization", "link:latest"],

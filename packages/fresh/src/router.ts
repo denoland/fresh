@@ -8,7 +8,7 @@ export type Method =
   | "OPTIONS";
 
 export type RouteByMethod<T> = {
-  [m in Method]: T[];
+  [m in Method]: T | null;
 };
 
 export interface StaticRouteDef<T> {
@@ -23,30 +23,30 @@ export interface DynamicRouteDef<T> {
 
 function newByMethod<T>(): RouteByMethod<T> {
   return {
-    GET: [],
-    POST: [],
-    PATCH: [],
-    DELETE: [],
-    PUT: [],
-    HEAD: [],
-    OPTIONS: [],
+    GET: null,
+    POST: null,
+    PATCH: null,
+    DELETE: null,
+    PUT: null,
+    HEAD: null,
+    OPTIONS: null,
   };
 }
 
 export interface RouteResult<T> {
   params: Record<string, string>;
-  handlers: T[];
+  item: T | null;
   methodMatch: boolean;
   pattern: string | null;
 }
 
 export interface Router<T> {
   add(
-    method: Method | "ALL",
+    method: Method,
     pathname: string,
-    handlers: T[],
+    item: T,
   ): void;
-  match(method: Method, url: URL, init?: T[]): RouteResult<T>;
+  match(method: Method, url: URL): RouteResult<T>;
   getAllowedMethods(pattern: string): string[];
 }
 
@@ -69,7 +69,7 @@ export class UrlPatternRouter<T> implements Router<T> {
   add(
     method: Method,
     pathname: string,
-    handlers: T[],
+    item: T,
   ) {
     let allowed = this.#allowed.get(pathname);
     if (allowed === undefined) {
@@ -105,13 +105,15 @@ export class UrlPatternRouter<T> implements Router<T> {
       byMethod = def.byMethod;
     }
 
-    byMethod[method].push(...handlers);
+    if (byMethod[method] === null) {
+      byMethod[method] = item;
+    }
   }
 
-  match(method: Method, url: URL, init: T[] = []): RouteResult<T> {
+  match(method: Method, url: URL): RouteResult<T> {
     const result: RouteResult<T> = {
       params: Object.create(null),
-      handlers: init,
+      item: null,
       methodMatch: false,
       pattern: null,
     };
@@ -137,13 +139,13 @@ export class UrlPatternRouter<T> implements Router<T> {
     if (staticMatch !== undefined) {
       result.pattern = pathname;
 
-      let handlers = staticMatch.byMethod[method];
-      if (method === "HEAD" && handlers.length === 0) {
-        handlers = staticMatch.byMethod.GET;
+      let item = staticMatch.byMethod[method];
+      if (method === "HEAD" && item === null) {
+        item = staticMatch.byMethod.GET;
       }
-      if (handlers.length > 0) {
+      if (item !== null) {
         result.methodMatch = true;
-        result.handlers.push(...handlers);
+        result.item = item;
       }
 
       return result;
@@ -157,14 +159,14 @@ export class UrlPatternRouter<T> implements Router<T> {
 
       result.pattern = route.pattern.pathname;
 
-      let handlers = route.byMethod[method];
-      if (method === "HEAD" && handlers.length === 0) {
-        handlers = route.byMethod.GET;
+      let item = route.byMethod[method];
+      if (method === "HEAD" && item === null) {
+        item = route.byMethod.GET;
       }
 
-      if (handlers.length > 0) {
+      if (item !== null) {
         result.methodMatch = true;
-        result.handlers.push(...handlers);
+        result.item = item;
 
         // Decode matched params
         for (const [key, value] of Object.entries(match.pathname.groups)) {

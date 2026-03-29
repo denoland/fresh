@@ -82,19 +82,26 @@ export function csp<State>(options: CSPOptions = {}): Middleware<State> {
     "upgrade-insecure-requests",
   ];
 
-  const cspDirectives = [...defaultCsp, ...csp];
-  if (reportTo) {
-    cspDirectives.push(`report-to csp-endpoint`);
-    cspDirectives.push(`report-uri ${reportTo}`); // deprecated but some browsers still use it
-  }
+  // User-provided directives override defaults with the same name
+  const userDirectiveNames = new Set(
+    csp.map((d) => d.split(" ")[0]),
+  );
+  const merged = defaultCsp.filter((d) =>
+    !userDirectiveNames.has(d.split(" ")[0])
+  );
+  merged.push(...csp);
 
+  if (reportTo) {
+    merged.push(`report-to csp-endpoint`);
+    merged.push(`report-uri ${reportTo}`); // deprecated but some browsers still use it
+  }
   const headerName = reportOnly
     ? "Content-Security-Policy-Report-Only"
     : "Content-Security-Policy";
 
   if (!useNonce) {
     // Static CSP — no per-request nonce
-    const cspString = cspDirectives.join("; ");
+    const cspString = merged.join("; ");
     return async (ctx) => {
       const res = await ctx.next();
       res.headers.set(headerName, cspString);
@@ -113,7 +120,7 @@ export function csp<State>(options: CSPOptions = {}): Middleware<State> {
 
     let directives: string[];
     if (nonce) {
-      directives = cspDirectives.map((d) => {
+      directives = merged.map((d) => {
         const spaceIdx = d.indexOf(" ");
         const name = spaceIdx === -1 ? d : d.slice(0, spaceIdx);
         if (INLINE_DIRECTIVES.has(name) && d.includes("'unsafe-inline'")) {
@@ -122,7 +129,7 @@ export function csp<State>(options: CSPOptions = {}): Middleware<State> {
         return d;
       });
     } else {
-      directives = cspDirectives;
+      directives = merged;
     }
 
     res.headers.set(headerName, directives.join("; "));

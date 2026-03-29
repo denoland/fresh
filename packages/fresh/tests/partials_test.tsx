@@ -3055,3 +3055,229 @@ Deno.test({
     });
   },
 });
+// View Transitions tests
+
+Deno.test({
+  name: "partials - view transitions enabled with f-view-transition",
+  fn: async () => {
+    const app = testApp()
+      .get("/partial", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <Partial name="foo">
+              <p class="done">updated</p>
+            </Partial>
+          </Doc>,
+        );
+      })
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav f-view-transition>
+              <a href="/partial" class="update">update</a>
+              <Partial name="foo">
+                <p class="init">init</p>
+              </Partial>
+            </div>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".init").wait();
+
+      // Track whether startViewTransition was called
+      await page.evaluate(() => {
+        // deno-lint-ignore no-explicit-any
+        (window as any).__vtCalled = false;
+        // deno-lint-ignore no-explicit-any
+        (document as any).startViewTransition = (fn: () => void) => {
+          // deno-lint-ignore no-explicit-any
+          (window as any).__vtCalled = true;
+          fn();
+          return { finished: Promise.resolve() };
+        };
+      });
+
+      await page.locator(".update").click();
+      await waitForText(page, ".done", "updated");
+
+      const vtCalled = await page.evaluate(
+        // deno-lint-ignore no-explicit-any
+        () => (window as any).__vtCalled,
+      );
+      expect(vtCalled).toBe(true);
+    });
+  },
+});
+
+Deno.test({
+  name: "partials - view transitions not called without f-view-transition",
+  fn: async () => {
+    const app = testApp()
+      .get("/partial", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <Partial name="foo">
+              <p class="done">updated</p>
+            </Partial>
+          </Doc>,
+        );
+      })
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav>
+              <a href="/partial" class="update">update</a>
+              <Partial name="foo">
+                <p class="init">init</p>
+              </Partial>
+            </div>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".init").wait();
+
+      // Install spy - should NOT be called
+      await page.evaluate(() => {
+        // deno-lint-ignore no-explicit-any
+        (window as any).__vtCalled = false;
+        // deno-lint-ignore no-explicit-any
+        (document as any).startViewTransition = (fn: () => void) => {
+          // deno-lint-ignore no-explicit-any
+          (window as any).__vtCalled = true;
+          fn();
+          return { finished: Promise.resolve() };
+        };
+      });
+
+      await page.locator(".update").click();
+      await waitForText(page, ".done", "updated");
+
+      const vtCalled = await page.evaluate(
+        // deno-lint-ignore no-explicit-any
+        () => (window as any).__vtCalled,
+      );
+      expect(vtCalled).toBe(false);
+    });
+  },
+});
+
+Deno.test({
+  name: "partials - view transitions disabled with f-view-transition=false",
+  fn: async () => {
+    const app = testApp()
+      .get("/partial", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <Partial name="foo">
+              <p class="done">updated</p>
+            </Partial>
+          </Doc>,
+        );
+      })
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav f-view-transition="false">
+              <a href="/partial" class="update">update</a>
+              <Partial name="foo">
+                <p class="init">init</p>
+              </Partial>
+            </div>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".init").wait();
+
+      await page.evaluate(() => {
+        // deno-lint-ignore no-explicit-any
+        (window as any).__vtCalled = false;
+        // deno-lint-ignore no-explicit-any
+        (document as any).startViewTransition = (fn: () => void) => {
+          // deno-lint-ignore no-explicit-any
+          (window as any).__vtCalled = true;
+          fn();
+          return { finished: Promise.resolve() };
+        };
+      });
+
+      await page.locator(".update").click();
+      await waitForText(page, ".done", "updated");
+
+      const vtCalled = await page.evaluate(
+        // deno-lint-ignore no-explicit-any
+        () => (window as any).__vtCalled,
+      );
+      expect(vtCalled).toBe(false);
+    });
+  },
+});
+
+Deno.test({
+  name: "partials - view transitions work with popstate navigation",
+  fn: async () => {
+    const app = testApp()
+      .get("/page2", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <Partial name="foo">
+              <p class="page2">page 2</p>
+            </Partial>
+          </Doc>,
+        );
+      })
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav f-view-transition>
+              <a href="/page2" class="nav">go to page 2</a>
+              <Partial name="foo">
+                <p class="page1">page 1</p>
+              </Partial>
+            </div>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".page1").wait();
+
+      // Install spy that counts calls
+      await page.evaluate(() => {
+        // deno-lint-ignore no-explicit-any
+        (window as any).__vtCount = 0;
+        // deno-lint-ignore no-explicit-any
+        (document as any).startViewTransition = (fn: () => void) => {
+          // deno-lint-ignore no-explicit-any
+          (window as any).__vtCount++;
+          fn();
+          return { finished: Promise.resolve() };
+        };
+      });
+
+      // Navigate forward
+      await page.locator(".nav").click();
+      await waitForText(page, ".page2", "page 2");
+
+      // Navigate back
+      await page.evaluate(() => window.history.go(-1));
+      await page.locator(".page1").wait();
+
+      // Both navigations should have used view transitions
+      const vtCount = await page.evaluate(
+        // deno-lint-ignore no-explicit-any
+        () => (window as any).__vtCount,
+      );
+      expect(vtCount).toBe(2);
+    });
+  },
+});

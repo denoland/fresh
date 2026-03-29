@@ -20,12 +20,12 @@ Deno.test("IS_PATTERN", () => {
 Deno.test("UrlPatternRouter - GET extract params", () => {
   const router = new UrlPatternRouter();
   const A = () => {};
-  router.add("GET", "/:foo/:bar/c", [A]);
+  router.add("GET", "/:foo/:bar/c", A);
 
   let res = router.match("GET", new URL("/a/b/c", "http://localhost"));
   expect(res).toEqual({
     params: { foo: "a", bar: "b" },
-    handlers: [A],
+    item: A,
     methodMatch: true,
     pattern: "/:foo/:bar/c",
   });
@@ -34,7 +34,7 @@ Deno.test("UrlPatternRouter - GET extract params", () => {
   res = router.match("GET", new URL("/a%20a/b/c", "http://localhost"));
   expect(res).toEqual({
     params: { foo: "a a", bar: "b" },
-    handlers: [A],
+    item: A,
     methodMatch: true,
     pattern: "/:foo/:bar/c",
   });
@@ -43,12 +43,12 @@ Deno.test("UrlPatternRouter - GET extract params", () => {
 Deno.test("UrlPatternRouter - Wrong method match", () => {
   const router = new UrlPatternRouter();
   const A = () => {};
-  router.add("GET", "/foo", [A]);
+  router.add("GET", "/foo", A);
 
   const res = router.match("POST", new URL("/foo", "http://localhost"));
   expect(res).toEqual({
     params: Object.create(null),
-    handlers: [],
+    item: null,
     methodMatch: false,
     pattern: "/foo",
   });
@@ -58,13 +58,13 @@ Deno.test("UrlPatternRouter - wrong + correct method", () => {
   const router = new UrlPatternRouter();
   const A = () => {};
   const B = () => {};
-  router.add("GET", "/foo", [A]);
-  router.add("POST", "/foo", [B]);
+  router.add("GET", "/foo", A);
+  router.add("POST", "/foo", B);
 
   const res = router.match("POST", new URL("/foo", "http://localhost"));
   expect(res).toEqual({
     params: Object.create(null),
-    handlers: [B],
+    item: B,
     methodMatch: true,
     pattern: "/foo",
   });
@@ -73,12 +73,12 @@ Deno.test("UrlPatternRouter - wrong + correct method", () => {
 Deno.test("UrlPatternRouter - trailing slash matches route without slash", () => {
   const router = new UrlPatternRouter();
   const A = () => {};
-  router.add("GET", "/wissen", [A]);
+  router.add("GET", "/wissen", A);
 
   const res = router.match("GET", new URL("/wissen/", "http://localhost"));
   expect(res).toEqual({
     params: Object.create(null),
-    handlers: [A],
+    item: A,
     methodMatch: true,
     pattern: "/wissen",
   });
@@ -87,12 +87,12 @@ Deno.test("UrlPatternRouter - trailing slash matches route without slash", () =>
 Deno.test("UrlPatternRouter - no trailing slash matches route with slash", () => {
   const router = new UrlPatternRouter();
   const A = () => {};
-  router.add("GET", "/wissen/", [A]);
+  router.add("GET", "/wissen/", A);
 
   const res = router.match("GET", new URL("/wissen", "http://localhost"));
   expect(res).toEqual({
     params: Object.create(null),
-    handlers: [A],
+    item: A,
     methodMatch: true,
     pattern: "/wissen/",
   });
@@ -102,8 +102,8 @@ Deno.test("UrlPatternRouter - exact match takes priority over trailing slash fal
   const router = new UrlPatternRouter();
   const A = () => {};
   const B = () => {};
-  router.add("GET", "/wissen", [A]);
-  router.add("GET", "/wissen/", [B]);
+  router.add("GET", "/wissen", A);
+  router.add("GET", "/wissen/", B);
 
   const withSlash = router.match(
     "GET",
@@ -111,7 +111,7 @@ Deno.test("UrlPatternRouter - exact match takes priority over trailing slash fal
   );
   expect(withSlash).toEqual({
     params: Object.create(null),
-    handlers: [B],
+    item: B,
     methodMatch: true,
     pattern: "/wissen/",
   });
@@ -122,7 +122,7 @@ Deno.test("UrlPatternRouter - exact match takes priority over trailing slash fal
   );
   expect(withoutSlash).toEqual({
     params: Object.create(null),
-    handlers: [A],
+    item: A,
     methodMatch: true,
     pattern: "/wissen",
   });
@@ -131,12 +131,12 @@ Deno.test("UrlPatternRouter - exact match takes priority over trailing slash fal
 Deno.test("UrlPatternRouter - root trailing slash does not double-match", () => {
   const router = new UrlPatternRouter();
   const A = () => {};
-  router.add("GET", "/", [A]);
+  router.add("GET", "/", A);
 
   const res = router.match("GET", new URL("/", "http://localhost"));
   expect(res).toEqual({
     params: Object.create(null),
-    handlers: [A],
+    item: A,
     methodMatch: true,
     pattern: "/",
   });
@@ -145,14 +145,14 @@ Deno.test("UrlPatternRouter - root trailing slash does not double-match", () => 
 Deno.test("UrlPatternRouter - convert patterns automatically", () => {
   const router = new UrlPatternRouter();
   const A = () => {};
-  router.add("GET", "/books/:id", [A]);
+  router.add("GET", "/books/:id", A);
 
   const res = router.match("GET", new URL("/books/foo", "http://localhost"));
   expect(res).toEqual({
     params: {
       id: "foo",
     },
-    handlers: [A],
+    item: A,
     methodMatch: true,
     pattern: "/books/:id",
   });
@@ -258,4 +258,31 @@ Deno.test("mergePath", () => {
   expect(mergePath("/*", "/baz", true)).toEqual("/baz");
   expect(mergePath("/foo", "*", true)).toEqual("/foo");
   expect(mergePath("/foo", "/*", true)).toEqual("/foo/*");
+});
+
+Deno.test("UrlPatternRouter - first registered route wins on duplicate", () => {
+  const router = new UrlPatternRouter<() => string>();
+  const first = () => "first";
+  const second = () => "second";
+
+  router.add("GET", "/foo", first);
+  router.add("GET", "/foo", second);
+
+  const res = router.match("GET", new URL("/foo", "http://localhost"));
+  expect(res.item).toBe(first);
+});
+
+Deno.test("UrlPatternRouter - duplicate registration different methods", () => {
+  const router = new UrlPatternRouter<() => string>();
+  const getHandler = () => "get";
+  const postHandler = () => "post";
+
+  router.add("GET", "/foo", getHandler);
+  router.add("POST", "/foo", postHandler);
+
+  const getRes = router.match("GET", new URL("/foo", "http://localhost"));
+  expect(getRes.item).toBe(getHandler);
+
+  const postRes = router.match("POST", new URL("/foo", "http://localhost"));
+  expect(postRes.item).toBe(postHandler);
 });

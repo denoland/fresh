@@ -6,6 +6,7 @@ import {
   matchesUrl,
   PartialMode,
   UrlMatchKind,
+  VIEW_TRANSITION_ATTR,
 } from "../shared_internal.ts";
 import {
   ACTIVE_PARTIALS,
@@ -41,6 +42,33 @@ function checkClientNavEnabled(el: HTMLElement) {
   const setting = el.closest(`[${CLIENT_NAV_ATTR}]`);
   if (setting === null) return false;
   return setting.getAttribute(CLIENT_NAV_ATTR) !== "false";
+}
+
+function isViewTransitionEnabled(): boolean {
+  const setting = document.querySelector(`[${VIEW_TRANSITION_ATTR}]`);
+  if (setting === null) return false;
+  return setting.getAttribute(VIEW_TRANSITION_ATTR) !== "false";
+}
+
+/**
+ * Wraps a DOM update function with the View Transitions API when available
+ * and enabled. Falls back to calling the update directly otherwise.
+ */
+function withViewTransition(update: () => Promise<void>): Promise<void> {
+  if (
+    isViewTransitionEnabled() &&
+    // deno-lint-ignore no-explicit-any
+    typeof (document as any).startViewTransition === "function"
+  ) {
+    return new Promise((resolve, reject) => {
+      // deno-lint-ignore no-explicit-any
+      const transition = (document as any).startViewTransition(async () => {
+        await update();
+      });
+      transition.finished.then(resolve, reject);
+    });
+  }
+  return update();
 }
 
 // Keep track of history state to apply forward or backward animations
@@ -132,8 +160,10 @@ document.addEventListener("click", async (e) => {
           partial ? partial : nextUrl.href,
           location.href,
         );
-        await fetchPartials(nextUrl, partialUrl, true);
-        updateLinks(nextUrl);
+        await withViewTransition(async () => {
+          await fetchPartials(nextUrl, partialUrl, true);
+          updateLinks(nextUrl);
+        });
         scrollTo({ left: 0, top: 0, behavior: "instant" });
       } finally {
         if (indicator !== undefined) {
@@ -192,8 +222,10 @@ addEventListener("popstate", async (e) => {
 
   const url = new URL(location.href, location.origin);
   try {
-    await fetchPartials(url, url, true);
-    updateLinks(url);
+    await withViewTransition(async () => {
+      await fetchPartials(url, url, true);
+      updateLinks(url);
+    });
     scrollTo({
       left: state.scrollX ?? 0,
       top: state.scrollY ?? 0,
@@ -263,7 +295,9 @@ document.addEventListener("submit", async (e) => {
         init = { body: new FormData(el, e.submitter), method: lowerMethod };
       }
 
-      await fetchPartials(actionUrl, partialUrl, true, init);
+      await withViewTransition(async () => {
+        await fetchPartials(actionUrl, partialUrl, true, init);
+      });
     }
   }
 });
