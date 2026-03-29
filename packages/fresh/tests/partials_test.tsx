@@ -1890,8 +1890,11 @@ Deno.test({
       await page.goto(address, { waitUntil: "load" });
       await page.locator(".init").wait();
 
-      await page.locator(".update").click();
       // Form should do a full page navigation, not a partial update
+      await Promise.all([
+        page.waitForNavigation(),
+        page.locator(".update").click(),
+      ]);
       await page.locator(".submitted").wait();
     });
   },
