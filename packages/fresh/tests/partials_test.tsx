@@ -2919,9 +2919,16 @@ Deno.test({
               {charset}
               {favicon}
               <title>Updated</title>
-              <script type="application/ld+json">
-                {JSON.stringify({ "@type": "Article", name: "Updated" })}
-              </script>
+              <script
+                type="application/ld+json"
+                // deno-lint-ignore react-no-danger
+                dangerouslySetInnerHTML={{
+                  __html: JSON.stringify({
+                    "@type": "Article",
+                    name: "Updated",
+                  }),
+                }}
+              />
             </head>
             <body f-client-nav>
               <Partial name="body">
@@ -2989,9 +2996,16 @@ Deno.test({
               {charset}
               {favicon}
               <title>Updated</title>
-              <script type="application/ld+json">
-                {JSON.stringify({ "@type": "Article", name: "Same" })}
-              </script>
+              <script
+                type="application/ld+json"
+                // deno-lint-ignore react-no-danger
+                dangerouslySetInnerHTML={{
+                  __html: JSON.stringify({
+                    "@type": "Article",
+                    name: "Same",
+                  }),
+                }}
+              />
             </head>
             <body f-client-nav>
               <Partial name="body">
