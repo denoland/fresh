@@ -39,6 +39,8 @@ export default function NavigationBar(
         <li class="flex items-center">
           <a
             href="https://github.com/denoland/fresh"
+            target="_blank"
+            rel="noopener noreferrer"
             class="hover:text-green-600 inline-block transition"
             aria-label="GitHub"
           >
@@ -48,6 +50,8 @@ export default function NavigationBar(
         <li class="flex items-center">
           <a
             href="https://discord.com/invite/deno"
+            target="_blank"
+            rel="noopener noreferrer"
             class="hover:text-green-600 inline-block transition"
             aria-label="Discord"
           >
