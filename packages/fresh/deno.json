@@ -21,6 +21,7 @@
     "@std/http": "jsr:@std/http@^1.0.21",
     "@std/jsonc": "jsr:@std/jsonc@^1.0.2",
     "@std/media-types": "jsr:@std/media-types@^1.1.0",
+    "@std/net": "jsr:@std/net@^1.0.6",
     "@std/path": "jsr:@std/path@^1.1.2",
     "@std/semver": "jsr:@std/semver@^1.0.6",
     "@std/uuid": "jsr:@std/uuid@^1.0.9",

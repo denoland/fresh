@@ -24,6 +24,7 @@ const EXCLUDED_PREFIXES = [
   "javascript:",
   "vscode:",
   "data:",
+  "https://github.com/denoland/fresh/edit/",
 ];
 
 interface FailedLink {
@@ -164,7 +165,7 @@ async function crawlPage(pageUrl: URL, referrer: string) {
     const urlStr = nextUrl.href;
 
     if (nextUrl.origin === rootUrl.origin) {
-      // Internal link — crawl the page if it's a docs page
+      // Internal link  --  crawl the page if it's a docs page
       if (
         !visitedPages.has(nextUrl.pathname) &&
         nextUrl.pathname.startsWith("/docs")
@@ -177,7 +178,7 @@ async function crawlPage(pageUrl: URL, referrer: string) {
         }
       }
     } else {
-      // External link — verify it's live
+      // External link  --  verify it's live
       if (!checkedUrls.has(urlStr)) {
         linkChecks.push(checkUrl(urlStr, pathname).then(() => {}));
       }
