@@ -33,15 +33,16 @@ const toc: RawTableOfContents = {
         title: "Concepts",
         link: "latest",
         pages: [
+          ["architecture", "Architecture", "link:latest"],
+          ["islands", "Islands", "link:latest"],
           ["app", "App", "link:latest"],
+          ["routing", "Routing", "link:latest"],
+          ["data-fetching", "Data Fetching", "link:latest"],
           ["middleware", "Middlewares", "link:latest"],
           ["context", "Context", "link:latest"],
-
-          ["routing", "Routing", "link:latest"],
-
-          ["islands", "Islands", "link:latest"],
+          ["signals", "Signals", "link:latest"],
+          ["layouts", "Layouts", "link:latest"],
           ["static-files", "Static files", "link:latest"],
-
           ["file-routing", "File routing", "link:latest"],
         ],
       },
@@ -55,9 +56,12 @@ const toc: RawTableOfContents = {
           ["partials", "Partials", "link:latest"],
           ["forms", "Forms", "link:latest"],
           ["define", "Define Helpers", "link:latest"],
+          ["serialization", "Serialization", "link:latest"],
           ["environment-variables", "Environment Variables", "link:latest"],
-          ["head", "Modifying <head>", "link:latest"],
+          ["head", "<head> element", "link:latest"],
           ["vite", "Vite Plugin Options", "link:latest"],
+          ["opentelemetry", "OpenTelemetry", "link:latest"],
+          ["api-reference", "API Reference", "link:latest"],
           ["troubleshooting", "Troubleshooting", "link:latest"],
           ["builder", "Builder (Legacy)", "link:latest"],
         ],
@@ -90,7 +94,7 @@ const toc: RawTableOfContents = {
         title: "Examples",
         link: "latest",
         pages: [
-          ["migration-guide", "Migration Guide", "link:latest"],
+          ["api-routes", "API Routes", "link:latest"],
           ["daisyui", "daisyUI", "link:latest"],
           ["markdown", "Rendering Markdown", "link:latest"],
           ["rendering-raw-html", "Rendering raw HTML", "link:latest"],
@@ -101,7 +105,12 @@ const toc: RawTableOfContents = {
           ],
           ["active-links", "Active links", "link:latest"],
           ["session-management", "Session management", "link:latest"],
+          ["common-patterns", "Common Patterns", "link:latest"],
         ],
+      },
+      "migration-guide": {
+        title: "Migration Guide",
+        link: "latest",
       },
       contributing: {
         title: "Contributing",
