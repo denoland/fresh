@@ -1,5 +1,6 @@
 import type { DevEnvironment, Plugin } from "vite";
 import * as path from "@std/path";
+import { connect } from "node:net";
 import { ASSET_CACHE_BUST_KEY } from "fresh/internal";
 import { createRequest, sendResponse } from "@remix-run/node-fetch-server";
 import { hashCode } from "../shared.ts";
@@ -15,6 +16,70 @@ export function devServer(): Plugin[] {
       },
       configureServer(server) {
         const IGNORE_URLS = /^\/(@(vite|fs|id)|\.vite)\//;
+
+        // Start a Deno HTTP server on a random port to handle WebSocket
+        // upgrades. Vite's Connect-based server fires 'upgrade' events
+        // on the underlying http.Server, but those never reach Connect
+        // middleware. We proxy upgrade requests to this Deno server
+        // where Deno.upgradeWebSocket() works natively.
+        let wsPort = 0;
+        const wsServer = Deno.serve(
+          { port: 0, onListen: ({ port }) => wsPort = port },
+          async (req) => {
+            try {
+              const mod = await server.ssrLoadModule("fresh:server_entry");
+              return (await mod.default.fetch(req)) as Response;
+            } catch {
+              return new Response("Internal Server Error", { status: 500 });
+            }
+          },
+        );
+
+        const originalClose = server.close;
+        server.close = async () => {
+          await wsServer.shutdown();
+          return originalClose.call(server);
+        };
+
+        server.httpServer?.on(
+          "upgrade",
+          (
+            req: {
+              url?: string;
+              method: string;
+              httpVersion: string;
+              rawHeaders: string[];
+            },
+            clientSocket: import("node:net").Socket,
+            head: Buffer,
+          ) => {
+            // Let Vite handle its own HMR WebSocket upgrades
+            if (
+              req.url === "/__vite_hmr" ||
+              req.url === "/__vite_ping"
+            ) {
+              return;
+            }
+
+            const proxySocket = connect(wsPort, "127.0.0.1", () => {
+              // Rebuild the HTTP upgrade request for the Deno server
+              let raw = `${req.method} ${req.url} HTTP/${req.httpVersion}\r\n`;
+              for (let i = 0; i < req.rawHeaders.length; i += 2) {
+                raw += `${req.rawHeaders[i]}: ${req.rawHeaders[i + 1]}\r\n`;
+              }
+              raw += "\r\n";
+
+              proxySocket.write(raw);
+              if (head.length > 0) proxySocket.write(head);
+
+              clientSocket.pipe(proxySocket);
+              proxySocket.pipe(clientSocket);
+            });
+
+            proxySocket.on("error", () => clientSocket.destroy());
+            clientSocket.on("error", () => proxySocket.destroy());
+          },
+        );
 
         server.middlewares.use(async (nodeReq, nodeRes, next) => {
           const serverCfg = server.config.server;
