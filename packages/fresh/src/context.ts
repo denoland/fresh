@@ -359,7 +359,10 @@ export class Context<State> {
         const basePath = this.config.basePath;
         const linkParts: string[] = [];
 
-        if (state.needsClientRuntime) {
+        if (
+          state.needsClientRuntime ||
+          state.buildCache.hmrClientEntry !== undefined
+        ) {
           const runtimeUrl = state.buildCache.clientEntry.startsWith(".")
             ? state.buildCache.clientEntry.slice(1)
             : state.buildCache.clientEntry;
@@ -376,15 +379,6 @@ export class Context<State> {
               `<${encodeURI(specifier)}>; rel="modulepreload"; as="script"`,
             );
           });
-        } else if (state.buildCache.hmrClientEntry !== undefined) {
-          const hmrUrl = state.buildCache.hmrClientEntry.startsWith(".")
-            ? state.buildCache.hmrClientEntry.slice(1)
-            : state.buildCache.hmrClientEntry;
-          linkParts.push(
-            `<${
-              encodeURI(`${basePath}${hmrUrl}`)
-            }>; rel="modulepreload"; as="script"`,
-          );
         }
 
         if (linkParts.length > 0) {

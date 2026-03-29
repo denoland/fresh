@@ -203,7 +203,10 @@ Deno.test({
           waitUntil: "networkidle2",
         });
 
-        await page.locator("style[data-vite-dev-id$='style.css']").wait();
+        // Vite 6: data-vite-dev-id; Vite 7+: vite-module-id on injected style.
+        await page.locator(
+          "style[data-vite-dev-id$='style.css'], style[vite-module-id]",
+        ).wait();
       });
     });
   },
@@ -221,7 +224,9 @@ Deno.test({
           waitUntil: "networkidle2",
         });
 
-        await page.locator("style[data-vite-dev-id$='style.css']").wait();
+        await page.locator(
+          "style[data-vite-dev-id$='style.css'], style[vite-module-id]",
+        ).wait();
       });
     });
   },

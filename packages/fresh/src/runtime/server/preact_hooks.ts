@@ -84,9 +84,22 @@ export class RenderState {
   /** Set to true when any element in the tree renders f-client-nav="true". */
   clientNavEnabled = false;
 
-  /** True when the page needs Fresh's client runtime (islands or client nav). */
+  /**
+   * True when the page needs Fresh's client runtime (islands, client nav, or
+   * `<Partial>` regions on a full document). Partial subresponses omit boot;
+   * `encounteredPartials` must not force runtime for those requests.
+   */
   get needsClientRuntime(): boolean {
-    return this.islands.size > 0 || this.clientNavEnabled;
+    if (this.islands.size > 0 || this.clientNavEnabled) {
+      return true;
+    }
+    if (
+      !this.ctx.url.searchParams.has(PARTIAL_SEARCH_PARAM) &&
+      this.encounteredPartials.size > 0
+    ) {
+      return true;
+    }
+    return false;
   }
 
   constructor(
@@ -631,8 +644,12 @@ function FreshRuntimeScript() {
     );
   }
 
-  if (RENDER_STATE!.needsClientRuntime) {
-    // Full-document response that needs the Fresh client runtime.
+  if (
+    RENDER_STATE!.needsClientRuntime ||
+    buildCache.hmrClientEntry !== undefined
+  ) {
+    // Full-document boot: islands / partials / client nav, or Vite/HMR dev
+    // (client entry must load so e.g. CSS side-effect imports run).
     const islandImports = islandArr.map((island) => {
       const named = island.exportName === "default"
         ? island.name
@@ -669,26 +686,6 @@ function FreshRuntimeScript() {
           type: "module",
           nonce,
           dangerouslySetInnerHTML: { __html: scriptContent },
-        }),
-        buildCache.features.errorOverlay ? h(ShowErrorOverlay, null) : null,
-      )
-    );
-  }
-
-  // Static page — no islands, no client nav.
-  // In development, emit only the small HMR script for live reload.
-  if (buildCache.hmrClientEntry !== undefined) {
-    const hmrUrl = buildCache.hmrClientEntry.startsWith(".")
-      ? buildCache.hmrClientEntry.slice(1)
-      : buildCache.hmrClientEntry;
-    return (
-      h(
-        Fragment,
-        null,
-        h("script", {
-          type: "module",
-          nonce,
-          src: `${basePath}${hmrUrl}`,
         }),
         buildCache.features.errorOverlay ? h(ShowErrorOverlay, null) : null,
       )
