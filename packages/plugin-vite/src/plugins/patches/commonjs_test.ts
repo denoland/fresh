@@ -29,7 +29,13 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });`;
 
-const DEFAULT_EXPORT = `const _default = exports.default ?? exports;`;
+const DEFAULT_EXPORT = `let _default;
+if (typeof exports === "object" && exports !== null && "default" in exports) {
+  _default = exports.default;
+} else {
+  _default = exports;
+}`;
+
 const DEFAULT_EXPORT_END = `export default _default;
 export var __require = exports;`;
 const IMPORT_REQUIRE = `import { createRequire } from "node:module";
@@ -137,9 +143,8 @@ Deno.test("commonjs - esModule flag only", () => {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-const _default = exports.default ?? exports;
-export default _default;
-export var __require = exports;
+${DEFAULT_EXPORT}
+${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
 });
@@ -152,9 +157,8 @@ Deno.test("commonjs - esModule flag only #2", () => {
 Object.defineProperty(module.exports, "__esModule", {
   value: true
 });
-const _default = exports.default ?? exports;
-export default _default;
-export var __require = exports;
+${DEFAULT_EXPORT}
+${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
 });
@@ -166,9 +170,8 @@ Deno.test("commonjs - esModule flag only minified #3", () => {
 Object.defineProperty(exports, '__esModule', {
   value: !0
 });
-const _default = exports.default ?? exports;
-export default _default;
-export var __require = exports;
+${DEFAULT_EXPORT}
+${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
 });
@@ -369,7 +372,7 @@ Deno.test("commonjs - detect esbuild shims", () => {
 import * as _ns from "./globalThis";
 export * from "./globalThis";
 ${DEFAULT_EXPORT}
-for (var _k in _ns) if (_k !== "default" && _k !== "__esModule" && Object.prototype.hasOwnProperty.call(_ns, _k)) _default[_k] = _ns[_k];
+if (typeof exports === "object" && exports !== null && !("default" in exports)) for (var _k in _ns) if (_k !== "default" && _k !== "__esModule" && Object.prototype.hasOwnProperty.call(_ns, _k)) _default[_k] = _ns[_k];
 ${DEFAULT_EXPORT_END}`,
   });
 });
@@ -511,7 +514,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 export * from "./node";
 ${DEFAULT_EXPORT}
-for (var _k in _ns) if (_k !== "default" && _k !== "__esModule" && Object.prototype.hasOwnProperty.call(_ns, _k)) _default[_k] = _ns[_k];
+if (typeof exports === "object" && exports !== null && !("default" in exports)) for (var _k in _ns) if (_k !== "default" && _k !== "__esModule" && Object.prototype.hasOwnProperty.call(_ns, _k)) _default[_k] = _ns[_k];
 ${DEFAULT_EXPORT_END}
 ${EXPORT_ES_MODULE}`,
   });
@@ -709,5 +712,24 @@ const node_events_1 = __importDefault({
   __esModule: true,
   default: _mod.default ?? _mod
 });`,
+  });
+});
+
+Deno.test("commonjs imitating esm - default export exists", () => {
+  runTest({
+    input: `module.exports = {
+  'default': 'string',
+  otherExport: 1
+};
+`,
+    expected: `${INIT}
+module.exports = {
+  'default': 'string',
+  otherExport: 1
+};
+var _otherExport = exports.otherExport;
+export { _otherExport as otherExport };
+${DEFAULT_EXPORT}
+${DEFAULT_EXPORT_END}`,
   });
 });

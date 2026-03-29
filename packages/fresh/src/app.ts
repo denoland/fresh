@@ -12,6 +12,7 @@ import { mergePath, type Method, UrlPatternRouter } from "./router.ts";
 import type { FreshConfig, ResolvedFreshConfig } from "./config.ts";
 import type { BuildCache } from "./build_cache.ts";
 import { HttpError } from "./error.ts";
+import { STATUS_TEXT } from "@std/http/status";
 import type { LayoutConfig, MaybeLazy, Route, RouteConfig } from "./types.ts";
 import type { RouteComponent } from "./segments.ts";
 import {
@@ -55,7 +56,8 @@ const DEFAULT_ERROR_HANDLER = async <State>(ctx: Context<State>) => {
       // deno-lint-ignore no-console
       console.error(error);
     }
-    return new Response(error.message, { status: error.status });
+    const message = error.message || STATUS_TEXT[error.status];
+    return new Response(message, { status: error.status });
   }
 
   // deno-lint-ignore no-console
