@@ -182,6 +182,16 @@ export class Context<State> {
       location = `${pathname.replaceAll(/\/+/g, "/")}${search}`;
     }
 
+    // Preserve the partial search param through redirects so that the
+    // redirected page is still rendered in partial mode.
+    if (this.isPartial) {
+      const hashIdx = location.indexOf("#");
+      const base = hashIdx > -1 ? location.slice(0, hashIdx) : location;
+      const hash = hashIdx > -1 ? location.slice(hashIdx) : "";
+      const separator = base.includes("?") ? "&" : "?";
+      location = `${base}${separator}${PARTIAL_SEARCH_PARAM}=true${hash}`;
+    }
+
     return new Response(null, {
       status,
       headers: {

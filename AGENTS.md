@@ -12,7 +12,7 @@ with workspace members in `packages/*` and `www/`.
 - **`packages/plugin-vite/`** (`@fresh/plugin-vite`): Vite integration plugin
   with dev server, SSR/client builds, and HMR.
 - **`packages/init/`** (`@fresh/init`): Project scaffolding
-  (`deno run -A jsr:@fresh/init`).
+  (`deno create @fresh/init`).
 - **`packages/update/`** (`@fresh/update`): Automated Fresh 1.x to 2.x migration
   tool using ts-morph for AST transforms.
 - **`packages/build-id/`** (`@fresh/build-id`): Build/deployment ID generation.

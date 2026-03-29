@@ -22,17 +22,10 @@ and some interesting text here
 > oh look a blockquote
 ```
 
-4. Add a route that renders that file
+3. Add a route that renders that file
 
 ```tsx main.ts
 import { CSS, render as renderMarkdown } from "@deno/gfm";
-
-const CONTENT = `## some heading
-
-and some interesting text here
-
-> oh look a blockquote
-`;
 
 const app = new App();
 

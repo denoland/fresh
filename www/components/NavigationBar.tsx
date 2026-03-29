@@ -10,10 +10,6 @@ export default function NavigationBar(
       href: "/docs",
     },
     {
-      name: "Showcase",
-      href: "/showcase",
-    },
-    {
       name: "Blog",
       href: "https://deno.com/blog?tag=fresh",
     },

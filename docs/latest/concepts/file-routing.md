@@ -19,8 +19,8 @@ const app = new App({ basePath: "/foo" })
 ```
 
 > [info]: The `staticFiles()` middleware is required when using file based
-> routing. Otherwise the necessary JavaScript files for islands won't be served
-> to the browser.
+> routing. Otherwise the necessary JavaScript files for
+> [islands](/docs/concepts/islands) won't be served to the browser.
 
 Example project structure:
 
@@ -45,6 +45,15 @@ Example project structure:
         │   └── cart.tsx # Fresh treats this as an island
         └── index.tsx
 ```
+
+**Special directories inside `routes/`:**
+
+- **`(_islands)`** - Files in this directory are treated as
+  [islands](/docs/concepts/islands), just like files in the top-level `islands/`
+  folder. This lets you co-locate islands next to the routes that use them.
+- **`(_components)`** - A conventional directory for non-island components that
+  are only used by nearby routes. Fresh does not treat these files specially -
+  the parentheses just prevent them from becoming routes.
 
 File names are mapped to route patterns as follows:
 
@@ -82,6 +91,13 @@ export const config: RouteConfig = {
 };
 
 // ...
+```
+
+You can also load additional CSS files for a specific route by exporting a `css`
+array. This is a top-level export, separate from `config`:
+
+```ts routes/dashboard.tsx
+export const css = ["./assets/dashboard.css"];
 ```
 
 ## Route Groups

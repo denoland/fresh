@@ -66,12 +66,19 @@ const app = new App()
 ```
 
 Accessing an unknown route like `/invalid` will trigger the `notFound`
-middleware. Contrary to generic error pages this handler cannot be nested.
+[middleware](/docs/concepts/middleware). Contrary to generic error pages this
+handler cannot be nested.
 
 ## Throwing HTTP errors
 
 If you need to bail out of execution and need to respond with a particular HTTP
-error code, you can use Fresh's `HttpError` class.
+error code, you can use Fresh's `HttpError` class:
+
+```ts
+import { HttpError } from "fresh";
+```
+
+`HttpError` takes a status code and an optional message:
 
 ```ts middleware/auth.ts
 import { HttpError } from "fresh";
@@ -84,14 +91,22 @@ async function authMiddleware(ctx) {
     throw new HttpError(404);
   }
 
+  // Forbidden with a custom message
+  if (!isAdmin(user)) {
+    throw new HttpError(403, "Admin access required");
+  }
+
   return await ctx.next();
 }
 ```
 
-You can check the status code of the thrown `HttpError` in your error handler:
+When an `HttpError` is thrown, Fresh catches it and invokes the error handler.
+You can check the status code in your error handler:
 
 ```ts main.ts
-app.onError((ctx) => {
+import { HttpError } from "fresh";
+
+app.onError("*", (ctx) => {
   if (ctx.error instanceof HttpError) {
     const status = ctx.error.status;
     return new Response("oops", { status });
@@ -100,3 +115,6 @@ app.onError((ctx) => {
   // ...
 });
 ```
+
+`HttpError` is also available in the browser via `fresh/runtime` for use in
+[island code](/docs/concepts/islands).
