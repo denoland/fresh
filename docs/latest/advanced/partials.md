@@ -201,67 +201,10 @@ export default function LogView() {
 
 ## View Transitions
 
-Fresh supports the browser's native
-[View Transitions API](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API)
-for animating partial updates. When enabled, DOM updates during client-side
-navigation are wrapped in `document.startViewTransition()`, giving you smooth
-animated transitions between pages.
-
-### Enabling view transitions
-
-Add the `f-view-transition` attribute alongside `f-client-nav`:
-
-```diff routes/_app.tsx
-- <body f-client-nav>
-+ <body f-client-nav f-view-transition>
-```
-
-This is progressive enhancement — if the browser doesn't support the View
-Transitions API, partials work exactly as before with no animation.
-
-### Customizing animations
-
-The default view transition is a cross-fade. You can customize it with standard
-CSS:
-
-```css static/styles.css
-::view-transition-old(root) {
-  animation: fade-out 0.2s ease-in;
-}
-::view-transition-new(root) {
-  animation: fade-in 0.2s ease-out;
-}
-```
-
-For per-element transitions, assign a `view-transition-name` in CSS:
-
-```css static/styles.css
-.sidebar {
-  view-transition-name: sidebar;
-}
-.main-content {
-  view-transition-name: content;
-}
-```
-
-Then target those named transitions:
-
-```css static/styles.css
-::view-transition-old(content) {
-  animation: slide-out-left 0.3s ease-in;
-}
-::view-transition-new(content) {
-  animation: slide-in-right 0.3s ease-out;
-}
-```
-
-### Disabling view transitions
-
-You can disable view transitions by setting `f-view-transition={false}`:
-
-```tsx
-<body f-client-nav f-view-transition={false}>
-```
+Partial updates can be animated using the browser's
+[View Transitions API](/docs/advanced/view-transitions). Add `f-view-transition`
+alongside `f-client-nav` to enable smooth animated transitions between pages
+with zero JavaScript animation code.
 
 ## Bypassing or disabling Partials
 
