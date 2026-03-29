@@ -9,7 +9,7 @@ Let's set up your first Fresh project. To create a new project, run this
 command:
 
 ```sh Terminal
-deno run -Ar jsr:@fresh/init
+deno create @fresh/init
 ```
 
 This will spawn a short wizard that guides you through the setup, like the
@@ -22,10 +22,10 @@ project folder should look like this:
 │   └── Button.tsx
 ├── islands/            # Components that need JS to run client-side
 │   └── Counter.tsx
-├── routes/             # File system based routes
+├── routes/             # [File system based routes](/docs/concepts/file-routing)
 │   ├── api/
 │   │   └── [name].tsx  # API route for /api/:name
-│   ├── _app.tsx        # Renders the outer <html> content structure
+│   ├── [_app.tsx](/docs/concepts/app)        # Renders the outer <html> content structure
 │   └── index.tsx       # Renders /
 ├── static/             # Contains static assets like css, logos, etc
 │   └── ...
@@ -33,7 +33,7 @@ project folder should look like this:
 ├── client.ts       # Client entry file that's loaded on every page.
 ├── main.ts         # The server entry file of your app
 ├── deno.json       # Contains dependencies, tasks, etc
-└── vite.config.ts  # Vite configuration file
+└── [vite.config.ts](/docs/advanced/vite)  # Vite configuration file
 ```
 
 ## Path aliases
@@ -113,7 +113,7 @@ Create a new file at `islands/Countdown.tsx`
 import { useSignal } from "@preact/signals";
 import { useEffect } from "preact/hooks";
 
-export function Countdown(props: { target: string }) {
+export function Countdown() {
   const count = useSignal(10);
 
   useEffect(() => {
@@ -155,4 +155,19 @@ export default define.page(() => {
 
 Now, we can see our countdown in action:
 
-![Screenshot of the countdown component](/docs/getting-started-3-cotuntdown.png)
+![Screenshot of the countdown component](/docs/getting-started-3-countdown.png)
+
+## Next steps
+
+Now that you have a working Fresh project, here are some things to explore:
+
+- [**Routing**](/docs/concepts/routing) - Learn about route patterns, dynamic
+  parameters, and method-specific handlers
+- [**Data Fetching**](/docs/concepts/data-fetching) - Load data on the server
+  and pass it to page components
+- [**Islands**](/docs/concepts/islands) - Understand how Fresh's partial
+  hydration works and what can be passed as props
+- [**Middleware**](/docs/concepts/middleware) - Add authentication, logging, or
+  custom headers to your routes
+- [**Architecture**](/docs/concepts/architecture) - See how requests flow
+  through the entire framework

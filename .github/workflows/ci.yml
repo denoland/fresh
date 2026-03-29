@@ -7,6 +7,19 @@ on:
     branches: [main]
 
 jobs:
+  pr-title:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR title
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          if ! echo "$TITLE" | grep -qP '^(chore|ci|docs|feat|fix|refactor|test):'; then
+            echo "::error::PR title must start with chore:, ci:, docs:, feat:, fix:, refactor: or test:"
+            exit 1
+          fi
+
   test:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
@@ -61,3 +74,7 @@ jobs:
       - name: Build fresh.deno.dev
         if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v2.x'
         run: deno task build-www
+
+      - name: Check links
+        if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v2.x'
+        run: deno task check:links

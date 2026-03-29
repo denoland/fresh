@@ -24,7 +24,7 @@ app.listen();
 Create a new Fresh app by running:
 
 ```sh Terminal
-deno run -Ar jsr:@fresh/init
+deno create @fresh/init
 ```
 
 ## Features
@@ -39,7 +39,8 @@ referred to as the
 - **Lightweight** 🏎️ - Only ship the JavaScript you need
 - **Extensible** 🧩 - Nearly every aspect can be customized
 - **Powerful & small API** 🤗 - Familiar APIs make you productive quickly
-- **Built-in OpenTelemetry** 📈 - Built-in support for OpenTelemetry
+- **Built-in [OpenTelemetry](/docs/advanced/opentelemetry)** 📈 - Built-in
+  support for OpenTelemetry
 
 ## When to use Fresh
 
@@ -52,6 +53,12 @@ home page, an e-commerce shop or something like GitHub or Bluesky.
 - Landing pages & Documentation
 - CRUD apps
 
+Fresh's small API surface and
+[file-based conventions](/docs/concepts/file-routing) also make it a great fit
+for AI-assisted development. Agents can scaffold routes, add
+[middleware](/docs/concepts/middleware), and build features with minimal context
+because the framework is simple and predictable.
+
 That said, if you want to build a Single-Page-App (=SPA), then Fresh is not the
 right framework.
 
@@ -61,14 +68,11 @@ Fresh powers [deno.com](https://deno.com) and [Deno Deploy][deno-deploy] among
 many other projects at Deno. It's also used by [deco.cx](https://deco.cx/) for
 e-commerce projects.
 
-## Where to host Fresh apps?
+## Hosting
 
-Fresh is most often deployed on [Deno Deploy][deno-deploy] where it can be
-deployed with 1-click and has out of the box integrations with metrics among
-other things.
-
-Fresh projects can be deployed manually to any platform with [Deno][deno] like
-via docker containers too.
+Fresh runs anywhere [Deno][deno] runs. Deploy with a single click on
+[Deno Deploy][deno-deploy], or package your app in a Docker container for any
+cloud provider or self-hosted infrastructure.
 
 [preact]: https://preactjs.com
 [deno]: https://deno.com

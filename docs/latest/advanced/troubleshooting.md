@@ -12,8 +12,7 @@ The Node compatibility layer in Deno is constantly receiving new improvements
 and bug fixes with every Deno version. Chances are that the issue you're running
 into has already been fixed. To rule that out, install the latest Deno version.
 
-```sh
-# Install latest Deno version
+```sh Terminal
 deno upgrade
 ```
 
@@ -22,7 +21,7 @@ deno upgrade
 When run for the first time, you might see Deno complaining about missing
 packages. Install them with:
 
-```shell
+```sh Terminal
 deno install --allow-scripts
 ```
 
@@ -41,7 +40,7 @@ already been resolved in the latest version of Fresh.
 
 Fresh 1.x heavily relied on [esm.sh](https://esm.sh/) to be able to use npm
 packages with Fresh. This continued a bit through the early alpha versions of
-Fresh 2. With the move to [`vite`](https://vite.dev/) this is not necessary
+Fresh 2. With the move to [`vite`](/docs/advanced/vite) this is not necessary
 anymore and you should use the relevant npm package directly from npm.
 
 ```diff deno.json
@@ -55,7 +54,7 @@ anymore and you should use the relevant npm package directly from npm.
 
 > [info]: Not using `esm.sh` solves many issues and footguns with duplicate
 > Preact versions in your app. If you're seeing strange JavaScript errors in the
-> browser in your app than this is likely the cause.
+> browser in your app then this is likely the cause.
 
 ## Attach a debugger
 
@@ -95,8 +94,7 @@ can also be caused by other problems in your deployment configuration.
 If you see errors in VS Code like `Cannot find module 'fresh/runtime'` or see a
 lot of TypeScript errors, you likely have not installed the Deno extension. You
 can easily find it inside VS Code's extension browser (identifier:
-`denoland.vscode-deno`) or get it from the
-[marketplace](https://marketplace.visualstudio.com/items?itemName=denoland.vscode-deno).
+`denoland.vscode-deno`).
 
 Once installed and enabled, the currently installed Deno version should appear
 in the bottom status bar. If this does not happen automatically, you can enable
