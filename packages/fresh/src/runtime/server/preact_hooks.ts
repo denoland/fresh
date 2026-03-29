@@ -642,9 +642,7 @@ function FreshRuntimeScript() {
         },
       })
     );
-  }
-
-  if (
+  } else if (
     RENDER_STATE!.needsClientRuntime ||
     buildCache.hmrClientEntry !== undefined
   ) {
