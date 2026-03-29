@@ -536,6 +536,39 @@ Deno.test({
   sanitizeResources: false,
 });
 
+// issue: https://github.com/denoland/fresh/issues/3350
+Deno.test({
+  name: "vite dev - websocket upgrade",
+  fn: async () => {
+    const wsUrl = demoServer.address().replace("http", "ws");
+    const ws = new WebSocket(`${wsUrl}/tests/ws`);
+
+    const result = await new Promise<string>((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        ws.close();
+        reject(new Error("WebSocket timed out"));
+      }, 5000);
+
+      ws.onopen = () => {
+        ws.send("hello");
+      };
+      ws.onmessage = (e) => {
+        clearTimeout(timeout);
+        resolve(e.data);
+        ws.close();
+      };
+      ws.onerror = (e) => {
+        clearTimeout(timeout);
+        reject(e);
+      };
+    });
+
+    expect(result).toEqual("echo: hello");
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
 Deno.test({
   name: "vite dev - source mapped stack traces",
   fn: async () => {
