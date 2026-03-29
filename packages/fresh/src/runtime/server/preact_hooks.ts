@@ -386,6 +386,11 @@ options[OptionsType.DIFF] = (vnode) => {
       // We check here in the diff hook (not the vnode hook) so we catch both
       // VNodes created inside component functions during rendering AND those
       // pre-created in route handlers before setRenderState was called.
+      //
+      // The === "true" check relies on the vnode hook having normalized boolean
+      // f-client-nav on string elements via String(...) (see OptionsType.VNODE).
+      // Preact invokes the vnode hook before diff for a given VNode, so e.g.
+      // <html f-client-nav> becomes the string "true" before we run here.
       if (
         CLIENT_NAV_ATTR in (vnode.props as Record<string, unknown>) &&
         (vnode.props as Record<string, unknown>)[CLIENT_NAV_ATTR] === "true"
@@ -597,6 +602,9 @@ function FreshRuntimeScript() {
 
   const islandArr = Array.from(islands);
 
+  // Partial responses only embed __FRSH_STATE__ JSON for the swapped fragment.
+  // We do not gate on needsClientRuntime: the parent full-document response is
+  // responsible for loading the client boot when islands or client nav require it.
   if (ctx.url.searchParams.has(PARTIAL_SEARCH_PARAM)) {
     const islands = islandArr.map((island) => {
       return {
