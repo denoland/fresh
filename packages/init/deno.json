@@ -1,8 +1,11 @@
 {
   "name": "@fresh/init",
-  "version": "2.0.8",
+  "version": "2.3.0",
   "license": "MIT",
-  "exports": "./src/mod.ts",
+  "exports": {
+    ".": "./src/mod.ts",
+    "./create": "./src/create.ts"
+  },
   "exclude": ["**/tmp/*"],
   "publish": {
     "include": [

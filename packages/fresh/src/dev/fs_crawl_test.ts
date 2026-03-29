@@ -18,3 +18,28 @@ Deno.test("walkDir - ", async () => {
 
   expect(files).toEqual(["foo/bar/baz.txt", "foo/bar.txt"]);
 });
+
+Deno.test("walkDir - respects skip patterns", async () => {
+  const fs = createFakeFs({
+    "routes/index.tsx": "foo",
+    "routes/index_test.tsx": "test",
+    "routes/about.tsx": "foo",
+    "routes/about.test.ts": "test",
+    "routes/api/users.ts": "foo",
+    "routes/api/users_test.ts": "test",
+  });
+
+  const files: string[] = [];
+  const TEST_FILE_PATTERN = /[._]test\.(?:[tj]sx?|[mc][tj]s)$/;
+
+  await walkDir(fs, "routes", (entry) => {
+    files.push(entry.path);
+  }, [TEST_FILE_PATTERN]);
+
+  // Should only include non-test files
+  expect(files).toEqual([
+    "routes/index.tsx",
+    "routes/about.tsx",
+    "routes/api/users.ts",
+  ]);
+});

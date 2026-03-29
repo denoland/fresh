@@ -70,6 +70,44 @@ Deno.test("ctx.render - throw with invalid first arg", async () => {
   expect(res.status).toEqual(500);
 });
 
+Deno.test("ctx.redirect - preserves partial search param through redirects", async () => {
+  const app = new App()
+    .get("/old", (ctx) => ctx.redirect("/new"));
+  const server = new FakeServer(app.handler());
+
+  // Normal redirect should not have partial param
+  let res = await server.get("/old");
+  expect(res.status).toEqual(302);
+  expect(res.headers.get("Location")).toEqual("/new");
+
+  // Partial redirect should preserve the param
+  res = await server.get("/old?fresh-partial=true");
+  expect(res.status).toEqual(302);
+  expect(res.headers.get("Location")).toEqual("/new?fresh-partial=true");
+
+  // Partial redirect with existing query params
+  const app2 = new App()
+    .get("/old", (ctx) => ctx.redirect("/new?foo=bar"));
+  const server2 = new FakeServer(app2.handler());
+
+  res = await server2.get("/old?fresh-partial=true");
+  expect(res.status).toEqual(302);
+  expect(res.headers.get("Location")).toEqual(
+    "/new?foo=bar&fresh-partial=true",
+  );
+
+  // Partial redirect with hash fragment — param must come before the hash
+  const app3 = new App()
+    .get("/old", (ctx) => ctx.redirect("/new#section"));
+  const server3 = new FakeServer(app3.handler());
+
+  res = await server3.get("/old?fresh-partial=true");
+  expect(res.status).toEqual(302);
+  expect(res.headers.get("Location")).toEqual(
+    "/new?fresh-partial=true#section",
+  );
+});
+
 Deno.test("ctx.isPartial - should indicate whether request is partial or not", async () => {
   const isPartials: boolean[] = [];
   const app = new App()
@@ -105,4 +143,101 @@ Deno.test("ctx.route - should contain matched route", async () => {
 
   await server.get("/foo/123");
   expect(route).toEqual("/foo/:id");
+});
+
+Deno.test("ctx.text()", async () => {
+  const app = new App()
+    .get("/", (ctx) => ctx.text("foobar"));
+
+  const server = new FakeServer(app.handler());
+  const res = await server.get("/");
+
+  expect(res.headers.get("Content-Type")).toEqual("text/plain;charset=UTF-8");
+  const text = await res.text();
+  expect(text).toEqual("foobar");
+});
+
+Deno.test("ctx.html()", async () => {
+  const app = new App()
+    .get("/", (ctx) => ctx.html("<h1>foo</h1>"));
+
+  const server = new FakeServer(app.handler());
+  const res = await server.get("/");
+
+  expect(res.headers.get("Content-Type")).toEqual("text/html; charset=utf-8");
+  const text = await res.text();
+  expect(text).toEqual("<h1>foo</h1>");
+});
+
+Deno.test("ctx.json()", async () => {
+  const app = new App()
+    .get("/", (ctx) => ctx.json({ foo: 123 }));
+
+  const server = new FakeServer(app.handler());
+  const res = await server.get("/");
+
+  expect(res.headers.get("Content-Type")).toEqual("application/json");
+  const text = await res.text();
+  expect(text).toEqual('{"foo":123}');
+});
+
+Deno.test("ctx.stream() - enqueue values", async () => {
+  function* gen() {
+    yield "foo";
+    yield new TextEncoder().encode("bar");
+  }
+
+  const app = new App()
+    .get("/", (ctx) => ctx.stream(gen()));
+
+  const server = new FakeServer(app.handler());
+  const res = await server.get("/");
+  const text = await res.text();
+  expect(text).toEqual("foobar");
+});
+
+Deno.test("ctx.stream() - pass function", async () => {
+  const app = new App()
+    .get("/", (ctx) =>
+      ctx.stream(function* () {
+        yield "foo";
+        yield "bar";
+      }));
+
+  const server = new FakeServer(app.handler());
+  const res = await server.get("/");
+  const text = await res.text();
+  expect(text).toEqual("foobar");
+});
+
+Deno.test("ctx.stream() - support iterable", async () => {
+  function* gen() {
+    yield "foo";
+    yield "bar";
+  }
+
+  const app = new App()
+    .get("/", (ctx) => ctx.stream(gen()));
+
+  const server = new FakeServer(app.handler());
+  const res = await server.get("/");
+  const text = await res.text();
+
+  expect(text).toEqual("foobar");
+});
+
+Deno.test("ctx.stream() - support async iterable", async () => {
+  async function* gen() {
+    yield "foo";
+    yield "bar";
+  }
+
+  const app = new App()
+    .get("/", (ctx) => ctx.stream(gen()));
+
+  const server = new FakeServer(app.handler());
+  const res = await server.get("/");
+  const text = await res.text();
+
+  expect(text).toEqual("foobar");
 });

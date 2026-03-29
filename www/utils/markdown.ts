@@ -8,8 +8,6 @@ import { mangle } from "marked-mangle";
 import GitHubSlugger from "github-slugger";
 import { Prism } from "./prism.ts";
 
-const slugger = new GitHubSlugger();
-
 Marked.marked.use(mangle());
 
 const ADMISSION_REG = /^\[(info|warn|tip)\]:\s/;
@@ -85,6 +83,7 @@ export interface MarkdownHeading {
 
 class DefaultRenderer extends Marked.Renderer {
   headings: MarkdownHeading[] = [];
+  slugger = new GitHubSlugger();
 
   override text(
     token: Marked.Tokens.Text | Marked.Tokens.Escape | Marked.Tokens.Tag,
@@ -136,7 +135,7 @@ class DefaultRenderer extends Marked.Renderer {
       slugInput = slugInput.slice(1, -2);
     }
 
-    const slug = slugger.slug(slugInput);
+    const slug = this.slugger.slug(slugInput);
     const text = this.parser.parseInline(tokens);
     this.headings.push({ id: slug, html: text, level: depth });
     return `<h${depth} id="${slug}"><a class="md-anchor" tabindex="-1" href="#${slug}">${text}<span aria-hidden="true">#</span></a></h${depth}>`;
@@ -192,7 +191,7 @@ class DefaultRenderer extends Marked.Renderer {
             type="button"
             data-code="${escapeHtml(text)}"
             aria-label="Copy to Clipboard"
-            class="rounded-sm flex items-center justify-center border border-foreground-secondary/30 hover:bg-foreground-secondary/70 data-copied:text-green-300 relative group cursor-pointer w-7 h-7 text-white"
+            class="rounded-sm flex items-center justify-center border border-foreground-secondary/30 hover:bg-foreground-secondary/20 dark:hover:bg-foreground-secondary/70 data-copied:text-green-700 dark:data-copied:text-green-300 relative group cursor-pointer w-7 h-7 dark:text-white"
           >
             <span class="group-copied">
               <svg

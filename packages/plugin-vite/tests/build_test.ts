@@ -53,6 +53,12 @@ Deno.test({
         const res = await fetch(`${address}/test_static/foo.txt`);
         const text = await res.text();
         expect(text).toEqual("it works");
+
+        const resWithSpace = await fetch(
+          `${address}/test%20%2520encodeUri/foo%20%2520encodeUri.txt`,
+        );
+        const textWithSpace = await resWithSpace.text();
+        expect(textWithSpace).toEqual("space it works");
       },
     );
   },
@@ -482,6 +488,10 @@ Deno.test({
         const res = await fetch(`${address}/test_static/foo`);
         const text = await res.text();
         expect(text).toContain("<h1>ok</h1>");
+
+        const resWithSpace = await fetch(`${address}/test%20%2520encodeUri`);
+        const textWithSpace = await resWithSpace.text();
+        expect(textWithSpace).toContain("<h1>ok</h1>");
       },
     );
   },
@@ -501,6 +511,31 @@ Deno.test({
 
     // Asset paths should include the base path /my-app/
     expect(serverJs).toContain('"/my-app/assets/');
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite build - custom rollup entryFileNames in server.js",
+  fn: async () => {
+    await using res = await buildVite(DEMO_DIR, {
+      rollupOutput: {
+        entryFileNames: "[hash].mjs",
+        chunkFileNames: "[hash].mjs",
+      },
+    });
+
+    const serverJs = await Deno.readTextFile(
+      path.join(res.tmp, "_fresh", "server.js"),
+    );
+
+    // When custom entryFileNames is set, server.js should use the actual
+    // hashed filename from the manifest, not hardcoded "server-entry.mjs"
+    expect(serverJs).not.toContain("server-entry.mjs");
+    expect(serverJs).toMatch(
+      /from "\.\/server\/[a-zA-Z0-9_-]+\.mjs"/,
+    );
   },
   sanitizeOps: false,
   sanitizeResources: false,
@@ -536,6 +571,93 @@ Deno.test({
         const res = await fetch(`${address}/tests/middlewares`);
         const text = await res.text();
         expect(text).toEqual("AB");
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite build - island named after global object (Map)",
+  fn: async () => {
+    const fixture = path.join(FIXTURE_DIR, "island_global_name");
+    await using res = await buildVite(fixture);
+
+    await launchProd(
+      { cwd: res.tmp },
+      async (address) => {
+        const response = await fetch(address);
+        const html = await response.text();
+
+        // Verify the fix: UniqueNamer prefixes "Map" with underscore to prevent shadowing
+        // Without the fix: import Map from "..." and boot({Map}, ...) - shadows global Map
+        // With the fix: import _Map_N from "..." and boot({_Map_N}, ...) - no shadowing
+        expect(html).toMatch(/import.*_Map(_\d+)?.*from/);
+        expect(html).toMatch(/boot\(\s*\{\s*_Map(_\d+)?\s*\}/);
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite build - excludes test files from routes",
+  fn: async () => {
+    const fixture = path.join(FIXTURE_DIR, "test_files_exclusion");
+    await using res = await buildVite(fixture);
+
+    // Verify that test files in routes/ are not bundled
+    const serverAssetsDir = path.join(res.tmp, "_fresh", "server", "assets");
+
+    // List all compiled route files
+    const files: string[] = [];
+    for await (const entry of Deno.readDir(serverAssetsDir)) {
+      if (entry.isFile && entry.name.startsWith("_fresh-route")) {
+        files.push(entry.name);
+      }
+    }
+
+    // Should have index route but NOT test files
+    expect(files.some((f) => f.includes("_fresh-route___index"))).toBe(true);
+    expect(files.some((f) => f.includes("index_test"))).toBe(false);
+    expect(files.some((f) => f.includes("foo.test"))).toBe(false);
+
+    // Verify no test pattern files at all
+    // Note: files with "_test" or ".test" in their name (not just a "tests" folder)
+    const testPatterns = ["_test.", "_test-", ".test."];
+    for (const file of files) {
+      for (const pattern of testPatterns) {
+        expect(file.includes(pattern)).toBe(false);
+      }
+    }
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite build - client side <Head>",
+  fn: async () => {
+    await launchProd(
+      { cwd: viteResult.tmp },
+      async (address) => {
+        await withBrowser(async (page) => {
+          await page.goto(`${address}/tests/head_counter`, {
+            waitUntil: "networkidle2",
+          });
+
+          await page.locator(".ready").wait();
+          await page.locator("button").click();
+          await waitForText(page, ".result", "Count: 1");
+
+          await waitFor(async () => {
+            const title = await page.evaluate(() => document.title);
+            expect(title).toEqual("Count: 1");
+            return true;
+          });
+        });
       },
     );
   },

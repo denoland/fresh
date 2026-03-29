@@ -637,6 +637,50 @@ Deno.test("App - .route() with *", async () => {
   expect(await res.text()).toEqual("ok");
 });
 
+Deno.test("App - .route() handler returns headers", async () => {
+  const app = new App()
+    .route("/", {
+      handler: () => {
+        const headers = new Headers();
+        headers.set("X-Foo", "foo");
+        return { data: {}, headers };
+      },
+      component() {
+        return <h1>foo</h1>;
+      },
+    })
+    .route("/obj", {
+      handler: () => {
+        return { data: {}, headers: { "X-Foo": "foo" } };
+      },
+      component() {
+        return <h1>foo</h1>;
+      },
+    })
+    .route("/arr", {
+      handler: () => {
+        return { data: {}, headers: [["X-Foo", "foo"]] };
+      },
+      component() {
+        return <h1>foo</h1>;
+      },
+    });
+
+  const server = new FakeServer(app.handler());
+
+  let res = await server.get("/");
+  expect(await res.text()).toContain("<h1>foo</h1>");
+  expect(res.headers.get("X-Foo")).toEqual("foo");
+
+  res = await server.get("/obj");
+  expect(await res.text()).toContain("<h1>foo</h1>");
+  expect(res.headers.get("X-Foo")).toEqual("foo");
+
+  res = await server.get("/arr");
+  expect(await res.text()).toContain("<h1>foo</h1>");
+  expect(res.headers.get("X-Foo")).toEqual("foo");
+});
+
 Deno.test("App - .use() - lazy", async () => {
   const app = new App<{ text: string }>()
     // deno-lint-ignore require-await
@@ -680,23 +724,90 @@ Deno.test("App - .get/post/patch/put/delete/head/all() - lazy", async () => {
   const server = new FakeServer(app.handler());
 
   let res = await server.get("/");
+  expect(res.status).toEqual(200);
   expect(await res.text()).toEqual("ok");
 
   res = await server.post("/");
+  expect(res.status).toEqual(200);
   expect(await res.text()).toEqual("ok");
 
   res = await server.put("/");
+  expect(res.status).toEqual(200);
   expect(await res.text()).toEqual("ok");
 
   res = await server.patch("/");
+  expect(res.status).toEqual(200);
   expect(await res.text()).toEqual("ok");
 
   res = await server.delete("/");
+  expect(res.status).toEqual(200);
   expect(await res.text()).toEqual("ok");
 
   res = await server.head("/");
-  expect(await res.text()).toEqual("ok");
+  expect(res.status).toEqual(200);
+  expect(res.body).toEqual(null);
 });
+
+Deno.test("App prefer .head over .get", async () => {
+  const app = new App()
+    .get(
+      "/",
+      () => Promise.resolve(() => new Response("not ok", { status: 500 })),
+    )
+    .head("/", () => Promise.resolve(() => new Response("ok")))
+    .get(
+      "/:id",
+      () => Promise.resolve(() => new Response("not ok", { status: 500 })),
+    )
+    .head("/:id", () => Promise.resolve(() => new Response("ok")));
+
+  const server = new FakeServer(app.handler());
+
+  let res = await server.head("/");
+  expect(res.body).toEqual(null);
+  expect(res.status).toEqual(200);
+
+  res = await server.head("/foo");
+  expect(res.body).toEqual(null);
+  expect(res.status).toEqual(200);
+});
+
+Deno.test("App support HEAD if only GET is registered", async () => {
+  const app = new App()
+    .get("/", () => Promise.resolve(() => new Response("ok")))
+    .get("/:id", () => Promise.resolve(() => new Response("ok")));
+
+  const server = new FakeServer(app.handler());
+
+  let res = await server.head("/");
+  expect(res.body).toEqual(null);
+  expect(res.status).toEqual(200);
+
+  res = await server.head("/foo");
+  expect(res.body).toEqual(null);
+  expect(res.status).toEqual(200);
+});
+
+Deno.test(
+  "App support HEAD in .route() when only GET is registered",
+  async () => {
+    const app = new App()
+      .route("/", {
+        handler: {
+          GET() {
+            return { data: {} };
+          },
+        },
+        component: () => <h1>foo</h1>,
+      });
+
+    const server = new FakeServer(app.handler());
+
+    const res = await server.head("/");
+    expect(res.body).toEqual(null);
+    expect(res.status).toEqual(200);
+  },
+);
 
 Deno.test("App - .appWrapper()", async () => {
   const app = new App()
@@ -713,7 +824,7 @@ Deno.test("App - .appWrapper()", async () => {
   expect(await res.text()).toContain("<body>app/index<");
 });
 
-Deno.test.ignore("App - .layout()", async () => {
+Deno.test("App - .layout()", async () => {
   const app = new App()
     .layout("/", ({ Component }) => (
       <>
@@ -729,7 +840,6 @@ Deno.test.ignore("App - .layout()", async () => {
 
   const server = new FakeServer(app.handler());
 
-  // The `/foo` layout is not applied for GET `/foo`, is that correct?
   const res = await server.get("/foo");
   expect(await res.text()).toContain("<body>layout/foo/index<");
 });

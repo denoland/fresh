@@ -4,26 +4,38 @@ import {
 } from "../packages/fresh/tests/test_utils.tsx";
 import { expect } from "@std/expect";
 import { retry } from "@std/async/retry";
-import { buildVite } from "../packages/plugin-vite/tests/test_utils.ts";
+import {
+  buildVite,
+  launchProd,
+} from "../packages/plugin-vite/tests/test_utils.ts";
 
-const result = await buildVite(import.meta.dirname!);
+let result: Awaited<ReturnType<typeof buildVite>>;
 
-Deno.test("CORS should not set on GET /fresh-badge.svg", async () => {
-  await withChildProcessServer(
-    {
-      cwd: result.tmp,
-      args: ["serve", "-A", "--port", "0", "_fresh/server.js"],
-    },
-    async (address) => {
+Deno.test.beforeAll(async () => {
+  result = await buildVite(import.meta.dirname!);
+});
+
+Deno.test.afterAll(async () => {
+  await result?.[Symbol.asyncDispose]();
+});
+
+Deno.test({
+  name: "CORS should not set on GET /fresh-badge.svg",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  fn: async () => {
+    await launchProd({ cwd: result.tmp }, async (address) => {
       const resp = await fetch(`${address}/fresh-badge.svg`);
       await resp?.body?.cancel();
       expect(resp.headers.get("cross-origin-resource-policy")).toEqual(null);
-    },
-  );
+    });
+  },
 });
 
 Deno.test({
   name: "shows version selector",
+  sanitizeOps: false,
+  sanitizeResources: false,
   fn: async () => {
     await retry(async () => {
       await withChildProcessServer(

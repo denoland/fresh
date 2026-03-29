@@ -10,11 +10,12 @@ export function clientEntryPlugin(options: ResolvedFreshViteConfig): Plugin {
 
   return {
     name: "fresh:client-entry",
+    sharedDuringBuild: true,
     config(_, env) {
       isDev = env.command === "serve";
     },
     applyToEnvironment(env) {
-      return env.name === "client";
+      return env.config.consumer === "client";
     },
     configResolved(config) {
       clientEntry = pathWithRoot(options.clientEntry, config.root);

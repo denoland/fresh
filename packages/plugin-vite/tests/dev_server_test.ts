@@ -37,6 +37,12 @@ Deno.test({
     const res = await fetch(`${demoServer.address()}/test_static/foo.txt`);
     const text = await res.text();
     expect(text).toContain("it works");
+
+    const resWithSpace = await fetch(
+      `${demoServer.address()}/test%20%2520encodeUri/foo%20%2520encodeUri.txt`,
+    );
+    const textWithSpace = await resWithSpace.text();
+    expect(textWithSpace).toContain("space it works");
   },
   sanitizeResources: false,
   sanitizeOps: false,
@@ -421,6 +427,28 @@ Deno.test({
 });
 
 Deno.test({
+  name: "vite dev - redis",
+  fn: async () => {
+    const res = await fetch(`${demoServer.address()}/tests/redis`);
+    const text = await res.text();
+    expect(text).toContain("<h1>redis</h1>");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite dev - @supabase/postgres-js",
+  fn: async () => {
+    const res = await fetch(`${demoServer.address()}/tests/supabase_pg`);
+    const text = await res.text();
+    expect(text).toContain("<h1>supabase</h1>");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
   name: "vite dev - radix",
   fn: async () => {
     const res = await fetch(`${demoServer.address()}/tests/radix`);
@@ -432,11 +460,39 @@ Deno.test({
 });
 
 Deno.test({
+  name: "vite dev - qs",
+  fn: async () => {
+    const res = await fetch(`${demoServer.address()}/tests/qs`);
+    const text = await res.text();
+    expect(text).toContain("<h1>qs</h1>");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite dev - stripe",
+  fn: async () => {
+    const res = await fetch(`${demoServer.address()}/tests/stripe`);
+    const text = await res.text();
+    expect(text).toContain("<h1>stripe</h1>");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
   name: "vite dev - static index.html",
   fn: async () => {
     const res = await fetch(`${demoServer.address()}/test_static/foo`);
     const text = await res.text();
     expect(text).toContain("<h1>ok</h1>");
+
+    const resWithSpace = await fetch(
+      `${demoServer.address()}/test%20%2520encodeUri/`,
+    );
+    const textWithSpace = await resWithSpace.text();
+    expect(textWithSpace).toContain("<h1>ok</h1>");
   },
   sanitizeOps: false,
   sanitizeResources: false,
@@ -464,6 +520,90 @@ Deno.test({
     const res = await fetch(`${demoServer.address()}/tests/middlewares`);
     const text = await res.text();
     expect(text).toEqual("AB");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite dev - support jsx namespace",
+  fn: async () => {
+    const res = await fetch(`${demoServer.address()}/tests/jsx_namespace`);
+    const text = await res.text();
+    expect(text).toContain(`xml:space="preserve"`);
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+// issue: https://github.com/denoland/fresh/issues/3666
+Deno.test({
+  name: "vite dev - basePath does not intercept Vite URLs",
+  fn: async () => {
+    const fixture = path.join(FIXTURE_DIR, "basepath");
+    await launchDevServer(fixture, async (address) => {
+      // `address` already includes the base path (e.g. http://localhost:PORT/ui)
+      // Vite's /@vite/client should be accessible at {base}/@vite/client
+      // Without the fix, Fresh's dev server intercepted this and returned 404.
+      const viteClientRes = await fetch(`${address}/@vite/client`);
+      await viteClientRes.body?.cancel();
+      expect(viteClientRes.status).toEqual(200);
+    });
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite dev - source mapped stack traces",
+  fn: async () => {
+    const res = await fetch(`${demoServer.address()}/tests/throw`);
+    const text = await res.text();
+    expect(text).toContain("throw.tsx:5:11");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite dev - client side <Head>",
+  fn: async () => {
+    await withBrowser(async (page) => {
+      await page.goto(`${demoServer.address()}/tests/head_counter`, {
+        waitUntil: "networkidle2",
+      });
+
+      await page.locator(".ready").wait();
+      await page.locator("button").click();
+      await waitForText(page, ".result", "Count: 1");
+
+      await waitFor(async () => {
+        const title = await page.evaluate(() => document.title);
+        expect(title).toEqual("Count: 1");
+        return true;
+      });
+
+      await page.goto(`${demoServer.address()}/tests/head_meta`, {
+        waitUntil: "networkidle2",
+      });
+
+      await page.locator(".ready").wait();
+
+      await waitFor(async () => {
+        const custom = await page
+          .locator("meta[name='custom']")
+          // deno-lint-ignore no-explicit-any
+          .evaluate((el: any) => el.content);
+        expect(custom).toEqual("ok");
+
+        const custom2 = await page
+          .locator("meta[name='custom-new']")
+          // deno-lint-ignore no-explicit-any
+          .evaluate((el: any) => el.content);
+        expect(custom2).toEqual("ok");
+        return true;
+      });
+    });
   },
   sanitizeOps: false,
   sanitizeResources: false,

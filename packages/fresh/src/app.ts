@@ -12,6 +12,7 @@ import { mergePath, type Method, UrlPatternRouter } from "./router.ts";
 import type { FreshConfig, ResolvedFreshConfig } from "./config.ts";
 import type { BuildCache } from "./build_cache.ts";
 import { HttpError } from "./error.ts";
+import { STATUS_TEXT } from "@std/http/status";
 import type { LayoutConfig, MaybeLazy, Route, RouteConfig } from "./types.ts";
 import type { RouteComponent } from "./segments.ts";
 import {
@@ -55,7 +56,8 @@ const DEFAULT_ERROR_HANDLER = async <State>(ctx: Context<State>) => {
       // deno-lint-ignore no-console
       console.error(error);
     }
-    return new Response(error.message, { status: error.status });
+    const message = error.message || STATUS_TEXT[error.status];
+    return new Response(message, { status: error.status });
   }
 
   // deno-lint-ignore no-console
@@ -70,7 +72,7 @@ export type ListenOptions =
   & {
     remoteAddress?: string;
   };
-function createOnListen(
+export function createOnListen(
   basePath: string,
   options: ListenOptions,
 ): (localAddr: Deno.NetAddr) => void {
@@ -154,6 +156,12 @@ export let setBuildCache: <State>(
   cache: BuildCache<State>,
   mode: "development" | "production",
 ) => void;
+export let setErrorInterceptor: <State>(
+  app: App<State>,
+  fn: (err: unknown) => void,
+) => void;
+
+const NOOP = () => {};
 
 /**
  * Create an application instance that passes the incoming `Request`
@@ -162,6 +170,7 @@ export let setBuildCache: <State>(
 export class App<State> {
   #getBuildCache: () => BuildCache<State> | null = () => null;
   #commands: Command<State>[] = [];
+  #onError: (err: unknown) => void = NOOP;
 
   static {
     getBuildCache = (app) => app.#getBuildCache();
@@ -169,6 +178,9 @@ export class App<State> {
       app.config.root = cache.root;
       app.config.mode = mode;
       app.#getBuildCache = () => cache;
+    };
+    setErrorInterceptor = (app, fn) => {
+      app.#onError = fn;
     };
   }
 
@@ -274,7 +286,7 @@ export class App<State> {
     route: MaybeLazy<Route<State>>,
     config?: RouteConfig,
   ): this {
-    this.#commands.push(newRouteCmd(path, route, config, false));
+    this.#commands.push(newRouteCmd(path, route, config, true));
     return this;
   }
 
@@ -282,42 +294,42 @@ export class App<State> {
    * Add middlewares for GET requests at the specified path.
    */
   get(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
-    this.#commands.push(newHandlerCmd("GET", path, middlewares, false));
+    this.#commands.push(newHandlerCmd("GET", path, middlewares, true));
     return this;
   }
   /**
    * Add middlewares for POST requests at the specified path.
    */
   post(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
-    this.#commands.push(newHandlerCmd("POST", path, middlewares, false));
+    this.#commands.push(newHandlerCmd("POST", path, middlewares, true));
     return this;
   }
   /**
    * Add middlewares for PATCH requests at the specified path.
    */
   patch(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
-    this.#commands.push(newHandlerCmd("PATCH", path, middlewares, false));
+    this.#commands.push(newHandlerCmd("PATCH", path, middlewares, true));
     return this;
   }
   /**
    * Add middlewares for PUT requests at the specified path.
    */
   put(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
-    this.#commands.push(newHandlerCmd("PUT", path, middlewares, false));
+    this.#commands.push(newHandlerCmd("PUT", path, middlewares, true));
     return this;
   }
   /**
    * Add middlewares for DELETE requests at the specified path.
    */
   delete(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
-    this.#commands.push(newHandlerCmd("DELETE", path, middlewares, false));
+    this.#commands.push(newHandlerCmd("DELETE", path, middlewares, true));
     return this;
   }
   /**
    * Add middlewares for HEAD requests at the specified path.
    */
   head(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
-    this.#commands.push(newHandlerCmd("HEAD", path, middlewares, false));
+    this.#commands.push(newHandlerCmd("HEAD", path, middlewares, true));
     return this;
   }
 
@@ -325,7 +337,7 @@ export class App<State> {
    * Add middlewares for all HTTP verbs at the specified path.
    */
   all(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
-    this.#commands.push(newHandlerCmd("ALL", path, middlewares, false));
+    this.#commands.push(newHandlerCmd("ALL", path, middlewares, true));
     return this;
   }
 
@@ -403,7 +415,7 @@ export class App<State> {
         DENO_DEPLOYMENT_ID !== undefined
       ) {
         throw new Error(
-          `Could not find _fresh directory. Maybe you forgot to run "deno task build"?`,
+          `Could not find _fresh directory. Maybe you forgot to run "deno task build" or maybe you're trying to run "main.ts" directly instead of "_fresh/server.js"?`,
         );
       } else {
         buildCache = new MockBuildCache([], this.config.mode);
@@ -467,11 +479,15 @@ export class App<State> {
       try {
         if (handlers.length === 0) return await next();
 
-        const result = await runMiddlewares(handlers, ctx);
+        const result = await runMiddlewares(handlers, ctx, this.#onError);
         if (!(result instanceof Response)) {
           throw new Error(
             `Expected a "Response" instance to be returned, but got: ${result}`,
           );
+        }
+
+        if (method === "HEAD") {
+          return new Response(null, result);
         }
 
         return result;

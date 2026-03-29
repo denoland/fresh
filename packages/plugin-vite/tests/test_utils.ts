@@ -133,7 +133,14 @@ export async function withDevServer(
 
 export async function buildVite(
   fixtureDir: string,
-  options?: { base?: string },
+  options?: {
+    base?: string;
+    rollupOutput?: {
+      entryFileNames?: string;
+      chunkFileNames?: string;
+      assetFileNames?: string;
+    };
+  },
 ) {
   const tmp = await withTmpDir({
     dir: path.join(import.meta.dirname!, ".."),
@@ -151,6 +158,9 @@ export async function buildVite(
       ssr: {
         build: {
           outDir: path.join(tmp.dir, "_fresh", "server"),
+          rollupOptions: options?.rollupOutput
+            ? { output: options.rollupOutput }
+            : undefined,
         },
       },
       client: {

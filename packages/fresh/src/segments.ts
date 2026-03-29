@@ -4,7 +4,7 @@ import { type Method, patternToSegments } from "./router.ts";
 import type { LayoutConfig, Route } from "./types.ts";
 import { type Context, getInternals } from "./context.ts";
 import { recordSpanError, tracer } from "./otel.ts";
-import { isHandlerByMethod } from "./handlers.ts";
+import { type HandlerFn, isHandlerByMethod } from "./handlers.ts";
 import {
   type AsyncAnyComponent,
   type PageProps,
@@ -167,9 +167,16 @@ export async function renderRoute<State>(
     attributes: { "fresh.span_type": "fs_routes/handler" },
   }, async (span) => {
     try {
-      const fn = isHandlerByMethod(handlers)
-        ? handlers[method] ?? null
-        : handlers;
+      let fn: HandlerFn<unknown, State> | null = null;
+      if (isHandlerByMethod(handlers)) {
+        if (handlers[method] !== undefined) {
+          fn = handlers[method];
+        } else if (method === "HEAD" && handlers.GET !== undefined) {
+          fn = handlers.GET;
+        }
+      } else {
+        fn = handlers;
+      }
 
       if (fn === null) return await ctx.next();
 
@@ -189,9 +196,20 @@ export async function renderRoute<State>(
   if (typeof res.status === "number") {
     status = res.status;
   }
-  if (res.headers) {
-    for (const [name, value] of Object.entries(res.headers)) {
-      headers.set(name, value);
+  if (res.headers !== undefined) {
+    if (res.headers instanceof Headers) {
+      res.headers.forEach((value, key) => {
+        headers.set(key, value);
+      });
+    } else if (Array.isArray(res.headers)) {
+      for (let i = 0; i < res.headers.length; i++) {
+        const entry = res.headers[i];
+        headers.set(entry[0], entry[1]);
+      }
+    } else {
+      for (const [name, value] of Object.entries(res.headers)) {
+        headers.set(name, value);
+      }
     }
   }
 
