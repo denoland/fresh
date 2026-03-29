@@ -116,9 +116,26 @@ export class UrlPatternRouter<T> implements Router<T> {
       pattern: null,
     };
 
-    const staticMatch = this.#statics.get(url.pathname);
+    let pathname = url.pathname;
+    let staticMatch = this.#statics.get(pathname);
+
+    // Try alternate trailing slash form if no exact match found.
+    // Routes may be registered with or without trailing slashes,
+    // and requests may arrive in either form (e.g. when using
+    // trailingSlashes("always")).
+    if (staticMatch === undefined && pathname !== "/") {
+      const alt = pathname.endsWith("/")
+        ? pathname.slice(0, -1)
+        : pathname + "/";
+      const altMatch = this.#statics.get(alt);
+      if (altMatch !== undefined) {
+        staticMatch = altMatch;
+        pathname = alt;
+      }
+    }
+
     if (staticMatch !== undefined) {
-      result.pattern = url.pathname;
+      result.pattern = pathname;
 
       let handlers = staticMatch.byMethod[method];
       if (method === "HEAD" && handlers.length === 0) {
@@ -271,21 +288,27 @@ export function patternToSegments(
 
   if (path === "/" || path === "*" || path === "/*") return out;
 
+  // Strip optional groups like {/:param}? before segmenting, so that
+  // /api{/:opt}?/endpoint produces the same segments as /api/endpoint.
+  // This ensures middleware registered at /api applies to routes with
+  // optional parameters under /api.
+  const cleaned = path.replace(/\{[^}]*\}\??/g, "");
+
   let start = -1;
-  for (let i = 0; i < path.length; i++) {
-    const ch = path[i];
+  for (let i = 0; i < cleaned.length; i++) {
+    const ch = cleaned[i];
 
     if (ch === "/") {
       if (i > 0) {
-        const raw = path.slice(start + 1, i);
+        const raw = cleaned.slice(start + 1, i);
         out.push(raw);
       }
       start = i;
     }
   }
 
-  if (includeLast && start < path.length - 1) {
-    out.push(path.slice(start + 1));
+  if (includeLast && start < cleaned.length - 1) {
+    out.push(cleaned.slice(start + 1));
   }
 
   return out;

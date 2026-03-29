@@ -70,6 +70,78 @@ Deno.test("UrlPatternRouter - wrong + correct method", () => {
   });
 });
 
+Deno.test("UrlPatternRouter - trailing slash matches route without slash", () => {
+  const router = new UrlPatternRouter();
+  const A = () => {};
+  router.add("GET", "/wissen", [A]);
+
+  const res = router.match("GET", new URL("/wissen/", "http://localhost"));
+  expect(res).toEqual({
+    params: Object.create(null),
+    handlers: [A],
+    methodMatch: true,
+    pattern: "/wissen",
+  });
+});
+
+Deno.test("UrlPatternRouter - no trailing slash matches route with slash", () => {
+  const router = new UrlPatternRouter();
+  const A = () => {};
+  router.add("GET", "/wissen/", [A]);
+
+  const res = router.match("GET", new URL("/wissen", "http://localhost"));
+  expect(res).toEqual({
+    params: Object.create(null),
+    handlers: [A],
+    methodMatch: true,
+    pattern: "/wissen/",
+  });
+});
+
+Deno.test("UrlPatternRouter - exact match takes priority over trailing slash fallback", () => {
+  const router = new UrlPatternRouter();
+  const A = () => {};
+  const B = () => {};
+  router.add("GET", "/wissen", [A]);
+  router.add("GET", "/wissen/", [B]);
+
+  const withSlash = router.match(
+    "GET",
+    new URL("/wissen/", "http://localhost"),
+  );
+  expect(withSlash).toEqual({
+    params: Object.create(null),
+    handlers: [B],
+    methodMatch: true,
+    pattern: "/wissen/",
+  });
+
+  const withoutSlash = router.match(
+    "GET",
+    new URL("/wissen", "http://localhost"),
+  );
+  expect(withoutSlash).toEqual({
+    params: Object.create(null),
+    handlers: [A],
+    methodMatch: true,
+    pattern: "/wissen",
+  });
+});
+
+Deno.test("UrlPatternRouter - root trailing slash does not double-match", () => {
+  const router = new UrlPatternRouter();
+  const A = () => {};
+  router.add("GET", "/", [A]);
+
+  const res = router.match("GET", new URL("/", "http://localhost"));
+  expect(res).toEqual({
+    params: Object.create(null),
+    handlers: [A],
+    methodMatch: true,
+    pattern: "/",
+  });
+});
+
 Deno.test("UrlPatternRouter - convert patterns automatically", () => {
   const router = new UrlPatternRouter();
   const A = () => {};
@@ -152,6 +224,14 @@ Deno.test("patternToSegments", () => {
   expect(patternToSegments("/foo/", "")).toEqual(["", "foo"]);
 
   expect(patternToSegments("/foo/bar", "", true)).toEqual(["", "foo", "bar"]);
+
+  // Optional params with {/...}? syntax should not split on / inside braces
+  expect(patternToSegments("/api{/:opt}?/endpoint", "")).toEqual(["", "api"]);
+  expect(patternToSegments("/api{/:opt}?/endpoint", "", true)).toEqual([
+    "",
+    "api",
+    "endpoint",
+  ]);
 });
 
 Deno.test("mergePath", () => {

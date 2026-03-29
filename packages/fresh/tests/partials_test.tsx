@@ -15,6 +15,7 @@ import {
 } from "./test_utils.tsx";
 import { SelfCounter } from "./fixtures_islands/SelfCounter.tsx";
 import { expect } from "@std/expect";
+import { assertSpyCalls, spy } from "@std/testing/mock";
 import { PartialInIsland } from "./fixtures_islands/PartialInIsland.tsx";
 import { FakeServer } from "../src/test_utils.ts";
 import { JsonIsland } from "./fixtures_islands/JsonIsland.tsx";
@@ -1858,6 +1859,49 @@ Deno.test({
 });
 
 Deno.test({
+  name: "partials - form without action inside f-client-nav not intercepted",
+  fn: async () => {
+    const app = testApp()
+      .post("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <p class="submitted">form submitted normally</p>
+          </Doc>,
+        );
+      })
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav>
+              <form method="post">
+                <input name="name" value="foo" />
+                <Partial name="foo">
+                  <p class="init">init</p>
+                </Partial>
+                <button type="submit" class="update">
+                  update
+                </button>
+              </form>
+            </div>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".init").wait();
+
+      // Form should do a full page navigation, not a partial update
+      await Promise.all([
+        page.waitForNavigation(),
+        page.locator(".update").click(),
+      ]);
+      await page.locator(".submitted").wait();
+    });
+  },
+});
+
+Deno.test({
   name: "partials - submit form redirect",
   fn: async () => {
     const app = testApp()
@@ -2773,6 +2817,94 @@ Deno.test({
       await page.evaluate(() => window.history.go(-1));
       await page.locator(".dynamic-content").wait();
     });
+  },
+});
+
+Deno.test({
+  name: "partials - warns when append/prepend missing key",
+  fn: async () => {
+    const app = testApp()
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <Partial name="no-key-append" mode="append">
+              <p>content</p>
+            </Partial>
+            <Partial name="no-key-prepend" mode="prepend">
+              <p>content</p>
+            </Partial>
+          </Doc>,
+        );
+      });
+
+    const warnSpy = spy(console, "warn");
+    try {
+      const server = new FakeServer(app.handler());
+      await server.get("/");
+      assertSpyCalls(warnSpy, 2);
+      expect(String(warnSpy.calls[0].args[0])).toContain("no-key-append");
+      expect(String(warnSpy.calls[0].args[0])).toContain("append");
+      expect(String(warnSpy.calls[1].args[0])).toContain("no-key-prepend");
+      expect(String(warnSpy.calls[1].args[0])).toContain("prepend");
+    } finally {
+      warnSpy.restore();
+    }
+  },
+});
+
+Deno.test({
+  name: "partials - no warning when append/prepend has key",
+  fn: async () => {
+    const app = testApp()
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <Partial name="keyed-append" mode="append" key="a">
+              <p>content</p>
+            </Partial>
+            <Partial name="keyed-prepend" mode="prepend" key="b">
+              <p>content</p>
+            </Partial>
+          </Doc>,
+        );
+      });
+
+    const warnSpy = spy(console, "warn");
+    try {
+      const server = new FakeServer(app.handler());
+      await server.get("/");
+      assertSpyCalls(warnSpy, 0);
+    } finally {
+      warnSpy.restore();
+    }
+  },
+});
+
+Deno.test({
+  name: "partials - no warning for replace mode without key",
+  fn: async () => {
+    const app = testApp()
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <Partial name="replace-no-key" mode="replace">
+              <p>content</p>
+            </Partial>
+            <Partial name="default-no-key">
+              <p>content</p>
+            </Partial>
+          </Doc>,
+        );
+      });
+
+    const warnSpy = spy(console, "warn");
+    try {
+      const server = new FakeServer(app.handler());
+      await server.get("/");
+      assertSpyCalls(warnSpy, 0);
+    } finally {
+      warnSpy.restore();
+    }
   },
 });
 

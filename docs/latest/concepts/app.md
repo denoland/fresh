@@ -40,7 +40,7 @@ mounted alongside other apps. The base path is available in handlers via
 All items are applied from top to bottom. This means that when you defined a
 middleware _after_ a `.get()` handler, it won't be included.
 
-```ts main.ts
+```ts
 const app = new App()
   .use((ctx) => {
     // Will be called for all middlewares
