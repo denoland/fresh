@@ -16,7 +16,6 @@ import { asset, Partial, type PartialProps } from "../shared.ts";
 import { stringify } from "../../jsonify/stringify.ts";
 import type { Island } from "../../context.ts";
 import {
-  applyBasePath,
   assetHashingHook,
   CLIENT_NAV_ATTR,
   DATA_FRESH_KEY,
@@ -116,8 +115,7 @@ options[OptionsType.VNODE] = (vnode) => {
       setActiveUrl(vnode, RENDER_STATE.ctx.url.pathname);
     }
   }
-  const basePath = RENDER_STATE?.ctx.config.basePath;
-  assetHashingHook(vnode, BUILD_ID, basePath);
+  assetHashingHook(vnode, BUILD_ID, RENDER_STATE?.ctx.config.basePath);
 
   if (typeof vnode.type === "function") {
     if (vnode.type === Partial) {
@@ -295,7 +293,6 @@ options[OptionsType.DIFF] = (vnode) => {
           RENDER_STATE!.renderedHtmlHead = true;
 
           const entryAssets = RENDER_STATE.buildCache.getEntryAssets();
-          const basePath = RENDER_STATE.ctx.config.basePath;
           // deno-lint-ignore no-explicit-any
           const items: VNode<any>[] = [];
           if (entryAssets.length > 0) {
@@ -307,7 +304,7 @@ options[OptionsType.DIFF] = (vnode) => {
                   h(
                     "link",
                     // deno-lint-ignore no-explicit-any
-                    { rel: "stylesheet", href: asset(id, basePath) } as any,
+                    { rel: "stylesheet", href: asset(id) } as any,
                   ),
                 );
               }
@@ -467,7 +464,6 @@ options[OptionsType.DIFFED] = (vnode) => {
 
 function RemainingHead() {
   if (RENDER_STATE !== null) {
-    const basePath = RENDER_STATE.ctx.config.basePath;
     // deno-lint-ignore no-explicit-any
     const items: VNode<any>[] = [];
     if (RENDER_STATE.headComponents.size > 0) {
@@ -477,16 +473,15 @@ function RemainingHead() {
     RENDER_STATE.islands.forEach((island) => {
       if (island.css.length > 0) {
         for (let i = 0; i < island.css.length; i++) {
-          const css = island.css[i];
-          const fullPath = applyBasePath(css, basePath);
-          items.push(h("link", { rel: "stylesheet", href: fullPath }));
+          items.push(
+            h("link", { rel: "stylesheet", href: asset(island.css[i]) }),
+          );
         }
       }
     });
 
     RENDER_STATE.islandAssets.forEach((css) => {
-      const fullPath = applyBasePath(css, basePath);
-      items.push(h("link", { rel: "stylesheet", href: fullPath }));
+      items.push(h("link", { rel: "stylesheet", href: asset(css) }));
     });
 
     if (items.length > 0) {

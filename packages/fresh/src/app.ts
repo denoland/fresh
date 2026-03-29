@@ -2,6 +2,7 @@ import { trace } from "@opentelemetry/api";
 
 import { DENO_DEPLOYMENT_ID } from "@fresh/build-id";
 import * as colors from "@std/fmt/colors";
+import { setBasePath } from "./runtime/shared.ts";
 import {
   type MaybeLazyMiddleware,
   type Middleware,
@@ -218,10 +219,17 @@ export class App<State> {
       );
     }
 
-    const hasInvalidChars = /[@#?&=\s]/.test(basePath);
-    if (hasInvalidChars) {
+    // Validate by round-tripping through URL — catches all invalid path chars
+    try {
+      const url = new URL(basePath, "https://localhost");
+      if (url.pathname !== basePath) {
+        throw new Error(
+          `Invalid basePath: "${basePath}". Contains characters that require encoding`,
+        );
+      }
+    } catch {
       throw new Error(
-        `Invalid basePath: "${basePath}". Contains invalid characters`,
+        `Invalid basePath: "${basePath}". Must be a valid URL path segment`,
       );
     }
   }
@@ -421,6 +429,8 @@ export class App<State> {
         buildCache = new MockBuildCache([], this.config.mode);
       }
     }
+
+    setBasePath(this.config.basePath);
 
     const router = new UrlPatternRouter<MaybeLazyMiddleware<State>>();
 

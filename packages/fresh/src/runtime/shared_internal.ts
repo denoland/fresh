@@ -176,5 +176,10 @@ export function applyBasePath(path: string, basePath?: string): string {
     return path;
   }
 
+  // Avoid double-prefixing if the path already starts with basePath
+  if (path.startsWith(basePath + "/") || path === basePath) {
+    return path;
+  }
+
   return basePath + path;
 }

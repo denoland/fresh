@@ -2,6 +2,8 @@ import type { ComponentChildren, VNode } from "preact";
 import { BUILD_ID } from "@fresh/build-id";
 import { assetInternal, assetSrcSetInternal } from "./shared_internal.ts";
 
+let BASE_PATH = "";
+
 export { HttpError } from "../error.ts";
 
 /**
@@ -22,18 +24,23 @@ export { HttpError } from "../error.ts";
  */
 export const IS_BROWSER = typeof document !== "undefined";
 
+/** @internal Set the base path for asset URLs. Called once during app init. */
+export function setBasePath(basePath: string) {
+  BASE_PATH = basePath;
+}
+
 /**
  * Create a "locked" asset path. This differs from a plain path in that it is
  * specific to the current version of the application, and as such can be safely
  * served with a very long cache lifetime (1 year).
  */
-export function asset(path: string, basePath?: string): string {
-  return assetInternal(path, BUILD_ID, basePath);
+export function asset(path: string): string {
+  return assetInternal(path, BUILD_ID, BASE_PATH);
 }
 
 /** Apply the `asset` function to urls in a `srcset` attribute. */
-export function assetSrcSet(srcset: string, basePath?: string): string {
-  return assetSrcSetInternal(srcset, BUILD_ID, basePath);
+export function assetSrcSet(srcset: string): string {
+  return assetSrcSetInternal(srcset, BUILD_ID, BASE_PATH);
 }
 
 export interface PartialProps {
