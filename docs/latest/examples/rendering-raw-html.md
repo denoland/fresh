@@ -4,8 +4,8 @@ description: |
 ---
 
 Text content in Fresh is always escaped, whether serverside rendered or rendered
-in islands. While this generally desired, it can create issues in certain
-situations.
+in [islands](/docs/concepts/islands). While this is generally desired, it can
+create issues in certain situations.
 
 To address this you can render raw HTML via Preact's `dangerouslySetInnerHTML`
 prop:
@@ -27,6 +27,6 @@ rendering markdown.
 
 > [warn]: Setting arbitrary HTML can be dangerous, hence the
 > `dangerouslySetInnerHTML` naming. Make sure you trust the source. Rendering
-> user-supplied HTML to the DOM makes your site vulnerable to cross- site
-> scripting. The markup must first be sanitizied, or better yet, something you
+> user-supplied HTML to the DOM makes your site vulnerable to cross-site
+> scripting. The markup must first be sanitized, or better yet, something you
 > trust.

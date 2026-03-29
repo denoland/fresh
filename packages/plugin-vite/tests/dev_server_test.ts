@@ -37,6 +37,12 @@ Deno.test({
     const res = await fetch(`${demoServer.address()}/test_static/foo.txt`);
     const text = await res.text();
     expect(text).toContain("it works");
+
+    const resWithSpace = await fetch(
+      `${demoServer.address()}/test%20%2520encodeUri/foo%20%2520encodeUri.txt`,
+    );
+    const textWithSpace = await resWithSpace.text();
+    expect(textWithSpace).toContain("space it works");
   },
   sanitizeResources: false,
   sanitizeOps: false,
@@ -454,11 +460,39 @@ Deno.test({
 });
 
 Deno.test({
+  name: "vite dev - qs",
+  fn: async () => {
+    const res = await fetch(`${demoServer.address()}/tests/qs`);
+    const text = await res.text();
+    expect(text).toContain("<h1>qs</h1>");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite dev - stripe",
+  fn: async () => {
+    const res = await fetch(`${demoServer.address()}/tests/stripe`);
+    const text = await res.text();
+    expect(text).toContain("<h1>stripe</h1>");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
   name: "vite dev - static index.html",
   fn: async () => {
     const res = await fetch(`${demoServer.address()}/test_static/foo`);
     const text = await res.text();
     expect(text).toContain("<h1>ok</h1>");
+
+    const resWithSpace = await fetch(
+      `${demoServer.address()}/test%20%2520encodeUri/`,
+    );
+    const textWithSpace = await resWithSpace.text();
+    expect(textWithSpace).toContain("<h1>ok</h1>");
   },
   sanitizeOps: false,
   sanitizeResources: false,
@@ -486,6 +520,28 @@ Deno.test({
     const res = await fetch(`${demoServer.address()}/tests/middlewares`);
     const text = await res.text();
     expect(text).toEqual("AB");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite dev - support jsx namespace",
+  fn: async () => {
+    const res = await fetch(`${demoServer.address()}/tests/jsx_namespace`);
+    const text = await res.text();
+    expect(text).toContain(`xml:space="preserve"`);
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite dev - source mapped stack traces",
+  fn: async () => {
+    const res = await fetch(`${demoServer.address()}/tests/throw`);
+    const text = await res.text();
+    expect(text).toContain("throw.tsx:5:11");
   },
   sanitizeOps: false,
   sanitizeResources: false,

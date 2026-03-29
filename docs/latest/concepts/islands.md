@@ -39,8 +39,9 @@ const app = new App()
 
 ## Passing props to islands
 
-Passing props to islands is supported, but only if the props are serializable.
-Fresh can serialize the following types of values:
+Passing props to islands is supported, but only if the props are
+[serializable](/docs/advanced/serialization). Fresh can serialize the following
+types of values:
 
 - Primitive types `string`, `number`, `boolean`, `bigint`, `undefined`, and
   `null`
@@ -51,9 +52,11 @@ Fresh can serialize the following types of values:
 - `RegExp`
 - `JSX` Elements
 - Collections `Map` and `Set`
+- `Temporal` objects (`Instant`, `ZonedDateTime`, `PlainDate`, `PlainTime`,
+  `PlainDateTime`, `PlainYearMonth`, `PlainMonthDay`, `Duration`)
 - Plain objects with string keys and serializable values
 - Arrays containing serializable values
-- Preact Signals (if the inner value is serializable)
+- Preact [Signals](/docs/concepts/signals) (if the inner value is serializable)
 
 Circular references are supported. If an object or signal is referenced multiple
 times, it is only serialized once and the references are restored upon
@@ -102,7 +105,7 @@ that is needed for the islands to the browser.
 export default (props: { foo: string }) => <>{props.foo}</>;
 ```
 
-```tsx route/index.tsx
+```tsx routes/index.tsx
 import MyIsland from "../islands/my-island.tsx";
 import OtherIsland from "../islands/other-island.tsx";
 
@@ -117,9 +120,10 @@ import OtherIsland from "../islands/other-island.tsx";
 
 ## Rendering islands on client only
 
-When using client-only APIs, like `EventSource` or `navigator.getUserMedia`,
-this component will not run on the server as it will produce an error. To fix
-this use the `IS_BROWSER` flag as a guard:
+When using client-only APIs, like `EventSource` or `navigator.getUserMedia`, the
+component would error during server-side rendering. Use the `IS_BROWSER`
+constant from `fresh/runtime` to guard browser-only code. It is `false` on the
+server and `true` in the browser:
 
 ```tsx islands/my-island.tsx
 import { IS_BROWSER } from "fresh/runtime";
@@ -133,3 +137,66 @@ export function MyIsland() {
   return <div></div>;
 }
 ```
+
+## Using Custom Elements (Web Components)
+
+[Custom elements](https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements)
+can be used in Fresh, but they must be registered client-side since
+`customElements.define()` is a browser API.
+
+### Registering a custom element
+
+Use an island to register and render custom elements:
+
+```tsx islands/MyElement.tsx
+import { useEffect } from "preact/hooks";
+import { IS_BROWSER } from "fresh/runtime";
+
+export function MyElement() {
+  useEffect(() => {
+    if (customElements.get("my-greeting")) return;
+
+    customElements.define(
+      "my-greeting",
+      class extends HTMLElement {
+        connectedCallback() {
+          const name = this.getAttribute("name") ?? "World";
+          this.innerHTML = `<p>Hello, ${name}!</p>`;
+        }
+      },
+    );
+  }, []);
+
+  if (!IS_BROWSER) {
+    return <div></div>;
+  }
+
+  return <my-greeting name="Fresh" />;
+}
+```
+
+### Using third-party web components
+
+Third-party web component libraries work the same way - import and register them
+inside an island:
+
+```tsx islands/ThirdPartyElement.tsx
+import { useEffect } from "preact/hooks";
+import { IS_BROWSER } from "fresh/runtime";
+
+export function ShoelaceButton() {
+  useEffect(() => {
+    // Import the library's registration script
+    import("@shoelace-style/shoelace/dist/components/button/button.js");
+  }, []);
+
+  if (!IS_BROWSER) {
+    return <button>Click me</button>;
+  }
+
+  return <sl-button variant="primary">Click me</sl-button>;
+}
+```
+
+> [tip]: Return a plain HTML fallback from the server-side branch
+> (`!IS_BROWSER`) so the page is usable before JavaScript loads.

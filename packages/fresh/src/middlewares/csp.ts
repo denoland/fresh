@@ -12,16 +12,21 @@ export interface CSPOptions {
   csp?: string[];
 }
 
-/** Middleware to set Content-Security-Policy headers
+/**
+ * Middleware to set Content-Security-Policy headers
+ *
  * @param options - CSP options
- * @example
+ *
+ * @example Basic usage
+ * ```ts
  * app.use(csp({
  *   reportOnly: true,
  *   reportTo: '/api/csp-reports',
  *   csp: [
- *       "script-src 'self' 'unsafe-inline' 'https://example.com'",
+ *     "script-src 'self' 'unsafe-inline' 'https://example.com'",
  *   ],
  * }));
+ * ```
  */
 export function csp<State>(options: CSPOptions = {}): Middleware<State> {
   const {

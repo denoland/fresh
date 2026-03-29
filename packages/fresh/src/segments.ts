@@ -4,7 +4,7 @@ import { type Method, patternToSegments } from "./router.ts";
 import type { LayoutConfig, Route } from "./types.ts";
 import { type Context, getInternals } from "./context.ts";
 import { recordSpanError, tracer } from "./otel.ts";
-import { isHandlerByMethod } from "./handlers.ts";
+import { type HandlerFn, isHandlerByMethod } from "./handlers.ts";
 import {
   type AsyncAnyComponent,
   type PageProps,
@@ -167,9 +167,16 @@ export async function renderRoute<State>(
     attributes: { "fresh.span_type": "fs_routes/handler" },
   }, async (span) => {
     try {
-      const fn = isHandlerByMethod(handlers)
-        ? handlers[method] ?? null
-        : handlers;
+      let fn: HandlerFn<unknown, State> | null = null;
+      if (isHandlerByMethod(handlers)) {
+        if (handlers[method] !== undefined) {
+          fn = handlers[method];
+        } else if (method === "HEAD" && handlers.GET !== undefined) {
+          fn = handlers.GET;
+        }
+      } else {
+        fn = handlers;
+      }
 
       if (fn === null) return await ctx.next();
 

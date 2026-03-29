@@ -5,11 +5,11 @@ import * as semver from "@std/semver";
 import initConfig from "../deno.json" with { type: "json" };
 
 // Keep these as is, as we replace these version in our release script
-const FRESH_VERSION = "2.1.1";
+const FRESH_VERSION = "2.2.2";
 const FRESH_TAILWIND_VERSION = "1.0.0";
 const FRESH_VITE_PLUGIN = "1.0.0";
-const PREACT_VERSION = "10.27.2";
-const PREACT_SIGNALS_VERSION = "2.3.1";
+const PREACT_VERSION = "10.28.3";
+const PREACT_SIGNALS_VERSION = "2.7.1";
 const TAILWINDCSS_VERSION = "4.1.10";
 const TAILWINDCSS_POSTCSS_VERSION = "4.1.10";
 const POSTCSS_VERSION = "8.5.6";
@@ -48,13 +48,13 @@ Initialize a new Fresh project. This will create all the necessary files
 for a new project.
 
 To generate a project in the './foobar' subdirectory:
-    ${colors.rgb8("deno run -Ar jsr:@fresh/init ./foobar", 245)}
+    ${colors.rgb8("deno create @fresh/init ./foobar", 245)}
 
 To generate a project in the current directory:
-    ${colors.rgb8("deno run -Ar jsr:@fresh/init .", 245)}
+    ${colors.rgb8("deno create @fresh/init .", 245)}
 
 ${colors.rgb8("USAGE:", 3)}
-    ${colors.rgb8("deno run -Ar jsr:@fresh/init [DIRECTORY]", 245)}
+    ${colors.rgb8("deno create @fresh/init [DIRECTORY]", 245)}
 
 ${colors.rgb8("OPTIONS:", 3)}
     ${colors.rgb8("--force", 2)}      Overwrite existing files
@@ -86,6 +86,7 @@ export async function initProject(
     builder?: boolean | null;
     help?: boolean | null;
     h?: boolean | null;
+    skipInstall?: boolean | null;
   } = {},
 ): Promise<void> {
   const freshVersion = await getLatestVersion("@fresh/core", FRESH_VERSION);
@@ -559,7 +560,7 @@ if (Deno.args.includes("build")) {
   }
 
   const denoJson = {
-    nodeModulesDir: "auto",
+    nodeModulesDir: "manual",
     tasks: {
       check: "deno fmt --check . && deno lint . && deno check",
       dev: "deno run -A --watch=static/,routes/ dev.ts",
@@ -574,6 +575,7 @@ if (Deno.args.includes("build")) {
     },
     exclude: ["**/_fresh/*"],
     imports: {
+      "@/": "./",
       "fresh": `jsr:@fresh/core@^${freshVersion}`,
       "preact": `npm:preact@^${PREACT_VERSION}`,
       "@preact/signals": `npm:@preact/signals@^${PREACT_SIGNALS_VERSION}`,
@@ -682,7 +684,11 @@ This will watch the project directory and restart as necessary.`;
       "[javascript]": {
         "editor.defaultFormatter": "denoland.vscode-deno",
       },
-      "css.customData": useTailwind ? [".vscode/tailwind.json"] : undefined,
+      "files.associations": useTailwind
+        ? {
+          "*.css": "tailwindcss",
+        }
+        : undefined,
     };
 
     await writeFile(".vscode/settings.json", vscodeSettings);
@@ -690,76 +696,15 @@ This will watch the project directory and restart as necessary.`;
     const recommendations = ["denoland.vscode-deno"];
     if (useTailwind) recommendations.push("bradlc.vscode-tailwindcss");
     await writeFile(".vscode/extensions.json", { recommendations });
+  }
 
-    if (useTailwind) {
-      const tailwindCustomData = {
-        "version": 1.1,
-        "atDirectives": [
-          {
-            "name": "@tailwind",
-            "description":
-              "Use the `@tailwind` directive to insert Tailwind's `base`, `components`, `utilities` and `screens` styles into your CSS.",
-            "references": [
-              {
-                "name": "Tailwind Documentation",
-                "url":
-                  "https://tailwindcss.com/docs/functions-and-directives#tailwind",
-              },
-            ],
-          },
-          {
-            "name": "@apply",
-            "description":
-              "Use the `@apply` directive to inline any existing utility classes into your own custom CSS. This is useful when you find a common utility pattern in your HTML that you’d like to extract to a new component.",
-            "references": [
-              {
-                "name": "Tailwind Documentation",
-                "url":
-                  "https://tailwindcss.com/docs/functions-and-directives#apply",
-              },
-            ],
-          },
-          {
-            "name": "@responsive",
-            "description":
-              "You can generate responsive variants of your own classes by wrapping their definitions in the `@responsive` directive:\n```css\n@responsive {\n  .alert {\n    background-color: #E53E3E;\n  }\n}\n```\n",
-            "references": [
-              {
-                "name": "Tailwind Documentation",
-                "url":
-                  "https://tailwindcss.com/docs/functions-and-directives#responsive",
-              },
-            ],
-          },
-          {
-            "name": "@screen",
-            "description":
-              "The `@screen` directive allows you to create media queries that reference your breakpoints by **name** instead of duplicating their values in your own CSS:\n```css\n@screen sm {\n  /* ... */\n}\n```\n…gets transformed into this:\n```css\n@media (min-width: 640px) {\n  /* ... */\n}\n```\n",
-            "references": [
-              {
-                "name": "Tailwind Documentation",
-                "url":
-                  "https://tailwindcss.com/docs/functions-and-directives#screen",
-              },
-            ],
-          },
-          {
-            "name": "@variants",
-            "description":
-              "Generate `hover`, `focus`, `active` and other **variants** of your own utilities by wrapping their definitions in the `@variants` directive:\n```css\n@variants hover, focus {\n   .btn-brand {\n    background-color: #3182CE;\n  }\n}\n```\n",
-            "references": [
-              {
-                "name": "Tailwind Documentation",
-                "url":
-                  "https://tailwindcss.com/docs/functions-and-directives#variants",
-              },
-            ],
-          },
-        ],
-      };
-
-      await writeFile(".vscode/tailwind.json", tailwindCustomData);
-    }
+  if (!flags.skipInstall) {
+    console.log("Installing dependencies...");
+    await new Deno.Command(Deno.execPath(), {
+      cwd: unresolvedDirectory,
+      args: ["install"],
+    }).output();
+    console.log("Installing dependencies...%cdone!", "color: green");
   }
 
   // Specifically print unresolvedDirectory, rather than resolvedDirectory in order to
