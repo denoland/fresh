@@ -2775,3 +2775,137 @@ Deno.test({
     });
   },
 });
+
+Deno.test({
+  name: "partials - appends data scripts to head",
+  fn: async () => {
+    const app = testApp()
+      .get("/partial", (ctx) => {
+        return ctx.render(
+          <html>
+            <head>
+              {charset}
+              {favicon}
+              <title>Updated</title>
+              <script type="application/ld+json">
+                {JSON.stringify({ "@type": "Article", name: "Updated" })}
+              </script>
+            </head>
+            <body f-client-nav>
+              <Partial name="body">
+                <p class="updated">updated</p>
+              </Partial>
+            </body>
+          </html>,
+        );
+      })
+      .get("/", (ctx) => {
+        return ctx.render(
+          <html>
+            <head>
+              {charset}
+              {favicon}
+              <title>Init</title>
+            </head>
+            <body f-client-nav>
+              <Partial name="body">
+                <p class="init">init</p>
+              </Partial>
+              <button type="button" class="update" f-partial="/partial">
+                update
+              </button>
+            </body>
+          </html>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".init").wait();
+
+      await page.locator(".update").click();
+      await page.locator(".updated").wait();
+
+      const count = await page.evaluate(
+        () =>
+          document.head.querySelectorAll('script[type="application/ld+json"]')
+            .length,
+      );
+      expect(count).toEqual(1);
+
+      const content = await page.evaluate(
+        () =>
+          document.head.querySelector('script[type="application/ld+json"]')
+            ?.textContent,
+      );
+      expect(JSON.parse(content!)).toEqual({
+        "@type": "Article",
+        name: "Updated",
+      });
+    });
+  },
+});
+
+Deno.test({
+  name: "partials - does not duplicate data scripts on repeat navigation",
+  fn: async () => {
+    const app = testApp()
+      .get("/partial", (ctx) => {
+        return ctx.render(
+          <html>
+            <head>
+              {charset}
+              {favicon}
+              <title>Updated</title>
+              <script type="application/ld+json">
+                {JSON.stringify({ "@type": "Article", name: "Same" })}
+              </script>
+            </head>
+            <body f-client-nav>
+              <Partial name="body">
+                <p class="updated">updated</p>
+              </Partial>
+            </body>
+          </html>,
+        );
+      })
+      .get("/", (ctx) => {
+        return ctx.render(
+          <html>
+            <head>
+              {charset}
+              {favicon}
+              <title>Init</title>
+            </head>
+            <body f-client-nav>
+              <Partial name="body">
+                <p class="init">init</p>
+              </Partial>
+              <button type="button" class="update" f-partial="/partial">
+                update
+              </button>
+            </body>
+          </html>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".init").wait();
+
+      // Click twice to trigger two partial navigations
+      await page.locator(".update").click();
+      await page.locator(".updated").wait();
+      await page.locator(".update").click();
+      await page.locator(".updated").wait();
+
+      const count = await page.evaluate(
+        () =>
+          document.head.querySelectorAll('script[type="application/ld+json"]')
+            .length,
+      );
+      // Should still be 1, not 2
+      expect(count).toEqual(1);
+    });
+  },
+});

@@ -411,7 +411,23 @@ export async function applyPartials(res: Response): Promise<void> {
         t !== "" && t !== "module" && t !== "text/javascript" &&
         t !== "importmap"
       ) {
-        document.head.appendChild(script);
+        // Deduplicate: replace existing data script with same type and
+        // id, or same type and content, to avoid accumulating duplicates
+        // across repeated partial navigations.
+        const selector = script.id
+          ? `script[type="${t}"][id="${script.id}"]`
+          : `script[type="${t}"]`;
+        const existing = Array.from(
+          document.head.querySelectorAll<HTMLScriptElement>(selector),
+        ).find((el) =>
+          script.id ? true : el.textContent === script.textContent
+        );
+
+        if (existing === undefined) {
+          document.head.appendChild(script);
+        } else if (existing.textContent !== script.textContent) {
+          existing.textContent = script.textContent;
+        }
       }
     } else if (child.nodeName === "STYLE") {
       const style = child as HTMLStyleElement;
