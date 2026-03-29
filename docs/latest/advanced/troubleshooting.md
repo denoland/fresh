@@ -12,8 +12,7 @@ The Node compatibility layer in Deno is constantly receiving new improvements
 and bug fixes with every Deno version. Chances are that the issue you're running
 into has already been fixed. To rule that out, install the latest Deno version.
 
-```sh
-# Install latest Deno version
+```sh Terminal
 deno upgrade
 ```
 
@@ -22,7 +21,7 @@ deno upgrade
 When run for the first time, you might see Deno complaining about missing
 packages. Install them with:
 
-```shell
+```sh Terminal
 deno install --allow-scripts
 ```
 

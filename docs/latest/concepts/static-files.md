@@ -37,9 +37,8 @@ import "./assets/styles.css";
 - Files **referenced by URL path** (favicon.ico, fonts, robots.txt, PDFs, etc.):
   place in `static/`
 
-> [!TIP]
-> Always use root-relative URLs (starting with `/`) when referencing static
-> files in HTML. For example, use `src="/image/photo.png"` instead of
+> [tip]: Always use root-relative URLs (starting with `/`) when referencing
+> static files in HTML. For example, use `src="/image/photo.png"` instead of
 > `src="image/photo.png"`. Relative paths resolve against the browser's current
 > URL, which breaks when navigating between routes.
 

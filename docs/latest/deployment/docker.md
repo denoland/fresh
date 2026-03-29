@@ -34,10 +34,9 @@ EXPOSE 8000
 CMD ["deno", "serve", "-A", "_fresh/server.js"]
 ```
 
-> [!NOTE]
-> The `deno install --allow-scripts` step is required to populate `node_modules`
-> and run any post-install scripts needed by npm packages (e.g. Tailwind CSS).
-> This must happen before `deno task build`.
+> [info]: The `deno install --allow-scripts` step is required to populate
+> `node_modules` and run any post-install scripts needed by npm packages (e.g.
+> Tailwind CSS). This must happen before `deno task build`.
 
 To build your Docker image inside of a Git repository:
 

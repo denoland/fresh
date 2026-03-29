@@ -7,7 +7,6 @@ In this chapter of the Fresh documentation, you can find examples of features
 that you may like in your Fresh project.
 
 - [API Routes](./examples/api-routes)
-- [Migration Guide](./examples/migration-guide)
 - [DaisyUI](./examples/daisyui)
 - [Rendering Markdown](./examples/markdown)
 - [Rendering raw HTML](./examples/rendering-raw-html)

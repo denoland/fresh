@@ -16,10 +16,9 @@ const app = new App()
 app.listen();
 ```
 
-> [!TIP]
-> To use JSX in your `main` file (e.g. with `ctx.render(<h1>Hello</h1>)`),
-> rename it to `main.tsx` and set `serverEntry: "main.tsx"` in the `fresh()`
-> plugin options in `vite.config.ts`.
+> [tip]: To use JSX in your `main` file (e.g. with
+> `ctx.render(<h1>Hello</h1>)`), rename it to `main.tsx` and set
+> `serverEntry: "main.tsx"` in the `fresh()` plugin options in `vite.config.ts`.
 
 ## Configuration
 

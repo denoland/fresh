@@ -34,18 +34,15 @@ const toc: RawTableOfContents = {
         link: "latest",
         pages: [
           ["architecture", "Architecture", "link:latest"],
+          ["islands", "Islands", "link:latest"],
           ["app", "App", "link:latest"],
-          ["middleware", "Middlewares", "link:latest"],
-          ["context", "Context", "link:latest"],
-
           ["routing", "Routing", "link:latest"],
           ["data-fetching", "Data Fetching", "link:latest"],
-
-          ["islands", "Islands", "link:latest"],
+          ["middleware", "Middlewares", "link:latest"],
+          ["context", "Context", "link:latest"],
           ["signals", "Signals", "link:latest"],
-          ["static-files", "Static files", "link:latest"],
           ["layouts", "Layouts", "link:latest"],
-
+          ["static-files", "Static files", "link:latest"],
           ["file-routing", "File routing", "link:latest"],
         ],
       },
@@ -61,7 +58,7 @@ const toc: RawTableOfContents = {
           ["define", "Define Helpers", "link:latest"],
           ["serialization", "Serialization", "link:latest"],
           ["environment-variables", "Environment Variables", "link:latest"],
-          ["head", "Modifying <head>", "link:latest"],
+          ["head", "<head> element", "link:latest"],
           ["vite", "Vite Plugin Options", "link:latest"],
           ["opentelemetry", "OpenTelemetry", "link:latest"],
           ["api-reference", "API Reference", "link:latest"],
@@ -98,7 +95,6 @@ const toc: RawTableOfContents = {
         link: "latest",
         pages: [
           ["api-routes", "API Routes", "link:latest"],
-          ["migration-guide", "Migration Guide", "link:latest"],
           ["daisyui", "daisyUI", "link:latest"],
           ["markdown", "Rendering Markdown", "link:latest"],
           ["rendering-raw-html", "Rendering raw HTML", "link:latest"],
@@ -111,6 +107,10 @@ const toc: RawTableOfContents = {
           ["session-management", "Session management", "link:latest"],
           ["common-patterns", "Common Patterns", "link:latest"],
         ],
+      },
+      "migration-guide": {
+        title: "Migration Guide",
+        link: "latest",
       },
       contributing: {
         title: "Contributing",

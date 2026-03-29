@@ -52,6 +52,8 @@ types of values:
 - `RegExp`
 - `JSX` Elements
 - Collections `Map` and `Set`
+- `Temporal` objects (`Instant`, `ZonedDateTime`, `PlainDate`, `PlainTime`,
+  `PlainDateTime`, `PlainYearMonth`, `PlainMonthDay`, `Duration`)
 - Plain objects with string keys and serializable values
 - Arrays containing serializable values
 - Preact [Signals](/docs/concepts/signals) (if the inner value is serializable)
@@ -196,6 +198,5 @@ export function ShoelaceButton() {
 }
 ```
 
-> [!TIP]
-> Return a plain HTML fallback from the server-side branch (`!IS_BROWSER`) so
-> the page is usable before JavaScript loads.
+> [tip]: Return a plain HTML fallback from the server-side branch
+> (`!IS_BROWSER`) so the page is usable before JavaScript loads.

@@ -82,10 +82,9 @@ Both sliders share the same signal - moving one updates the other. When the same
 signal object is passed to multiple islands, Fresh preserves the reference so
 they stay synchronized.
 
-> [!NOTE]
-> Using `useSignal` in a route component (not an island) is intentional here.
-> The signal is created during server rendering, serialized into the HTML, and
-> reconstructed as a live signal on the client. This is how Fresh shares
+> [info]: Using `useSignal` in a route component (not an island) is intentional
+> here. The signal is created during server rendering, serialized into the HTML,
+> and reconstructed as a live signal on the client. This is how Fresh shares
 > reactive state between multiple islands on the same page.
 
 ## Shared state across islands

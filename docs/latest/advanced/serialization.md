@@ -12,23 +12,24 @@ custom serialization system that supports more types than standard
 
 The following types can be passed as island props:
 
-| Type                                 | Notes                                                          |
-| ------------------------------------ | -------------------------------------------------------------- |
-| `string`, `number`, `boolean`        | Primitive types                                                |
-| `null`, `undefined`                  |                                                                |
-| `bigint`                             |                                                                |
-| `NaN`, `Infinity`, `-Infinity`, `-0` | Special numeric values                                         |
-| `Array`                              | Including sparse arrays                                        |
-| Plain objects                        | Objects with string keys and serializable values               |
-| `Date`                               |                                                                |
-| `URL`                                |                                                                |
-| `RegExp`                             | Including flags                                                |
-| `Set`                                | Values must be serializable                                    |
-| `Map`                                | Keys and values must be serializable                           |
-| `Uint8Array`                         | Binary data                                                    |
-| `Signal`                             | From `@preact/signals` - see [Signals](/docs/concepts/signals) |
-| `Computed Signal`                    | Read-only signals                                              |
-| JSX Elements                         | Server-rendered JSX passed to islands                          |
+| Type                                 | Notes                                                                                                                |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| `string`, `number`, `boolean`        | Primitive types                                                                                                      |
+| `null`, `undefined`                  |                                                                                                                      |
+| `bigint`                             |                                                                                                                      |
+| `NaN`, `Infinity`, `-Infinity`, `-0` | Special numeric values                                                                                               |
+| `Array`                              | Including sparse arrays                                                                                              |
+| Plain objects                        | Objects with string keys and serializable values                                                                     |
+| `Date`                               |                                                                                                                      |
+| `URL`                                |                                                                                                                      |
+| `RegExp`                             | Including flags                                                                                                      |
+| `Set`                                | Values must be serializable                                                                                          |
+| `Map`                                | Keys and values must be serializable                                                                                 |
+| `Uint8Array`                         | Binary data                                                                                                          |
+| `Signal`                             | From `@preact/signals` - see [Signals](/docs/concepts/signals)                                                       |
+| `Computed Signal`                    | Read-only signals                                                                                                    |
+| `Temporal.*`                         | `Instant`, `ZonedDateTime`, `PlainDate`, `PlainTime`, `PlainDateTime`, `PlainYearMonth`, `PlainMonthDay`, `Duration` |
+| JSX Elements                         | Server-rendered JSX passed to islands                                                                                |
 
 ## Not serializable
 
