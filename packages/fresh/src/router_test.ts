@@ -98,6 +98,36 @@ Deno.test("UrlPatternRouter - no trailing slash matches route with slash", () =>
   });
 });
 
+Deno.test("UrlPatternRouter - exact match takes priority over trailing slash fallback", () => {
+  const router = new UrlPatternRouter();
+  const A = () => {};
+  const B = () => {};
+  router.add("GET", "/wissen", [A]);
+  router.add("GET", "/wissen/", [B]);
+
+  const withSlash = router.match(
+    "GET",
+    new URL("/wissen/", "http://localhost"),
+  );
+  expect(withSlash).toEqual({
+    params: Object.create(null),
+    handlers: [B],
+    methodMatch: true,
+    pattern: "/wissen/",
+  });
+
+  const withoutSlash = router.match(
+    "GET",
+    new URL("/wissen", "http://localhost"),
+  );
+  expect(withoutSlash).toEqual({
+    params: Object.create(null),
+    handlers: [A],
+    methodMatch: true,
+    pattern: "/wissen",
+  });
+});
+
 Deno.test("UrlPatternRouter - root trailing slash does not double-match", () => {
   const router = new UrlPatternRouter();
   const A = () => {};
