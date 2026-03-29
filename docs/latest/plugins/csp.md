@@ -55,8 +55,8 @@ When `useNonce` is enabled:
 - Fresh automatically injects a unique `nonce` attribute onto every inline
   `<script>` and `<style>` tag during server rendering.
 - The CSP header replaces `'unsafe-inline'` with `'nonce-{value}'` in
-  `script-src`, `style-src`, `default-src`, `script-src-elem`,
-  `style-src-elem`, and `style-src-attr` directives.
+  `script-src`, `style-src`, `default-src`, `script-src-elem`, `style-src-elem`,
+  and `style-src-attr` directives.
 - Each request gets a fresh nonce, so the value cannot be predicted by an
   attacker.
 - Non-rendered responses (e.g. API routes returning JSON) fall back to
@@ -64,8 +64,8 @@ When `useNonce` is enabled:
 
 > [warn]: If you set an explicit `nonce` attribute on a tag, it will be
 > preserved in the HTML, but the CSP header will only contain the
-> Fresh-generated nonce. The browser will block the tag unless its nonce
-> matches the one in the CSP header. To avoid this, let Fresh manage nonces
+> Fresh-generated nonce. The browser will block the tag unless its nonce matches
+> the one in the CSP header. To avoid this, let Fresh manage nonces
 > automatically.
 
 ## Options
