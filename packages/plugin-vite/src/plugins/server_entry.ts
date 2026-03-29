@@ -123,7 +123,6 @@ if (import.meta.hot) import.meta.hot.accept();`;
         const json = JSON.parse(manifest.source) as Manifest;
 
         for (const item of Object.values(json)) {
-
           if (item.assets) {
             for (let i = 0; i < item.assets.length; i++) {
               const id = item.assets[i];
