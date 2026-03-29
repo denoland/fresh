@@ -70,6 +70,44 @@ Deno.test("ctx.render - throw with invalid first arg", async () => {
   expect(res.status).toEqual(500);
 });
 
+Deno.test("ctx.redirect - preserves partial search param through redirects", async () => {
+  const app = new App()
+    .get("/old", (ctx) => ctx.redirect("/new"));
+  const server = new FakeServer(app.handler());
+
+  // Normal redirect should not have partial param
+  let res = await server.get("/old");
+  expect(res.status).toEqual(302);
+  expect(res.headers.get("Location")).toEqual("/new");
+
+  // Partial redirect should preserve the param
+  res = await server.get("/old?fresh-partial=true");
+  expect(res.status).toEqual(302);
+  expect(res.headers.get("Location")).toEqual("/new?fresh-partial=true");
+
+  // Partial redirect with existing query params
+  const app2 = new App()
+    .get("/old", (ctx) => ctx.redirect("/new?foo=bar"));
+  const server2 = new FakeServer(app2.handler());
+
+  res = await server2.get("/old?fresh-partial=true");
+  expect(res.status).toEqual(302);
+  expect(res.headers.get("Location")).toEqual(
+    "/new?foo=bar&fresh-partial=true",
+  );
+
+  // Partial redirect with hash fragment — param must come before the hash
+  const app3 = new App()
+    .get("/old", (ctx) => ctx.redirect("/new#section"));
+  const server3 = new FakeServer(app3.handler());
+
+  res = await server3.get("/old?fresh-partial=true");
+  expect(res.status).toEqual(302);
+  expect(res.headers.get("Location")).toEqual(
+    "/new?fresh-partial=true#section",
+  );
+});
+
 Deno.test("ctx.isPartial - should indicate whether request is partial or not", async () => {
   const isPartials: boolean[] = [];
   const app = new App()

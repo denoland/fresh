@@ -20,8 +20,8 @@ update by running it in your project directory:
 deno run -Ar jsr:@fresh/update
 ```
 
-This will apply most API changes made in Fresh 2 automatically update like
-changing `$fresh/server.ts` imports to `fresh`.
+This will apply most API changes made in Fresh 2 automatically, like changing
+`$fresh/server.ts` imports to `fresh`.
 
 ## Getting `main.ts` and `dev.ts` ready
 
@@ -98,7 +98,8 @@ export const app = new App()
 ## Merging error pages
 
 Both the `_500.tsx` and `_404.tsx` template have been unified into a single
-`_error.tsx` template.
+`_error.tsx` template. See [error pages](/docs/advanced/error-handling) for
+details.
 
 ```diff Project structure
   └── <root>/routes/
@@ -203,9 +204,9 @@ have a trailing slash at the end or that they will never have one.
 
 ### Unified middleware signatures
 
-Middleware, handler and route component signatures have been unified to all look
-the same. Instead of receiving two arguments, they receive one. The `Request`
-object is stored on the context object as `ctx.req`.
+[Middleware](/docs/concepts/middleware), handler and route component signatures
+have been unified to all look the same. Instead of receiving two arguments, they
+receive one. The `Request` object is stored on the context object as `ctx.req`.
 
 ```diff middleware.ts
 - const middleware = (req, ctx) => new Response("ok");
@@ -292,7 +293,7 @@ To render JSX in general, use the `ctx.render()` function:
 
 ```tsx
 const app = new App()
-  .get("/", () => ctx.render(<h1>hello</h1>));
+  .get("/", (ctx) => ctx.render(<h1>hello</h1>));
 ```
 
 ## `createHandler`
@@ -313,7 +314,7 @@ to [update the command](/docs/deployment/deno-compile) to generate the binary.
 If you run into problems with upgrading your app, first, try starting a new
 Fresh 2 project and looking at the new structure.
 
-eg. `mkdir fresh2-demo && cd fresh2-demo && deno run -Ar jsr:@fresh/init`
+eg. `mkdir fresh2-demo && cd fresh2-demo && deno create @fresh/init`
 
 ### 2. Document
 

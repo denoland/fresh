@@ -68,7 +68,7 @@ export type ListenOptions =
   & {
     remoteAddress?: string;
   };
-function createOnListen(
+export function createOnListen(
   basePath: string,
   options: ListenOptions,
 ): (localAddr: Deno.NetAddr) => void {
@@ -253,7 +253,7 @@ export class App<State> {
     route: MaybeLazy<Route<State>>,
     config?: RouteConfig,
   ): this {
-    this.#commands.push(newRouteCmd(path, route, config, false));
+    this.#commands.push(newRouteCmd(path, route, config, true));
     return this;
   }
 
@@ -261,42 +261,42 @@ export class App<State> {
    * Add middlewares for GET requests at the specified path.
    */
   get(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
-    this.#commands.push(newHandlerCmd("GET", path, middlewares, false));
+    this.#commands.push(newHandlerCmd("GET", path, middlewares, true));
     return this;
   }
   /**
    * Add middlewares for POST requests at the specified path.
    */
   post(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
-    this.#commands.push(newHandlerCmd("POST", path, middlewares, false));
+    this.#commands.push(newHandlerCmd("POST", path, middlewares, true));
     return this;
   }
   /**
    * Add middlewares for PATCH requests at the specified path.
    */
   patch(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
-    this.#commands.push(newHandlerCmd("PATCH", path, middlewares, false));
+    this.#commands.push(newHandlerCmd("PATCH", path, middlewares, true));
     return this;
   }
   /**
    * Add middlewares for PUT requests at the specified path.
    */
   put(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
-    this.#commands.push(newHandlerCmd("PUT", path, middlewares, false));
+    this.#commands.push(newHandlerCmd("PUT", path, middlewares, true));
     return this;
   }
   /**
    * Add middlewares for DELETE requests at the specified path.
    */
   delete(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
-    this.#commands.push(newHandlerCmd("DELETE", path, middlewares, false));
+    this.#commands.push(newHandlerCmd("DELETE", path, middlewares, true));
     return this;
   }
   /**
    * Add middlewares for HEAD requests at the specified path.
    */
   head(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
-    this.#commands.push(newHandlerCmd("HEAD", path, middlewares, false));
+    this.#commands.push(newHandlerCmd("HEAD", path, middlewares, true));
     return this;
   }
 
@@ -304,7 +304,7 @@ export class App<State> {
    * Add middlewares for all HTTP verbs at the specified path.
    */
   all(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
-    this.#commands.push(newHandlerCmd("ALL", path, middlewares, false));
+    this.#commands.push(newHandlerCmd("ALL", path, middlewares, true));
     return this;
   }
 

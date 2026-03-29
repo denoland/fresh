@@ -35,6 +35,7 @@ import { getCodeFrame } from "../../dev/middlewares/error_overlay/code_frame.ts"
 import { escapeScript } from "../../utils.ts";
 import { HeadContext } from "../head.ts";
 import { useContext } from "preact/hooks";
+import { isSpanContextValid, trace } from "@opentelemetry/api";
 
 interface InternalPreactOptions extends PreactOptions {
   [OptionsType.ATTR](name: string, value: unknown): string | void;
@@ -194,6 +195,19 @@ options[OptionsType.DIFF] = (vnode) => {
             `<Partial> components cannot be used inside islands.`,
           );
         }
+
+        const mode = (vnode.props as PartialProps).mode;
+        if (
+          (mode === "append" || mode === "prepend") &&
+          vnode.key == null
+        ) {
+          // deno-lint-ignore no-console
+          console.warn(
+            `<Partial name="${name}" mode="${mode}"> is missing a "key" prop. ` +
+              `Without a key, Preact cannot correctly reconcile ${mode}ed children. ` +
+              `Add a unique key to fix this.`,
+          );
+        }
       } else if (
         !PATCHED.has(vnode)
       ) {
@@ -282,6 +296,22 @@ options[OptionsType.DIFF] = (vnode) => {
             }
           }
 
+          // Inject W3C traceparent meta tag when OpenTelemetry is active,
+          // enabling client-side tracing to connect to the server span.
+          const activeSpan = trace.getActiveSpan();
+          if (activeSpan) {
+            const spanCtx = activeSpan.spanContext();
+            if (isSpanContextValid(spanCtx)) {
+              const flags = (spanCtx.traceFlags & 1) ? "01" : "00";
+              const traceparent =
+                `00-${spanCtx.traceId}-${spanCtx.spanId}-${flags}`;
+              items.push(
+                // deno-lint-ignore no-explicit-any
+                h("meta", { name: "traceparent", content: traceparent }) as any,
+              );
+            }
+          }
+
           // deno-lint-ignore no-explicit-any
           items.push(h(RemainingHead, null) as VNode<any>);
 
@@ -336,6 +366,8 @@ options[OptionsType.DIFF] = (vnode) => {
                   cacheKey += String(props[key].__html);
                   continue;
                 } else if (originalType === "meta" && key === "content") {
+                  continue;
+                } else if (originalType === "link" && key === "href") {
                   continue;
                 }
 
