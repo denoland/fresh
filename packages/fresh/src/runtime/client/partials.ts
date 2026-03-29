@@ -297,10 +297,6 @@ async function fetchPartials(
     }
   }
 
-  if (shouldNavigate) {
-    maybeUpdateHistory(actualUrl);
-  }
-
   try {
     await applyPartials(res);
   } catch (err) {
@@ -311,6 +307,10 @@ async function fetchPartials(
       return;
     }
     throw err;
+  }
+
+  if (shouldNavigate) {
+    maybeUpdateHistory(actualUrl);
   }
 }
 
