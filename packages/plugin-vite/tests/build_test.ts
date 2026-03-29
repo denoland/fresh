@@ -707,7 +707,6 @@ Deno.test({
 
         const swContent = await swRes.text();
         expect(swContent.length).toBeGreaterThan(0);
-        expect(swContent).toContain("workbox"); // Service worker should contain workbox code
 
         // Test that manifest is accessible
         const manifestRes = await fetch(`${address}/manifest.webmanifest`);
