@@ -145,7 +145,7 @@ When an OpenTelemetry exporter is active, Fresh automatically injects a
 ```
 
 This allows client-side OpenTelemetry instrumentation (such as
-[`@opentelemetry/instrumentation-document-load`](https://github.com/open-telemetry/opentelemetry-js-contrib/tree/main/plugins/web/opentelemetry-instrumentation-document-load))
+[`@opentelemetry/instrumentation-document-load`](https://github.com/open-telemetry/opentelemetry-js-contrib/tree/main/packages/instrumentation-document-load))
 to link browser performance traces back to the server-side span that rendered
 the page, giving you end-to-end visibility from server rendering through page
 load.
