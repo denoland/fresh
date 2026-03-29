@@ -194,6 +194,19 @@ options[OptionsType.DIFF] = (vnode) => {
             `<Partial> components cannot be used inside islands.`,
           );
         }
+
+        const mode = (vnode.props as PartialProps).mode;
+        if (
+          (mode === "append" || mode === "prepend") &&
+          vnode.key == null
+        ) {
+          // deno-lint-ignore no-console
+          console.warn(
+            `<Partial name="${name}" mode="${mode}"> is missing a "key" prop. ` +
+              `Without a key, Preact cannot correctly reconcile ${mode}ed children. ` +
+              `Add a unique key to fix this.`,
+          );
+        }
       } else if (
         !PATCHED.has(vnode)
       ) {
