@@ -1,59 +1,96 @@
 ---
 description: |
-  Add a layout to provide common meta tags, context for application sub routes, and common layout.
+  Wrap pages in shared UI using _layout.tsx files. Layouts nest automatically, support async data loading, and can be skipped per route.
 ---
 
-A layout is defined in a `_layout.tsx` file in any sub directory (at any level)
-under the `routes/` folder. It must contain a default export that is a regular
-Preact component. Only one such layout is allowed per sub directory.
+This page covers **file-based layouts** using `_layout.tsx` files. If you're
+defining routes programmatically with `new App()`, see
+[Layouts (programmatic)](/docs/advanced/layouts) instead.
+
+Layouts let you wrap groups of pages in shared UI - navigation bars, sidebars,
+footers, or any common structure. They are defined in `_layout.tsx` files and
+nest automatically based on the directory tree.
+
+## How layouts work
+
+Place a `_layout.tsx` file in any directory under `routes/`. It wraps every page
+in that directory and its subdirectories. You can have one layout per directory.
 
 ```txt-files Project structure
 <project root>
 └── routes
-    ├── sub
-    │   ├── page.tsx
-    │   └── index.tsx
-    ├── other
-    │   ├── _layout.tsx  # will be applied on top of `routes/_layout.tsx`
-    │   └── page.tsx
-    ├── _layout.tsx  # will be applied to all routes
-    └── _app.tsx
+    ├── _app.tsx           # App wrapper (outermost HTML shell)
+    ├── _layout.tsx        # Root layout - wraps all pages
+    ├── index.tsx
+    ├── about.tsx
+    ├── blog
+    │   ├── _layout.tsx    # Blog layout - wraps blog pages
+    │   ├── index.tsx
+    │   └── [slug].tsx
+    └── admin
+        ├── _layout.tsx    # Admin layout - wraps admin pages
+        └── dashboard.tsx
 ```
 
-The component to be wrapped is received via props, in addition to a few other
-things. This allows for the introduction of a global container functioning as a
-template which can be conditioned based on state and params. Note that any state
-set by middleware is available via `props.state`.
+When a user visits `/blog/my-post`, Fresh renders these components from the
+outside in:
 
-```tsx routes/sub/_layout.tsx
-import { define } from "../../utils.ts";
+1. `_app.tsx` - the outer `<html>`/`<head>`/`<body>` shell
+2. `routes/_layout.tsx` - root layout (e.g. site header and footer)
+3. `routes/blog/_layout.tsx` - blog layout (e.g. blog sidebar)
+4. `routes/blog/[slug].tsx` - the page itself
 
-export default define.layout({ Component, state }) => {
-  // do something with state here
+## Basic layout
+
+A layout receives `Component` (the child to wrap) and other props like `state`
+and `url`. Any state set by [middleware](/docs/concepts/middleware) is available
+via `props.state`.
+
+```tsx routes/_layout.tsx
+import { define } from "../utils.ts";
+
+export default define.layout(({ Component, state, url }) => {
   return (
     <div class="layout">
-      <Component />
+      <nav>
+        <a href="/" class={url.pathname === "/" ? "active" : ""}>Home</a>
+        <a href="/about">About</a>
+        {state.user && <span>Hi, {state.user.name}</span>}
+      </nav>
+      <main>
+        <Component />
+      </main>
+      <footer>&copy; 2026</footer>
     </div>
   );
-})
+});
 ```
 
 ## Async layouts
 
-In case you need to fetch data asynchronously before rendering the layout, you
-can use an async layout to do so.
+Layouts can be async to fetch data before rendering:
 
-```tsx routes/sub/_layout.tsx
+```tsx routes/blog/_layout.tsx
 import { define } from "../../utils.ts";
 
 export default define.layout(async (ctx) => {
-  // do something with state here
-  const data = await loadData();
+  const categories = await db.categories.list();
 
   return (
-    <div class="layout">
-      <p>{data.greeting}</p>
-      <ctx.Component />
+    <div class="blog-layout">
+      <aside>
+        <h2>Categories</h2>
+        <ul>
+          {categories.map((c) => (
+            <li>
+              <a href={`/blog?cat=${c.slug}`}>{c.name}</a>
+            </li>
+          ))}
+        </ul>
+      </aside>
+      <article>
+        <ctx.Component />
+      </article>
     </div>
   );
 });
@@ -61,45 +98,64 @@ export default define.layout(async (ctx) => {
 
 ## Opting out of layout inheritance
 
-Sometimes you want to opt out of the layout inheritance mechanism for a
-particular route. This can be done via route configuration. Picture a directory
-structure like this:
+Sometimes a route needs completely different chrome - a login page, a
+full-screen dashboard, or a print view. Use `skipInheritedLayouts` in the route
+config to skip all layouts inherited from parent directories:
 
-```txt-files Project structure
-└── <root>/routes
-    ├── sub
-    │   ├── _layout_.tsx
-    │   ├── special.tsx  # should not inherit layouts
-    │   └── index.tsx
-    └── _layout.tsx
-```
-
-To make `routes/sub/special.tsx` opt out of rendering layouts we can set
-`skipInheritedLayouts: true`.
-
-```tsx routes/sub/special.tsx
+```tsx routes/login.tsx
 import { type RouteConfig } from "fresh";
-import { define } from "../../utils.ts";
+import { define } from "../utils.ts";
 
 export const config: RouteConfig = {
-  skipInheritedLayouts: true, // Skip already inherited layouts
+  skipInheritedLayouts: true,
 };
 
-export default define.layout(() => {
-  return <p>Hello world</p>;
+export default define.page(() => {
+  return (
+    <div class="login-page">
+      <h1>Sign in</h1>
+      <form method="POST">
+        <input type="email" name="email" placeholder="Email" />
+        <input type="password" name="password" placeholder="Password" />
+        <button type="submit">Sign in</button>
+      </form>
+    </div>
+  );
 });
 ```
 
-You can skip already inherited layouts inside a layout file:
+You can also skip inherited layouts from within a layout file itself. This is
+useful when a section of your site needs a completely different shell:
 
-```tsx routes/special/_layout.tsx
+```tsx routes/admin/_layout.tsx
 import { type LayoutConfig } from "fresh";
+import { define } from "../../utils.ts";
 
 export const config: LayoutConfig = {
-  skipInheritedLayouts: true, // Skip already inherited layouts
+  skipInheritedLayouts: true,
 };
 
-export default function MyPage() {
-  return <p>Hello world</p>;
-}
+export default define.layout(({ Component, state }) => {
+  return (
+    <div class="admin-shell">
+      <aside class="admin-sidebar">
+        <a href="/admin/dashboard">Dashboard</a>
+        <a href="/admin/users">Users</a>
+      </aside>
+      <main>
+        <Component />
+      </main>
+    </div>
+  );
+});
 ```
+
+## Layout vs app wrapper
+
+The [app wrapper](/docs/concepts/app) (`_app.tsx`) and layouts serve different
+purposes:
+
+- **App wrapper** - the outermost `<html>`/`<head>`/`<body>` structure. There is
+  only one, and it wraps everything.
+- **Layouts** - reusable UI shells that nest based on directory structure. There
+  can be many, and they sit between the app wrapper and the page component.
