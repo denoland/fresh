@@ -294,8 +294,7 @@ options[OptionsType.DIFF] = (vnode) => {
                 // deno-lint-ignore no-explicit-any
                 h("meta", {
                   name: "traceparent",
-                  content:
-                    `00-${spanCtx.traceId}-${spanCtx.spanId}-${flags}`,
+                  content: `00-${spanCtx.traceId}-${spanCtx.spanId}-${flags}`,
                 } as any),
               );
             }
