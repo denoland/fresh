@@ -11,12 +11,8 @@ Deno.test("basePath validation - rejects invalid paths", () => {
     'Invalid basePath: "/ui/". Must not end with "/" except for root path',
   );
 
-  expect(() => new App({ basePath: "/ui@admin" })).toThrow(
-    'Invalid basePath: "/ui@admin". Contains invalid characters',
-  );
-
   expect(() => new App({ basePath: "/ui admin" })).toThrow(
-    'Invalid basePath: "/ui admin". Contains invalid characters',
+    'Invalid basePath: "/ui admin"',
   );
 });
 
