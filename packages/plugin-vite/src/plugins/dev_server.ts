@@ -24,7 +24,12 @@ export function devServer(): Plugin[] {
         // where Deno.upgradeWebSocket() works natively.
         let wsPort = 0;
         const wsServer = Deno.serve(
-          { port: 0, onListen: ({ port }) => wsPort = port },
+          {
+            port: 0,
+            onListen: ({ port }) => wsPort = port,
+            onError: () =>
+              new Response("Internal Server Error", { status: 500 }),
+          },
           async (req) => {
             try {
               const mod = await server.ssrLoadModule("fresh:server_entry");
@@ -51,7 +56,7 @@ export function devServer(): Plugin[] {
               rawHeaders: string[];
             },
             clientSocket: import("node:net").Socket,
-            head: Buffer,
+            head: Uint8Array,
           ) => {
             // Let Vite handle its own HMR WebSocket upgrades
             if (
@@ -76,8 +81,18 @@ export function devServer(): Plugin[] {
               proxySocket.pipe(clientSocket);
             });
 
-            proxySocket.on("error", () => clientSocket.destroy());
-            clientSocket.on("error", () => proxySocket.destroy());
+            proxySocket.on("error", () => {
+              try {
+                clientSocket.destroy();
+              } catch { /* ignore */ }
+            });
+            clientSocket.on("error", () => {
+              try {
+                proxySocket.destroy();
+              } catch { /* ignore */ }
+            });
+            clientSocket.on("close", () => proxySocket.destroy());
+            proxySocket.on("close", () => clientSocket.destroy());
           },
         );
 
