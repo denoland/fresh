@@ -47,7 +47,7 @@ export default define.page(({ Component, url }) => {
 
 When building your app with `new App()` instead of file-based routing:
 
-```tsx main.tsx
+```tsx
 function AppWrapper({ Component }) {
   return (
     <html lang="en">

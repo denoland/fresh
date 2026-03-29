@@ -88,6 +88,7 @@ const toc: RawTableOfContents = {
           ["cors", "cors", "link:latest"],
           ["csrf", "csrf", "link:latest"],
           ["csp", "csp", "link:latest"],
+          ["ip-filter", "ipFilter", "link:latest"],
           ["trailing-slashes", "trailingSlashes", "link:latest"],
         ],
       },

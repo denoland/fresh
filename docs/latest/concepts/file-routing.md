@@ -78,6 +78,7 @@ they might match:
 | `blog/[slug]/comments.ts`   | `/blog/:slug/comments` | `/blog/foo/comments`                    |
 | `old/[...path].ts`          | `/old/:path*`          | `/old/foo`, `/old/bar/baz`              |
 | `docs/[[version]]/index.ts` | `/docs{/:version}?`    | `/docs`, `/docs/latest`, `/docs/canary` |
+| `[[name]].ts`               | `/{:name}?`            | `/`, `/foo`, `/bar`                     |
 
 Advanced use-cases can require that a more complex pattern be used for matching.
 A custom [URL pattern][urlpattern] can be specified in the route configuration.

@@ -12,9 +12,9 @@ First, let's install the [`@deno/gfm`](https://jsr.io/@deno/gfm) package that
 can transform markdown to html.
 
 1. Run `deno install jsr:@deno/gfm`
-2. Create a markdown file like `content.md`:
+2. Create a markdown file like `content/example.md`:
 
-```md path/to/content.md
+```md content/example.md
 ## some heading
 
 and some interesting text here
@@ -24,24 +24,29 @@ and some interesting text here
 
 3. Add a route that renders that file
 
-```tsx main.ts
+```tsx routes/markdown.tsx
+import { define } from "@/utils.ts";
 import { CSS, render as renderMarkdown } from "@deno/gfm";
 
-const app = new App();
-
-app.get("/", async (ctx) => {
-  const content = await Deno.readTextFile("path/to/content.md");
+export default define.page(async () => {
+  const content = await Deno.readTextFile("./content/example.md");
   const html = renderMarkdown(content);
 
-  return await ctx.render(
+  return (
     <div>
       <h1>Here comes a markdown post:</h1>
+      {/* deno-lint-ignore react-no-danger */}
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
+      {/* deno-lint-ignore react-no-danger */}
       <div dangerouslySetInnerHTML={{ __html: html }} />
-    </div>,
+    </div>
   );
 });
 ```
+
+For a more elaborate markdown system with Fresh, take a look at the
+[source code](https://github.com/denoland/fresh/tree/main/www) for this
+documentation website.
 
 ## Other libraries
 

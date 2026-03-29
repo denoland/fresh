@@ -12,7 +12,7 @@ HTML structure and only the content changes, a layout is a neat way to abstract
 this. Layouts only ever render on the server. The passed `Component` value
 represents the children of this component.
 
-```tsx main.tsx
+```tsx
 function PageLayout({ Component }) {
   return (
     <div>
@@ -42,7 +42,7 @@ You can register multiple layouts for different paths. Layouts are inherited
 from parent paths - a layout at `"*"` applies to all routes, and more specific
 layouts are added on top:
 
-```ts main.ts
+```ts
 const app = new App()
   .layout("*", MainLayout) // Applied to all routes
   .layout("/admin/*", AdminLayout) // Added on top for /admin/* routes
@@ -69,6 +69,6 @@ const app = new App()
 
 Ignore the [app wrapper](/docs/concepts/app) component:
 
-```ts main.ts
+```ts
 app.layout("/foo/bar", MyComponent, { skipAppWrapper: true });
 ```

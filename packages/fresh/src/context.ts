@@ -17,6 +17,7 @@ import {
   RenderState,
   setRenderState,
 } from "./runtime/server/preact_hooks.ts";
+import { NONCE_SYMBOL } from "./middlewares/csp.ts";
 import { DEV_ERROR_OVERLAY_URL, PARTIAL_SEARCH_PARAM } from "./constants.ts";
 import { tracer } from "./otel.ts";
 import {
@@ -73,7 +74,7 @@ export class Context<State> {
    */
   readonly url: URL;
   /** The original incoming {@linkcode Request} object. */
-  readonly req: Request;
+  req: Request;
   /** The matched route pattern. */
   readonly route: string | null;
   /** The url parameters of the matched route pattern. */
@@ -285,6 +286,7 @@ export class Context<State> {
       headers.set("X-Fresh-Id", partialId);
     }
 
+    let renderNonce = "";
     const html = tracer.startActiveSpan("render", (span) => {
       span.setAttribute("fresh.span_type", "render");
       const state = new RenderState(
@@ -376,13 +378,19 @@ export class Context<State> {
           headers.append("Link", link);
         }
 
+        renderNonce = state.nonce;
         state.clear();
         setRenderState(null);
 
         span.end();
       }
     });
-    return new Response(html, responseInit);
+    const response = new Response(html, responseInit);
+    // Expose the nonce to CSP middleware via a symbol so it never
+    // leaks as a response header.
+    // deno-lint-ignore no-explicit-any
+    (response as any)[NONCE_SYMBOL] = renderNonce;
+    return response;
   }
 
   /**

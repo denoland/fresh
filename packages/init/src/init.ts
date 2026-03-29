@@ -616,6 +616,7 @@ if (Deno.args.includes("build")) {
     denoJson.imports["@fresh/plugin-vite"] =
       `jsr:@fresh/plugin-vite@^${vitePluginVersion}`;
     denoJson.imports["vite"] = "npm:vite@^7.1.3";
+    denoJson.imports["@types/babel__core"] = "npm:@types/babel__core@^7.20.5";
 
     if (useTailwind) {
       denoJson.imports["tailwindcss"] =

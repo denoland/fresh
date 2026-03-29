@@ -15,6 +15,7 @@ import {
 } from "./test_utils.tsx";
 import { SelfCounter } from "./fixtures_islands/SelfCounter.tsx";
 import { expect } from "@std/expect";
+import { assertSpyCalls, spy } from "@std/testing/mock";
 import { PartialInIsland } from "./fixtures_islands/PartialInIsland.tsx";
 import { FakeServer } from "../src/test_utils.ts";
 import { JsonIsland } from "./fixtures_islands/JsonIsland.tsx";
@@ -1858,6 +1859,49 @@ Deno.test({
 });
 
 Deno.test({
+  name: "partials - form without action inside f-client-nav not intercepted",
+  fn: async () => {
+    const app = testApp()
+      .post("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <p class="submitted">form submitted normally</p>
+          </Doc>,
+        );
+      })
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav>
+              <form method="post">
+                <input name="name" value="foo" />
+                <Partial name="foo">
+                  <p class="init">init</p>
+                </Partial>
+                <button type="submit" class="update">
+                  update
+                </button>
+              </form>
+            </div>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".init").wait();
+
+      // Form should do a full page navigation, not a partial update
+      await Promise.all([
+        page.waitForNavigation(),
+        page.locator(".update").click(),
+      ]);
+      await page.locator(".submitted").wait();
+    });
+  },
+});
+
+Deno.test({
   name: "partials - submit form redirect",
   fn: async () => {
     const app = testApp()
@@ -2776,6 +2820,241 @@ Deno.test({
   },
 });
 
+Deno.test({
+  name: "partials - warns when append/prepend missing key",
+  fn: async () => {
+    const app = testApp()
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <Partial name="no-key-append" mode="append">
+              <p>content</p>
+            </Partial>
+            <Partial name="no-key-prepend" mode="prepend">
+              <p>content</p>
+            </Partial>
+          </Doc>,
+        );
+      });
+
+    const warnSpy = spy(console, "warn");
+    try {
+      const server = new FakeServer(app.handler());
+      await server.get("/");
+      assertSpyCalls(warnSpy, 2);
+      expect(String(warnSpy.calls[0].args[0])).toContain("no-key-append");
+      expect(String(warnSpy.calls[0].args[0])).toContain("append");
+      expect(String(warnSpy.calls[1].args[0])).toContain("no-key-prepend");
+      expect(String(warnSpy.calls[1].args[0])).toContain("prepend");
+    } finally {
+      warnSpy.restore();
+    }
+  },
+});
+
+Deno.test({
+  name: "partials - no warning when append/prepend has key",
+  fn: async () => {
+    const app = testApp()
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <Partial name="keyed-append" mode="append" key="a">
+              <p>content</p>
+            </Partial>
+            <Partial name="keyed-prepend" mode="prepend" key="b">
+              <p>content</p>
+            </Partial>
+          </Doc>,
+        );
+      });
+
+    const warnSpy = spy(console, "warn");
+    try {
+      const server = new FakeServer(app.handler());
+      await server.get("/");
+      assertSpyCalls(warnSpy, 0);
+    } finally {
+      warnSpy.restore();
+    }
+  },
+});
+
+Deno.test({
+  name: "partials - no warning for replace mode without key",
+  fn: async () => {
+    const app = testApp()
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <Partial name="replace-no-key" mode="replace">
+              <p>content</p>
+            </Partial>
+            <Partial name="default-no-key">
+              <p>content</p>
+            </Partial>
+          </Doc>,
+        );
+      });
+
+    const warnSpy = spy(console, "warn");
+    try {
+      const server = new FakeServer(app.handler());
+      await server.get("/");
+      assertSpyCalls(warnSpy, 0);
+    } finally {
+      warnSpy.restore();
+    }
+  },
+});
+
+Deno.test({
+  name: "partials - appends data scripts to head",
+  fn: async () => {
+    const app = testApp()
+      .get("/partial", (ctx) => {
+        return ctx.render(
+          <html>
+            <head>
+              {charset}
+              {favicon}
+              <title>Updated</title>
+              <script
+                type="application/ld+json"
+                // deno-lint-ignore react-no-danger
+                dangerouslySetInnerHTML={{
+                  __html: JSON.stringify({
+                    "@type": "Article",
+                    name: "Updated",
+                  }),
+                }}
+              />
+            </head>
+            <body f-client-nav>
+              <Partial name="body">
+                <p class="updated">updated</p>
+              </Partial>
+            </body>
+          </html>,
+        );
+      })
+      .get("/", (ctx) => {
+        return ctx.render(
+          <html>
+            <head>
+              {charset}
+              {favicon}
+              <title>Init</title>
+            </head>
+            <body f-client-nav>
+              <Partial name="body">
+                <p class="init">init</p>
+              </Partial>
+              <button type="button" class="update" f-partial="/partial">
+                update
+              </button>
+            </body>
+          </html>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".init").wait();
+
+      await page.locator(".update").click();
+      await page.locator(".updated").wait();
+
+      const count = await page.evaluate(
+        () =>
+          document.head.querySelectorAll('script[type="application/ld+json"]')
+            .length,
+      );
+      expect(count).toEqual(1);
+
+      const content = await page.evaluate(
+        () =>
+          document.head.querySelector('script[type="application/ld+json"]')
+            ?.textContent,
+      );
+      expect(JSON.parse(content!)).toEqual({
+        "@type": "Article",
+        name: "Updated",
+      });
+    });
+  },
+});
+
+Deno.test({
+  name: "partials - does not duplicate data scripts on repeat navigation",
+  fn: async () => {
+    const app = testApp()
+      .get("/partial", (ctx) => {
+        return ctx.render(
+          <html>
+            <head>
+              {charset}
+              {favicon}
+              <title>Updated</title>
+              <script
+                type="application/ld+json"
+                // deno-lint-ignore react-no-danger
+                dangerouslySetInnerHTML={{
+                  __html: JSON.stringify({
+                    "@type": "Article",
+                    name: "Same",
+                  }),
+                }}
+              />
+            </head>
+            <body f-client-nav>
+              <Partial name="body">
+                <p class="updated">updated</p>
+              </Partial>
+            </body>
+          </html>,
+        );
+      })
+      .get("/", (ctx) => {
+        return ctx.render(
+          <html>
+            <head>
+              {charset}
+              {favicon}
+              <title>Init</title>
+            </head>
+            <body f-client-nav>
+              <Partial name="body">
+                <p class="init">init</p>
+              </Partial>
+              <button type="button" class="update" f-partial="/partial">
+                update
+              </button>
+            </body>
+          </html>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".init").wait();
+
+      // Click twice to trigger two partial navigations
+      await page.locator(".update").click();
+      await page.locator(".updated").wait();
+      await page.locator(".update").click();
+      await page.locator(".updated").wait();
+
+      const count = await page.evaluate(
+        () =>
+          document.head.querySelectorAll('script[type="application/ld+json"]')
+            .length,
+      );
+      // Should still be 1, not 2
+      expect(count).toEqual(1);
+    });
+  },
+});
 // View Transitions tests
 
 Deno.test({

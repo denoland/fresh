@@ -52,7 +52,7 @@ once in your build output.
 By default, Fresh adds caching headers for the `src` and `srcset` attributes on
 `<img>` and `<source>` tags.
 
-```tsx main.tsx
+```ts
 // Caching headers will be automatically added
 app.get("/user", (ctx) => ctx.render(<img src="/user.png" />));
 ```
@@ -60,7 +60,7 @@ app.get("/user", (ctx) => ctx.render(<img src="/user.png" />));
 You can always opt out of this behaviour per tag, by adding the
 `data-fresh-disable-lock` attribute.
 
-```tsx main.tsx
+```ts
 // Opt-out of automatic caching headers
 app.get(
   "/user",
