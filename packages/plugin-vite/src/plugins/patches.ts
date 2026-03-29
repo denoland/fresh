@@ -26,20 +26,21 @@ export function patches(): Plugin {
       filter: {
         id: JS_REG,
       },
-      handler(code, id, options) {
+      handler(code, id) {
         const presets = [];
-        if (!options?.ssr && JSX_REG.test(id)) {
+        if (this.environment.config.consumer === "client" && JSX_REG.test(id)) {
           presets.push([babelReact, {
             runtime: "automatic",
             importSource: "preact",
             development: isDev,
+            throwIfNamespace: false,
           }]);
         }
 
         const env = isDev ? "development" : "production";
 
         const plugins: babel.PluginItem[] = [
-          codeEvalPlugin(options?.ssr ? "ssr" : "client", env),
+          codeEvalPlugin(this.environment.config.consumer, env),
           cjsPlugin,
           removePolyfills,
           jsxComments,
@@ -49,9 +50,10 @@ export function patches(): Plugin {
         const res = babel.transformSync(code, {
           filename: id,
           babelrc: false,
-          compact: true,
+          compact: false,
           plugins,
           presets,
+          sourceMaps: "both",
         });
 
         if (res?.code) {

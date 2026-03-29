@@ -1,12 +1,25 @@
+import { page } from "fresh";
 import { Partial } from "fresh/runtime";
-import type { RouteConfig } from "fresh";
+import { define } from "../../utils/state.ts";
 
-export const config: RouteConfig = {
+export const handler = define.handlers({
+  GET(ctx) {
+    if (!ctx.isPartial) {
+      return new Response(null, {
+        status: 302,
+        headers: { location: "/#partials" },
+      });
+    }
+    return page();
+  },
+});
+
+export const config = {
   skipAppWrapper: true,
   skipInheritedLayouts: true,
 };
 
-export const LemonDrop = () => (
+export default define.page(() => (
   <Partial name="recipe">
     <h2 class="mb-2 font-extrabold">Lemondrop Martini</h2>
     <ul>
@@ -18,6 +31,4 @@ export const LemonDrop = () => (
       <li>3/4 oz simple syrup</li>
     </ul>
   </Partial>
-);
-
-export default LemonDrop;
+));

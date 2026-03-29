@@ -1,9 +1,10 @@
 ---
-description: Plugins can add new functionality to Fresh without requiring significant complexity.
+description: The Context object is shared across all middlewares and provides access to the request, URL, params, state, and response helpers.
 ---
 
-The `Context` instance is shared across all middlewares in Fresh. Use it to
-respond with HTML, trigger redirects, access the incoming
+The `Context` instance is shared across all
+[middlewares](/docs/concepts/middleware) in Fresh. Use it to respond with HTML,
+trigger redirects, access the incoming
 [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) or read
 other metadata.
 
@@ -56,7 +57,7 @@ matched.
 
 ```ts
 app.get("/foo/:id", (ctx) => {
-  console.log(ctx.route); // Logs: "/foo/:id
+  console.log(ctx.route); // Logs: "/foo/:id"
   // ...
 });
 ```
@@ -98,7 +99,8 @@ app.use((ctx) => {
 ## `.error`
 
 If an error was thrown, this property will hold the caught value (default:
-`null`). This is typically used mainly on an error page.
+`null`). This is typically used mainly on an
+[error page](/docs/advanced/error-handling).
 
 ```ts
 app.onError((ctx) => {

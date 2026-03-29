@@ -1,4 +1,5 @@
 import {
+  HOLE,
   INFINITY_NEG,
   INFINITY_POS,
   NAN,
@@ -6,7 +7,6 @@ import {
   UNDEFINED,
   ZERO_NEG,
 } from "./constants.ts";
-import { HOLE } from "./constants.ts";
 
 export type Stringifiers = Record<
   string,
@@ -31,6 +31,14 @@ export type Stringifiers = Record<
  * - `RegExp`
  * - `Set`
  * - `Map`
+ * - `Temporal.Instant`
+ * - `Temporal.ZonedDateTime`
+ * - `Temporal.PlainDate`
+ * - `Temporal.PlainTime`
+ * - `Temporal.PlainDateTime`
+ * - `Temporal.PlainYearMonth`
+ * - `Temporal.PlainMonthDay`
+ * - `Temporal.Duration`
  *
  * Circular references are supported and objects with the same reference are
  * serialized only once.
@@ -108,7 +116,13 @@ function serializeInner(
     if (value instanceof URL) {
       str += `["URL","${value.href}"]`;
     } else if (value instanceof Date) {
-      str += `["Date","${value.toISOString()}"]`;
+      let iso: string;
+      try {
+        iso = value.toISOString();
+      } catch {
+        iso = "Invalid Date";
+      }
+      str += `["Date","${iso}"]`;
     } else if (value instanceof RegExp) {
       str += `["RegExp",${JSON.stringify(value.source)}, "${value.flags}"]`;
     } else if (value instanceof Uint8Array) {
@@ -128,6 +142,42 @@ function serializeInner(
         items[i++] = serializeInner(out, indexes, v, custom);
       });
       str += `["Map",[${items.join(",")}]]`;
+    } else if (
+      typeof Temporal !== "undefined" && value instanceof Temporal.Instant
+    ) {
+      str += `["Temporal.Instant","${value.toString()}"]`;
+    } else if (
+      typeof Temporal !== "undefined" &&
+      value instanceof Temporal.ZonedDateTime
+    ) {
+      str += `["Temporal.ZonedDateTime","${value.toString()}"]`;
+    } else if (
+      typeof Temporal !== "undefined" && value instanceof Temporal.PlainDate
+    ) {
+      str += `["Temporal.PlainDate","${value.toString()}"]`;
+    } else if (
+      typeof Temporal !== "undefined" && value instanceof Temporal.PlainTime
+    ) {
+      str += `["Temporal.PlainTime","${value.toString()}"]`;
+    } else if (
+      typeof Temporal !== "undefined" &&
+      value instanceof Temporal.PlainDateTime
+    ) {
+      str += `["Temporal.PlainDateTime","${value.toString()}"]`;
+    } else if (
+      typeof Temporal !== "undefined" &&
+      value instanceof Temporal.PlainYearMonth
+    ) {
+      str += `["Temporal.PlainYearMonth","${value.toString()}"]`;
+    } else if (
+      typeof Temporal !== "undefined" &&
+      value instanceof Temporal.PlainMonthDay
+    ) {
+      str += `["Temporal.PlainMonthDay","${value.toString()}"]`;
+    } else if (
+      typeof Temporal !== "undefined" && value instanceof Temporal.Duration
+    ) {
+      str += `["Temporal.Duration","${value.toString()}"]`;
     } else {
       str += "{";
       const keys = Object.keys(value);

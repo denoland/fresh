@@ -282,6 +282,42 @@ Deno.test({
 });
 
 Deno.test({
+  name: "Builder - .well-known static files",
+  fn: async () => {
+    await using _tmp = await withTmpDir();
+    const tmp = _tmp.dir;
+
+    const foo = path.join(tmp, ".well-known", "foo.json");
+    await Deno.mkdir(path.dirname(foo), { recursive: true });
+    await Deno.writeTextFile(foo, JSON.stringify({ ok: true }));
+
+    const builder = new Builder({
+      outDir: path.join(tmp, "dist"),
+      staticDir: tmp,
+    });
+    const app = new App().use(staticFiles());
+    const abort = new AbortController();
+    const port = 8011;
+    await builder.listen(() => Promise.resolve(app), {
+      port,
+      signal: abort.signal,
+    });
+
+    const res = await fetch(
+      `http://localhost:${port}/.well-known/foo.json`,
+    );
+    const json = await res.json();
+    await abort.abort();
+
+    expect(res.ok).toBe(true);
+    expect(res.status).toBe(200);
+    expect(json).toEqual({ ok: true });
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
   name: "Builder - write prod routePattern",
   fn: async () => {
     const root = path.join(import.meta.dirname!, "..", "..");
@@ -397,7 +433,7 @@ Deno.test({
     const tmp = _tmp.dir;
 
     const app = new App({ basePath: "/foo/bar" })
-      .get("/", () => new Response("ok"))
+      .get("/", () => new Response("root index"))
       .get("/asdf", () => new Response("ok"));
 
     const builder = new Builder({
@@ -414,10 +450,20 @@ Deno.test({
       },
     });
 
-    const res = await fetch(`${address}/foo/bar/asdf`);
+    // Test regular route
+    const res1 = await fetch(`${address}/foo/bar/asdf`);
+    const text1 = await res1.text();
+    expect(text1).toEqual("ok");
 
-    const text = await res.text();
-    expect(text).toEqual("ok");
+    // Test root index with basePath (without trailing slash)
+    // This was the main issue - accessing /foo/bar should work
+    const res2 = await fetch(`${address}/foo/bar`);
+    const text2 = await res2.text();
+    expect(res2.status).toEqual(200);
+    expect(text2).toEqual("root index");
+
+    // Verify original app config is not mutated by dev builder
+    expect(app.config.basePath).toEqual("/foo/bar");
 
     controller.abort();
   },

@@ -1,4 +1,9 @@
-import { App, type ListenOptions, setBuildCache } from "../app.ts";
+import {
+  App,
+  createOnListen,
+  type ListenOptions,
+  setBuildCache,
+} from "../app.ts";
 import { fsAdapter } from "../fs.ts";
 import * as path from "@std/path";
 import * as colors from "@std/fmt/colors";
@@ -25,7 +30,7 @@ import { parseDirPath } from "../config.ts";
 import { pathToExportName, UniqueNamer } from "../utils.ts";
 import { checkDenoCompilerOptions } from "./check.ts";
 import { crawlFsItem } from "./fs_crawl.ts";
-import { UPDATE_INTERVAL } from "../constants.ts";
+import { TEST_FILE_PATTERN, UPDATE_INTERVAL } from "../constants.ts";
 
 export interface BuildOptions {
   /**
@@ -104,8 +109,6 @@ export type ResolvedBuildConfig = Required<Omit<BuildOptions, "sourceMap">> & {
   sourceMap?: FreshBundleOptions["sourceMap"];
 };
 
-const TEST_FILE_PATTERN = /[._]test\.(?:[tj]sx?|[mc][tj]s)$/;
-
 // deno-lint-ignore no-explicit-any
 export class Builder<State = any> {
   #transformer: FileTransformer;
@@ -183,7 +186,11 @@ export class Builder<State = any> {
 
     const appHandler = app.handler();
 
-    const devApp = new App<State>(app.config)
+    // Store original basePath for display purposes
+    const originalBasePath = app.config.basePath;
+
+    const devConfig = { ...app.config, basePath: "" };
+    const devApp = new App<State>(devConfig)
       .use(liveReload())
       .use(devErrorOverlay())
       .use(automaticWorkspaceFolders(this.config.root))
@@ -202,7 +209,11 @@ export class Builder<State = any> {
     // Boot in parallel to spin up the server quicker. We'll hold
     // requests until the required assets are processed.
     await Promise.all([
-      devApp.listen(options),
+      devApp.listen({
+        ...options,
+        onListen: options.onListen ??
+          createOnListen(originalBasePath, options),
+      }),
       this.#build(buildCache, true),
     ]);
     return;
@@ -215,7 +226,7 @@ export class Builder<State = any> {
    * This can also be used for testing to apply a snapshot to a particular
    * {@linkcode App} instance.
    *
-   * @example
+   * @example Testing
    * ```ts
    * const builder = new Builder();
    * const applySnapshot = await builder.build({ snapshot: "memory" });

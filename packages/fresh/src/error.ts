@@ -1,4 +1,4 @@
-import { type ErrorStatus, STATUS_TEXT } from "@std/http/status";
+import type { ErrorStatus } from "@std/http/status";
 
 export type { ErrorStatus };
 
@@ -68,7 +68,7 @@ export class HttpError extends Error {
    */
   constructor(
     status: ErrorStatus,
-    message: string = STATUS_TEXT[status],
+    message?: string,
     options?: ErrorOptions,
   ) {
     super(message, options);

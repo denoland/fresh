@@ -132,7 +132,7 @@ document.addEventListener("click", async (e) => {
           partial ? partial : nextUrl.href,
           location.href,
         );
-        await fetchPartials(nextUrl, partialUrl);
+        await fetchPartials(nextUrl, partialUrl, true);
         updateLinks(nextUrl);
         scrollTo({ left: 0, top: 0, behavior: "instant" });
       } finally {
@@ -155,7 +155,7 @@ document.addEventListener("click", async (e) => {
         partial,
         location.href,
       );
-      await fetchPartials(partialUrl, partialUrl);
+      await fetchPartials(partialUrl, partialUrl, false);
     }
   }
 });
@@ -192,7 +192,7 @@ addEventListener("popstate", async (e) => {
 
   const url = new URL(location.href, location.origin);
   try {
-    await fetchPartials(url, url);
+    await fetchPartials(url, url, true);
     updateLinks(url);
     scrollTo({
       left: state.scrollX ?? 0,
@@ -231,12 +231,21 @@ document.addEventListener("submit", async (e) => {
       return;
     }
 
+    const hasExplicitPartial = e.submitter?.hasAttribute(PARTIAL_ATTR) ||
+      e.submitter?.hasAttribute("formaction") ||
+      el.hasAttribute(PARTIAL_ATTR) ||
+      el.hasAttribute("action");
+
     const rawPartialUrl = e.submitter?.getAttribute(PARTIAL_ATTR) ??
       e.submitter?.getAttribute("formaction") ??
       el.getAttribute(PARTIAL_ATTR) ?? el.action;
     const rawActionUrl = e.submitter?.getAttribute("formaction") ?? el.action;
 
-    if (rawPartialUrl !== "") {
+    // Only intercept forms that explicitly opt in to partial navigation
+    // via f-partial, formaction, or an explicit action attribute. Without
+    // this check, every form inside f-client-nav would be intercepted
+    // because el.action is always non-empty (defaults to the current URL).
+    if (hasExplicitPartial && rawPartialUrl !== "") {
       e.preventDefault();
 
       const partialUrl = new URL(rawPartialUrl, location.href);
@@ -254,7 +263,7 @@ document.addEventListener("submit", async (e) => {
         init = { body: new FormData(el, e.submitter), method: lowerMethod };
       }
 
-      await fetchPartials(actionUrl, partialUrl, init);
+      await fetchPartials(actionUrl, partialUrl, true, init);
     }
   }
 });
@@ -282,6 +291,7 @@ function updateLinks(url: URL) {
 async function fetchPartials(
   actualUrl: URL,
   partialUrl: URL,
+  shouldNavigate: boolean,
   init: RequestInit = {},
 ) {
   init.redirect = "follow";
@@ -296,8 +306,21 @@ async function fetchPartials(
     }
   }
 
-  maybeUpdateHistory(actualUrl);
-  await applyPartials(res);
+  try {
+    await applyPartials(res);
+  } catch (err) {
+    // When a redirect leads to a page without partials, fall back
+    // to a full page navigation instead of silently failing.
+    if (err instanceof NoPartialsError && res.redirected) {
+      location.href = actualUrl.href;
+      return;
+    }
+    throw err;
+  }
+
+  if (shouldNavigate) {
+    maybeUpdateHistory(actualUrl);
+  }
 }
 
 interface PartialReviveCtx {
@@ -398,7 +421,33 @@ export async function applyPartials(res: Response): Promise<void> {
     } else if (child.nodeName === "SCRIPT") {
       const script = child as HTMLScriptElement;
       if (script.src === `${INTERNAL_PREFIX}/fresh-runtime.js`) return;
-      // TODO: What to do with script tags?
+
+      // Append data scripts (e.g. application/ld+json for SEO structured
+      // data) to the document head. Skip executable script types to
+      // avoid unintended re-execution.
+      const t = script.type;
+      if (
+        t !== "" && t !== "module" && t !== "text/javascript" &&
+        t !== "importmap"
+      ) {
+        // Deduplicate: replace existing data script with same type and
+        // id, or same type and content, to avoid accumulating duplicates
+        // across repeated partial navigations.
+        const selector = script.id
+          ? `script[type="${t}"][id="${script.id}"]`
+          : `script[type="${t}"]`;
+        const existing = Array.from(
+          document.head.querySelectorAll<HTMLScriptElement>(selector),
+        ).find((el) =>
+          script.id ? true : el.textContent === script.textContent
+        );
+
+        if (existing === undefined) {
+          document.head.appendChild(script);
+        } else if (existing.textContent !== script.textContent) {
+          existing.textContent = script.textContent;
+        }
+      }
     } else if (child.nodeName === "STYLE") {
       const style = child as HTMLStyleElement;
       // TODO: Do we need a smarter merging strategy?
