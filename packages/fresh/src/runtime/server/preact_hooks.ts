@@ -290,13 +290,10 @@ options[OptionsType.DIFF] = (vnode) => {
             const spanCtx = activeSpan.spanContext();
             if (isSpanContextValid(spanCtx)) {
               const flags = (spanCtx.traceFlags & 1) ? "01" : "00";
-              items.push(
-                // deno-lint-ignore no-explicit-any
-                h("meta", {
-                  name: "traceparent",
-                  content: `00-${spanCtx.traceId}-${spanCtx.spanId}-${flags}`,
-                } as any),
-              );
+              const traceparent =
+                `00-${spanCtx.traceId}-${spanCtx.spanId}-${flags}`;
+              // deno-lint-ignore no-explicit-any
+              items.push(h("meta", { name: "traceparent", content: traceparent }) as any);
             }
           }
 

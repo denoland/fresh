@@ -127,3 +127,21 @@ deno task start
 
 Open `http://localhost:16686` to browse traces. You'll see each request broken
 down into its middleware, handler, and rendering spans.
+
+## Client-side trace correlation
+
+When an OpenTelemetry exporter is active, Fresh automatically injects a
+[W3C Trace Context](https://www.w3.org/TR/trace-context/) `<meta>` tag into the
+`<head>` of every rendered page:
+
+```html
+<head>
+  <meta name="traceparent" content="00-ab42124a3c573678d4d8b21ba52df3bf-d21f7bc17caa5aba-01">
+  <!-- ... -->
+</head>
+```
+
+This allows client-side OpenTelemetry instrumentation (such as
+[`@opentelemetry/instrumentation-document-load`](https://www.npmjs.com/package/@opentelemetry/instrumentation-document-load))
+to link browser performance traces back to the server-side span that rendered the
+page, giving you end-to-end visibility from server rendering through page load.
