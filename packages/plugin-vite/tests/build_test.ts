@@ -53,6 +53,12 @@ Deno.test({
         const res = await fetch(`${address}/test_static/foo.txt`);
         const text = await res.text();
         expect(text).toEqual("it works");
+
+        const resWithSpace = await fetch(
+          `${address}/test%20%2520encodeUri/foo%20%2520encodeUri.txt`,
+        );
+        const textWithSpace = await resWithSpace.text();
+        expect(textWithSpace).toEqual("space it works");
       },
     );
   },
@@ -482,6 +488,10 @@ Deno.test({
         const res = await fetch(`${address}/test_static/foo`);
         const text = await res.text();
         expect(text).toContain("<h1>ok</h1>");
+
+        const resWithSpace = await fetch(`${address}/test%20%2520encodeUri`);
+        const textWithSpace = await resWithSpace.text();
+        expect(textWithSpace).toContain("<h1>ok</h1>");
       },
     );
   },
@@ -501,6 +511,31 @@ Deno.test({
 
     // Asset paths should include the base path /my-app/
     expect(serverJs).toContain('"/my-app/assets/');
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite build - custom rollup entryFileNames in server.js",
+  fn: async () => {
+    await using res = await buildVite(DEMO_DIR, {
+      rollupOutput: {
+        entryFileNames: "[hash].mjs",
+        chunkFileNames: "[hash].mjs",
+      },
+    });
+
+    const serverJs = await Deno.readTextFile(
+      path.join(res.tmp, "_fresh", "server.js"),
+    );
+
+    // When custom entryFileNames is set, server.js should use the actual
+    // hashed filename from the manifest, not hardcoded "server-entry.mjs"
+    expect(serverJs).not.toContain("server-entry.mjs");
+    expect(serverJs).toMatch(
+      /from "\.\/server\/[a-zA-Z0-9_-]+\.mjs"/,
+    );
   },
   sanitizeOps: false,
   sanitizeResources: false,
@@ -597,6 +632,34 @@ Deno.test({
         expect(file.includes(pattern)).toBe(false);
       }
     }
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite build - client side <Head>",
+  fn: async () => {
+    await launchProd(
+      { cwd: viteResult.tmp },
+      async (address) => {
+        await withBrowser(async (page) => {
+          await page.goto(`${address}/tests/head_counter`, {
+            waitUntil: "networkidle2",
+          });
+
+          await page.locator(".ready").wait();
+          await page.locator("button").click();
+          await waitForText(page, ".result", "Count: 1");
+
+          await waitFor(async () => {
+            const title = await page.evaluate(() => document.title);
+            expect(title).toEqual("Count: 1");
+            return true;
+          });
+        });
+      },
+    );
   },
   sanitizeOps: false,
   sanitizeResources: false,

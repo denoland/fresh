@@ -156,7 +156,7 @@ shops for example.
 export default function AddToCartPartial() {
   return (
     <>
-      <Partial name="cart-items" mode="append">
+      <Partial name="cart-items" mode="append" key={newItem.id}>
         {/* Render the new cart item here */}
       </Partial>
       <Partial name="total-price">
@@ -187,7 +187,7 @@ export default function LogView() {
   const lines = getNewLogLines();
 
   return (
-    <Partial name="logs-list" mode="append">
+    <Partial name="logs-list" mode="append" key={lines[0]}>
       {lines.map((line) => {
         return <li key={line}>{line}</li>;
       })}
@@ -196,8 +196,10 @@ export default function LogView() {
 }
 ```
 
-> [info]: When picking the `prepend` or `append` mode, make sure to add keys to
-> the elements.
+> [warn]: When using `prepend` or `append` mode, you **must** add a `key` prop
+> to the `<Partial>` component. Without it, Preact cannot distinguish new
+> children from existing ones, leading to subtle rendering bugs. Fresh will log
+> a warning if it detects a missing key on an append/prepend partial.
 
 ## Bypassing or disabling Partials
 

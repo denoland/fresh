@@ -24,7 +24,13 @@ export function devServer(): Plugin[] {
         publicDir = config.publicDir;
       },
       configureServer(server) {
-        const IGNORE_URLS = /^\/(@(vite|fs|id)|\.vite)\//;
+        // Build the ignore pattern accounting for the configured base path.
+        // Vite prefixes virtual module URLs with the base (e.g. /ui/@id/...),
+        // so we need to match both /@ and /base/@.
+        const base = server.config.base.replace(/\/$/, "");
+        const IGNORE_URLS = new RegExp(
+          `^(${base})?/(@(vite|fs|id)|\\.vite)/`,
+        );
 
         server.middlewares.use(async (nodeReq, nodeRes, next) => {
           const serverCfg = server.config.server;
@@ -39,9 +45,11 @@ export function devServer(): Plugin[] {
           // Don't cache in dev
           url.searchParams.delete(ASSET_CACHE_BUST_KEY);
 
-          // Check if it's a vite url
+          // Check if it's a vite url or a node_modules asset (e.g. fonts
+          // referenced from CSS in npm packages)
           if (
             IGNORE_URLS.test(url.pathname) ||
+            url.pathname.startsWith("/node_modules/") ||
             server.environments.client.moduleGraph.urlToModuleMap.has(
               url.pathname,
             ) ||
@@ -53,8 +61,10 @@ export function devServer(): Plugin[] {
             return next();
           }
 
+          const decodedPathname = decodeURIComponent(url.pathname.slice(1));
+
           // Check if it's a static file first
-          const staticFilePath = path.join(publicDir, url.pathname.slice(1));
+          const staticFilePath = path.join(publicDir, decodedPathname);
           try {
             const stat = await Deno.stat(staticFilePath);
             if (stat.isFile) {
@@ -67,7 +77,7 @@ export function devServer(): Plugin[] {
           // Check if it's a static/index.html file
           const staticFilePathIndex = path.join(
             publicDir,
-            url.pathname.slice(1),
+            decodedPathname,
             "index.html",
           );
           try {

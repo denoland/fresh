@@ -10,7 +10,32 @@ export interface CSPOptions {
 
   /** Additional CSP directives to add or override the defaults */
   csp?: string[];
+
+  /**
+   * If true, replaces 'unsafe-inline' with a nonce-based policy for
+   * script-src and style-src directives. Fresh automatically injects
+   * nonce attributes on inline `<script>` and `<style>` tags during
+   * server rendering, so this option locks down the policy to only
+   * allow those Fresh-rendered inline elements.
+   */
+  useNonce?: boolean;
 }
+
+/**
+ * Symbol used to pass the render nonce from ctx.render() to the CSP
+ * middleware without exposing it as a response header.
+ */
+export const NONCE_SYMBOL: unique symbol = Symbol.for("__freshNonce");
+
+/** Directives that may contain 'unsafe-inline' for script/style sources */
+const INLINE_DIRECTIVES = new Set([
+  "script-src",
+  "style-src",
+  "script-src-elem",
+  "style-src-elem",
+  "style-src-attr",
+  "default-src",
+]);
 
 /**
  * Middleware to set Content-Security-Policy headers
@@ -27,12 +52,18 @@ export interface CSPOptions {
  *   ],
  * }));
  * ```
+ *
+ * @example Nonce-based CSP
+ * ```ts
+ * app.use(csp({ useNonce: true }));
+ * ```
  */
 export function csp<State>(options: CSPOptions = {}): Middleware<State> {
   const {
     reportOnly = false,
     reportTo,
     csp = [],
+    useNonce = false,
   } = options;
 
   const defaultCsp = [
@@ -56,14 +87,45 @@ export function csp<State>(options: CSPOptions = {}): Middleware<State> {
     cspDirectives.push(`report-to csp-endpoint`);
     cspDirectives.push(`report-uri ${reportTo}`); // deprecated but some browsers still use it
   }
-  const cspString = cspDirectives.join("; ");
 
+  const headerName = reportOnly
+    ? "Content-Security-Policy-Report-Only"
+    : "Content-Security-Policy";
+
+  if (!useNonce) {
+    // Static CSP — no per-request nonce
+    const cspString = cspDirectives.join("; ");
+    return async (ctx) => {
+      const res = await ctx.next();
+      res.headers.set(headerName, cspString);
+      if (reportTo) {
+        res.headers.set("Reporting-Endpoints", `csp-endpoint="${reportTo}"`);
+      }
+      return res;
+    };
+  }
+
+  // Nonce-based CSP — replace 'unsafe-inline' with nonce per request
   return async (ctx) => {
     const res = await ctx.next();
-    const headerName = reportOnly
-      ? "Content-Security-Policy-Report-Only"
-      : "Content-Security-Policy";
-    res.headers.set(headerName, cspString);
+    // deno-lint-ignore no-explicit-any
+    const nonce = (res as any)[NONCE_SYMBOL] as string | undefined;
+
+    let directives: string[];
+    if (nonce) {
+      directives = cspDirectives.map((d) => {
+        const spaceIdx = d.indexOf(" ");
+        const name = spaceIdx === -1 ? d : d.slice(0, spaceIdx);
+        if (INLINE_DIRECTIVES.has(name) && d.includes("'unsafe-inline'")) {
+          return d.replaceAll("'unsafe-inline'", `'nonce-${nonce}'`);
+        }
+        return d;
+      });
+    } else {
+      directives = cspDirectives;
+    }
+
+    res.headers.set(headerName, directives.join("; "));
     if (reportTo) {
       res.headers.set("Reporting-Endpoints", `csp-endpoint="${reportTo}"`);
     }

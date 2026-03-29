@@ -529,6 +529,12 @@ ${serializedFsRoutes}
 `.replaceAll(/\n[\n]+/g, "\n\n");
 }
 
+export function systemPathToUrlEncoded(systemPath: string): string {
+  const normalized = systemPath.replaceAll(WINDOWS_SEPARATOR, "/");
+  const components = normalized.split("/").filter((comp) => comp);
+  return "/" + components.map((comp) => encodeURIComponent(comp)).join("/");
+}
+
 export async function prepareStaticFile(
   item: PendingStaticFile,
   outDir: string,
@@ -537,10 +543,10 @@ export async function prepareStaticFile(
 > {
   const file = await Deno.open(item.filePath);
   const hash = item.hash ? item.hash : await hashContent(file.readable);
-  const url = new URL(item.pathname, "http://localhost");
+  const encodedPathname = systemPathToUrlEncoded(item.pathname);
 
   return {
-    name: url.pathname,
+    name: encodedPathname,
     hash,
     filePath: path.isAbsolute(item.filePath)
       ? path.relative(outDir, item.filePath)
