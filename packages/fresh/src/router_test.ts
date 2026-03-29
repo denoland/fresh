@@ -174,3 +174,30 @@ Deno.test("mergePath", () => {
   expect(mergePath("/foo", "*", true)).toEqual("/foo");
   expect(mergePath("/foo", "/*", true)).toEqual("/foo/*");
 });
+
+Deno.test("UrlPatternRouter - first registered route wins on duplicate", () => {
+  const router = new UrlPatternRouter<() => string>();
+  const first = () => "first";
+  const second = () => "second";
+
+  router.add("GET", "/foo", first);
+  router.add("GET", "/foo", second);
+
+  const res = router.match("GET", new URL("/foo", "http://localhost"));
+  expect(res.item).toBe(first);
+});
+
+Deno.test("UrlPatternRouter - duplicate registration different methods", () => {
+  const router = new UrlPatternRouter<() => string>();
+  const getHandler = () => "get";
+  const postHandler = () => "post";
+
+  router.add("GET", "/foo", getHandler);
+  router.add("POST", "/foo", postHandler);
+
+  const getRes = router.match("GET", new URL("/foo", "http://localhost"));
+  expect(getRes.item).toBe(getHandler);
+
+  const postRes = router.match("POST", new URL("/foo", "http://localhost"));
+  expect(postRes.item).toBe(postHandler);
+});
