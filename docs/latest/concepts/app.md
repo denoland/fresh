@@ -1,26 +1,46 @@
 ---
 description: |
-  Add a global app wrapper to provide common meta tags or context for application routes.
+  The App class is the heart of Fresh, used to define routes, middlewares, layouts and more.
 ---
 
 The `App` class is the heart of Fresh and routes incoming requests to the
-correct middlewares. This is where routes, middlewares, layouts and more are
-defined.
+correct [middlewares](/docs/concepts/middleware). This is where routes,
+middlewares, [layouts](/docs/concepts/layouts) and more are defined.
 
-```tsx main.ts
+```ts main.ts
 const app = new App()
   .use(staticFiles())
-  .get("/", () => new Response("hello"))
-  .get("/about", (ctx) => ctx.render(<h1>About me</h1>));
+  .get("/", () => new Response("hello"));
 
 // Start server
 app.listen();
 ```
 
+> [tip]: To use JSX in your `main` file (e.g. with
+> `ctx.render(<h1>Hello</h1>)`), rename it to `main.tsx` and set
+> `serverEntry: "main.tsx"` in the `fresh()` plugin options in `vite.config.ts`.
+
+## Configuration
+
+The `App` constructor accepts an options object:
+
+```ts
+const app = new App({
+  // Serve the app from a sub-path instead of root.
+  // All routes will be prefixed with this path.
+  basePath: "/my-app",
+});
+```
+
+With `basePath: "/my-app"`, a route registered at `/about` will respond to
+`/my-app/about`. This is useful when Fresh runs behind a reverse proxy or is
+mounted alongside other apps. The base path is available in handlers via
+`ctx.config.basePath`.
+
 All items are applied from top to bottom. This means that when you defined a
 middleware _after_ a `.get()` handler, it won't be included.
 
-```tsx main.tsx
+```ts main.ts
 const app = new App()
   .use((ctx) => {
     // Will be called for all middlewares
@@ -28,10 +48,10 @@ const app = new App()
   })
   .get("/", () => new Response("hello"))
   .use((ctx) => {
-    // Will only be called for `/about
+    // Will only be called for `/about`
     return ctx.next();
   })
-  .get("/about", (ctx) => ctx.render(<h1>About me</h1>));
+  .get("/about", () => new Response("About me"));
 ```
 
 ## `.use()`
@@ -238,8 +258,8 @@ app.all("/api/foo", async () => {
 
 ## `.fsRoute()`
 
-Injects all file-based routes, middlewares, layouts and error pages to the app
-instance.
+Injects all [file-based routes](/docs/concepts/file-routing), middlewares,
+layouts and [error pages](/docs/advanced/error-handling) to the app instance.
 
 ```ts
 app.fsRoutes();
@@ -257,7 +277,18 @@ app.fsRoutes("/foo/bar");
 
 ## `.route()`
 
-TODO
+Register a route with a component and optional handlers for data loading.
+
+```tsx
+app.route("/about", {
+  component: (ctx) => <h1>About {ctx.data.name}</h1>,
+  handler: {
+    GET(ctx) {
+      return page({ name: "Fresh" });
+    },
+  },
+});
+```
 
 ## `.appWrapper()`
 
@@ -282,9 +313,13 @@ app.onError("*", (ctx) => {
 });
 ```
 
-Setting a route:
+Setting a route with a component:
 
-TODO
+```tsx
+app.onError("*", {
+  component: (ctx) => <h1>Oops! {String(ctx.error)}</h1>,
+});
+```
 
 ## `.notFound()`
 
@@ -296,7 +331,13 @@ app.notFound(() => {
 });
 ```
 
-TODO: Route
+With a component:
+
+```tsx
+app.notFound((ctx) => {
+  return ctx.render(<h1>Page not found</h1>);
+});
+```
 
 ## `.mountApp()`
 
@@ -335,7 +376,8 @@ frameworks.
 
 ## `.listen()`
 
-Spawns a server and listens for incoming connections.
+Spawns a server and listens for incoming connections. This calls `Deno.serve()`
+internally.
 
 ```ts
 const app = new App()
@@ -350,3 +392,15 @@ aspects.
 ```ts
 app.listen({ port: 4000 });
 ```
+
+> **Important:** `.listen()` is only used when running your app directly with
+> `deno run -A main.ts`. The default project setup uses `deno task dev` (Vite
+> dev server) and `deno task start` (`deno serve`), which spawn their own
+> servers - calling `.listen()` alongside these will create a second server and
+> cause `AddrInUse` errors.
+>
+> To customize the port in the default setup:
+>
+> - **Dev:** set `server.port` in `vite.config.ts`
+> - **Prod:** pass `--port` to `deno serve` in your task, e.g.
+>   `"start": "deno serve --port 4000 -A _fresh/server.js"`

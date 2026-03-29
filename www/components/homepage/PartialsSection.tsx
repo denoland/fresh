@@ -8,7 +8,7 @@ import { ExampleArrow } from "../../components/homepage/ExampleArrow.tsx";
 import { RecipeDemo } from "../../components/homepage/RecipeDemo.tsx";
 import { FancyLink } from "../../components/FancyLink.tsx";
 
-const islandCode = `import { Partial } from "$fresh/runtime.ts";
+const islandCode = `import { Partial } from "fresh/runtime";
 
 export const Recipes = () => (
   <div f-client-nav>
@@ -33,7 +33,7 @@ export const Recipes = () => (
 
 export function PartialsSection() {
   return (
-    <PageSection>
+    <PageSection id="partials">
       <SideBySide
         mdColSplit="3/2"
         lgColSplit="3/2"
@@ -67,7 +67,7 @@ export function PartialsSection() {
           <SectionHeading>Stream HTML straight from the server</SectionHeading>
           <p>
             Fresh Partials let you fetch HTML and slot it directly into the
-            page, without a full page reload—perfect for interactive elements
+            page, without a full page reload - perfect for interactive elements
             and dynamic apps.
           </p>
           <FancyLink href="/docs/advanced/partials" class="mt-4">

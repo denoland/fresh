@@ -22,11 +22,10 @@ and some interesting text here
 > oh look a blockquote
 ```
 
-4. Add a route that renders that file
+3. Add a route that renders that file
 
-```tsx route/markdown.tsx
-// deno-lint-ignore-file react-no-danger
-import { define } from "../utils.ts";
+```tsx routes/markdown.tsx
+import { define } from "@/utils.ts";
 import { CSS, render as renderMarkdown } from "@deno/gfm";
 
 export default define.page(async () => {
@@ -36,19 +35,16 @@ export default define.page(async () => {
   return (
     <div>
       <h1>Here comes a markdown post:</h1>
+      {/* deno-lint-ignore react-no-danger */}
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
+      {/* deno-lint-ignore react-no-danger */}
       <div dangerouslySetInnerHTML={{ __html: html }} />
     </div>
   );
 });
 ```
 
-## More complex examples
-
-For building a full markdown blog see this
-[tutorial](https://www.jackfiszr.eu/how-to-build-a-blog-with-fresh-2.0).
-
-For a more elaborate markdown system with Fresh 2 take a look at the
+For a more elaborate markdown system with Fresh, take a look at the
 [source code](https://github.com/denoland/fresh/tree/main/www) for this
 documentation website.
 

@@ -91,6 +91,7 @@ export type MaybeLazyMiddleware<State> = (
 export async function runMiddlewares<State>(
   middlewares: MaybeLazyMiddleware<State>[],
   ctx: Context<State>,
+  onError?: (err: unknown) => void,
 ): Promise<Response> {
   return await tracer.startActiveSpan("middlewares", {
     attributes: { "fresh.middleware.count": middlewares.length },
@@ -117,7 +118,13 @@ export async function runMiddlewares<State>(
 
             return result;
           } catch (err) {
-            ctx.error = err;
+            if (ctx.error !== err) {
+              ctx.error = err;
+
+              if (onError !== undefined) {
+                onError(err);
+              }
+            }
             throw err;
           } finally {
             internals.app = prevApp;

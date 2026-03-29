@@ -282,6 +282,42 @@ Deno.test({
 });
 
 Deno.test({
+  name: "Builder - .well-known static files",
+  fn: async () => {
+    await using _tmp = await withTmpDir();
+    const tmp = _tmp.dir;
+
+    const foo = path.join(tmp, ".well-known", "foo.json");
+    await Deno.mkdir(path.dirname(foo), { recursive: true });
+    await Deno.writeTextFile(foo, JSON.stringify({ ok: true }));
+
+    const builder = new Builder({
+      outDir: path.join(tmp, "dist"),
+      staticDir: tmp,
+    });
+    const app = new App().use(staticFiles());
+    const abort = new AbortController();
+    const port = 8011;
+    await builder.listen(() => Promise.resolve(app), {
+      port,
+      signal: abort.signal,
+    });
+
+    const res = await fetch(
+      `http://localhost:${port}/.well-known/foo.json`,
+    );
+    const json = await res.json();
+    await abort.abort();
+
+    expect(res.ok).toBe(true);
+    expect(res.status).toBe(200);
+    expect(json).toEqual({ ok: true });
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
   name: "Builder - write prod routePattern",
   fn: async () => {
     const root = path.join(import.meta.dirname!, "..", "..");
@@ -303,7 +339,7 @@ export const app = new App().fsRoutes()`,
 
     let text = "fail";
     await withChildProcessServer(
-      { cwd: tmp, args: ["serve", "-A", "dist/server.js"] },
+      { cwd: tmp, args: ["serve", "-A", "--port=0", "dist/server.js"] },
       async (address) => {
         const res = await fetch(`${address}/foo`);
         text = await res.text();
@@ -343,7 +379,7 @@ export const app = new App().fsRoutes()`,
 
     let text = "fail";
     await withChildProcessServer(
-      { cwd: tmp, args: ["serve", "-A", "dist/server.js"] },
+      { cwd: tmp, args: ["serve", "-A", "--port=0", "dist/server.js"] },
       async (address) => {
         const res = await fetch(address);
         text = await res.text();
@@ -489,7 +525,7 @@ export const app = new App()
     await new Builder({ root: tmp }).build();
 
     await withChildProcessServer(
-      { cwd: tmp, args: ["serve", "-A", "_fresh/server.js"] },
+      { cwd: tmp, args: ["serve", "-A", "--port=0", "_fresh/server.js"] },
       async (address) => {
         let res = await fetch(`${address}/foo.txt`);
         expect(await res.text()).toEqual("ok");
@@ -599,7 +635,7 @@ export const app = new App().fsRoutes()`,
 
     let text = "fail";
     await withChildProcessServer(
-      { cwd: tmp, args: ["serve", "-A", "dist/server.js"] },
+      { cwd: tmp, args: ["serve", "-A", "--port=0", "dist/server.js"] },
       async (address) => {
         const res = await fetch(address);
         text = await res.text();
@@ -837,4 +873,71 @@ Deno.test("specToName", () => {
   expect(specToName("islands/foo.v2.tsx")).toEqual("foo_v2");
   expect(specToName("/islands/_bar-baz-...-$.tsx")).toEqual("_bar_baz_$");
   expect(specToName("/islands/1_hello.tsx")).toEqual("_hello");
+});
+
+Deno.test({
+  name: "Builder - island named after global object (Map)",
+  fn: async () => {
+    const root = path.join(import.meta.dirname!, "..", "..");
+    await using _tmp = await withTmpDir({ dir: root, prefix: "tmp_builder_" });
+    const tmp = _tmp.dir;
+
+    await writeFiles(tmp, {
+      "islands/Map.tsx": `import { useSignal } from "@preact/signals";
+import { useEffect } from "preact/hooks";
+
+export default function Map() {
+  const ready = useSignal(false);
+  const count = useSignal(0);
+
+  useEffect(() => {
+    ready.value = true;
+  }, []);
+
+  return (
+    <div class={ready.value ? "ready" : ""}>
+      <p class="output">{count.value}</p>
+      <button
+        type="button"
+        class="increment"
+        onClick={() => count.value = count.peek() + 1}
+      >
+        increment
+      </button>
+    </div>
+  );
+}`,
+      "routes/index.tsx": `import Map from "../islands/Map.tsx";
+export default () => <Map />;`,
+      "main.ts": `import { App } from "fresh";
+export const app = new App().fsRoutes();`,
+    });
+
+    const builder = new Builder({
+      root: tmp,
+      outDir: path.join(tmp, "dist"),
+    });
+
+    // Register the island manually
+    const islandPath = path.join(tmp, "islands", "Map.tsx");
+    builder.registerIsland(path.toFileUrl(islandPath).href);
+
+    await builder.build();
+
+    await withChildProcessServer(
+      { cwd: tmp, args: ["serve", "-A", "--port=0", "dist/server.js"] },
+      async (address) => {
+        const res = await fetch(address);
+        const html = await res.text();
+
+        // Verify the fix: UniqueNamer prefixes "Map" with underscore to prevent shadowing
+        // Without the fix: import Map from "..." and boot({Map}, ...) - shadows global Map
+        // With the fix: import _Map_N from "..." and boot({_Map_N}, ...) - no shadowing
+        expect(html).toMatch(/import\s+_Map_\d+\s+from/);
+        expect(html).toMatch(/boot\(\s*\{\s*_Map_\d+\s*\}/);
+      },
+    );
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
 });

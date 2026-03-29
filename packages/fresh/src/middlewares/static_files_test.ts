@@ -1,12 +1,16 @@
 import { staticFiles } from "./static_files.ts";
-import { serveMiddleware } from "../test_utils.ts";
+import { FakeServer, serveMiddleware } from "../test_utils.ts";
 import type { BuildCache, StaticFile } from "../build_cache.ts";
 import { expect } from "@std/expect";
 import { ASSET_CACHE_BUST_KEY } from "../constants.ts";
 import { BUILD_ID } from "@fresh/build-id";
 import type { Command } from "../commands.ts";
 import type { ServerIslandRegistry } from "../context.ts";
-import { getContentType } from "../dev/dev_build_cache.ts";
+import {
+  getContentType,
+  systemPathToUrlEncoded,
+} from "../dev/dev_build_cache.ts";
+import { App, setBuildCache } from "../app.ts";
 
 class MockBuildCache implements BuildCache {
   root = "";
@@ -84,13 +88,20 @@ Deno.test("static files - HEAD 200", async () => {
   expect(content).toEqual("");
 });
 
-Deno.test("static files - etag", async () => {
+Deno.test("static files - etag in production", async () => {
   const buildCache = new MockBuildCache({
     "foo.css": { content: "body {}", hash: "123" },
   });
   const server = serveMiddleware(
     staticFiles(),
-    { buildCache },
+    {
+      buildCache,
+      config: {
+        root: "",
+        basePath: "",
+        mode: "production",
+      },
+    },
   );
 
   const cacheUrl = `/foo.css?${ASSET_CACHE_BUST_KEY}=${BUILD_ID}`;
@@ -109,6 +120,35 @@ Deno.test("static files - etag", async () => {
   res = await server.get(cacheUrl, { headers });
   await res.body?.cancel();
   expect(res.status).toEqual(304);
+});
+
+Deno.test("static files - no etag in development", async () => {
+  const buildCache = new MockBuildCache({
+    "foo.css": { content: "body {}", hash: "123" },
+  });
+  const server = serveMiddleware(
+    staticFiles(),
+    {
+      buildCache,
+      config: {
+        root: "",
+        basePath: "",
+        mode: "development",
+      },
+    },
+  );
+
+  const cacheUrl = `/foo.css`;
+  let res = await server.get(cacheUrl);
+  await res.body?.cancel();
+  expect(res.headers.get("Etag")).toBeNull();
+
+  // Even if client sends If-None-Match in dev mode, always return 200
+  const headers = new Headers();
+  headers.append("If-None-Match", "123");
+  res = await server.get(cacheUrl, { headers });
+  await res.body?.cancel();
+  expect(res.status).toEqual(200);
 });
 
 Deno.test("static files - 404 on missing favicon.ico", async () => {
@@ -187,12 +227,17 @@ Deno.test("static files - enables caching in production", async () => {
   );
 });
 
-Deno.test("static files - decoded pathname", async () => {
-  const buildCache = new MockBuildCache({
-    "C#.svg": { content: "body {}", hash: null },
-    "西安市.png": { content: "body {}", hash: null },
-    "인천.avif": { content: "body {}", hash: null },
-  });
+Deno.test("static files - encoded pathname", async () => {
+  // Build cache stores URL-encoded paths (matching what prepareStaticFile produces)
+  const fileKeys = ["C#.svg", "西安市.png", "인천.avif"];
+  const entries = Object.fromEntries(
+    fileKeys.map((key) => [
+      systemPathToUrlEncoded(key),
+      { content: "body {}", hash: null },
+    ]),
+  );
+
+  const buildCache = new MockBuildCache(entries);
   const server = serveMiddleware(
     staticFiles(),
     { buildCache },
@@ -216,16 +261,34 @@ Deno.test("static files - fallthrough", async () => {
     "foo.css": { content: "body {}", hash: null },
   });
 
-  const server = serveMiddleware(
-    staticFiles(),
-    { buildCache, next: () => Promise.resolve(new Response("it works")) },
-  );
+  let called: string[] = [];
+  const app = new App<{ text: string }>()
+    .use((ctx) => {
+      ctx.state.text = "it";
+      called.push("before");
+      return ctx.next();
+    })
+    .use(staticFiles())
+    .use((ctx) => {
+      ctx.state.text += " works";
+      called.push("after");
+      return ctx.next();
+    })
+    .get("/", (ctx) => new Response(ctx.state.text));
+
+  setBuildCache(app, buildCache, "production");
+
+  const server = new FakeServer(app.handler());
 
   let res = await server.get("foo.css");
   let text = await res.text();
   expect(text).toEqual("body {}");
+  expect(called).toEqual(["before"]);
+
+  called = [];
 
   res = await server.get("/");
   text = await res.text();
   expect(text).toEqual("it works");
+  expect(called).toEqual(["before", "after"]);
 });
