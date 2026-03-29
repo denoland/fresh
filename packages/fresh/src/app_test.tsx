@@ -824,7 +824,7 @@ Deno.test("App - .appWrapper()", async () => {
   expect(await res.text()).toContain("<body>app/index<");
 });
 
-Deno.test.ignore("App - .layout()", async () => {
+Deno.test("App - .layout()", async () => {
   const app = new App()
     .layout("/", ({ Component }) => (
       <>
@@ -840,7 +840,6 @@ Deno.test.ignore("App - .layout()", async () => {
 
   const server = new FakeServer(app.handler());
 
-  // The `/foo` layout is not applied for GET `/foo`, is that correct?
   const res = await server.get("/foo");
   expect(await res.text()).toContain("<body>layout/foo/index<");
 });

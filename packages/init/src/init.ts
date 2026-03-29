@@ -5,7 +5,7 @@ import * as semver from "@std/semver";
 import initConfig from "../deno.json" with { type: "json" };
 
 // Keep these as is, as we replace these version in our release script
-const FRESH_VERSION = "2.2.1";
+const FRESH_VERSION = "2.2.2";
 const FRESH_TAILWIND_VERSION = "1.0.0";
 const FRESH_VITE_PLUGIN = "1.0.0";
 const PREACT_VERSION = "10.28.3";
@@ -48,13 +48,13 @@ Initialize a new Fresh project. This will create all the necessary files
 for a new project.
 
 To generate a project in the './foobar' subdirectory:
-    ${colors.rgb8("deno run -Ar jsr:@fresh/init ./foobar", 245)}
+    ${colors.rgb8("deno create @fresh/init ./foobar", 245)}
 
 To generate a project in the current directory:
-    ${colors.rgb8("deno run -Ar jsr:@fresh/init .", 245)}
+    ${colors.rgb8("deno create @fresh/init .", 245)}
 
 ${colors.rgb8("USAGE:", 3)}
-    ${colors.rgb8("deno run -Ar jsr:@fresh/init [DIRECTORY]", 245)}
+    ${colors.rgb8("deno create @fresh/init [DIRECTORY]", 245)}
 
 ${colors.rgb8("OPTIONS:", 3)}
     ${colors.rgb8("--force", 2)}      Overwrite existing files
@@ -616,6 +616,7 @@ if (Deno.args.includes("build")) {
     denoJson.imports["@fresh/plugin-vite"] =
       `jsr:@fresh/plugin-vite@^${vitePluginVersion}`;
     denoJson.imports["vite"] = "npm:vite@^7.1.3";
+    denoJson.imports["@types/babel__core"] = "npm:@types/babel__core@^7.20.5";
 
     if (useTailwind) {
       denoJson.imports["tailwindcss"] =

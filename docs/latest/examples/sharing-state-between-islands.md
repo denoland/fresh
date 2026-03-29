@@ -3,9 +3,6 @@ description: |
   When you need to have state shared between islands, this page provides a few recipes.
 ---
 
-All of this content is lifted from this great
-[example](https://github.com/lucacasonato/fresh-with-signals) by Luca.
-
 ## Multiple Sibling Islands with Independent State
 
 Imagine we have `Counter.tsx` like this:
@@ -87,87 +84,82 @@ export default function Home() {
 
 they would all use the same value.
 
-## Independent Islands
+## Sharing State Across Independent Islands
 
-We can also create a `signal` in a utility file and export it for consumption
-across multiple places.
-
-```ts utils/cart.ts
-import { signal } from "@preact/signals";
-
-export const cart = signal<string[]>([]);
-```
+When islands are not rendered as siblings (e.g. one in a sidebar and one in the
+main content), you can share state by creating a signal in a parent component
+and passing it as a prop to each island.
 
 ```tsx islands/AddToCart.tsx
+import { type Signal } from "@preact/signals";
 import { Button } from "../components/Button.tsx";
-import { cart } from "../utils/cart.ts";
 
 interface AddToCartProps {
+  cart: Signal<string[]>;
   product: string;
 }
 
-// This island is used to add a product to the cart state.
 export default function AddToCart(props: AddToCartProps) {
+  const { cart, product } = props;
   return (
     <Button
-      onClick={() => (cart.value = [...cart.value, props.product])}
+      onClick={() => (cart.value = [...cart.value, product])}
       class="w-full"
     >
-      Add{cart.value.includes(props.product) ? " another" : ""} "{props.product}
-      " to cart
+      Add{cart.value.includes(product) ? " another" : ""} "{product}" to cart
     </Button>
   );
 }
 ```
 
 ```tsx islands/Cart.tsx
+import { type Signal } from "@preact/signals";
 import { Button } from "../components/Button.tsx";
-import { cart } from "../utils/cart.ts";
 import * as icons from "../components/Icons.tsx";
 
-// This island is used to display the cart contents and remove items from it.
-export default function Cart() {
-  return (
-    <h1 class="text-xl flex items-center justify-center">
-      Cart
-    </h1>
+interface CartProps {
+  cart: Signal<string[]>;
+}
 
-    <ul class="w-full bg-gray-50 mt-2 p-2 rounded-sm min-h-[6.5rem]">
-      {cart.value.length === 0 && (
-        <li class="text-center my-4">
-          <div class="text-gray-400">
-            <icons.Cart class="w-8 h-8 inline-block" />
-            <div>
-              Your cart is empty.
+export default function Cart(props: CartProps) {
+  const { cart } = props;
+  return (
+    <div>
+      <h1 class="text-xl flex items-center justify-center">Cart</h1>
+      <ul class="w-full bg-gray-50 mt-2 p-2 rounded-sm min-h-[6.5rem]">
+        {cart.value.length === 0 && (
+          <li class="text-center my-4">
+            <div class="text-gray-400">
+              <icons.Cart class="w-8 h-8 inline-block" />
+              <div>Your cart is empty.</div>
             </div>
-          </div>
-        </li>
-      )}
-      {cart.value.map((product, index) => (
-        <CartItem product={product} index={index} />
-      ))}
-    </ul>
+          </li>
+        )}
+        {cart.value.map((product, index) => (
+          <CartItem cart={cart} product={product} index={index} />
+        ))}
+      </ul>
+    </div>
   );
 }
 
 interface CartItemProps {
+  cart: Signal<string[]>;
   product: string;
   index: number;
 }
 
 function CartItem(props: CartItemProps) {
   const remove = () => {
-    const newCart = [...cart.value];
+    const newCart = [...props.cart.value];
     newCart.splice(props.index, 1);
-    cart.value = newCart;
+    props.cart.value = newCart;
   };
 
   return (
     <li class="flex items-center justify-between gap-1">
       <icons.Lemon class="text-gray-500" />
-      <div class="flex-1">
-        {props.product}
-      </div>
+      <div class="flex-1">{props.product}</div>
       <Button onClick={remove} aria-label="Remove" class="border-none">
         <icons.X class="inline-block w-4 h-4" />
       </Button>
@@ -176,13 +168,33 @@ function CartItem(props: CartItemProps) {
 }
 ```
 
-Now we can add the islands to our site by doing the following:
+Then wire them together from a route, passing the same signal to both:
 
 ```tsx routes/cart.tsx
-<AddToCart product="Lemon" />
-<AddToCart product="Lime" />
-<Cart />
+import { useSignal } from "@preact/signals";
+import AddToCart from "../islands/AddToCart.tsx";
+import Cart from "../islands/Cart.tsx";
+import { define } from "../utils.ts";
+
+export default define.page(function CartPage() {
+  const cart = useSignal<string[]>([]);
+  return (
+    <div>
+      <AddToCart cart={cart} product="Lemon" />
+      <AddToCart cart={cart} product="Lime" />
+      <Cart cart={cart} />
+    </div>
+  );
+});
 ```
 
-What happens as a result? The `cart` signal is shared across the two `AddToCart`
-islands _and_ the `Cart` island.
+The `cart` signal is created per-render (not at module level), so each request
+gets its own independent cart. Fresh [serializes](/docs/advanced/serialization)
+the signal and passes it to both islands, keeping them in sync on the client.
+
+> [!CAUTION]
+> Avoid creating signals at the module level (e.g.
+> `export const cart =
+> signal([])` in a utility file). Module-level state is
+> shared across all requests on the server, which means different users would
+> see the same cart. Always create signals inside components or handlers.

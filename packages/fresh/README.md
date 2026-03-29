@@ -11,7 +11,7 @@ web applications.
 Generate a new Fresh project with `@fresh/init`:
 
 ```sh
-deno run -Ar jsr:@fresh/init
+deno create @fresh/init
 ```
 
 Add middleware, routes, & endpoints as needed via the `routes/` folder or

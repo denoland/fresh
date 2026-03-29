@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "preact/hooks";
-import docsearch from "docsearch";
+import docsearchModule from "docsearch";
 
 // Copied from algolia source code
 type DocSearchProps = {
@@ -8,6 +8,11 @@ type DocSearchProps = {
   indexName: string;
   container: HTMLElement | string;
 };
+
+// Workaround: Deno resolves this npm package as CJS, hiding the callable default export
+const docsearch = docsearchModule as unknown as (
+  props: DocSearchProps,
+) => void;
 
 export default function SearchButton(
   props: { docsearch?: (args: DocSearchProps) => void; class?: string },
