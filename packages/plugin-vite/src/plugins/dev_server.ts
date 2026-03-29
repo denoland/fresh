@@ -12,6 +12,7 @@ interface FetchHandler {
   default: {
     fetch: (req: Request) => Promise<Response>;
   };
+  setErrorInterceptor?: (fn: (err: unknown) => void) => void;
 }
 
 export function devServer(): Plugin[] {
@@ -95,6 +96,11 @@ export function devServer(): Plugin[] {
             const mod = await server.environments.ssr.runner.import<unknown>(
               "fresh:server_entry",
             ) as FetchHandler;
+            mod.setErrorInterceptor?.((err: unknown) => {
+              if (err instanceof Error) {
+                server.ssrFixStacktrace(err);
+              }
+            });
 
             const req = createRequest(nodeReq, nodeRes);
             const res = await mod.default.fetch(req);
@@ -126,6 +132,9 @@ export function devServer(): Plugin[] {
 
             await sendResponse(nodeRes, res);
           } catch (err) {
+            if (err instanceof Error) {
+              server.ssrFixStacktrace(err);
+            }
             return next(err);
           }
         });
