@@ -21,7 +21,21 @@ export interface CSPOptions {
   useNonce?: boolean;
 }
 
-const NONCE_HEADER = "X-Fresh-Nonce";
+/**
+ * Symbol used to pass the render nonce from ctx.render() to the CSP
+ * middleware without exposing it as a response header.
+ */
+export const NONCE_SYMBOL: unique symbol = Symbol.for("__freshNonce");
+
+/** Directives that may contain 'unsafe-inline' for script/style sources */
+const INLINE_DIRECTIVES = new Set([
+  "script-src",
+  "style-src",
+  "script-src-elem",
+  "style-src-elem",
+  "style-src-attr",
+  "default-src",
+]);
 
 /**
  * Middleware to set Content-Security-Policy headers
@@ -94,19 +108,16 @@ export function csp<State>(options: CSPOptions = {}): Middleware<State> {
   // Nonce-based CSP — replace 'unsafe-inline' with nonce per request
   return async (ctx) => {
     const res = await ctx.next();
-    const nonce = res.headers.get(NONCE_HEADER);
+    // deno-lint-ignore no-explicit-any
+    const nonce = (res as any)[NONCE_SYMBOL] as string | undefined;
 
     let directives: string[];
     if (nonce) {
-      // Remove the internal header so it's not exposed to clients
-      res.headers.delete(NONCE_HEADER);
-
       directives = cspDirectives.map((d) => {
-        if (
-          (d.startsWith("script-src ") || d.startsWith("style-src ")) &&
-          d.includes("'unsafe-inline'")
-        ) {
-          return d.replace("'unsafe-inline'", `'nonce-${nonce}'`);
+        const spaceIdx = d.indexOf(" ");
+        const name = spaceIdx === -1 ? d : d.slice(0, spaceIdx);
+        if (INLINE_DIRECTIVES.has(name) && d.includes("'unsafe-inline'")) {
+          return d.replaceAll("'unsafe-inline'", `'nonce-${nonce}'`);
         }
         return d;
       });

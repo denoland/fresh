@@ -2,6 +2,7 @@ import { expect } from "@std/expect/expect";
 import { App } from "../app.ts";
 import { csp } from "./csp.ts";
 import { FakeServer } from "../test_utils.ts";
+import { NONCE_SYMBOL } from "./csp.ts";
 
 Deno.test("CSP - GET default", async () => {
   const handler = new App()
@@ -84,7 +85,7 @@ Deno.test("CSP - useNonce replaces unsafe-inline with nonce", async () => {
   expect(cspHeader).toMatch(/script-src 'self' 'nonce-[a-f0-9]+'/);
   expect(cspHeader).toMatch(/style-src 'self' 'nonce-[a-f0-9]+'/);
 
-  // Nonce header should be removed from response
+  // Nonce should not leak as a response header
   expect(res.headers.get("X-Fresh-Nonce")).toBeNull();
 
   // HTML should contain nonce on the style tag
@@ -183,4 +184,50 @@ Deno.test("CSP - existing nonce on tag is preserved", async () => {
 
   // The explicit nonce should be preserved, not overwritten
   expect(html).toContain('nonce="custom-nonce"');
+});
+
+Deno.test("CSP - nonce does not leak as header without CSP middleware", async () => {
+  const app = new App()
+    .get("/", (ctx) => {
+      return ctx.render(
+        <html>
+          <head />
+          <body>hello</body>
+        </html>,
+      );
+    });
+
+  const server = new FakeServer(app.handler());
+  const res = await server.get("/");
+  await res.body?.cancel();
+
+  // No CSP middleware — nonce must not appear as a response header
+  expect(res.headers.get("X-Fresh-Nonce")).toBeNull();
+  // But it should still be available via the symbol for middleware that needs it
+  // deno-lint-ignore no-explicit-any
+  expect((res as any)[NONCE_SYMBOL]).toBeDefined();
+});
+
+Deno.test("CSP - useNonce replaces unsafe-inline in default-src", async () => {
+  const app = new App()
+    .use(csp({
+      useNonce: true,
+      csp: ["default-src 'self' 'unsafe-inline'"],
+    }))
+    .get("/", (ctx) => {
+      return ctx.render(
+        <html>
+          <head />
+          <body>hello</body>
+        </html>,
+      );
+    });
+
+  const server = new FakeServer(app.handler());
+  const res = await server.get("/");
+  await res.body?.cancel();
+  const cspHeader = res.headers.get("Content-Security-Policy")!;
+
+  // default-src should have nonce, not unsafe-inline
+  expect(cspHeader).toMatch(/default-src 'self' 'nonce-[a-f0-9]+'/);
 });
