@@ -51,7 +51,7 @@ jobs:
         run: deno install
 
       - name: Install Chromium for Puppeteer
-        run: npx puppeteer browsers install chrome
+        run: deno run -A npm:puppeteer browsers install chrome
 
       - name: Verify formatting
         if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v2.x'
