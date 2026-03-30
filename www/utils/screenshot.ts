@@ -1,4 +1,4 @@
-import { launch } from "@astral/astral";
+import puppeteer from "puppeteer";
 import { Image } from "imagescript";
 
 export function validateArgs(args: string[]): [string, string] {
@@ -29,10 +29,10 @@ export async function captureScreenshot(
   url: string,
   id: string,
 ): Promise<void> {
-  const browser = await launch();
+  const browser = await puppeteer.launch();
   try {
-    const page = await browser.newPage(url);
-    await page.waitForNetworkIdle();
+    const page = await browser.newPage();
+    await page.goto(url, { waitUntil: "networkidle0" });
     const raw = await page.screenshot();
 
     const image2x = await Image.decode(raw);

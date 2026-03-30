@@ -28,7 +28,7 @@ class PageWrapper implements Disposable, AsyncDisposable {
     return this.#page.goto(url, options as any);
   }
 
-  locator(selector: string) {
+  locator<E extends Element = Element>(selector: string) {
     const page = this.#page;
     return {
       async wait() {
@@ -38,8 +38,9 @@ class PageWrapper implements Disposable, AsyncDisposable {
         const el = await page.waitForSelector(selector);
         await el!.click();
       },
-      async evaluate<T>(fn: (el: Element) => T): Promise<T> {
-        return await page.$eval(selector, fn);
+      async evaluate<T>(fn: (el: E) => T): Promise<T> {
+        // deno-lint-ignore no-explicit-any
+        return await page.$eval(selector, fn as any);
       },
     };
   }
