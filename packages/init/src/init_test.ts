@@ -10,7 +10,10 @@ import * as path from "@std/path";
 import { getStdOutput, withBrowser } from "../../fresh/tests/test_utils.tsx";
 import { waitForText } from "../../fresh/tests/test_utils.tsx";
 import { withChildProcessServer } from "../../fresh/tests/test_utils.tsx";
-import { withTmpDir as withTmpDirBase } from "../../fresh/src/test_utils.ts";
+import {
+  integrationTest,
+  withTmpDir as withTmpDirBase,
+} from "../../fresh/src/test_utils.ts";
 import { stub } from "@std/testing/mock";
 
 // deno-lint-ignore no-explicit-any
@@ -225,30 +228,27 @@ Deno.test("init - with vscode", async () => {
   await expectProjectFile(dir, ".vscode/extensions.json");
 });
 
-Deno.test({
+integrationTest({
   name: "init - fmt, lint, and type check project",
-  // Ignore this test on canary due to different formatting
-  // behaviours when the formatter changes.
   ignore: Deno.version.deno.includes("+"),
-  fn: async () => {
-    await using tmp = await withTmpDir();
-    const dir = tmp.dir;
-    using _promptStub = stubPrompt(".");
-    using _confirmStub = stubConfirm();
-    await testInitProject(dir, [], { builder: true });
-    await expectProjectFile(dir, "main.ts");
-    await expectProjectFile(dir, "dev.ts");
+}, async () => {
+  await using tmp = await withTmpDir();
+  const dir = tmp.dir;
+  using _promptStub = stubPrompt(".");
+  using _confirmStub = stubConfirm();
+  await testInitProject(dir, [], { builder: true });
+  await expectProjectFile(dir, "main.ts");
+  await expectProjectFile(dir, "dev.ts");
 
-    await patchProject(dir);
+  await patchProject(dir);
 
-    const check = await new Deno.Command(Deno.execPath(), {
-      args: ["task", "check"],
-      cwd: dir,
-      stderr: "inherit",
-      stdout: "inherit",
-    }).output();
-    expect(check.code).toEqual(0);
-  },
+  const check = await new Deno.Command(Deno.execPath(), {
+    args: ["task", "check"],
+    cwd: dir,
+    stderr: "inherit",
+    stdout: "inherit",
+  }).output();
+  expect(check.code).toEqual(0);
 });
 
 Deno.test(
@@ -277,32 +277,29 @@ Deno.test(
   },
 );
 
-Deno.test({
-  // TODO: For some reason this test is flaky in GitHub CI. It works when
-  // testing locally on windows though. Not sure what's going on.
-  ignore: Deno.build.os === "windows" && Deno.env.get("CI") !== undefined,
+integrationTest({
   name: "init - can start dev server",
-  fn: async () => {
-    await using tmp = await withTmpDir();
-    const dir = tmp.dir;
-    using _promptStub = stubPrompt(".");
-    using _confirmStub = stubConfirm();
-    await testInitProject(dir, [], { builder: true });
-    await expectProjectFile(dir, "main.ts");
-    await expectProjectFile(dir, "dev.ts");
+  ignore: Deno.build.os === "windows" && Deno.env.get("CI") !== undefined,
+}, async () => {
+  await using tmp = await withTmpDir();
+  const dir = tmp.dir;
+  using _promptStub = stubPrompt(".");
+  using _confirmStub = stubConfirm();
+  await testInitProject(dir, [], { builder: true });
+  await expectProjectFile(dir, "main.ts");
+  await expectProjectFile(dir, "dev.ts");
 
-    await patchProject(dir);
-    await withChildProcessServer(
-      { cwd: dir, args: ["task", "dev"] },
-      async (address) => {
-        await withBrowser(async (page) => {
-          await page.goto(address);
-          await page.locator("#decrement").click();
-          await waitForText(page, "button + p", "2");
-        });
-      },
-    );
-  },
+  await patchProject(dir);
+  await withChildProcessServer(
+    { cwd: dir, args: ["task", "dev"] },
+    async (address) => {
+      await withBrowser(async (page) => {
+        await page.goto(address);
+        await page.locator("#decrement").click();
+        await waitForText(page, "button + p", "2");
+      });
+    },
+  );
 });
 
 Deno.test("init - can start built project", async () => {
