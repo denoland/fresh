@@ -57,8 +57,8 @@ class PageWrapper implements Disposable, AsyncDisposable {
     return this.#page.waitForSelector(selector);
   }
 
-  // deno-lint-ignore no-explicit-any
   waitForFunction(
+    // deno-lint-ignore no-explicit-any
     fn: (...args: any[]) => any,
     options?: { args?: unknown[] },
   ) {
