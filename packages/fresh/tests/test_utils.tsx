@@ -1,5 +1,5 @@
 import type { App } from "../src/app.ts";
-import { launch, type Page } from "@astral/astral";
+import puppeteer, { type Page as PuppeteerPage } from "puppeteer";
 import * as colors from "@std/fmt/colors";
 import { DOMParser, HTMLElement } from "linkedom";
 import { Builder, type BuildOptions } from "../src/dev/builder.ts";
@@ -9,7 +9,105 @@ import type { ComponentChildren } from "preact";
 import { expect } from "@std/expect";
 import { mergeReadableStreams } from "@std/streams";
 
-const browser = await launch({
+/**
+ * Wrapper around Puppeteer's Page that provides an astral-compatible API
+ * so existing tests don't need changes.
+ */
+class PageWrapper implements Disposable, AsyncDisposable {
+  #page: PuppeteerPage;
+
+  constructor(page: PuppeteerPage) {
+    this.#page = page;
+  }
+
+  goto(
+    url: string,
+    options?: { waitUntil?: string },
+  ) {
+    // deno-lint-ignore no-explicit-any
+    return this.#page.goto(url, options as any);
+  }
+
+  locator(selector: string) {
+    const page = this.#page;
+    return {
+      async wait() {
+        await page.waitForSelector(selector);
+      },
+      async click() {
+        const el = await page.waitForSelector(selector);
+        await el!.click();
+      },
+      async evaluate<T>(fn: (el: Element) => T): Promise<T> {
+        return await page.$eval(selector, fn);
+      },
+    };
+  }
+
+  evaluate<T>(
+    fn: (...args: unknown[]) => T,
+    ...args: unknown[]
+  ): Promise<T> {
+    // deno-lint-ignore no-explicit-any
+    return this.#page.evaluate(fn as any, ...args);
+  }
+
+  waitForSelector(selector: string) {
+    return this.#page.waitForSelector(selector);
+  }
+
+  // deno-lint-ignore no-explicit-any
+  waitForFunction(
+    fn: (...args: any[]) => any,
+    options?: { args?: unknown[] },
+  ) {
+    const args = options?.args ?? [];
+    // deno-lint-ignore no-explicit-any
+    return this.#page.waitForFunction(fn as any, {}, ...args);
+  }
+
+  waitForNavigation() {
+    return this.#page.waitForNavigation();
+  }
+
+  content() {
+    return this.#page.content();
+  }
+
+  get url() {
+    return this.#page.url();
+  }
+
+  addEventListener(
+    event: string,
+    handler: (arg: { detail: { text: string } }) => void,
+  ) {
+    if (event === "console") {
+      this.#page.on("console", (msg) => {
+        handler({ detail: { text: msg.text() } });
+      });
+    } else if (event === "pageerror") {
+      // deno-lint-ignore no-explicit-any
+      this.#page.on("pageerror", handler as any);
+    }
+  }
+
+  async close() {
+    await this.#page.close();
+  }
+
+  [Symbol.dispose]() {
+    this.#page.close().catch(() => {});
+  }
+
+  async [Symbol.asyncDispose]() {
+    await this.#page.close();
+  }
+}
+
+export type Page = PageWrapper;
+
+const browser = await puppeteer.launch({
   args: [
     "--window-size=1280,720",
     ...((Deno.env.get("CI") && Deno.build.os === "linux")
@@ -73,16 +171,17 @@ export async function withBrowserApp(
     onListen: () => {}, // Don't spam terminal with "Listening on..."
   }, app.handler());
 
+  const page = new PageWrapper(await browser.newPage());
   try {
-    await using page = await browser.newPage();
     await fn(page, `http://localhost:${server.addr.port}`);
   } finally {
+    await page.close();
     aborter.abort();
   }
 }
 
 export async function withBrowser(fn: (page: Page) => void | Promise<void>) {
-  await using page = await browser.newPage();
+  const page = new PageWrapper(await browser.newPage());
   try {
     await fn(page);
   } catch (err) {
@@ -92,6 +191,8 @@ export async function withBrowser(fn: (page: Page) => void | Promise<void>) {
     // deno-lint-ignore no-console
     console.log(html);
     throw err;
+  } finally {
+    await page.close();
   }
 }
 
