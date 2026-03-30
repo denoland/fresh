@@ -277,6 +277,12 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
         client: { platform: "browser", preserveJsx: true, cachedOnly: true },
       },
       onLoad: createFreshOnLoad(() => isDev),
+      exclude: [
+        "fresh-island",
+        "fresh-client-island",
+        "fresh:",
+        "@fresh/build-id",
+      ],
     };
     // deno-lint-ignore no-explicit-any
     plugins.push(...denoPlugin(denoOpts) as any);

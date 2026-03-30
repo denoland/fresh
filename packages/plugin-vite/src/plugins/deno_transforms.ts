@@ -78,10 +78,18 @@ export function freshSsrTransform(
         id.startsWith("\0") ||
         id.startsWith("node:") ||
         id.startsWith("npm:") ||
-        id.startsWith("jsr:")
+        id.startsWith("jsr:") ||
+        id.startsWith("fresh-island::") ||
+        id.startsWith("fresh-client-island::") ||
+        id.startsWith("fresh:")
       ) {
         return;
       }
+
+      // deno-lint-ignore no-console
+      console.log(
+        `[fresh:ssr-transform] resolveId: "${id}" (env: ${this.environment?.name})`,
+      );
 
       // Try to resolve through the Deno loader's import map
       try {
@@ -91,6 +99,10 @@ export function freshSsrTransform(
           undefined,
           ResolutionMode.Import,
         );
+        // deno-lint-ignore no-console
+        console.log(
+          `[fresh:ssr-transform] loader resolved "${id}" -> "${resolved}"`,
+        );
         if (resolved && resolved !== id) {
           // Re-resolve the result through the plugin pipeline
           // so @deno/vite-plugin can create the proper deno:: specifier
@@ -98,9 +110,15 @@ export function freshSsrTransform(
             ...options,
             skipSelf: true,
           });
+          // deno-lint-ignore no-console
+          console.log(
+            `[fresh:ssr-transform] pipeline re-resolved -> ${result?.id}`,
+          );
           return result;
         }
-      } catch {
+      } catch (err) {
+        // deno-lint-ignore no-console
+        console.log(`[fresh:ssr-transform] loader failed for "${id}": ${err}`);
         // Not resolvable by Deno — let Vite handle it
       }
     },
