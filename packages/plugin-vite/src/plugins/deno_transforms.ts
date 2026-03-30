@@ -8,17 +8,11 @@
  */
 import type { Plugin } from "vite";
 import * as babel from "@babel/core";
-// TODO: Replace with "@deno/vite-plugin" and "@deno/vite-plugin/resolver"
-// once published with these exports
-import type {
-  LoadContext,
-  OnLoadResult,
-} from "../../../../../deno-vite-plugin/dist/index.d.ts";
+import type { LoadContext, OnLoadResult } from "@deno/vite-plugin";
 import {
   isDenoSpecifier,
   parseDenoSpecifier,
-  // @ts-ignore .js -> .d.ts resolution
-} from "../../../../../deno-vite-plugin/dist/resolver.js";
+} from "@deno/vite-plugin/resolver";
 import { httpAbsolute } from "./patches/http_absolute.ts";
 import { JSX_REG } from "../utils.ts";
 import {
@@ -35,7 +29,7 @@ const { default: babelReact } = await import("@babel/preset-react");
  * Creates the `onLoad` callback for `@deno/vite-plugin`.
  * Applies Preact JSX transforms to client-side code from Deno specifiers.
  */
-export function createFreshOnLoad(isDev: boolean) {
+export function createFreshOnLoad(getIsDev: () => boolean) {
   return (ctx: LoadContext): OnLoadResult => {
     if (ctx.ssr) return; // SSR handled by freshSsrTransform plugin
 
@@ -44,7 +38,7 @@ export function createFreshOnLoad(isDev: boolean) {
       code: ctx.code,
       id: ctx.id,
       mediaType: ctx.mediaType as MediaType,
-      isDev,
+      isDev: getIsDev(),
     });
   };
 }
@@ -154,7 +148,12 @@ export function freshSsrTransform(
 
           const code = new TextDecoder().decode(result.code);
           return { code };
-        } catch {
+        } catch (err) {
+          // deno-lint-ignore no-console
+          console.debug(
+            `[fresh:ssr-transform] Failed to load ${actualId}:`,
+            err,
+          );
           return;
         }
       },
