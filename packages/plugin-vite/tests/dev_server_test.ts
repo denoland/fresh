@@ -154,7 +154,7 @@ integrationTest("vite dev - tailwind no _app", async () => {
         waitUntil: "networkidle2",
       });
 
-      await page.locator("style[data-vite-dev-id$='style.css']").wait();
+      await page.locator("style[vite-module-id]").wait();
     });
   });
 });
@@ -167,7 +167,7 @@ integrationTest("vite dev - tailwind _app", async () => {
         waitUntil: "networkidle2",
       });
 
-      await page.locator("style[data-vite-dev-id$='style.css']").wait();
+      await page.locator("style[vite-module-id]").wait();
     });
   });
 });
