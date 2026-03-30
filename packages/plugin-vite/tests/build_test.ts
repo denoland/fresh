@@ -525,3 +525,84 @@ integrationTest(
     }
   },
 );
+
+integrationTest("vite build - client side <Head>", async () => {
+  await launchProd(
+    { cwd: viteResult.tmp },
+    async (address) => {
+      await withBrowser(async (page) => {
+        await page.goto(`${address}/tests/head_counter`, {
+          waitUntil: "networkidle2",
+        });
+
+        await page.locator(".ready").wait();
+        await page.locator("button").click();
+        await waitForText(page, ".result", "Count: 1");
+
+        await waitFor(async () => {
+          const title = await page.evaluate(() => document.title);
+          expect(title).toEqual("Count: 1");
+          return true;
+        });
+      });
+    },
+  );
+});
+
+integrationTest(
+  "vite build - vite-plugin-pwa generates service worker",
+  async () => {
+    const fixture = path.join(FIXTURE_DIR, "vite_plugin_pwa");
+    await using res = await buildVite(fixture);
+
+    // Verify that vite-plugin-pwa generated the expected files in _fresh/client
+    const swPath = path.join(res.tmp, "_fresh", "client", "sw.js");
+    const manifestPath = path.join(
+      res.tmp,
+      "_fresh",
+      "client",
+      "manifest.webmanifest",
+    );
+
+    // Check that files were generated
+    const swStat = await Deno.stat(swPath);
+    expect(swStat.isFile).toEqual(true);
+
+    const manifestStat = await Deno.stat(manifestPath);
+    expect(manifestStat.isFile).toEqual(true);
+  },
+);
+
+integrationTest(
+  "vite build - vite-plugin-pwa files are accessible via HTTP",
+  async () => {
+    const fixture = path.join(FIXTURE_DIR, "vite_plugin_pwa");
+    await using res = await buildVite(fixture);
+
+    await launchProd(
+      { cwd: res.tmp },
+      async (address) => {
+        // Test that service worker is accessible
+        const swRes = await fetch(`${address}/sw.js`);
+        expect(swRes.status).toEqual(200);
+        expect(swRes.headers.get("content-type")).toMatch(/javascript/);
+
+        const swContent = await swRes.text();
+        expect(swContent.length).toBeGreaterThan(0);
+
+        // Test that manifest is accessible
+        const manifestRes = await fetch(`${address}/manifest.webmanifest`);
+        expect(manifestRes.status).toEqual(200);
+        expect(manifestRes.headers.get("content-type")).toMatch(/json/);
+
+        const manifestContent = await manifestRes.json();
+        expect(manifestContent.name).toEqual("Fresh PWA Test");
+
+        // Test that registerSW.js is accessible
+        const registerRes = await fetch(`${address}/registerSW.js`);
+        expect(registerRes.status).toEqual(200);
+        expect(registerRes.headers.get("content-type")).toMatch(/javascript/);
+      },
+    );
+  },
+);

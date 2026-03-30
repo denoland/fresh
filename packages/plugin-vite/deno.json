@@ -42,6 +42,7 @@
     "rollup-plugin-visualizer": "npm:rollup-plugin-visualizer@^6.0.3",
     "stripe": "npm:stripe@^19.1.0",
     "vite": "npm:vite@^7.1.4",
-    "vite-plugin-inspect": "npm:vite-plugin-inspect@^11.3.2"
+    "vite-plugin-inspect": "npm:vite-plugin-inspect@^11.3.2",
+    "vite-plugin-pwa": "npm:vite-plugin-pwa@^1.0.3"
   }
 }

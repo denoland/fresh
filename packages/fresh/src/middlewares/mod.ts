@@ -88,56 +88,69 @@ export type MaybeLazyMiddleware<State> = (
   ctx: Context<State>,
 ) => Response | Promise<Response | Middleware<State>>;
 
-export async function runMiddlewares<State>(
+export function compileMiddlewares<State>(
   middlewares: MaybeLazyMiddleware<State>[],
-  ctx: Context<State>,
   onError?: (err: unknown) => void,
-): Promise<Response> {
-  return await tracer.startActiveSpan("middlewares", {
-    attributes: { "fresh.middleware.count": middlewares.length },
-  }, async (span) => {
-    try {
-      let fn = ctx.next;
-      let i = middlewares.length;
-      while (i--) {
-        const local = fn;
-        let next = middlewares[i];
-        const idx = i;
-        fn = async () => {
-          const internals = getInternals(ctx);
-          const { app: prevApp, layouts: prevLayouts } = internals;
+): Middleware<State> {
+  if (middlewares.length === 0) return (ctx) => ctx.next();
 
-          ctx.next = local;
-          try {
-            const result = await next(ctx);
-            if (typeof result === "function") {
-              middlewares[idx] = result;
-              next = result;
-              return await result(ctx);
-            }
+  // Each step is a function that takes (ctx, tail) where tail is the
+  // original ctx.next captured at invocation time. This avoids the
+  // infinite recursion bug where the compiled tail reads an already-
+  // overwritten ctx.next, and is safe under concurrent requests.
+  type ChainFn = (
+    ctx: Context<State>,
+    tail: () => Promise<Response>,
+  ) => Response | Promise<Response>;
 
-            return result;
-          } catch (err) {
-            if (ctx.error !== err) {
-              ctx.error = err;
+  let chain: ChainFn = (_ctx, tail) => tail();
 
-              if (onError !== undefined) {
-                onError(err);
-              }
-            }
-            throw err;
-          } finally {
-            internals.app = prevApp;
-            internals.layouts = prevLayouts;
+  for (let i = middlewares.length - 1; i >= 0; i--) {
+    const nextChain = chain;
+    let middleware = middlewares[i];
+    chain = async (ctx, tail) => {
+      const internals = getInternals(ctx);
+      const { app: prevApp, layouts: prevLayouts } = internals;
+
+      ctx.next = () => Promise.resolve(nextChain(ctx, tail));
+      try {
+        const result = await middleware(ctx);
+        if (typeof result === "function") {
+          middleware = result;
+          return await result(ctx);
+        }
+
+        return result;
+      } catch (err) {
+        if (ctx.error !== err) {
+          ctx.error = err;
+
+          if (onError !== undefined) {
+            onError(err);
           }
-        };
+        }
+        throw err;
+      } finally {
+        internals.app = prevApp;
+        internals.layouts = prevLayouts;
       }
-      return await fn();
-    } catch (err) {
-      recordSpanError(span, err);
-      throw err;
-    } finally {
-      span.end();
-    }
-  });
+    };
+  }
+
+  const count = middlewares.length;
+  return (ctx) => {
+    const tail = ctx.next;
+    return tracer.startActiveSpan("middlewares", {
+      attributes: { "fresh.middleware.count": count },
+    }, async (span) => {
+      try {
+        return await chain(ctx, tail);
+      } catch (err) {
+        recordSpanError(span, err);
+        throw err;
+      } finally {
+        span.end();
+      }
+    });
+  };
 }

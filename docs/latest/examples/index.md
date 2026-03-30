@@ -6,10 +6,11 @@ description: |
 In this chapter of the Fresh documentation, you can find examples of features
 that you may like in your Fresh project.
 
-- [Active links](./examples/active-links)
+- [API Routes](./examples/api-routes)
 - [DaisyUI](./examples/daisyui)
-- [Markdown](./examples/markdown)
-- [Migration guide](./examples/migration-guide)
+- [Rendering Markdown](./examples/markdown)
 - [Rendering raw HTML](./examples/rendering-raw-html)
-- [Session management](./examples/session-management)
 - [Sharing state between islands](./examples/sharing-state-between-islands)
+- [Active links](./examples/active-links)
+- [Session management](./examples/session-management)
+- [Common Patterns](./examples/common-patterns)

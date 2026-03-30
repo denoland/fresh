@@ -382,8 +382,63 @@ integrationTest("vite dev - support jsx namespace", async () => {
   expect(text).toContain(`xml:space="preserve"`);
 });
 
+// issue: https://github.com/denoland/fresh/issues/3666
+integrationTest(
+  "vite dev - basePath does not intercept Vite URLs",
+  async () => {
+    const fixture = path.join(FIXTURE_DIR, "basepath");
+    await launchDevServer(fixture, async (address) => {
+      // `address` already includes the base path (e.g. http://localhost:PORT/ui)
+      // Vite's /@vite/client should be accessible at {base}/@vite/client
+      // Without the fix, Fresh's dev server intercepted this and returned 404.
+      const viteClientRes = await fetch(`${address}/@vite/client`);
+      await viteClientRes.body?.cancel();
+      expect(viteClientRes.status).toEqual(200);
+    });
+  },
+);
+
 integrationTest("vite dev - source mapped stack traces", async () => {
   const res = await fetch(`${demoServer.address()}/tests/throw`);
   const text = await res.text();
   expect(text).toContain("throw.tsx:5:11");
+});
+
+integrationTest("vite dev - client side <Head>", async () => {
+  await withBrowser(async (page) => {
+    await page.goto(`${demoServer.address()}/tests/head_counter`, {
+      waitUntil: "networkidle2",
+    });
+
+    await page.locator(".ready").wait();
+    await page.locator("button").click();
+    await waitForText(page, ".result", "Count: 1");
+
+    await waitFor(async () => {
+      const title = await page.evaluate(() => document.title);
+      expect(title).toEqual("Count: 1");
+      return true;
+    });
+
+    await page.goto(`${demoServer.address()}/tests/head_meta`, {
+      waitUntil: "networkidle2",
+    });
+
+    await page.locator(".ready").wait();
+
+    await waitFor(async () => {
+      const custom = await page
+        .locator("meta[name='custom']")
+        // deno-lint-ignore no-explicit-any
+        .evaluate((el: any) => el.content);
+      expect(custom).toEqual("ok");
+
+      const custom2 = await page
+        .locator("meta[name='custom-new']")
+        // deno-lint-ignore no-explicit-any
+        .evaluate((el: any) => el.content);
+      expect(custom2).toEqual("ok");
+      return true;
+    });
+  });
 });

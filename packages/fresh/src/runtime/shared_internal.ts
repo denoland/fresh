@@ -5,6 +5,7 @@ export const DATA_CURRENT = "data-current";
 export const DATA_ANCESTOR = "data-ancestor";
 export const DATA_FRESH_KEY = "data-frsh-key";
 export const CLIENT_NAV_ATTR = "f-client-nav";
+export const VIEW_TRANSITION_ATTR = "f-view-transition";
 
 export const enum OptionsType {
   ATTR = "attr",
