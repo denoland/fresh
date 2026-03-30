@@ -2,19 +2,17 @@
 description: "Prevent Cross-Site Request Forgery with this middleware"
 ---
 
-The `csrf()` middleware can be used to add safeguard against
+The `csrf()` middleware can be used to safeguard against
 [Cross-Site Request Forgery vulnerabilities](https://developer.mozilla.org/en-US/docs/Web/Security/Attacks/CSRF).
-It checks if the user is allowed to load the requested URL based on the values
-in the
+It verifies that state-changing requests (POST, PUT, DELETE, etc.) originate
+from your own site by checking the
 [`Sec-Fetch-Site`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Site)
-header and
+and
 [`Origin`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Origin)
-header. to HTTP requests. These allow the server to indicate which origins
-(domains, scheme or port) other than its own is permitted to load resources
-from.
+headers. Requests from untrusted origins are rejected.
 
 ```ts main.ts
-import { app, csrf } from "fresh";
+import { App, csrf } from "fresh";
 
 const app = new App();
 

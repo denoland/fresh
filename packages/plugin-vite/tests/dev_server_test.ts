@@ -203,7 +203,10 @@ Deno.test({
           waitUntil: "networkidle2",
         });
 
-        await page.locator("style[data-vite-dev-id$='style.css']").wait();
+        // Vite 6: data-vite-dev-id; Vite 7+: vite-module-id on injected style.
+        await page.locator(
+          "style[data-vite-dev-id$='style.css'], style[vite-module-id]",
+        ).wait();
       });
     });
   },
@@ -221,7 +224,9 @@ Deno.test({
           waitUntil: "networkidle2",
         });
 
-        await page.locator("style[data-vite-dev-id$='style.css']").wait();
+        await page.locator(
+          "style[data-vite-dev-id$='style.css'], style[vite-module-id]",
+        ).wait();
       });
     });
   },
@@ -559,12 +564,71 @@ Deno.test({
   sanitizeResources: false,
 });
 
+// issue: https://github.com/denoland/fresh/issues/3666
+Deno.test({
+  name: "vite dev - basePath does not intercept Vite URLs",
+  fn: async () => {
+    const fixture = path.join(FIXTURE_DIR, "basepath");
+    await launchDevServer(fixture, async (address) => {
+      const viteClientRes = await fetch(`${address}/@vite/client`);
+      await viteClientRes.body?.cancel();
+      expect(viteClientRes.status).toEqual(200);
+    });
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
 Deno.test({
   name: "vite dev - source mapped stack traces",
   fn: async () => {
     const res = await fetch(`${demoServer.address()}/tests/throw`);
     const text = await res.text();
     expect(text).toContain("throw.tsx:5:11");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite dev - client side <Head>",
+  fn: async () => {
+    await withBrowser(async (page) => {
+      await page.goto(`${demoServer.address()}/tests/head_counter`, {
+        waitUntil: "networkidle2",
+      });
+
+      await page.locator(".ready").wait();
+      await page.locator("button").click();
+      await waitForText(page, ".result", "Count: 1");
+
+      await waitFor(async () => {
+        const title = await page.evaluate(() => document.title);
+        expect(title).toEqual("Count: 1");
+        return true;
+      });
+
+      await page.goto(`${demoServer.address()}/tests/head_meta`, {
+        waitUntil: "networkidle2",
+      });
+
+      await page.locator(".ready").wait();
+
+      await waitFor(async () => {
+        const custom = await page
+          .locator("meta[name='custom']")
+          // deno-lint-ignore no-explicit-any
+          .evaluate((el: any) => el.content);
+        expect(custom).toEqual("ok");
+
+        const custom2 = await page
+          .locator("meta[name='custom-new']")
+          // deno-lint-ignore no-explicit-any
+          .evaluate((el: any) => el.content);
+        expect(custom2).toEqual("ok");
+        return true;
+      });
+    });
   },
   sanitizeOps: false,
   sanitizeResources: false,

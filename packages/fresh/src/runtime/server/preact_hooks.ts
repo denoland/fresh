@@ -35,6 +35,7 @@ import { getCodeFrame } from "../../dev/middlewares/error_overlay/code_frame.ts"
 import { escapeScript } from "../../utils.ts";
 import { HeadContext } from "../head.ts";
 import { useContext } from "preact/hooks";
+import { isSpanContextValid, trace } from "@opentelemetry/api";
 
 interface InternalPreactOptions extends PreactOptions {
   [OptionsType.ATTR](name: string, value: unknown): string | void;
@@ -81,6 +82,26 @@ export class RenderState {
   renderedHtmlBody = false;
   renderedHtmlHead = false;
   hasRuntimeScript = false;
+  /** Set to true when any element in the tree renders f-client-nav="true". */
+  clientNavEnabled = false;
+
+  /**
+   * True when the page needs Fresh's client runtime (islands, client nav, or
+   * `<Partial>` regions on a full document). Partial subresponses omit boot;
+   * `encounteredPartials` must not force runtime for those requests.
+   */
+  get needsClientRuntime(): boolean {
+    if (this.islands.size > 0 || this.clientNavEnabled) {
+      return true;
+    }
+    if (
+      !this.ctx.url.searchParams.has(PARTIAL_SEARCH_PARAM) &&
+      this.encounteredPartials.size > 0
+    ) {
+      return true;
+    }
+    return false;
+  }
 
   constructor(
     // deno-lint-ignore no-explicit-any
@@ -132,6 +153,18 @@ options[OptionsType.VNODE] = (vnode) => {
       );
     }
   } else if (typeof vnode.type === "string") {
+    // Auto-inject nonce onto inline script/style tags
+    if (
+      RENDER_STATE !== null &&
+      (vnode.type === "script" || vnode.type === "style")
+    ) {
+      // deno-lint-ignore no-explicit-any
+      const props = vnode.props as any;
+      if (!props.nonce) {
+        props.nonce = RENDER_STATE.nonce;
+      }
+    }
+
     if (vnode.type === "body") {
       const scripts = h(FreshScripts, null);
       if (vnode.props.children == null) {
@@ -192,6 +225,19 @@ options[OptionsType.DIFF] = (vnode) => {
         if (hasIslandOwner(RENDER_STATE, vnode)) {
           throw new Error(
             `<Partial> components cannot be used inside islands.`,
+          );
+        }
+
+        const mode = (vnode.props as PartialProps).mode;
+        if (
+          (mode === "append" || mode === "prepend") &&
+          vnode.key == null
+        ) {
+          // deno-lint-ignore no-console
+          console.warn(
+            `<Partial name="${name}" mode="${mode}"> is missing a "key" prop. ` +
+              `Without a key, Preact cannot correctly reconcile ${mode}ed children. ` +
+              `Add a unique key to fix this.`,
           );
         }
       } else if (
@@ -282,6 +328,22 @@ options[OptionsType.DIFF] = (vnode) => {
             }
           }
 
+          // Inject W3C traceparent meta tag when OpenTelemetry is active,
+          // enabling client-side tracing to connect to the server span.
+          const activeSpan = trace.getActiveSpan();
+          if (activeSpan) {
+            const spanCtx = activeSpan.spanContext();
+            if (isSpanContextValid(spanCtx)) {
+              const flags = (spanCtx.traceFlags & 1) ? "01" : "00";
+              const traceparent =
+                `00-${spanCtx.traceId}-${spanCtx.spanId}-${flags}`;
+              items.push(
+                // deno-lint-ignore no-explicit-any
+                h("meta", { name: "traceparent", content: traceparent }) as any,
+              );
+            }
+          }
+
           // deno-lint-ignore no-explicit-any
           items.push(h(RemainingHead, null) as VNode<any>);
 
@@ -337,6 +399,8 @@ options[OptionsType.DIFF] = (vnode) => {
                   continue;
                 } else if (originalType === "meta" && key === "content") {
                   continue;
+                } else if (originalType === "link" && key === "href") {
+                  continue;
                 }
 
                 cacheKey += `::${props[key]}`;
@@ -373,6 +437,22 @@ options[OptionsType.DIFF] = (vnode) => {
             };
           }
           break;
+      }
+
+      // Detect f-client-nav="true" on any element in the rendered tree.
+      // We check here in the diff hook (not the vnode hook) so we catch both
+      // VNodes created inside component functions during rendering AND those
+      // pre-created in route handlers before setRenderState was called.
+      //
+      // The === "true" check relies on the vnode hook having normalized boolean
+      // f-client-nav on string elements via String(...) (see OptionsType.VNODE).
+      // Preact invokes the vnode hook before diff for a given VNode, so e.g.
+      // <html f-client-nav> becomes the string "true" before we run here.
+      if (
+        CLIENT_NAV_ATTR in (vnode.props as Record<string, unknown>) &&
+        (vnode.props as Record<string, unknown>)[CLIENT_NAV_ATTR] === "true"
+      ) {
+        RENDER_STATE!.clientNavEnabled = true;
       }
 
       if (
@@ -579,6 +659,9 @@ function FreshRuntimeScript() {
 
   const islandArr = Array.from(islands);
 
+  // Partial responses only embed __FRSH_STATE__ JSON for the swapped fragment.
+  // We do not gate on needsClientRuntime: the parent full-document response is
+  // responsible for loading the client boot when islands or client nav require it.
   if (ctx.url.searchParams.has(PARTIAL_SEARCH_PARAM)) {
     const islands = islandArr.map((island) => {
       return {
@@ -603,7 +686,12 @@ function FreshRuntimeScript() {
         },
       })
     );
-  } else {
+  } else if (
+    RENDER_STATE!.needsClientRuntime ||
+    buildCache.hmrClientEntry !== undefined
+  ) {
+    // Full-document boot: islands / partials / client nav, or Vite/HMR dev
+    // (client entry must load so e.g. CSS side-effect imports run).
     const islandImports = islandArr.map((island) => {
       const named = island.exportName === "default"
         ? island.name
@@ -645,6 +733,9 @@ function FreshRuntimeScript() {
       )
     );
   }
+
+  // Production static page: no client JS at all.
+  return buildCache.features.errorOverlay ? h(ShowErrorOverlay, null) : null;
 }
 
 export function ShowErrorOverlay() {
