@@ -11,6 +11,7 @@ import * as babel from "@babel/core";
 import { httpAbsolute } from "./patches/http_absolute.ts";
 import { JS_REG, JSX_REG } from "../utils.ts";
 import { builtinModules } from "node:module";
+import { resolveDeno } from "@deno/vite-plugin/resolver";
 
 // @ts-ignore Workaround for https://github.com/denoland/deno/issues/30850
 const { default: babelReact } = await import("@babel/preset-react");
@@ -110,14 +111,38 @@ export function deno(): Plugin {
       }
 
       try {
+        // For npm: specifiers, use resolveDeno which correctly handles
+        // subpath exports (e.g. npm:preact@^10/jsx-runtime -> preact/jsx-runtime)
+        if (id.startsWith("npm:")) {
+          const npmResolved = await resolveDeno(id, loader);
+          if (npmResolved !== null) {
+            if (npmResolved.kind === "npm") {
+              // Re-resolve through Vite so package.json exports are used
+              const result = await this.resolve(npmResolved.id);
+              return result ?? npmResolved.id;
+            }
+          }
+        }
+
         // Ensure we're passing a valid importer that Deno understands
         const denoImporter = importer && !importer.startsWith("\0")
           ? importer
           : undefined;
 
+        // For bare specifiers from non-deno importers, try resolving
+        // with the importer's file URL so workspace import maps work
+        let denoImporterUrl = denoImporter;
+        if (
+          denoImporter && !denoImporter.startsWith("file://") &&
+          !denoImporter.startsWith("http") &&
+          path.isAbsolute(denoImporter)
+        ) {
+          denoImporterUrl = path.toFileUrl(denoImporter).href;
+        }
+
         let resolved = await loader.resolve(
           id,
-          denoImporter,
+          denoImporterUrl,
           ResolutionMode.Import,
         );
 
@@ -374,7 +399,7 @@ function babelTransform(
 
   const presets: babel.PluginItem[] = [];
   if (
-    !ssr && id.endsWith(".tsx") || id.endsWith(".jsx")
+    !ssr && (id.endsWith(".tsx") || id.endsWith(".jsx"))
   ) {
     presets.push([babelReact, {
       runtime: "automatic",

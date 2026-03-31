@@ -4,22 +4,8 @@ import {
   pathWithRoot,
   type ResolvedFreshViteConfig,
 } from "./utils.ts";
-// @deno/vite-plugin handles Deno specifier resolution and loading.
-// Fresh layers on top with Preact JSX transforms and SSR precompile.
-import denoPlugin from "@deno/vite-plugin";
-import type { DenoPluginOptions } from "@deno/vite-plugin";
-import {
-  createFreshOnLoad,
-  freshSsrTransform,
-} from "./plugins/deno_transforms.ts";
+import { deno } from "./plugins/deno.ts";
 
-// Import @deno/loader at module load time (before Vite changes CWD)
-// so the Workspace discovers the correct deno.json.
-// @ts-ignore Dynamic import at module level
-const _denoLoader: Promise<typeof import("@deno/loader")> | null =
-  typeof process !== "undefined" && typeof process.versions?.deno === "string"
-    ? import("@deno/loader")
-    : null;
 import prefresh from "@prefresh/vite";
 import { serverEntryPlugin } from "./plugins/server_entry.ts";
 import { clientEntryPlugin } from "./plugins/client_entry.ts";
@@ -261,32 +247,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
   ];
 
   if (typeof process.versions.deno === "string") {
-    // Shared loader for SSR — create eagerly so the Workspace uses
-    // the CWD before Vite changes it to the project root.
-    const ssrLoaderPromise = _denoLoader!.then(({ Workspace }) =>
-      new Workspace({
-        platform: "node",
-        cachedOnly: true,
-      }).createLoader()
-    );
-    const getSSRLoader = () => ssrLoaderPromise;
-
-    const denoOpts: DenoPluginOptions = {
-      environments: {
-        ssr: { platform: "node", cachedOnly: true },
-        client: { platform: "browser", preserveJsx: true, cachedOnly: true },
-      },
-      onLoad: createFreshOnLoad(() => isDev),
-      exclude: [
-        "fresh-island",
-        "fresh-client-island",
-        "fresh:",
-        "@fresh/build-id",
-      ],
-    };
-    // deno-lint-ignore no-explicit-any
-    plugins.push(...denoPlugin(denoOpts) as any);
-    plugins.push(freshSsrTransform(getSSRLoader));
+    plugins.push(deno());
   }
 
   return plugins;

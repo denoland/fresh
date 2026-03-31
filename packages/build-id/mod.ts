@@ -14,16 +14,13 @@
 
 import { encodeHex } from "@std/encoding/hex";
 
-// deno-lint-ignore no-explicit-any
-const _Deno = typeof Deno !== "undefined" ? Deno : undefined as any;
-
-export const DENO_DEPLOYMENT_ID: string | undefined = _Deno?.env.get(
+export const DENO_DEPLOYMENT_ID: string | undefined = Deno.env.get(
   "DENO_DEPLOYMENT_ID",
 );
 const deploymentId = DENO_DEPLOYMENT_ID ||
   // For CI
-  _Deno?.env.get("GITHUB_SHA") ||
-  _Deno?.env.get("CI_COMMIT_SHA") ||
+  Deno.env.get("GITHUB_SHA") ||
+  Deno.env.get("CI_COMMIT_SHA") ||
   crypto.randomUUID();
 const buildIdHash = await crypto.subtle.digest(
   "SHA-1",
