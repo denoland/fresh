@@ -71,7 +71,6 @@
     "jsr:@zip-js/zip-js@^2.7.52": "2.8.24",
     "npm:@babel/core@^7.28.0": "7.28.5",
     "npm:@babel/preset-react@^7.27.1": "7.28.5_@babel+core@7.28.5",
-    "npm:@deno/vite-plugin@^2.0.2": "2.0.2_vite@7.3.1__@types+node@24.9.2__picomatch@4.0.3",
     "npm:@docsearch/js@^3.5.2": "3.9.0_@algolia+client-search@5.50.0_search-insights@2.17.3",
     "npm:@opentelemetry/api@^1.9.0": "1.9.1",
     "npm:@preact/signals@2": "2.9.0_preact@10.29.0",
@@ -1335,13 +1334,6 @@
         "@babel/helper-validator-identifier"
       ]
     },
-    "@deno/vite-plugin@2.0.2_vite@7.3.1__@types+node@24.9.2__picomatch@4.0.3": {
-      "dependencies": [
-        "@deno/loader@npm:@jsr/deno__loader@0.5.0",
-        "@std/jsonc@npm:@jsr/std__jsonc@1.0.2",
-        "vite"
-      ]
-    },
     "@docsearch/css@3.9.0": {
       "integrity": "sha512-cQbnVbq0rrBwNAKegIac/t6a8nWoUAn8frnkLFW6YARaRmAQr5/Eoe6Ln2fqkUCZ40KpdrKbpSAmgrkviOxuWA=="
     },
@@ -1699,35 +1691,6 @@
         "@jridgewell/resolve-uri",
         "@jridgewell/sourcemap-codec"
       ]
-    },
-    "@jsr/deno__loader@0.5.0": {
-      "integrity": "sha512-sf/YBwnyAsbyeYYB71Zdj2Ca2Q9tt25EZpAiZdDA9W7Mm3GcpjA2WMeqj19xPIurZK12G3OAsa5yrtPB7E+gvA==",
-      "tarball": "https://npm.jsr.io/~/11/@jsr/deno__loader/0.5.0.tgz"
-    },
-    "@jsr/std__bytes@1.0.6": {
-      "integrity": "sha512-St6yKggjFGhxS52IFLJWvkchRFbAKg2Xh8UxA4S1EGz7GJ2Ui+ssDDldj/w2c8vCxvl6qgR0HaYbKeFJNqujmA==",
-      "tarball": "https://npm.jsr.io/~/11/@jsr/std__bytes/1.0.6.tgz"
-    },
-    "@jsr/std__json@1.0.3": {
-      "integrity": "sha512-hxHx1j4Wd4une+SHlpsSchKIPwtmP4naETNaQYqqY2iBawZPkcR7oiZBFwKcdhzjUWqMw5wV6ryZSI4d4YNzbQ==",
-      "dependencies": [
-        "@jsr/std__streams"
-      ],
-      "tarball": "https://npm.jsr.io/~/11/@jsr/std__json/1.0.3.tgz"
-    },
-    "@jsr/std__jsonc@1.0.2": {
-      "integrity": "sha512-Lva9lY0UPvvgmS8INUHU8Tqijq2SPfdlnSAvofOYUBiB6ALPxo0rTMznRlY5Wt30nMW+rhMTha1x5RGpMBKUoQ==",
-      "dependencies": [
-        "@jsr/std__json"
-      ],
-      "tarball": "https://npm.jsr.io/~/11/@jsr/std__jsonc/1.0.2.tgz"
-    },
-    "@jsr/std__streams@1.0.17": {
-      "integrity": "sha512-LnPlWk20mDIV5/nqoUomAB8umOimfGEyWRApxLgekXFuqKGDsGpUAi58amieVU2XAGNclmUOtQOcQ/qOl3PNFg==",
-      "dependencies": [
-        "@jsr/std__bytes"
-      ],
-      "tarball": "https://npm.jsr.io/~/11/@jsr/std__streams/1.0.17.tgz"
     },
     "@nodelib/fs.scandir@2.1.5": {
       "integrity": "sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==",
@@ -6120,7 +6083,6 @@
           "jsr:@marvinh-test/import-json@^0.0.1",
           "npm:@babel/core@^7.28.0",
           "npm:@babel/preset-react@^7.27.1",
-          "npm:@deno/vite-plugin@^2.0.2",
           "npm:@prefresh/vite@^2.4.8",
           "npm:@radix-ui/themes@^3.2.1",
           "npm:@remix-run/node-fetch-server@0.12",
@@ -6146,17 +6108,6 @@
           "npm:@tailwindcss/vite@^4.1.12",
           "npm:vite-plugin-inspect@^11.3.2",
           "npm:vite@^7.1.4"
-        ]
-      }
-    },
-    "links": {
-      "npm:@deno/vite-plugin@2.0.2": {
-        "dependencies": [
-          "npm:@jsr/deno__loader@0.5",
-          "npm:@jsr/std__jsonc@1"
-        ],
-        "peerDependencies": [
-          "npm:vite@5 || 6 || 7 || 8"
         ]
       }
     }

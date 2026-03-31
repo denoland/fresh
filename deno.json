@@ -1,7 +1,6 @@
 {
   "vendor": true,
   "nodeModulesDir": "manual",
-  "links": ["../deno-vite-plugin"],
   "workspace": [
     "./packages/*",
     "./www"
