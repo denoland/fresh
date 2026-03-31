@@ -314,7 +314,7 @@ to [update the command](/docs/deployment/deno-compile) to generate the binary.
 If you run into problems with upgrading your app, first, try starting a new
 Fresh 2 project and looking at the new structure.
 
-eg. `mkdir fresh2-demo && cd fresh2-demo && deno create @fresh/init`
+eg. `mkdir fresh2-demo && cd fresh2-demo && deno run -Ar jsr:@fresh/init`
 
 ### 2. Document
 

@@ -9,7 +9,7 @@ Let's set up your first Fresh project. To create a new project, run this
 command:
 
 ```sh Terminal
-deno create @fresh/init
+deno run -Ar jsr:@fresh/init
 ```
 
 This will spawn a short wizard that guides you through the setup, like the

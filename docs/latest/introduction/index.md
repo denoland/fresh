@@ -24,7 +24,7 @@ app.listen();
 Create a new Fresh app by running:
 
 ```sh Terminal
-deno create @fresh/init
+deno run -Ar jsr:@fresh/init
 ```
 
 ## Features
