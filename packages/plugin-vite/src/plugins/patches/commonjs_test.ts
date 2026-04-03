@@ -36,7 +36,6 @@ if (typeof exports === "object" && exports !== null && "default" in exports) {
   _default = exports;
 }`;
 
-
 const DEFAULT_EXPORT_END = `export default _default;
 export var __require = exports;`;
 const IMPORT_REQUIRE = `import { createRequire } from "node:module";

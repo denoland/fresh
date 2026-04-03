@@ -364,9 +364,8 @@ export function cjsPlugin(
               const mapped = mappedNs[i];
 
               const key = path.scope.generateUid("k");
-              // Guard the for-in body with a typeof check so that
-              // namespace properties are not assigned onto a primitive
-              // default (e.g. when exports.default is a string).
+              // Only spread namespace properties when the module has no
+              // explicit default export (i.e. "default" not in exports).
               path.pushContainer(
                 "body",
                 t.ifStatement(
