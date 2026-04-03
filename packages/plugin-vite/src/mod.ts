@@ -5,6 +5,7 @@ import {
   type ResolvedFreshViteConfig,
 } from "./utils.ts";
 import { deno } from "./plugins/deno.ts";
+
 import prefresh from "@prefresh/vite";
 import { serverEntryPlugin } from "./plugins/server_entry.ts";
 import { clientEntryPlugin } from "./plugins/client_entry.ts";

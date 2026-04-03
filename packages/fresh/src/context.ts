@@ -17,6 +17,7 @@ import {
   RenderState,
   setRenderState,
 } from "./runtime/server/preact_hooks.ts";
+import { NONCE_SYMBOL } from "./middlewares/csp.ts";
 import { DEV_ERROR_OVERLAY_URL, PARTIAL_SEARCH_PARAM } from "./constants.ts";
 import { tracer } from "./otel.ts";
 import {
@@ -73,7 +74,7 @@ export class Context<State> {
    */
   readonly url: URL;
   /** The original incoming {@linkcode Request} object. */
-  readonly req: Request;
+  req: Request;
   /** The matched route pattern. */
   readonly route: string | null;
   /** The url parameters of the matched route pattern. */
@@ -182,6 +183,16 @@ export class Context<State> {
       location = `${pathname.replaceAll(/\/+/g, "/")}${search}`;
     }
 
+    // Preserve the partial search param through redirects so that the
+    // redirected page is still rendered in partial mode.
+    if (this.isPartial) {
+      const hashIdx = location.indexOf("#");
+      const base = hashIdx > -1 ? location.slice(0, hashIdx) : location;
+      const hash = hashIdx > -1 ? location.slice(hashIdx) : "";
+      const separator = base.includes("?") ? "&" : "?";
+      location = `${base}${separator}${PARTIAL_SEARCH_PARAM}=true${hash}`;
+    }
+
     return new Response(null, {
       status,
       headers: {
@@ -275,6 +286,7 @@ export class Context<State> {
       headers.set("X-Fresh-Id", partialId);
     }
 
+    let renderNonce = "";
     const html = tracer.startActiveSpan("render", (span) => {
       span.setAttribute("fresh.span_type", "render");
       const state = new RenderState(
@@ -345,34 +357,49 @@ export class Context<State> {
         }
         throw err;
       } finally {
-        // Add preload headers
+        // Add preload headers only when client JS is actually emitted.
         const basePath = this.config.basePath;
-        const runtimeUrl = state.buildCache.clientEntry.startsWith(".")
-          ? state.buildCache.clientEntry.slice(1)
-          : state.buildCache.clientEntry;
-        let link = `<${
-          encodeURI(`${basePath}${runtimeUrl}`)
-        }>; rel="modulepreload"; as="script"`;
-        state.islands.forEach((island) => {
-          const specifier = `${basePath}${
-            island.file.startsWith(".") ? island.file.slice(1) : island.file
-          }`;
-          link += `, <${
-            encodeURI(specifier)
-          }>; rel="modulepreload"; as="script"`;
-        });
+        const linkParts: string[] = [];
 
-        if (link !== "") {
-          headers.append("Link", link);
+        if (
+          state.needsClientRuntime ||
+          state.buildCache.hmrClientEntry !== undefined
+        ) {
+          const runtimeUrl = state.buildCache.clientEntry.startsWith(".")
+            ? state.buildCache.clientEntry.slice(1)
+            : state.buildCache.clientEntry;
+          linkParts.push(
+            `<${
+              encodeURI(`${basePath}${runtimeUrl}`)
+            }>; rel="modulepreload"; as="script"`,
+          );
+          state.islands.forEach((island) => {
+            const specifier = `${basePath}${
+              island.file.startsWith(".") ? island.file.slice(1) : island.file
+            }`;
+            linkParts.push(
+              `<${encodeURI(specifier)}>; rel="modulepreload"; as="script"`,
+            );
+          });
         }
 
+        if (linkParts.length > 0) {
+          headers.append("Link", linkParts.join(", "));
+        }
+
+        renderNonce = state.nonce;
         state.clear();
         setRenderState(null);
 
         span.end();
       }
     });
-    return new Response(html, responseInit);
+    const response = new Response(html, responseInit);
+    // Expose the nonce to CSP middleware via a symbol so it never
+    // leaks as a response header.
+    // deno-lint-ignore no-explicit-any
+    (response as any)[NONCE_SYMBOL] = renderNonce;
+    return response;
   }
 
   /**

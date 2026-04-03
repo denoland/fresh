@@ -310,8 +310,11 @@ export function validateFsMod<State>(
   mod: FreshFsMod<State>;
 } {
   if (!isFreshFile<State>(mod, commandType)) {
+    const hint = commandType === CommandType.Middleware
+      ? `Middleware files must have a default export (function or array of functions).\n\n  Example:\n    export default define.middleware(async (ctx) => {\n      return await ctx.next();\n    });`
+      : `Route files must export a default component, a "handler" or "handlers" export, or a "config" export.\n\n  Example:\n    export const handler = define.handlers({ GET(ctx) { ... } });\n    export default define.page((props) => <h1>Hello</h1>);`;
     throw new Error(
-      `Expected a route, middleware, layout or error template, but couldn't find relevant exports in: ${filePath}`,
+      `Could not find relevant exports in: ${filePath}\n\n${hint}`,
     );
   }
 

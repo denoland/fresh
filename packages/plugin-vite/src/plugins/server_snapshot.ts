@@ -318,6 +318,47 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
                 }
               }
             }
+
+            // Scan client output directory for any additional files generated
+            // by Vite plugins (e.g., vite-plugin-pwa generates sw.js,
+            // manifest.webmanifest) that aren't in the Vite manifest or
+            // public directory.
+            if (await fsAdapter.isDirectory(clientOutDir)) {
+              // Normalize registered pathnames (strip leading /) for comparison
+              const registeredPaths = new Set(
+                staticFiles.map((f) =>
+                  f.pathname.startsWith("/") ? f.pathname.slice(1) : f.pathname
+                ),
+              );
+
+              const clientFiles = await fsAdapter.walk(
+                clientOutDir,
+                {
+                  followSymlinks: false,
+                  includeDirs: false,
+                  includeFiles: true,
+                },
+              );
+
+              for await (const entry of clientFiles) {
+                const relative = path.relative(clientOutDir, entry.path);
+
+                // Skip .vite directory and already-registered files
+                if (
+                  relative.startsWith(".vite/") ||
+                  relative === ".vite" ||
+                  registeredPaths.has(relative)
+                ) {
+                  continue;
+                }
+
+                staticFiles.push({
+                  filePath: entry.path,
+                  hash: null,
+                  pathname: relative,
+                });
+              }
+            }
           }
 
           const code = await generateSnapshotServer({
@@ -395,7 +436,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
         filter: {
           id: /^fresh-island::.*/,
         },
-        handler(id) {
+        async handler(id) {
           let name = id.slice("fresh-island::".length);
 
           if (JS_REG.test(name)) {
@@ -403,7 +444,12 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
           }
 
           const spec = islandSpecByName.get(name);
-          if (spec !== undefined) return spec;
+          if (spec !== undefined) {
+            // Re-resolve through the plugin pipeline so deno-specifiers
+            // (jsr:, https:) are handled correctly.
+            const resolved = await this.resolve(spec);
+            return resolved ?? spec;
+          }
         },
       },
     },

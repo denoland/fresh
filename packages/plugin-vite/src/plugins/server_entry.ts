@@ -14,6 +14,7 @@ export function serverEntryPlugin(
   const modName = "fresh:server_entry";
 
   let serverEntry = "";
+  let serverEntryFilename = "";
   let serverOutDir = "";
   let clientOutDir = "";
   let root = "";
@@ -102,6 +103,16 @@ if (import.meta.hot) import.meta.hot.accept();`;
       },
     },
     async writeBundle(_options, bundle) {
+      // Find server entry filename directly from bundle chunks.
+      // This is more reliable than the manifest when rollupOptions
+      // override output.entryFileNames.
+      for (const chunk of Object.values(bundle)) {
+        if (chunk.type === "chunk" && chunk.isEntry) {
+          serverEntryFilename = chunk.fileName;
+          break;
+        }
+      }
+
       const manifest = bundle[".vite/manifest.json"];
 
       const staticFiles: PendingStaticFile[] = [];
@@ -152,7 +163,9 @@ if (import.meta.hot) import.meta.hot.accept();`;
       const outDir = path.dirname(serverOutDir);
       await Deno.writeTextFile(
         path.join(outDir, "server.js"),
-        `import server, { registerStaticFile } from "./server/server-entry.mjs";
+        `import server, { registerStaticFile } from "./server/${
+          serverEntryFilename || "server-entry.mjs"
+        }";
 
 ${registered.join("\n")}
 

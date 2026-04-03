@@ -1,8 +1,10 @@
 import { createBuilder } from "vite";
 import * as path from "@std/path";
 import { walk } from "@std/fs/walk";
-import { withTmpDir } from "../../fresh/src/test_utils.ts";
+import { integrationTest, withTmpDir } from "../../fresh/src/test_utils.ts";
 import { withChildProcessServer } from "../../fresh/tests/test_utils.tsx";
+
+export { integrationTest };
 
 export const DEMO_DIR = path.join(import.meta.dirname!, "..", "demo");
 export const FIXTURE_DIR = path.join(import.meta.dirname!, "fixtures");
@@ -133,7 +135,14 @@ export async function withDevServer(
 
 export async function buildVite(
   fixtureDir: string,
-  options?: { base?: string },
+  options?: {
+    base?: string;
+    rollupOutput?: {
+      entryFileNames?: string;
+      chunkFileNames?: string;
+      assetFileNames?: string;
+    };
+  },
 ) {
   const tmp = await withTmpDir({
     dir: path.join(import.meta.dirname!, ".."),
@@ -151,6 +160,9 @@ export async function buildVite(
       ssr: {
         build: {
           outDir: path.join(tmp.dir, "_fresh", "server"),
+          rollupOptions: options?.rollupOutput
+            ? { output: options.rollupOutput }
+            : undefined,
         },
       },
       client: {

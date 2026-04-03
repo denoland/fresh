@@ -6,6 +6,7 @@ import {
   matchesUrl,
   PartialMode,
   UrlMatchKind,
+  VIEW_TRANSITION_ATTR,
 } from "../shared_internal.ts";
 import {
   ACTIVE_PARTIALS,
@@ -41,6 +42,33 @@ function checkClientNavEnabled(el: HTMLElement) {
   const setting = el.closest(`[${CLIENT_NAV_ATTR}]`);
   if (setting === null) return false;
   return setting.getAttribute(CLIENT_NAV_ATTR) !== "false";
+}
+
+function isViewTransitionEnabled(): boolean {
+  const setting = document.querySelector(`[${VIEW_TRANSITION_ATTR}]`);
+  if (setting === null) return false;
+  return setting.getAttribute(VIEW_TRANSITION_ATTR) !== "false";
+}
+
+/**
+ * Wraps a DOM update function with the View Transitions API when available
+ * and enabled. Falls back to calling the update directly otherwise.
+ */
+function withViewTransition(update: () => Promise<void>): Promise<void> {
+  if (
+    isViewTransitionEnabled() &&
+    // deno-lint-ignore no-explicit-any
+    typeof (document as any).startViewTransition === "function"
+  ) {
+    return new Promise((resolve, reject) => {
+      // deno-lint-ignore no-explicit-any
+      const transition = (document as any).startViewTransition(async () => {
+        await update();
+      });
+      transition.finished.then(resolve, reject);
+    });
+  }
+  return update();
 }
 
 // Keep track of history state to apply forward or backward animations
@@ -132,8 +160,10 @@ document.addEventListener("click", async (e) => {
           partial ? partial : nextUrl.href,
           location.href,
         );
-        await fetchPartials(nextUrl, partialUrl, true);
-        updateLinks(nextUrl);
+        await withViewTransition(async () => {
+          await fetchPartials(nextUrl, partialUrl, true);
+          updateLinks(nextUrl);
+        });
         scrollTo({ left: 0, top: 0, behavior: "instant" });
       } finally {
         if (indicator !== undefined) {
@@ -192,8 +222,10 @@ addEventListener("popstate", async (e) => {
 
   const url = new URL(location.href, location.origin);
   try {
-    await fetchPartials(url, url, true);
-    updateLinks(url);
+    await withViewTransition(async () => {
+      await fetchPartials(url, url, true);
+      updateLinks(url);
+    });
     scrollTo({
       left: state.scrollX ?? 0,
       top: state.scrollY ?? 0,
@@ -231,12 +263,21 @@ document.addEventListener("submit", async (e) => {
       return;
     }
 
+    const hasExplicitPartial = e.submitter?.hasAttribute(PARTIAL_ATTR) ||
+      e.submitter?.hasAttribute("formaction") ||
+      el.hasAttribute(PARTIAL_ATTR) ||
+      el.hasAttribute("action");
+
     const rawPartialUrl = e.submitter?.getAttribute(PARTIAL_ATTR) ??
       e.submitter?.getAttribute("formaction") ??
       el.getAttribute(PARTIAL_ATTR) ?? el.action;
     const rawActionUrl = e.submitter?.getAttribute("formaction") ?? el.action;
 
-    if (rawPartialUrl !== "") {
+    // Only intercept forms that explicitly opt in to partial navigation
+    // via f-partial, formaction, or an explicit action attribute. Without
+    // this check, every form inside f-client-nav would be intercepted
+    // because el.action is always non-empty (defaults to the current URL).
+    if (hasExplicitPartial && rawPartialUrl !== "") {
       e.preventDefault();
 
       const partialUrl = new URL(rawPartialUrl, location.href);
@@ -254,7 +295,9 @@ document.addEventListener("submit", async (e) => {
         init = { body: new FormData(el, e.submitter), method: lowerMethod };
       }
 
-      await fetchPartials(actionUrl, partialUrl, true, init);
+      await withViewTransition(async () => {
+        await fetchPartials(actionUrl, partialUrl, true, init);
+      });
     }
   }
 });
@@ -297,11 +340,21 @@ async function fetchPartials(
     }
   }
 
+  try {
+    await applyPartials(res);
+  } catch (err) {
+    // When a redirect leads to a page without partials, fall back
+    // to a full page navigation instead of silently failing.
+    if (err instanceof NoPartialsError && res.redirected) {
+      location.href = actualUrl.href;
+      return;
+    }
+    throw err;
+  }
+
   if (shouldNavigate) {
     maybeUpdateHistory(actualUrl);
   }
-
-  await applyPartials(res);
 }
 
 interface PartialReviveCtx {
@@ -402,7 +455,33 @@ export async function applyPartials(res: Response): Promise<void> {
     } else if (child.nodeName === "SCRIPT") {
       const script = child as HTMLScriptElement;
       if (script.src === `${INTERNAL_PREFIX}/fresh-runtime.js`) return;
-      // TODO: What to do with script tags?
+
+      // Append data scripts (e.g. application/ld+json for SEO structured
+      // data) to the document head. Skip executable script types to
+      // avoid unintended re-execution.
+      const t = script.type;
+      if (
+        t !== "" && t !== "module" && t !== "text/javascript" &&
+        t !== "importmap"
+      ) {
+        // Deduplicate: replace existing data script with same type and
+        // id, or same type and content, to avoid accumulating duplicates
+        // across repeated partial navigations.
+        const selector = script.id
+          ? `script[type="${t}"][id="${script.id}"]`
+          : `script[type="${t}"]`;
+        const existing = Array.from(
+          document.head.querySelectorAll<HTMLScriptElement>(selector),
+        ).find((el) =>
+          script.id ? true : el.textContent === script.textContent
+        );
+
+        if (existing === undefined) {
+          document.head.appendChild(script);
+        } else if (existing.textContent !== script.textContent) {
+          existing.textContent = script.textContent;
+        }
+      }
     } else if (child.nodeName === "STYLE") {
       const style = child as HTMLStyleElement;
       // TODO: Do we need a smarter merging strategy?

@@ -182,6 +182,26 @@ export class MockBuildCache<State> implements BuildCache<State> {
   }
 }
 
+/**
+ * Wrapper around `Deno.test` for integration tests that disables sanitizers.
+ * Accepts either a name string or an options object (without `fn`), plus the
+ * test function.
+ */
+export function integrationTest(
+  nameOrOptions: string | Omit<Deno.TestDefinition, "fn">,
+  fn: () => void | Promise<void>,
+): void {
+  const options = typeof nameOrOptions === "string"
+    ? { name: nameOrOptions }
+    : nameOrOptions;
+  Deno.test({
+    ...options,
+    fn,
+    sanitizeOps: false,
+    sanitizeResources: false,
+  });
+}
+
 export async function writeFiles(dir: string, files: Record<string, string>) {
   const entries = Object.entries(files);
   await Promise.all(entries.map(async (entry) => {

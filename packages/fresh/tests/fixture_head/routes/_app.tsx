@@ -8,6 +8,7 @@ export default function Page({ Component }: PageProps) {
         <title>not ok</title>
         <meta name="foo" content="not ok" />
         <meta name="bar" content="not ok" />
+        <link rel="canonical" href="https://example.com/not-ok" />
         <style>not ok</style>
         <style id="style-id">not ok</style>
         <template key="a">not ok</template>

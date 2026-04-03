@@ -17,6 +17,13 @@ import { contentType as getStdContentType } from "@std/media-types/content-type"
 
 const WINDOWS_SEPARATOR = pathWin32.SEPARATOR;
 
+/** Normalize a path to use forward slashes so that generated files
+ *  are portable across operating systems (e.g. build on Windows,
+ *  deploy on Linux). */
+function toPosix(p: string): string {
+  return p.replaceAll(WINDOWS_SEPARATOR, "/");
+}
+
 export interface MemoryFile {
   hash: string | null;
   contentType: string;
@@ -63,6 +70,7 @@ export class MemoryBuildCache<State> implements DevBuildCache<State> {
   root: string;
   islandRegistry: ServerIslandRegistry = new Map();
   clientEntry: string;
+  hmrClientEntry: string | undefined = undefined;
   features = { errorOverlay: false };
 
   constructor(
@@ -236,6 +244,7 @@ export class DiskBuildCache<State> implements DevBuildCache<State> {
   root: string;
   islandRegistry: ServerIslandRegistry = new Map();
   clientEntry: string = "";
+  hmrClientEntry: string | undefined = undefined;
   features = { errorOverlay: false };
 
   constructor(
@@ -376,7 +385,7 @@ export class DiskBuildCache<State> implements DevBuildCache<State> {
     await Deno.writeTextFile(
       path.join(outDir, "server.js"),
       generateServerEntry({
-        root: appPath,
+        root: toPosix(appPath),
         serverEntry: pathToSpec(outDir, this.#config.serverEntry),
         snapshotSpecifier: "./snapshot.js",
       }),
@@ -529,6 +538,12 @@ ${serializedFsRoutes}
 `.replaceAll(/\n[\n]+/g, "\n\n");
 }
 
+export function systemPathToUrlEncoded(systemPath: string): string {
+  const normalized = systemPath.replaceAll(WINDOWS_SEPARATOR, "/");
+  const components = normalized.split("/").filter((comp) => comp);
+  return "/" + components.map((comp) => encodeURIComponent(comp)).join("/");
+}
+
 export async function prepareStaticFile(
   item: PendingStaticFile,
   outDir: string,
@@ -537,14 +552,16 @@ export async function prepareStaticFile(
 > {
   const file = await Deno.open(item.filePath);
   const hash = item.hash ? item.hash : await hashContent(file.readable);
-  const url = new URL(item.pathname, "http://localhost");
+  const encodedPathname = systemPathToUrlEncoded(item.pathname);
 
   return {
-    name: url.pathname,
+    name: encodedPathname,
     hash,
-    filePath: path.isAbsolute(item.filePath)
-      ? path.relative(outDir, item.filePath)
-      : item.filePath,
+    filePath: toPosix(
+      path.isAbsolute(item.filePath)
+        ? path.relative(outDir, item.filePath)
+        : item.filePath,
+    ),
     contentType: getContentType(item.filePath),
   };
 }
@@ -556,22 +573,24 @@ export function generateServerEntry(
     snapshotSpecifier: string;
   },
 ): string {
-  let rootPath = `path.join(import.meta.dirname, ${
-    JSON.stringify(options.root)
-  })`;
-  if (path.isAbsolute(options.root)) {
+  const root = toPosix(options.root);
+  const serverEntry = toPosix(options.serverEntry);
+  const snapshotSpecifier = toPosix(options.snapshotSpecifier);
+
+  let rootPath = `path.join(import.meta.dirname, ${JSON.stringify(root)})`;
+  if (path.isAbsolute(root)) {
     // deno-lint-ignore no-console
     console.warn(
-      `WARN: using absolute root path in snapshot: "${options.root}"`,
+      `WARN: using absolute root path in snapshot: "${root}"`,
     );
 
-    rootPath = JSON.stringify(options.root);
+    rootPath = JSON.stringify(root);
   }
 
   return `${EDIT_WARNING}
 import { setBuildCache, ProdBuildCache, path } from "fresh/internal";
-import * as snapshot from "${options.snapshotSpecifier}";
-import { app } from "${options.serverEntry}";
+import * as snapshot from "${snapshotSpecifier}";
+import { app } from "${serverEntry}";
 
 const root = ${rootPath};
 setBuildCache(app, new ProdBuildCache(root, snapshot), "production");
