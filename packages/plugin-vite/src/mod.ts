@@ -210,6 +210,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
                   },
                   // workaround: Cannot use export statement outside a module
                   // https://github.com/oxc-project/oxc/blob/a4ac3ce5148c22116436f04516641cd56e67e3ae/crates/oxc_semantic/src/diagnostics.rs#L141
+                  // https://github.com/oxc-project/oxc/blob/a4ac3ce5148c22116436f04516641cd56e67e3ae/crates/oxc_semantic/src/checker/javascript.rs#L537-L540
                   external: (id) => {
                     if (id.endsWith(".cjs")) {
                       return true;
