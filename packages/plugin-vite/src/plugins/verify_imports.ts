@@ -1,6 +1,6 @@
 import type { Plugin } from "vite";
 import * as cl from "@std/fmt/colors";
-import type { PluginContext } from "rollup";
+import type { PluginContext } from "rolldown";
 import path from "node:path";
 import { pathWithRoot } from "../utils.ts";
 
