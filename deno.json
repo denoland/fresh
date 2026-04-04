@@ -83,7 +83,7 @@
 
     "@tailwindcss/postcss": "npm:@tailwindcss/postcss@^4.1.10",
     "redis": "npm:redis@^5.8.2",
-    "rollup": "npm:rollup@^4.55.1",
+    "rolldown": "npm:rolldown@^1.0.0-rc.13",
     "tailwindcss": "npm:tailwindcss@^4.1.10",
     "postcss": "npm:postcss@8.5.6",
 
@@ -95,7 +95,7 @@
     "marked": "npm:marked@^15.0.11",
     "marked-mangle": "npm:marked-mangle@^1.1.9",
     "prismjs": "npm:prismjs@^1.29.0",
-    "vite": "npm:vite@^7.3.1"
+    "vite": "npm:vite@^8.0.3"
   },
   "compilerOptions": {
     "lib": ["dom", "dom.asynciterable", "deno.ns", "deno.unstable"],
