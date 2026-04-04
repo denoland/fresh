@@ -143,12 +143,13 @@ export function deno(): Plugin {
           return null;
         }
 
-        const type = getDenoType(id, options.attributes.type ?? "default");
+        const type = getDenoType(id, options?.attributes?.type ?? "default");
         if (
           type !== RequestedModuleType.Default ||
           /^(https?|jsr|npm):/.test(resolved)
         ) {
-          return toDenoSpecifier(resolved, type);
+          // [UNLOADABLE_DEPENDENCY] Error: Could not load @marvinh-test/fresh-island - No such file or directory (os error 2).
+          return { id: toDenoSpecifier(resolved, type) };
         }
 
         if (resolved.startsWith("file://")) {
