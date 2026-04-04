@@ -143,6 +143,7 @@ export function deno(): Plugin {
           return null;
         }
 
+        // https://github.com/rolldown/rolldown/issues/2758
         const type = getDenoType(id, options?.attributes?.type ?? "default");
         if (
           type !== RequestedModuleType.Default ||
