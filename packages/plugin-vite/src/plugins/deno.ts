@@ -90,7 +90,10 @@ export function deno(): Plugin {
       // But we still want to ignore everything `vite:resolve` does
       // because we're kinda replacing that plugin here.
       const tmp = await this.resolve(id, importer, options);
-      if (tmp && tmp.resolvedBy !== "vite:resolve") {
+      // The `resolveId` hook `resolvedBy` is not supported
+      // https://github.com/rolldown/rolldown/blob/2280eb2298e42835c8d1049a5b32486693c45d0e/packages/rollup-tests/src/ignored-by-unsupported-features.md?plain=1#L13-L14
+      // https://github.com/rolldown/rolldown/issues/8688
+      if (tmp) {
         if (tmp.external && !/^https?:\/\//.test(tmp.id)) {
           return tmp;
         }
