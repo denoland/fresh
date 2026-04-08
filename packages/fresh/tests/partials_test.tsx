@@ -3281,3 +3281,220 @@ Deno.test({
     });
   },
 });
+
+Deno.test({
+  name: "partials - submit form indicator on button",
+  fn: async () => {
+    const app = testApp()
+      .get("/partial", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <Partial name="foo">
+              <p class="done">done</p>
+            </Partial>
+          </Doc>,
+        );
+      })
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav>
+              <form action="/partial">
+                <Partial name="foo">
+                  <p class="init">init</p>
+                </Partial>
+                <button type="submit" class="update">
+                  update
+                </button>
+              </form>
+            </div>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".init").wait();
+
+      // Attach a tracking indicator to the submit button
+      await page.evaluate(() => {
+        const btn = document.querySelector(".update")!;
+        const indicator = { _wasTrue: false, _value: false };
+        Object.defineProperty(indicator, "value", {
+          get() {
+            return this._value;
+          },
+          set(v: boolean) {
+            this._value = v;
+            if (v) this._wasTrue = true;
+          },
+        });
+        // deno-lint-ignore no-explicit-any
+        (btn as any)._freshIndicator = indicator;
+        // deno-lint-ignore no-explicit-any
+        (window as any).__indicator = indicator;
+      });
+
+      await page.locator(".update").click();
+      await page.locator(".done").wait();
+
+      const result = await page.evaluate(() => {
+        // deno-lint-ignore no-explicit-any
+        const ind = (window as any).__indicator;
+        return { wasTrue: ind._wasTrue, currentValue: ind.value };
+      });
+      expect(result.wasTrue).toBe(true);
+      expect(result.currentValue).toBe(false);
+    });
+  },
+});
+
+Deno.test({
+  name: "partials - submit form indicator on form element",
+  fn: async () => {
+    const app = testApp()
+      .get("/partial", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <Partial name="foo">
+              <p class="done">done</p>
+            </Partial>
+          </Doc>,
+        );
+      })
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav>
+              <form action="/partial" class="myform">
+                <Partial name="foo">
+                  <p class="init">init</p>
+                </Partial>
+                <button type="submit" class="update">
+                  update
+                </button>
+              </form>
+            </div>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".init").wait();
+
+      // Attach indicator to the form element (not the button)
+      await page.evaluate(() => {
+        const form = document.querySelector(".myform")!;
+        const indicator = { _wasTrue: false, _value: false };
+        Object.defineProperty(indicator, "value", {
+          get() {
+            return this._value;
+          },
+          set(v: boolean) {
+            this._value = v;
+            if (v) this._wasTrue = true;
+          },
+        });
+        // deno-lint-ignore no-explicit-any
+        (form as any)._freshIndicator = indicator;
+        // deno-lint-ignore no-explicit-any
+        (window as any).__indicator = indicator;
+      });
+
+      await page.locator(".update").click();
+      await page.locator(".done").wait();
+
+      const result = await page.evaluate(() => {
+        // deno-lint-ignore no-explicit-any
+        const ind = (window as any).__indicator;
+        return { wasTrue: ind._wasTrue, currentValue: ind.value };
+      });
+      expect(result.wasTrue).toBe(true);
+      expect(result.currentValue).toBe(false);
+    });
+  },
+});
+
+Deno.test({
+  name: "partials - submit form indicator prefers submitter over form",
+  fn: async () => {
+    const app = testApp()
+      .get("/partial", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <Partial name="foo">
+              <p class="done">done</p>
+            </Partial>
+          </Doc>,
+        );
+      })
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav>
+              <form action="/partial" class="myform">
+                <Partial name="foo">
+                  <p class="init">init</p>
+                </Partial>
+                <button type="submit" class="update">
+                  update
+                </button>
+              </form>
+            </div>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".init").wait();
+
+      // Attach indicators to both form and button
+      await page.evaluate(() => {
+        function makeIndicator(name: string) {
+          const indicator = { _wasTrue: false, _value: false };
+          Object.defineProperty(indicator, "value", {
+            get() {
+              return this._value;
+            },
+            set(v: boolean) {
+              this._value = v;
+              if (v) this._wasTrue = true;
+            },
+          });
+          // deno-lint-ignore no-explicit-any
+          (window as any)[name] = indicator;
+          return indicator;
+        }
+
+        const btn = document.querySelector(".update")!;
+        const form = document.querySelector(".myform")!;
+        // deno-lint-ignore no-explicit-any
+        (btn as any)._freshIndicator = makeIndicator("__btnIndicator");
+        // deno-lint-ignore no-explicit-any
+        (form as any)._freshIndicator = makeIndicator("__formIndicator");
+      });
+
+      await page.locator(".update").click();
+      await page.locator(".done").wait();
+
+      const result = await page.evaluate(() => {
+        // deno-lint-ignore no-explicit-any
+        const w = window as any;
+        return {
+          btnWasTrue: w.__btnIndicator._wasTrue,
+          btnCurrent: w.__btnIndicator.value,
+          formWasTrue: w.__formIndicator._wasTrue,
+          formCurrent: w.__formIndicator.value,
+        };
+      });
+      // Submitter indicator should have been toggled
+      expect(result.btnWasTrue).toBe(true);
+      expect(result.btnCurrent).toBe(false);
+      // Form indicator should NOT have been used
+      expect(result.formWasTrue).toBe(false);
+      expect(result.formCurrent).toBe(false);
+    });
+  },
+});
