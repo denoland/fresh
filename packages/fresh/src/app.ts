@@ -190,6 +190,7 @@ export class App<State> {
       root: ".",
       basePath: config.basePath ?? "",
       mode: config.mode ?? "production",
+      trustProxy: config.trustProxy ?? false,
     };
   }
 
@@ -392,6 +393,8 @@ export class App<State> {
       this.#onError,
     );
 
+    const trustProxy = this.config.trustProxy;
+
     return async (
       req: Request,
       conn: Deno.ServeHandlerInfo = DEFAULT_CONN_INFO,
@@ -399,6 +402,18 @@ export class App<State> {
       const url = new URL(req.url);
       // Prevent open redirect attacks
       url.pathname = url.pathname.replace(/\/+/g, "/");
+
+      // Apply X-Forwarded-* headers when behind a reverse proxy
+      if (trustProxy) {
+        const proto = req.headers.get("x-forwarded-proto");
+        if (proto) {
+          url.protocol = proto + ":";
+        }
+        const host = req.headers.get("x-forwarded-host");
+        if (host) {
+          url.host = host;
+        }
+      }
 
       const method = req.method.toUpperCase() as Method;
       const matched = router.match(method, url);

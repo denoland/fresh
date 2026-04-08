@@ -11,6 +11,13 @@ export interface FreshConfig {
    * The mode Fresh can run in.
    */
   mode?: "development" | "production";
+  /**
+   * When enabled, Fresh will respect `X-Forwarded-Proto` and
+   * `X-Forwarded-Host` headers to construct `ctx.url`. Enable
+   * this when running behind a reverse proxy.
+   * @default false
+   */
+  trustProxy?: boolean;
 }
 
 /**
@@ -27,6 +34,11 @@ export interface ResolvedFreshConfig {
    * The mode Fresh can run in.
    */
   mode: "development" | "production";
+  /**
+   * When enabled, Fresh will respect `X-Forwarded-Proto` and
+   * `X-Forwarded-Host` headers to construct `ctx.url`.
+   */
+  trustProxy: boolean;
 }
 
 export function parseDirPath(
