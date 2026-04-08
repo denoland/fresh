@@ -27,6 +27,10 @@ export default defineConfig({
       islandsDir: "./islands",
       // Path to routes directory. Default: ./routes
       routeDir: "./routes",
+      // Static file directory or directories. Default: "static"
+      // When multiple directories are given, they are searched in
+      // order and the first match wins.
+      staticDir: ["static", "generated"],
       // Optional regex to ignore folders when crawling the routes and
       // island directory.
       ignore: [/[\\/]+some-folder[\\/]+/],

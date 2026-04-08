@@ -55,11 +55,13 @@ export type {
  * ```
  */
 export function fresh(config?: FreshViteConfig): Plugin[] {
+  const rawStaticDir = config?.staticDir ?? "static";
   const fConfig: ResolvedFreshViteConfig = {
     serverEntry: config?.serverEntry ?? "main.ts",
     clientEntry: config?.clientEntry ?? "client.ts",
     islandsDir: config?.islandsDir ?? "islands",
     routeDir: config?.routeDir ?? "routes",
+    staticDir: Array.isArray(rawStaticDir) ? rawStaticDir : [rawStaticDir],
     ignore: config?.ignore ?? [TEST_FILE_PATTERN],
     islandSpecifiers: new Map(),
     namer: new UniqueNamer(),
@@ -111,7 +113,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
             noDiscovery: true,
           },
 
-          publicDir: pathWithRoot("static", config.root),
+          publicDir: pathWithRoot(fConfig.staticDir[0], config.root),
 
           builder: {
             async buildApp(builder) {
@@ -208,6 +210,9 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
 
         fConfig.islandsDir = pathWithRoot(fConfig.islandsDir, vConfig.root);
         fConfig.routeDir = pathWithRoot(fConfig.routeDir, vConfig.root);
+        fConfig.staticDir = fConfig.staticDir.map((d) =>
+          pathWithRoot(d, vConfig.root)
+        );
 
         config?.islandSpecifiers?.map((spec) => {
           const specName = specToName(spec);
@@ -233,7 +238,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
     clientEntryPlugin(fConfig),
     ...clientSnapshot(fConfig),
     buildIdPlugin(),
-    ...devServer(),
+    ...devServer(fConfig),
     prefresh({
       include: [/\.[cm]?[tj]sx?$/],
       exclude: [/node_modules/, /[\\/]+deno[\\/]+npm[\\/]+/],
