@@ -61,7 +61,9 @@ ${colors.rgb8("OPTIONS:", 3)}
     ${colors.rgb8("--tailwind", 2)}   Use Tailwind for styling
     ${colors.rgb8("--vscode", 2)}     Setup project for VS Code
     ${colors.rgb8("--docker", 2)}     Setup Project to use Docker
-    ${colors.rgb8("--builder", 2)}    (Deprecated) Setup with builder instead of vite
+    ${
+  colors.rgb8("--builder", 2)
+}    (Deprecated) Setup with builder instead of vite
     ${colors.rgb8("--help, -h", 2)}   Show this help message
 `;
 
