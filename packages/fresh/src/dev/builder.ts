@@ -129,8 +129,9 @@ export class Builder<State = any> {
     const serverEntry = parseDirPath(options?.serverEntry ?? "main.ts", root);
     const outDir = parseDirPath(options?.outDir ?? "_fresh", root);
     const rawStaticDir = options?.staticDir ?? "static";
-    const staticDir = (Array.isArray(rawStaticDir) ? rawStaticDir : [rawStaticDir])
-      .map((d) => parseDirPath(d, root));
+    const staticDir =
+      (Array.isArray(rawStaticDir) ? rawStaticDir : [rawStaticDir])
+        .map((d) => parseDirPath(d, root));
     const islandDir = parseDirPath(options?.islandDir ?? "islands", root);
     const routeDir = parseDirPath(options?.routeDir ?? "routes", root);
 
