@@ -2,6 +2,7 @@ import { trace } from "@opentelemetry/api";
 
 import { DENO_DEPLOYMENT_ID } from "@fresh/build-id";
 import * as colors from "@std/fmt/colors";
+import * as semver from "@std/semver";
 import type { MaybeLazyMiddleware, Middleware } from "./middlewares/mod.ts";
 import { Context } from "./context.ts";
 import { mergePath, type Method, UrlPatternRouter } from "./router.ts";
@@ -61,6 +62,8 @@ const DEFAULT_ERROR_HANDLER = async <State>(ctx: Context<State>) => {
   return new Response("Internal server error", { status: 500 });
 };
 
+const MIN_DENO_VERSION = "2.1.0";
+
 export type ListenOptions =
   & Partial<
     Deno.ServeTcpOptions & Deno.TlsCertifiedKeyPem
@@ -115,6 +118,31 @@ export function createOnListen(
       const remoteAddress = colors.cyan(options.remoteAddress);
       // deno-lint-ignore no-console
       console.log(`    ${remoteLabel}  ${remoteAddress}\n`);
+    }
+
+    // Warn if Deno version is outdated
+    try {
+      if (
+        semver.lessThan(
+          semver.parse(Deno.version.deno),
+          semver.parse(MIN_DENO_VERSION),
+        )
+      ) {
+        // deno-lint-ignore no-console
+        console.log(
+          colors.yellow(
+            `    Warning: Deno ${MIN_DENO_VERSION}+ is recommended. You're on ${Deno.version.deno}.`,
+          ),
+        );
+        // deno-lint-ignore no-console
+        console.log(
+          colors.yellow("    To update, run: deno upgrade"),
+        );
+        // deno-lint-ignore no-console
+        console.log();
+      }
+    } catch {
+      // Ignore version parse errors
     }
   };
 }
