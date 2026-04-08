@@ -61,7 +61,10 @@ export function matchesUrl(
 
   if (current === href) {
     // If the link has query params, only mark as current if they match
-    if (needleSearch && currentSearch !== undefined && needleSearch !== currentSearch) {
+    if (
+      needleSearch && currentSearch !== undefined &&
+      needleSearch !== currentSearch
+    ) {
       return UrlMatchKind.Ancestor;
     }
     return UrlMatchKind.Current;
