@@ -304,7 +304,15 @@ document.addEventListener("submit", async (e) => {
 
 function updateLinks(url: URL) {
   document.querySelectorAll("a").forEach((link) => {
-    const match = matchesUrl(url.pathname, link.href);
+    // Don't override aria-current if it was explicitly set by the user
+    // (detected by absence of data-current/data-ancestor attributes which
+    // Fresh always sets alongside aria-current)
+    const hasFreshAria = link.hasAttribute(DATA_CURRENT) ||
+      link.hasAttribute(DATA_ANCESTOR);
+    const hasUserAria = !hasFreshAria && link.hasAttribute("aria-current");
+    if (hasUserAria) return;
+
+    const match = matchesUrl(url.pathname, link.href, url.search);
 
     if (match === UrlMatchKind.Current) {
       link.setAttribute(DATA_CURRENT, "true");
