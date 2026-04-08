@@ -280,7 +280,8 @@ export async function updateProject(dir: string) {
 
   // deno-lint-ignore no-console
   console.log(
-    "\n" + colors.bold(isFresh2 ? "📊 Update Summary:" : "📊 Migration Summary:"),
+    "\n" +
+      colors.bold(isFresh2 ? "📊 Update Summary:" : "📊 Migration Summary:"),
   );
   // deno-lint-ignore no-console
   console.log(`   Total files processed: ${filesToProcess.length}`);
