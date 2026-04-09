@@ -26,6 +26,60 @@ import { checkImports } from "./plugins/verify_imports.ts";
 import { isBuiltin } from "node:module";
 import { load as stdLoadEnv } from "@std/dotenv";
 import path from "node:path";
+import * as fs from "node:fs";
+
+// Packages that must always be bundled in the SSR build to avoid
+// duplicate module instances (e.g. preact's component registry).
+const SSR_BUNDLE_ALLOWLIST = new Set([
+  "preact",
+  "preact/hooks",
+  "preact/compat",
+  "preact/jsx-runtime",
+  "preact/jsx-dev-runtime",
+  "preact/test-utils",
+  "preact/debug",
+  "preact/devtools",
+  "@preact/signals",
+  "@preact/signals-core",
+]);
+
+/**
+ * Check if a package is CJS-only (no ESM entry point).
+ * Returns true if the package should be externalized in the SSR build.
+ */
+function isCjsOnlyPackage(id: string, root: string): boolean {
+  // Extract bare package name (handle scoped packages)
+  const parts = id.startsWith("@") ? id.split("/", 2) : id.split("/", 1);
+  const packageName = parts.join("/");
+
+  if (SSR_BUNDLE_ALLOWLIST.has(packageName) || SSR_BUNDLE_ALLOWLIST.has(id)) {
+    return false;
+  }
+
+  // Look for the package's package.json
+  const pkgJsonPath = path.join(
+    root,
+    "node_modules",
+    packageName,
+    "package.json",
+  );
+  try {
+    const pkg = JSON.parse(fs.readFileSync(pkgJsonPath, "utf-8"));
+    // If type is "module", it's ESM — keep bundled
+    if (pkg.type === "module") return false;
+    // If it has an ESM entry via "module" or "exports" with import condition,
+    // keep it bundled so Vite can resolve the ESM version
+    if (pkg.module) return false;
+    if (pkg.exports) {
+      const exportsStr = JSON.stringify(pkg.exports);
+      if (exportsStr.includes('"import"')) return false;
+    }
+    // CJS-only package — externalize it
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export type { FreshViteConfig };
 export type {
@@ -161,6 +215,28 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
                     : null) ??
                   "_fresh/server",
                 rollupOptions: {
+                  // Externalize CJS-only npm packages in the SSR build.
+                  // These will be loaded at runtime by Deno's Node compat
+                  // layer, avoiding the CJS-to-ESM transform that can cause
+                  // TDZ errors when Rollup reorders bundled declarations.
+                  external(id) {
+                    // Never externalize virtual modules, relative paths,
+                    // absolute paths, or Node builtins (Vite handles those)
+                    if (
+                      id.startsWith("\0") || id.startsWith(".") ||
+                      id.startsWith("/") || isBuiltin(id)
+                    ) {
+                      return false;
+                    }
+                    // Never externalize fresh internals or jsr: specifiers
+                    if (
+                      id.startsWith("fresh") || id.startsWith("@fresh/") ||
+                      id.startsWith("jsr:")
+                    ) {
+                      return false;
+                    }
+                    return isCjsOnlyPackage(id, config.root ?? process.cwd());
+                  },
                   onwarn(warning, handler) {
                     // Ignore "use client"; warnings
                     if (warning.code === "MODULE_LEVEL_DIRECTIVE") {
