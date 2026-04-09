@@ -507,13 +507,13 @@ function RemainingHead() {
       if (island.css.length > 0) {
         for (let i = 0; i < island.css.length; i++) {
           const css = island.css[i];
-          items.push(h("link", { rel: "stylesheet", href: asset(css) }));
+          items.push(h("link", { rel: "stylesheet", href: css }));
         }
       }
     });
 
     RENDER_STATE.islandAssets.forEach((css) => {
-      items.push(h("link", { rel: "stylesheet", href: asset(css) }));
+      items.push(h("link", { rel: "stylesheet", href: css }));
     });
 
     if (items.length > 0) {
@@ -702,7 +702,7 @@ function FreshRuntimeScript() {
       const islandSpec = island.file.startsWith(".")
         ? island.file.slice(1)
         : island.file;
-      return `import ${named} from "${asset(`${basePath}${islandSpec}`)}";`;
+      return `import ${named} from "${basePath}${islandSpec}";`;
     }).join("");
 
     const islandObj = "{" + islandArr.map((island) => island.name)
@@ -717,9 +717,8 @@ function FreshRuntimeScript() {
     const runtimeUrl = buildCache.clientEntry.startsWith(".")
       ? buildCache.clientEntry.slice(1)
       : buildCache.clientEntry;
-    const scriptContent = `import { boot } from "${
-      asset(`${basePath}${runtimeUrl}`)
-    }";${islandImports}boot(${islandObj},${serializedProps});`;
+    const scriptContent =
+      `import { boot } from "${basePath}${runtimeUrl}";${islandImports}boot(${islandObj},${serializedProps});`;
 
     return (
       h(
