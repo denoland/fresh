@@ -83,7 +83,9 @@ export function registerStaticFile(prepared) {
   snapshot.staticFiles.set(prepared.name, {
     name: prepared.name,
     contentType: prepared.contentType,
-    filePath: prepared.filePath
+    filePath: prepared.filePath,
+    hash: prepared.hash ?? null,
+    immutable: prepared.immutable,
   });
 }
 `;
