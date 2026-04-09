@@ -30,8 +30,8 @@ Vite plugin for [Fresh](https://fresh.deno.dev).
 
 4. Update your deno tasks respectively:
 
-- Dev: `vite`
-- Build: `vite build`
+- Dev: `vite --configLoader=native`
+- Build: `vite build --configLoader=native`
 
 More information
 [on the Fresh documentation](https://fresh.deno.dev/docs/advanced/vite) .

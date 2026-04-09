@@ -89,6 +89,14 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
         isDev = env.command === "serve";
 
         return {
+          oxc: {
+            jsx: {
+              runtime: "automatic",
+              importSource: "preact",
+              development: env.command === "serve",
+            },
+          },
+          // TODO: Remove
           esbuild: {
             jsx: "automatic",
             jsxImportSource: "preact",
@@ -139,6 +147,13 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
                     ? config.build.outDir + "/client"
                     : null) ??
                   "_fresh/client",
+                rolldownOptions: {
+                  preserveEntrySignatures: "strict",
+                  input: {
+                    "client-entry": "fresh:client-entry",
+                  },
+                },
+                // TODO: Remove
                 rollupOptions: {
                   preserveEntrySignatures: "strict",
                   input: {
@@ -158,6 +173,55 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
                     ? config.build.outDir + "/server"
                     : null) ??
                   "_fresh/server",
+                rolldownOptions: {
+                  onwarn(warning, handler) {
+                    // Ignore "use client"; warnings
+                    if (warning.code === "MODULE_LEVEL_DIRECTIVE") {
+                      return;
+                    }
+
+                    // Ignore optional export errors
+                    if (
+                      warning.code === "MISSING_EXPORT" &&
+                      warning.id?.startsWith("\0fresh-route::")
+                    ) {
+                      return;
+                    }
+
+                    // Ignore commonjs optional exports
+                    if (
+                      warning.code === "MISSING_EXPORT" &&
+                      warning.message.includes("__require")
+                    ) {
+                      return;
+                    }
+
+                    // Ignore this warnings
+                    if (warning.code === "THIS_IS_UNDEFINED") {
+                      return;
+                    }
+
+                    // Ignore falsy source map errors
+                    if (warning.code === "SOURCEMAP_ERROR") {
+                      return;
+                    }
+
+                    return handler(warning);
+                  },
+                  // workaround: Cannot use export statement outside a module
+                  // https://github.com/oxc-project/oxc/blob/a4ac3ce5148c22116436f04516641cd56e67e3ae/crates/oxc_semantic/src/diagnostics.rs#L141
+                  // https://github.com/oxc-project/oxc/blob/a4ac3ce5148c22116436f04516641cd56e67e3ae/crates/oxc_semantic/src/checker/javascript.rs#L537-L540
+                  external: (id) => {
+                    if (id.endsWith(".cjs")) {
+                      return true;
+                    }
+                    return false;
+                  },
+                  input: {
+                    "server-entry": "fresh:server_entry",
+                  },
+                },
+                // TODO: Remove
                 rollupOptions: {
                   onwarn(warning, handler) {
                     // Ignore "use client"; warnings

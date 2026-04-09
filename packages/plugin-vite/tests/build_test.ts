@@ -298,6 +298,8 @@ integrationTest("vite build - import node:*", async () => {
   );
 });
 
+// needs: https://github.com/vitejs/vite/pull/21580
+// https://github.com/rolldown/rolldown/issues/7012
 integrationTest("vite build - css modules", async () => {
   await launchProd(
     { cwd: viteResult.tmp },

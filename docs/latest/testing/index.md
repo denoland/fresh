@@ -219,6 +219,7 @@ export const FRESH_BUILD_CONFIG: InlineConfig = {
   logLevel: "error",
   root: "./",
   build: { emptyOutDir: true },
+  configLoader: "native",
   environments: {
     ssr: { build: { outDir: path.join("_fresh", "server") } },
     client: { build: { outDir: path.join("_fresh", "client") } },

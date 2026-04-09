@@ -90,7 +90,10 @@ export function deno(): Plugin {
       // But we still want to ignore everything `vite:resolve` does
       // because we're kinda replacing that plugin here.
       const tmp = await this.resolve(id, importer, options);
-      if (tmp && tmp.resolvedBy !== "vite:resolve") {
+      // The `resolveId` hook `resolvedBy` is not supported
+      // https://github.com/rolldown/rolldown/blob/2280eb2298e42835c8d1049a5b32486693c45d0e/packages/rollup-tests/src/ignored-by-unsupported-features.md?plain=1#L13-L14
+      // https://github.com/rolldown/rolldown/issues/8688
+      if (tmp) {
         if (tmp.external && !/^https?:\/\//.test(tmp.id)) {
           return tmp;
         }
@@ -143,12 +146,14 @@ export function deno(): Plugin {
           return null;
         }
 
-        const type = getDenoType(id, options.attributes.type ?? "default");
+        // https://github.com/rolldown/rolldown/issues/2758
+        const type = getDenoType(id, options?.attributes?.type ?? "default");
         if (
           type !== RequestedModuleType.Default ||
           /^(https?|jsr|npm):/.test(resolved)
         ) {
-          return toDenoSpecifier(resolved, type);
+          // [UNLOADABLE_DEPENDENCY] Error: Could not load @marvinh-test/fresh-island - No such file or directory (os error 2).
+          return { id: toDenoSpecifier(resolved, type) };
         }
 
         if (resolved.startsWith("file://")) {

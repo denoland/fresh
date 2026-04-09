@@ -12,7 +12,7 @@ const totalStart = performance.now();
 // deno-lint-ignore no-console
 console.log("Building www...");
 let stepStart = performance.now();
-const builder = await createBuilder({ root: www });
+const builder = await createBuilder({ root: www, configLoader: "native" });
 await builder.buildApp();
 // deno-lint-ignore no-console
 console.log(

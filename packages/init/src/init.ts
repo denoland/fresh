@@ -605,8 +605,8 @@ if (Deno.args.includes("build")) {
 
   if (useVite) {
     denoJson.compilerOptions.types = ["vite/client"];
-    denoJson.tasks.dev = "vite";
-    denoJson.tasks.build = "vite build";
+    denoJson.tasks.dev = "vite --configLoader=native";
+    denoJson.tasks.build = "vite --configLoader=native build";
 
     const vitePluginVersion = await getLatestVersion(
       "@fresh/plugin-vite",
@@ -615,7 +615,7 @@ if (Deno.args.includes("build")) {
 
     denoJson.imports["@fresh/plugin-vite"] =
       `jsr:@fresh/plugin-vite@^${vitePluginVersion}`;
-    denoJson.imports["vite"] = "npm:vite@^7.1.3";
+    denoJson.imports["vite"] = "npm:vite@^8.0.3";
     denoJson.imports["@types/babel__core"] = "npm:@types/babel__core@^7.20.5";
 
     if (useTailwind) {
