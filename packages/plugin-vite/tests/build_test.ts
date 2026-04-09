@@ -353,9 +353,8 @@ integrationTest(
           // is discovered after <head> renders.
           const bgColor = await page
             .locator(".app-nav")
-            // deno-lint-ignore no-explicit-any
             .evaluate((el) =>
-              window.getComputedStyle(el as any).backgroundColor
+              window.getComputedStyle(el as Element).backgroundColor
             );
           expect(bgColor).toEqual("rgb(30, 30, 30)");
         });
