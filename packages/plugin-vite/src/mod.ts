@@ -91,6 +91,23 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
         isDev = env.command === "serve";
 
         return {
+          server: {
+            watch: {
+              // Ignore temp files, editor swap files, and Vite timestamp
+              // files. On Linux, these short-lived files can trigger a
+              // watchFs race condition in Deno where the watcher tries to
+              // open a file that has already been deleted, crashing the
+              // dev server with ENOENT.
+              ignored: [
+                "**/*.tmp.*",
+                "**/*.timestamp-*",
+                "**/*~",
+                "**/.#*",
+                "**/*.swp",
+                "**/*.swo",
+              ],
+            },
+          },
           esbuild: {
             jsx: "automatic",
             jsxImportSource: "preact",
