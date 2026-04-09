@@ -206,22 +206,49 @@ export function deno(): Plugin {
           ) {
             const isServer =
               this.environment.config.consumer === "server";
-            const preamble = isServer
-              ? `import { createRequire as __cjs_createRequire } from "node:module";
+
+            if (isServer) {
+              // SSR: use Node.js createRequire for full CJS compat
+              const wrapped = `
+import { createRequire as __cjs_createRequire } from "node:module";
 import { fileURLToPath as __cjs_fileURLToPath } from "node:url";
 import { dirname as __cjs_dirname } from "node:path";
 var __filename = __cjs_fileURLToPath(import.meta.url);
 var __dirname = __cjs_dirname(__filename);
-var require = __cjs_createRequire(import.meta.url);`
-              : `var __filename = "";
-var __dirname = "";
-var require = (id) => { throw new Error("require() not supported in browser: " + id); };`;
-
-            const wrapped = `${preamble}
+var require = __cjs_createRequire(import.meta.url);
 var module = { exports: {} };
 var exports = module.exports;
 
 ${code}
+
+export default module.exports;
+`;
+              return { code: wrapped };
+            }
+
+            // Client: convert require() calls to ESM imports so
+            // browsers can load them. Hoist static require() calls
+            // to import statements at the top.
+            const imports: string[] = [];
+            let idx = 0;
+            const transformed = code.replace(
+              /\brequire\(["']([^"']+)["']\)/g,
+              (_match: string, spec: string) => {
+                const varName = `__cjs_import_${idx++}`;
+                imports.push(
+                  `import ${varName} from ${JSON.stringify(spec)};`,
+                );
+                return `(${varName}.default ?? ${varName})`;
+              },
+            );
+
+            const wrapped = `${imports.join("\n")}
+var module = { exports: {} };
+var exports = module.exports;
+var __filename = "";
+var __dirname = "";
+
+${transformed}
 
 export default module.exports;
 `;

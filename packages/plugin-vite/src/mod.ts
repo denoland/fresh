@@ -150,23 +150,13 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
           },
 
           optimizeDeps: {
-            // Exclude preact ecosystem from optimizer to prevent
-            // duplicate instances with remote (JSR) islands. JSR
-            // islands resolve deps to /@fs/ paths, so if the
-            // optimizer also bundles them to /.vite/deps/, two
-            // separate instances load. Other CJS packages (like
-            // mime-db) are optimized normally.
-            exclude: [
-              "preact",
-              "preact/hooks",
-              "preact/jsx-runtime",
-              "preact/jsx-dev-runtime",
-              "preact/debug",
-              "preact/compat",
-              "@preact/signals",
-              "@preact/signals-core",
-              "preact-render-to-string",
-            ],
+            // Disable dep optimizer because deno.ts handles all
+            // module resolution. The optimizer causes duplicate
+            // module instances when remote (JSR) islands resolve
+            // deps to /@fs/ paths while the optimizer bundles to
+            // /.vite/deps/. CJS packages in client-side islands
+            // are handled by deno.ts's load hook.
+            noDiscovery: true,
           },
 
           publicDir: pathWithRoot(fConfig.staticDir[0], config.root),
