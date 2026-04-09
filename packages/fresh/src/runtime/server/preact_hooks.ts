@@ -132,7 +132,11 @@ options[OptionsType.VNODE] = (vnode) => {
   if (RENDER_STATE !== null) {
     RENDER_STATE.owners.set(vnode, RENDER_STATE!.ownerStack.at(-1)!);
     if (vnode.type === "a") {
-      setActiveUrl(vnode, RENDER_STATE.ctx.url.pathname);
+      setActiveUrl(
+        vnode,
+        RENDER_STATE.ctx.url.pathname,
+        RENDER_STATE.ctx.url.search,
+      );
     }
   }
   assetHashingHook(vnode, BUILD_ID);

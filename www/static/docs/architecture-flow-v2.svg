@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 1020" font-family="system-ui,-apple-system,sans-serif" font-size="14">
+  <style>
+    .box{fill:none;stroke:#999;stroke-width:1}
+    .box-accent{fill:none;stroke:#7a9fbf;stroke-width:1}
+    .box-green{fill:none;stroke:#7aaa7a;stroke-width:1}
+    .label{font-weight:600;font-size:14px;fill:#999}
+    .sublabel{font-size:11px;fill:#999}
+    .desc{font-size:12.5px;fill:#999}
+    .arrow{fill:#999;font-size:18px}
+    .arrow-label{font-size:11px;fill:#999;font-style:italic}
+    .divider-line{stroke:#999;stroke-dasharray:4 3}
+    .divider-text{font-size:11px;fill:#999;font-weight:600;letter-spacing:0.5px;text-transform:uppercase}
+    .link{fill:#6ca6d4}
+  </style>
+
+  <!-- Browser Request -->
+  <rect class="box-accent" x="0" y="0" width="200" height="40" rx="6"/>
+  <text class="label" x="100" y="25" text-anchor="middle">Browser Request</text>
+
+  <text class="arrow" x="100" y="58" text-anchor="middle">&#x2193;</text>
+
+  <!-- Static Files -->
+  <rect class="box" x="0" y="68" width="200" height="40" rx="6"/>
+  <text class="label" x="100" y="93" text-anchor="middle">Static Files</text>
+  <text class="desc" x="224" y="93">Serve file directly if path matches a static asset</text>
+
+  <text class="arrow-label" x="100" y="123" text-anchor="middle">no match</text>
+  <text class="arrow" x="100" y="142" text-anchor="middle">&#x2193;</text>
+
+  <!-- Global Middleware -->
+  <rect class="box" x="0" y="152" width="200" height="50" rx="6"/>
+  <text class="label" x="100" y="173" text-anchor="middle">Global Middleware</text>
+  <text class="sublabel" x="100" y="190" text-anchor="middle">runs in registration order</text>
+  <text class="desc" x="224" y="173">Can modify request/response, set state,</text>
+  <text class="desc" x="224" y="190">or short-circuit with a Response</text>
+
+  <text class="arrow" x="100" y="222" text-anchor="middle">&#x2193;</text>
+
+  <!-- Router -->
+  <rect class="box" x="0" y="232" width="200" height="40" rx="6"/>
+  <text class="label" x="100" y="257" text-anchor="middle">Router</text>
+  <text class="desc" x="224" y="250">Match URL pattern + HTTP method.</text>
+  <text class="desc" x="224" y="267">Static routes checked first, then dynamic.</text>
+
+  <text class="arrow" x="100" y="292" text-anchor="middle">&#x2193;</text>
+
+  <!-- Scoped Middleware -->
+  <rect class="box" x="0" y="302" width="200" height="40" rx="6"/>
+  <text class="label" x="100" y="327" text-anchor="middle">Scoped Middleware</text>
+  <text class="desc" x="224" y="316">Middleware that only runs for matching path</text>
+  <text class="desc" x="224" y="333">prefixes (e.g. /admin/*). Used for auth, logging,</text>
+  <text class="desc" x="224" y="350">or other route-specific logic.</text>
+
+  <text class="arrow" x="100" y="372" text-anchor="middle">&#x2193;</text>
+
+  <!-- Handler -->
+  <rect class="box" x="0" y="382" width="200" height="40" rx="6"/>
+  <text class="label" x="100" y="407" text-anchor="middle">Handler</text>
+  <text class="desc" x="224" y="407">API route? Return Response directly (JSON, redirect, etc.)</text>
+
+  <text class="arrow-label" x="100" y="437" text-anchor="middle">has component</text>
+  <text class="arrow" x="100" y="456" text-anchor="middle">&#x2193;</text>
+
+  <!-- Rendering divider -->
+  <line class="divider-line" x1="0" y1="470" x2="600" y2="470"/>
+  <text class="divider-text" x="0" y="488">RENDERING</text>
+
+  <!-- App Wrapper -->
+  <rect class="box" x="0" y="498" width="200" height="40" rx="6"/>
+  <text class="label" x="100" y="523" text-anchor="middle">App Wrapper</text>
+  <text class="desc" x="224" y="523">&lt;html&gt;/&lt;head&gt;/&lt;body&gt; structure</text>
+
+  <text class="arrow" x="100" y="558" text-anchor="middle">&#x2193;</text>
+
+  <!-- Layouts -->
+  <rect class="box" x="0" y="568" width="200" height="40" rx="6"/>
+  <text class="label" x="100" y="593" text-anchor="middle">Layouts</text>
+  <text class="desc" x="224" y="593">Nested layout components (inherited from parent directories)</text>
+
+  <text class="arrow" x="100" y="628" text-anchor="middle">&#x2193;</text>
+
+  <!-- Page Component -->
+  <rect class="box" x="0" y="638" width="200" height="40" rx="6"/>
+  <text class="label" x="100" y="663" text-anchor="middle">Page Component</text>
+  <text class="desc" x="224" y="663">Route component receives props.data from handler</text>
+
+  <text class="arrow" x="100" y="698" text-anchor="middle">&#x2193;</text>
+
+  <!-- HTML + JS Response -->
+  <rect class="box-accent" x="0" y="708" width="200" height="50" rx="6"/>
+  <text class="label" x="100" y="729" text-anchor="middle">HTML + JS Response</text>
+  <text class="sublabel" x="100" y="746" text-anchor="middle">sent to browser</text>
+  <text class="desc" x="224" y="733">Server-rendered HTML with island props</text>
+  <text class="desc" x="224" y="750">serialized inline</text>
+
+  <!-- Client divider -->
+  <line class="divider-line" x1="0" y1="778" x2="600" y2="778"/>
+  <text class="divider-text" x="0" y="796">CLIENT (BROWSER)</text>
+
+  <text class="arrow" x="100" y="820" text-anchor="middle">&#x2193;</text>
+
+  <!-- Island Hydration -->
+  <rect class="box-green" x="0" y="830" width="200" height="50" rx="6"/>
+  <text class="label" x="100" y="851" text-anchor="middle">Island Hydration</text>
+  <text class="sublabel" x="100" y="868" text-anchor="middle">only islands receive JS</text>
+  <text class="desc" x="224" y="851">Rest of the page stays static HTML.</text>
+  <text class="desc" x="224" y="868">No JavaScript for non-island components.</text>
+</svg>

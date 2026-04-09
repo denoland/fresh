@@ -130,50 +130,53 @@ export class MemoryBuildCache<State> implements DevBuildCache<State> {
       }
     }
 
-    let entry = pathname.startsWith("/") ? pathname.slice(1) : pathname;
-    entry = path.join(this.#config.staticDir, entry);
-    const relative = path.relative(this.#config.staticDir, entry);
-    if (relative.startsWith("..")) {
-      throw new Error(
-        `Processed file resolved outside of static dir ${entry}`,
+    const stripped = pathname.startsWith("/") ? pathname.slice(1) : pathname;
+
+    for (const staticDir of this.#config.staticDir) {
+      const entry = path.join(staticDir, stripped);
+      const relative = path.relative(staticDir, entry);
+      if (relative.startsWith("..")) {
+        throw new Error(
+          `Processed file resolved outside of static dir ${entry}`,
+        );
+      }
+
+      // Might be a file that we still need to process
+      const transformed = await this.#transformer.process(
+        entry,
+        "development",
+        this.#config.target,
       );
-    }
 
-    // Might be a file that we still need to process
-    const transformed = await this.#transformer.process(
-      entry,
-      "development",
-      this.#config.target,
-    );
+      if (transformed !== null) {
+        for (let i = 0; i < transformed.length; i++) {
+          const file = transformed[i];
+          const rel = path.relative(staticDir, file.path);
+          if (rel.startsWith("..")) {
+            throw new Error(
+              `Processed file resolved outside of static dir ${file.path}`,
+            );
+          }
+          const filePathname = new URL(rel, "http://localhost").pathname;
 
-    if (transformed !== null) {
-      for (let i = 0; i < transformed.length; i++) {
-        const file = transformed[i];
-        const relative = path.relative(this.#config.staticDir, file.path);
-        if (relative.startsWith("..")) {
-          throw new Error(
-            `Processed file resolved outside of static dir ${file.path}`,
-          );
+          this.addProcessedFile(filePathname, file.content, null);
         }
-        const pathname = new URL(relative, "http://localhost").pathname;
-
-        this.addProcessedFile(pathname, file.content, null);
-      }
-      if (this.#processedFiles.has(pathname)) {
-        return this.readFile(pathname);
-      }
-    } else {
-      try {
-        const filePath = path.join(this.#config.staticDir, pathname);
-        const relative = path.relative(this.#config.staticDir, filePath);
-        if (!relative.startsWith("..") && (await Deno.stat(filePath)).isFile) {
-          const pathname = new URL(relative, "http://localhost").pathname;
-          this.addUnprocessedFile(pathname, this.#config.staticDir);
+        if (this.#processedFiles.has(pathname)) {
           return this.readFile(pathname);
         }
-      } catch (err) {
-        if (!(err instanceof Deno.errors.NotFound)) {
-          throw err;
+      } else {
+        try {
+          const filePath = path.join(staticDir, pathname);
+          const rel = path.relative(staticDir, filePath);
+          if (!rel.startsWith("..") && (await Deno.stat(filePath)).isFile) {
+            const filePathname = new URL(rel, "http://localhost").pathname;
+            this.addUnprocessedFile(filePathname, staticDir);
+            return this.readFile(filePathname);
+          }
+        } catch (err) {
+          if (!(err instanceof Deno.errors.NotFound)) {
+            throw err;
+          }
         }
       }
     }
@@ -303,9 +306,13 @@ export class DiskBuildCache<State> implements DevBuildCache<State> {
   }
 
   async flush(): Promise<void> {
-    const { staticDir, outDir, target, root } = this.#config;
+    const { staticDir: staticDirs, outDir, target, root } = this.#config;
 
-    if (await fsAdapter.isDirectory(staticDir)) {
+    const seen = new Set<string>();
+
+    for (const staticDir of staticDirs) {
+      if (!(await fsAdapter.isDirectory(staticDir))) continue;
+
       const entries = fsAdapter.walk(staticDir, {
         includeDirs: false,
         includeFiles: true,
@@ -332,12 +339,18 @@ export class DiskBuildCache<State> implements DevBuildCache<State> {
             const file = result[i];
             assertInDir(file.path, staticDir);
             const pathname = `/${path.relative(staticDir, file.path)}`;
-            await this.addProcessedFile(pathname, file.content, null);
+            if (!seen.has(pathname)) {
+              seen.add(pathname);
+              await this.addProcessedFile(pathname, file.content, null);
+            }
           }
         } else {
           const relative = path.relative(staticDir, entry.path);
           const pathname = `/${relative}`;
-          this.addUnprocessedFile(pathname, staticDir);
+          if (!seen.has(pathname)) {
+            seen.add(pathname);
+            this.addUnprocessedFile(pathname, staticDir);
+          }
         }
       }
     }

@@ -14,6 +14,7 @@ export function cjsPlugin(
   const ALIASED = "aliased";
   const REEXPORT = "re-export";
   const NEEDS_REQUIRE_IMPORT = "needsRequireImport";
+  const NEEDS_DIRNAME_IMPORT = "needsDirnameImport";
   const IS_ESM = "isESM";
 
   return {
@@ -21,7 +22,7 @@ export function cjsPlugin(
     pre(file) {
       const filename = file.opts.filename;
       if (filename) {
-        if (filename.endsWith(".mjs") || filename.endsWith(".cts")) {
+        if (filename.endsWith(".mjs") || filename.endsWith(".mts")) {
           this.set(IS_ESM, true);
         } else if (filename.endsWith(".cjs") || filename.endsWith(".cts")) {
           this.set(IS_ESM, false);
@@ -108,6 +109,64 @@ export function cjsPlugin(
               t.importDeclaration(
                 [t.importSpecifier(id, id)],
                 t.stringLiteral("node:module"),
+              ),
+            );
+          }
+
+          const needsDirnameImport = state.get(NEEDS_DIRNAME_IMPORT);
+          if (needsDirnameImport) {
+            // Inject:
+            // ```ts
+            // import { fileURLToPath as __cjs_fileURLToPath } from "node:url";
+            // import { dirname as __cjs_dirname } from "node:path";
+            // const __filename = __cjs_fileURLToPath(import.meta.url);
+            // const __dirname = __cjs_dirname(__filename);
+            // ```
+            const fileURLToPathId = t.identifier("__cjs_fileURLToPath");
+            const dirnameId = t.identifier("__cjs_dirname");
+            const importMetaUrl = t.memberExpression(
+              t.metaProperty(
+                t.identifier("import"),
+                t.identifier("meta"),
+              ),
+              t.identifier("url"),
+            );
+
+            path.unshiftContainer(
+              "body",
+              t.variableDeclaration("var", [
+                t.variableDeclarator(
+                  t.identifier("__dirname"),
+                  t.callExpression(dirnameId, [t.identifier("__filename")]),
+                ),
+              ]),
+            );
+            path.unshiftContainer(
+              "body",
+              t.variableDeclaration("var", [
+                t.variableDeclarator(
+                  t.identifier("__filename"),
+                  t.callExpression(fileURLToPathId, [importMetaUrl]),
+                ),
+              ]),
+            );
+            path.unshiftContainer(
+              "body",
+              t.importDeclaration(
+                [t.importSpecifier(dirnameId, t.identifier("dirname"))],
+                t.stringLiteral("node:path"),
+              ),
+            );
+            path.unshiftContainer(
+              "body",
+              t.importDeclaration(
+                [
+                  t.importSpecifier(
+                    fileURLToPathId,
+                    t.identifier("fileURLToPath"),
+                  ),
+                ],
+                t.stringLiteral("node:url"),
               ),
             );
           }
@@ -246,9 +305,11 @@ export function cjsPlugin(
           if (exported.size > 0 || exportedNs.size > 0 || hasEsModule) {
             const id = path.scope.generateUidIdentifier("__default");
 
+            // Use `var` instead of `const` to avoid TDZ errors when
+            // Rollup reorders declarations in the bundled output.
             path.pushContainer(
               "body",
-              t.variableDeclaration("let", [
+              t.variableDeclaration("var", [
                 t.variableDeclarator(
                   id,
                 ),
@@ -303,6 +364,8 @@ export function cjsPlugin(
               const mapped = mappedNs[i];
 
               const key = path.scope.generateUid("k");
+              // Only spread namespace properties when the module has no
+              // explicit default export (i.e. "default" not in exports).
               path.pushContainer(
                 "body",
                 t.ifStatement(
@@ -427,6 +490,18 @@ export function cjsPlugin(
 
         if (isObjEsModuleFlag(t, path.node)) {
           state.set(HAS_ES_MODULE, true);
+          return;
+        }
+
+        // Handle require.resolve() by injecting createRequire
+        if (
+          t.isMemberExpression(path.node.callee) &&
+          t.isIdentifier(path.node.callee.object) &&
+          path.node.callee.object.name === "require" &&
+          t.isIdentifier(path.node.callee.property) &&
+          path.node.callee.property.name === "resolve"
+        ) {
+          state.set(NEEDS_REQUIRE_IMPORT, true);
           return;
         }
 
@@ -557,15 +632,21 @@ export function cjsPlugin(
         exit(path, state) {
           if (state.get(IS_ESM)) return;
           if (
-            t.isIdentifier(path.node.object) &&
-            path.node.object.name === "exports" &&
-            t.isIdentifier(path.node.property)
+            t.isIdentifier(path.node.property) &&
+            path.node.property.name !== "__esModule"
           ) {
-            const name = t.cloneNode(path.node.property);
-
-            if (name.name === "__esModule") return;
-
-            state.get(EXPORTED).add(name.name);
+            // Track both `exports.X` and `module.exports.X`
+            if (
+              t.isIdentifier(path.node.object) &&
+              path.node.object.name === "exports"
+            ) {
+              state.get(EXPORTED).add(path.node.property.name);
+            } else if (
+              t.isMemberExpression(path.node.object) &&
+              isModuleExports(t, path.node.object)
+            ) {
+              state.get(EXPORTED).add(path.node.property.name);
+            }
           }
         },
       },
@@ -779,6 +860,20 @@ export function cjsPlugin(
         ) {
           path.replaceWith(t.cloneNode(path.node.alternate, true));
         }
+      },
+      Identifier(path, state) {
+        if (state.get(IS_ESM)) return;
+
+        const name = path.node.name;
+        if (name !== "__dirname" && name !== "__filename") return;
+
+        // Skip if this is already a declaration (e.g. our own polyfill)
+        if (
+          path.parentPath?.isVariableDeclarator() &&
+          path.parentPath.get("id") === path
+        ) return;
+
+        state.set(NEEDS_DIRNAME_IMPORT, true);
       },
       AssignmentExpression(path, state) {
         if (state.get(IS_ESM)) return;

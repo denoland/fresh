@@ -86,10 +86,44 @@ const compat = new Set([
   "UnknownPageProps",
 ]);
 
+async function detectFresh2(dir: string): Promise<boolean> {
+  for (const filename of ["deno.json", "deno.jsonc"]) {
+    try {
+      const content = await Deno.readTextFile(path.join(dir, filename));
+      const config = JSONC.parse(content) as DenoJson;
+      const imports = config.imports;
+      if (imports) {
+        // Fresh 2 uses "fresh" or "@fresh/core" as the import specifier
+        if (imports["fresh"]?.includes("@fresh/core")) {
+          return true;
+        }
+      }
+    } catch {
+      // File doesn't exist, try next
+    }
+  }
+  return false;
+}
+
 export async function updateProject(dir: string) {
-  // add initial log
-  // deno-lint-ignore no-console
-  console.log(colors.blue("🚀 Starting Fresh 1 to Fresh 2 migration..."));
+  // Detect if the project is already on Fresh 2 by checking imports
+  const isFresh2 = await detectFresh2(dir);
+
+  if (isFresh2) {
+    // deno-lint-ignore no-console
+    console.log(colors.blue(`🔄 Updating Fresh to ${FRESH_VERSION}...`));
+  } else {
+    // deno-lint-ignore no-console
+    console.log(colors.blue("🚀 Starting Fresh 1 to Fresh 2 migration..."));
+    // deno-lint-ignore no-console
+    console.log(
+      colors.italic(
+        "Note: Breaking changes may require additional manual updates.",
+      ),
+    );
+    // deno-lint-ignore no-console
+    console.log();
+  }
 
   // deno-lint-ignore no-console
   console.log(colors.yellow("📝 Updating configuration files..."));
@@ -194,7 +228,13 @@ export async function updateProject(dir: string) {
 
   if (filesToProcess.length === 0) {
     // deno-lint-ignore no-console
-    console.log(colors.green("🎉 Migration completed successfully!"));
+    console.log(
+      colors.green(
+        isFresh2
+          ? "🎉 Update completed successfully!"
+          : "🎉 Migration completed successfully!",
+      ),
+    );
     return;
   }
 
@@ -238,9 +278,11 @@ export async function updateProject(dir: string) {
   // Clear the progress line and add a newline
   await bar.stop();
 
-  // add migration summary
   // deno-lint-ignore no-console
-  console.log("\n" + colors.bold("📊 Migration Summary:"));
+  console.log(
+    "\n" +
+      colors.bold(isFresh2 ? "📊 Update Summary:" : "📊 Migration Summary:"),
+  );
   // deno-lint-ignore no-console
   console.log(`   Total files processed: ${filesToProcess.length}`);
   // deno-lint-ignore no-console
@@ -267,7 +309,14 @@ export async function updateProject(dir: string) {
   }
 
   // deno-lint-ignore no-console
-  console.log("\n" + colors.green("🎉 Migration completed successfully!"));
+  console.log(
+    "\n" +
+      colors.green(
+        isFresh2
+          ? "🎉 Update completed successfully!"
+          : "🎉 Migration completed successfully!",
+      ),
+  );
 }
 
 async function updateFile(sourceFile: tsmorph.SourceFile): Promise<boolean> {

@@ -1,4 +1,5 @@
 import { App, staticFiles } from "fresh";
+import { BlockIsland } from "./fixtures_islands/BlockIsland.tsx";
 import { Counter } from "./fixtures_islands/Counter.tsx";
 import { IslandInIsland } from "./fixtures_islands/IslandInIsland.tsx";
 import { JsonIsland } from "./fixtures_islands/JsonIsland.tsx";
@@ -18,7 +19,7 @@ import {
   ISLAND_GROUP_DIR,
   withBrowserApp,
 } from "./test_utils.tsx";
-import { parseHtml, waitForText } from "./test_utils.tsx";
+import { parseHtml, waitFor, waitForText } from "./test_utils.tsx";
 import { expect } from "@std/expect";
 import { JsxConditional } from "./fixtures_islands/JsxConditional.tsx";
 import { FnIsland } from "./fixtures_islands/FnIsland.tsx";
@@ -800,5 +801,49 @@ Deno.test({
     expect(link).toMatch(
       /<\/_fresh\/js\/[a-zA-Z0-9]+\/fresh-runtime\.js>; rel="modulepreload"; as="script", <\/_fresh\/js\/[a-zA-Z0-9]+\/SelfCounter\.js>; rel="modulepreload"; as="script"/,
     );
+  },
+});
+
+Deno.test({
+  name: "islands - warns on invalid DOM nesting instead of crashing",
+  fn: async () => {
+    const app = testApp()
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <p>
+              <BlockIsland />
+            </p>
+            <div class="after-island">still here</div>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      const errors: string[] = [];
+      page.addEventListener(
+        "console",
+        (msg) => errors.push(msg.detail.text),
+      );
+
+      await page.goto(address, { waitUntil: "load" });
+
+      // Wait for the hydration error to be logged
+      await waitFor(() =>
+        errors.find((e) => e.includes("invalid HTML nesting"))
+      );
+
+      // Page should not crash — content after the island should remain
+      const afterIsland = await page.evaluate(() => {
+        return document.querySelector(".after-island")?.textContent;
+      });
+      expect(afterIsland).toEqual("still here");
+
+      // Verify the error message mentions the island name
+      const nestingError = errors.find((e) =>
+        e.includes("invalid HTML nesting")
+      );
+      expect(nestingError).toContain("BlockIsland");
+    });
   },
 });

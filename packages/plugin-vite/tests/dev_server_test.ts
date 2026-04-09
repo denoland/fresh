@@ -382,15 +382,35 @@ integrationTest("vite dev - support jsx namespace", async () => {
   expect(text).toContain(`xml:space="preserve"`);
 });
 
+// issue: https://github.com/denoland/fresh/issues/3653
+Deno.test({
+  name: "vite dev - CJS module import",
+  fn: async () => {
+    const res = await fetch(`${demoServer.address()}/tests/commonjs`);
+    const text = await res.text();
+    expect(text).toContain("<h1>ok</h1>");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: "vite dev - maxmind CJS",
+  fn: async () => {
+    const res = await fetch(`${demoServer.address()}/tests/maxmind`);
+    const text = await res.text();
+    expect(text).toContain("<h1>maxmind</h1>");
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
 // issue: https://github.com/denoland/fresh/issues/3666
 integrationTest(
   "vite dev - basePath does not intercept Vite URLs",
   async () => {
     const fixture = path.join(FIXTURE_DIR, "basepath");
     await launchDevServer(fixture, async (address) => {
-      // `address` already includes the base path (e.g. http://localhost:PORT/ui)
-      // Vite's /@vite/client should be accessible at {base}/@vite/client
-      // Without the fix, Fresh's dev server intercepted this and returned 404.
       const viteClientRes = await fetch(`${address}/@vite/client`);
       await viteClientRes.body?.cancel();
       expect(viteClientRes.status).toEqual(200);

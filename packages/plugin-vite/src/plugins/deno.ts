@@ -115,9 +115,20 @@ export function deno(): Plugin {
           ? importer
           : undefined;
 
+        // For bare specifiers from non-deno importers, try resolving
+        // with the importer's file URL so workspace import maps work
+        let denoImporterUrl = denoImporter;
+        if (
+          denoImporter && !denoImporter.startsWith("file://") &&
+          !denoImporter.startsWith("http") &&
+          path.isAbsolute(denoImporter)
+        ) {
+          denoImporterUrl = path.toFileUrl(denoImporter).href;
+        }
+
         let resolved = await loader.resolve(
           id,
-          denoImporter,
+          denoImporterUrl,
           ResolutionMode.Import,
         );
 
@@ -374,7 +385,7 @@ function babelTransform(
 
   const presets: babel.PluginItem[] = [];
   if (
-    !ssr && id.endsWith(".tsx") || id.endsWith(".jsx")
+    !ssr && (id.endsWith(".tsx") || id.endsWith(".jsx"))
   ) {
     presets.push([babelReact, {
       runtime: "automatic",

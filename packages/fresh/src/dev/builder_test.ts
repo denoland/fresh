@@ -492,6 +492,106 @@ export const app = new App()
   },
 );
 
+integrationTest("Builder - multiple staticDir in dev", async () => {
+  const root = path.join(import.meta.dirname!, "..", "..");
+  await using _tmp = await withTmpDir({ dir: root, prefix: "tmp_builder_" });
+  const tmp = _tmp.dir;
+
+  const app = new App()
+    .use(staticFiles())
+    .get("/", () => new Response("no"));
+
+  await writeFiles(tmp, {
+    "static_a/a.txt": "from a",
+    "static_a/shared.txt": "from a",
+    "static_b/b.txt": "from b",
+    "static_b/shared.txt": "from b",
+  });
+
+  const builder = new Builder({
+    root: tmp,
+    staticDir: ["static_a", "static_b"],
+  });
+
+  const controller = new AbortController();
+  const waiter = Promise.withResolvers<void>();
+  await builder.listen(() => Promise.resolve<App<unknown>>(app), {
+    signal: controller.signal,
+    async onListen(addr) {
+      try {
+        const base = `http://localhost:${addr.port}`;
+
+        // File only in first dir
+        let res = await fetch(`${base}/a.txt`);
+        expect(await res.text()).toEqual("from a");
+
+        // File only in second dir
+        res = await fetch(`${base}/b.txt`);
+        expect(await res.text()).toEqual("from b");
+
+        // File in both dirs — first dir wins
+        res = await fetch(`${base}/shared.txt`);
+        expect(await res.text()).toEqual("from a");
+
+        // File in neither dir
+        res = await fetch(`${base}/missing.txt`);
+        expect(res.status).toEqual(404);
+
+        controller.abort();
+        waiter.resolve();
+      } catch (err) {
+        waiter.reject(err);
+      }
+    },
+  });
+
+  await waiter.promise;
+});
+
+integrationTest(
+  "Builder - multiple staticDir in prod",
+  async () => {
+    const root = path.join(import.meta.dirname!, "..", "..");
+    await using _tmp = await withTmpDir({
+      dir: root,
+      prefix: "tmp_builder_",
+    });
+    const tmp = _tmp.dir;
+
+    await writeFiles(tmp, {
+      "main.ts": `import { App, staticFiles } from "fresh";
+export const app = new App()
+  .use(staticFiles());`,
+      "static_a/a.txt": "from a",
+      "static_a/shared.txt": "from a",
+      "static_b/b.txt": "from b",
+      "static_b/shared.txt": "from b",
+    });
+
+    await new Builder({
+      root: tmp,
+      staticDir: ["static_a", "static_b"],
+    }).build();
+
+    await withChildProcessServer(
+      { cwd: tmp, args: ["serve", "-A", "--port=0", "_fresh/server.js"] },
+      async (address) => {
+        // File only in first dir
+        let res = await fetch(`${address}/a.txt`);
+        expect(await res.text()).toEqual("from a");
+
+        // File only in second dir
+        res = await fetch(`${address}/b.txt`);
+        expect(await res.text()).toEqual("from b");
+
+        // File in both dirs — first dir wins
+        res = await fetch(`${address}/shared.txt`);
+        expect(await res.text()).toEqual("from a");
+      },
+    );
+  },
+);
+
 integrationTest("Builder - custom server entry", async () => {
   const root = path.join(import.meta.dirname!, "..", "..");
   await using _tmp = await withTmpDir({ dir: root, prefix: "tmp_builder_" });

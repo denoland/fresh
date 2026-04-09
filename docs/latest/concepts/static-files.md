@@ -47,6 +47,31 @@ pipeline, optimizes it, and adds a content hash to the filename for cache
 busting. Keeping these files outside `static/` ensures they're only included
 once in your build output.
 
+## Multiple static directories
+
+You can serve files from more than one directory by passing an array to the
+`staticDir` option. When the same filename exists in multiple directories, the
+first directory in the array takes precedence.
+
+```ts vite.config.ts
+import { defineConfig } from "vite";
+import { fresh } from "@fresh/plugin-vite";
+
+export default defineConfig({
+  plugins: [
+    fresh({
+      staticDir: ["static", "generated"],
+    }),
+  ],
+});
+```
+
+This is useful when you have a build step that generates assets into a separate
+directory and you want to keep them apart from hand-authored static files.
+
+> [info]: If you're using the [Builder](/docs/advanced/builder) API instead of
+> Vite, the same `staticDir` option accepts a string or an array of strings.
+
 ## Caching headers
 
 By default, Fresh adds caching headers for the `src` and `srcset` attributes on
