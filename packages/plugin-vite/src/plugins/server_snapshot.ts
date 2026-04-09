@@ -343,7 +343,8 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
               );
 
               for await (const entry of clientFiles) {
-                const relative = path.relative(clientOutDir, entry.path);
+                const relative = path.relative(clientOutDir, entry.path)
+                  .replaceAll("\\", "/");
 
                 // Skip .vite directory and already-registered files
                 if (
