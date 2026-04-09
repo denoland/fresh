@@ -184,10 +184,10 @@ export function deno(): Plugin {
         ? ssrLoader
         : browserLoader;
 
-      // In dev mode, non-external CJS files go through Vite's SSR
-      // module runner which evaluates them as ESM. Wrap CJS files
-      // with an ESM shim that provides module/exports/require. In
-      // build mode, Rollup's @rollup/plugin-commonjs handles CJS.
+      // In dev mode, CJS files need to be wrapped in an ESM shim:
+      // - SSR: module runner evaluates as ESM, needs module/exports/require
+      // - Client: browser evaluates as ESM, needs module/exports
+      // In build mode, Rollup's @rollup/plugin-commonjs handles CJS.
       if (
         isDev &&
         !id.startsWith("\0") &&
@@ -204,13 +204,20 @@ export function deno(): Plugin {
               code.includes("exports.") ||
               code.includes("require("))
           ) {
-            const wrapped = `
-import { createRequire as __fresh_createRequire } from "node:module";
-import { fileURLToPath as __fresh_fileURLToPath } from "node:url";
-import { dirname as __fresh_dirname } from "node:path";
-var __filename = __fresh_fileURLToPath(import.meta.url);
-var __dirname = __fresh_dirname(__filename);
-var require = __fresh_createRequire(import.meta.url);
+            const isServer =
+              this.environment.config.consumer === "server";
+            const preamble = isServer
+              ? `import { createRequire as __cjs_createRequire } from "node:module";
+import { fileURLToPath as __cjs_fileURLToPath } from "node:url";
+import { dirname as __cjs_dirname } from "node:path";
+var __filename = __cjs_fileURLToPath(import.meta.url);
+var __dirname = __cjs_dirname(__filename);
+var require = __cjs_createRequire(import.meta.url);`
+              : `var __filename = "";
+var __dirname = "";
+var require = (id) => { throw new Error("require() not supported in browser: " + id); };`;
+
+            const wrapped = `${preamble}
 var module = { exports: {} };
 var exports = module.exports;
 
