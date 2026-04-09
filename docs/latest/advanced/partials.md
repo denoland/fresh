@@ -239,8 +239,8 @@ function NavLink() {
 
 This works for links, forms, and submit buttons. For form submissions, Fresh
 checks the submitter element (e.g. the clicked button) first, then falls back to
-the form element itself. This lets you show per-button indicators when a form has
-multiple submit buttons.
+the form element itself. This lets you show per-button indicators when a form
+has multiple submit buttons.
 
 ```tsx
 import { useSignal } from "@preact/signals";
