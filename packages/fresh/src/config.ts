@@ -15,6 +15,9 @@ export interface FreshConfig {
    * When enabled, Fresh will respect `X-Forwarded-Proto` and
    * `X-Forwarded-Host` headers to construct `ctx.url`. Enable
    * this when running behind a reverse proxy.
+   *
+   * Only enable `trustProxy` when your app is actually behind a trusted
+   * reverse proxy. Untrusted clients could otherwise spoof these headers.
    * @default false
    */
   trustProxy?: boolean;
@@ -38,6 +41,9 @@ export interface ResolvedFreshConfig {
    * When enabled, Fresh will respect `X-Forwarded-Proto` and
    * `X-Forwarded-Host` headers to construct `ctx.url`. Enable
    * this when running behind a reverse proxy.
+   *
+   * Only enable `trustProxy` when your app is actually behind a trusted
+   * reverse proxy. Untrusted clients could otherwise spoof these headers.
    */
   trustProxy: boolean;
 }
