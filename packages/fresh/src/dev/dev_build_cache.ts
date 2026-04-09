@@ -157,9 +157,9 @@ export class MemoryBuildCache<State> implements DevBuildCache<State> {
               `Processed file resolved outside of static dir ${file.path}`,
             );
           }
-          const filePn = new URL(rel, "http://localhost").pathname;
+          const filePathname = new URL(rel, "http://localhost").pathname;
 
-          this.addProcessedFile(filePn, file.content, null);
+          this.addProcessedFile(filePathname, file.content, null);
         }
         if (this.#processedFiles.has(pathname)) {
           return this.readFile(pathname);
@@ -169,9 +169,9 @@ export class MemoryBuildCache<State> implements DevBuildCache<State> {
           const filePath = path.join(staticDir, pathname);
           const rel = path.relative(staticDir, filePath);
           if (!rel.startsWith("..") && (await Deno.stat(filePath)).isFile) {
-            const filePn = new URL(rel, "http://localhost").pathname;
-            this.addUnprocessedFile(filePn, staticDir);
-            return this.readFile(filePn);
+            const filePathname = new URL(rel, "http://localhost").pathname;
+            this.addUnprocessedFile(filePathname, staticDir);
+            return this.readFile(filePathname);
           }
         } catch (err) {
           if (!(err instanceof Deno.errors.NotFound)) {
