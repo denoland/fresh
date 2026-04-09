@@ -36,7 +36,8 @@ export interface ResolvedFreshConfig {
   mode: "development" | "production";
   /**
    * When enabled, Fresh will respect `X-Forwarded-Proto` and
-   * `X-Forwarded-Host` headers to construct `ctx.url`.
+   * `X-Forwarded-Host` headers to construct `ctx.url`. Enable
+   * this when running behind a reverse proxy.
    */
   trustProxy: boolean;
 }
