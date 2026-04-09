@@ -1,4 +1,7 @@
 {
+  "lint": {
+    "plugins": ["../packages/lint/src/plugin.ts"]
+  },
   "tasks": {
     "start": "deno serve -A _fresh/server.js",
     "dev": "vite",
