@@ -219,6 +219,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
                 filePath: path.join(clientOutDir, chunk.file),
                 pathname: chunk.file,
                 hash: null,
+                immutable: true,
               });
 
               if (chunk.css !== undefined) {
@@ -231,6 +232,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
                     filePath: path.join(clientOutDir, id),
                     hash: null,
                     pathname,
+                    immutable: true,
                   });
 
                   if (chunk.name === clientEntryName) {
@@ -352,7 +354,8 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
               );
 
               for await (const entry of clientFiles) {
-                const relative = path.relative(clientOutDir, entry.path);
+                const relative = path.relative(clientOutDir, entry.path)
+                  .replaceAll("\\", "/");
 
                 // Skip .vite directory and already-registered files
                 if (

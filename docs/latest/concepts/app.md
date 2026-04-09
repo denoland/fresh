@@ -37,6 +37,23 @@ With `basePath: "/my-app"`, a route registered at `/about` will respond to
 mounted alongside other apps. The base path is available in handlers via
 `ctx.config.basePath`.
 
+### Reverse proxy support
+
+When running behind a reverse proxy (nginx, Caddy, etc.), set `trustProxy` to
+make `ctx.url` reflect the client-facing URL instead of the internal one:
+
+```ts
+const app = new App({ trustProxy: true });
+```
+
+With this enabled, Fresh reads `X-Forwarded-Proto` and `X-Forwarded-Host`
+headers and rewrites `ctx.url` accordingly. For example, if your proxy
+terminates TLS and forwards `X-Forwarded-Proto: https`, `ctx.url.protocol` will
+be `https:` instead of `http:`.
+
+> [warn]: Only enable `trustProxy` when your app is actually behind a trusted
+> reverse proxy. Untrusted clients could otherwise spoof these headers.
+
 All items are applied from top to bottom. This means that when you defined a
 middleware _after_ a `.get()` handler, it won't be included.
 

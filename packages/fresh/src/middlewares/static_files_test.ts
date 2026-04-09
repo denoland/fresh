@@ -100,6 +100,7 @@ Deno.test("static files - etag in production", async () => {
         root: "",
         basePath: "",
         mode: "production",
+        trustProxy: false,
       },
     },
   );
@@ -134,6 +135,7 @@ Deno.test("static files - no etag in development", async () => {
         root: "",
         basePath: "",
         mode: "development",
+        trustProxy: false,
       },
     },
   );
@@ -191,6 +193,7 @@ Deno.test("static files - disables caching in development", async () => {
         root: "",
         basePath: "",
         mode: "development",
+        trustProxy: false,
       },
     },
   );
@@ -215,6 +218,7 @@ Deno.test("static files - enables caching in production", async () => {
         root: "",
         basePath: "",
         mode: "production",
+        trustProxy: false,
       },
     },
   );

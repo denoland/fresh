@@ -164,11 +164,34 @@ export function boot(
   for (let i = 0; i < ctx.roots.length; i++) {
     const root = ctx.roots[i];
 
+    if (root.end === null) continue;
+
+    // Check that the browser didn't reparent our markers due to
+    // invalid HTML nesting (e.g. <div> inside <p>). When this
+    // happens the start and end markers end up under different
+    // parents and hydration would fail with a DOMException.
+    if (root.start.parentNode !== root.end.parentNode) {
+      const label = root.kind === RootKind.Island
+        ? `island "${root.name}"`
+        : `partial "${root.name}"`;
+      // deno-lint-ignore no-console
+      console.error(
+        `Fresh hydration error: the ${label} has invalid HTML nesting. ` +
+          `Its start and end markers were reparented by the browser into ` +
+          `different DOM nodes. This is usually caused by placing a ` +
+          `block-level element (like <div>) inside an inline element ` +
+          `(like <p> or <span>). Check the HTML around this ${
+            root.kind === RootKind.Island ? "island" : "partial"
+          } for invalid nesting.`,
+      );
+      continue;
+    }
+
     const container = createRootFragment(
       // deno-lint-ignore no-explicit-any
       root.start.parentNode as any,
       root.start,
-      root.end!,
+      root.end,
     );
 
     if (root.kind === RootKind.Island) {
