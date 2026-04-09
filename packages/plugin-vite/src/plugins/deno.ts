@@ -83,11 +83,16 @@ export function deno(): Plugin {
 
       // Apply resolve.alias before Deno resolution so that
       // react -> preact/compat works even in externalized packages.
+      // Vite normalizes alias config to { find, replacement }[] format.
       const aliases = this.environment?.config?.resolve?.alias;
-      if (Array.isArray(aliases)) {
-        for (const alias of aliases) {
-          if (typeof alias.find === "string" && alias.find === id) {
-            id = alias.replacement;
+      if (aliases) {
+        const list = Array.isArray(aliases) ? aliases : [];
+        for (const alias of list) {
+          const find = alias.find;
+          if (typeof find === "string" ? find === id : find?.test?.(id)) {
+            id = typeof alias.replacement === "string"
+              ? alias.replacement
+              : id;
             break;
           }
         }

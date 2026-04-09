@@ -179,6 +179,13 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
               },
             },
             ssr: {
+              resolve: {
+                // Packages that depend on React compat aliases must not
+                // be externalized — Node.js require() wouldn't apply
+                // the react->preact/compat alias and would load the
+                // real React or get CJS/ESM interop issues.
+                noExternal: [/^@radix-ui/],
+              },
               build: {
                 manifest: true,
                 emitAssets: true,
