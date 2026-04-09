@@ -70,6 +70,8 @@ export class RenderState {
   islandProps: any[] = [];
   islands = new Set<Island>();
   islandAssets = new Set<string>();
+  /** CSS assets already injected in `<head>` via `RemainingHead`. */
+  injectedCss = new Set<string>();
   // deno-lint-ignore no-explicit-any
   encounteredPartials = new Set<any>();
   owners = new Map<VNode, VNode>();
@@ -116,6 +118,7 @@ export class RenderState {
     this.islands.clear();
     this.encounteredPartials.clear();
     this.owners.clear();
+    this.injectedCss.clear();
     this.slots = [];
     this.islandProps = [];
     this.ownerStack = [];
@@ -511,13 +514,19 @@ function RemainingHead() {
       if (island.css.length > 0) {
         for (let i = 0; i < island.css.length; i++) {
           const css = island.css[i];
-          items.push(h("link", { rel: "stylesheet", href: css }));
+          if (!RENDER_STATE!.injectedCss.has(css)) {
+            RENDER_STATE!.injectedCss.add(css);
+            items.push(h("link", { rel: "stylesheet", href: css }));
+          }
         }
       }
     });
 
     RENDER_STATE.islandAssets.forEach((css) => {
-      items.push(h("link", { rel: "stylesheet", href: css }));
+      if (!RENDER_STATE!.injectedCss.has(css)) {
+        RENDER_STATE!.injectedCss.add(css);
+        items.push(h("link", { rel: "stylesheet", href: css }));
+      }
     });
 
     if (items.length > 0) {
@@ -629,10 +638,32 @@ export function FreshScripts() {
 
   // Remaining slots must be rendered before creating the Fresh runtime
   // script, so that we have the full list of islands rendered
+
+  // Collect CSS for islands discovered after <head> was rendered
+  // (e.g. islands used in _app.tsx, _layout.tsx, or _error.tsx).
+  // deno-lint-ignore no-explicit-any
+  const lateCssLinks: VNode<any>[] = [];
+  RENDER_STATE.islands.forEach((island) => {
+    for (let i = 0; i < island.css.length; i++) {
+      const css = island.css[i];
+      if (!RENDER_STATE!.injectedCss.has(css)) {
+        RENDER_STATE!.injectedCss.add(css);
+        lateCssLinks.push(h("link", { rel: "stylesheet", href: css }));
+      }
+    }
+  });
+  RENDER_STATE.islandAssets.forEach((css) => {
+    if (!RENDER_STATE!.injectedCss.has(css)) {
+      RENDER_STATE!.injectedCss.add(css);
+      lateCssLinks.push(h("link", { rel: "stylesheet", href: css }));
+    }
+  });
+
   return (
     h(
       Fragment,
       null,
+      ...lateCssLinks,
       slots.map((slot) => {
         if (slot === null) return null;
         return (
