@@ -6,7 +6,7 @@ import initConfig from "../deno.json" with { type: "json" };
 
 // Keep these as is, as we replace these version in our release script
 const FRESH_VERSION = "2.2.2";
-const FRESH_LINT_VERSION = "0.0.0";
+const FRESH_LINT_VERSION = "0.1.0";
 const FRESH_TAILWIND_VERSION = "1.0.0";
 const FRESH_VITE_PLUGIN = "1.0.0";
 const PREACT_VERSION = "10.28.3";

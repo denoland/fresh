@@ -8,7 +8,7 @@ import { walk } from "@std/fs/walk";
 export const SyntaxKind = tsmorph.ts.SyntaxKind;
 
 export const FRESH_VERSION = "2.2.2";
-export const FRESH_LINT_VERSION = "0.0.0";
+export const FRESH_LINT_VERSION = "0.1.0";
 export const PREACT_VERSION = "10.28.3";
 export const PREACT_SIGNALS_VERSION = "2.7.1";
 
