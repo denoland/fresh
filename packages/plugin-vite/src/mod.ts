@@ -44,37 +44,68 @@ const SSR_BUNDLE_ALLOWLIST = new Set([
 ]);
 
 /**
- * Check if a package is CJS-only (no ESM entry point).
- * Returns true if the package should be externalized in the SSR build.
+ * Scan node_modules for CJS-only packages and return their names.
+ * A package is CJS-only if it has no ESM entry point (no "type": "module",
+ * no "module" field, no "import" condition in "exports").
  */
-function isCjsOnlyPackage(id: string, root: string): boolean {
-  // Extract bare package name (handle scoped packages)
-  const parts = id.startsWith("@") ? id.split("/", 2) : id.split("/", 1);
-  const packageName = parts.join("/");
+function findCjsOnlyPackages(root: string): string[] {
+  const result: string[] = [];
+  const nodeModulesDir = path.join(root, "node_modules");
 
-  if (SSR_BUNDLE_ALLOWLIST.has(packageName) || SSR_BUNDLE_ALLOWLIST.has(id)) {
-    return false;
+  let entries: fs.Dirent[];
+  try {
+    entries = fs.readdirSync(nodeModulesDir, { withFileTypes: true });
+  } catch {
+    return result;
   }
 
-  // Look for the package's package.json
-  const pkgJsonPath = path.join(
-    root,
-    "node_modules",
-    packageName,
-    "package.json",
-  );
+  for (const entry of entries) {
+    if (!entry.isDirectory() && !entry.isSymbolicLink()) continue;
+
+    if (entry.name.startsWith("@")) {
+      // Scoped package — check subdirectories
+      const scopeDir = path.join(nodeModulesDir, entry.name);
+      let scopeEntries: fs.Dirent[];
+      try {
+        scopeEntries = fs.readdirSync(scopeDir, { withFileTypes: true });
+      } catch {
+        continue;
+      }
+      for (const scopeEntry of scopeEntries) {
+        if (!scopeEntry.isDirectory() && !scopeEntry.isSymbolicLink()) {
+          continue;
+        }
+        const packageName = `${entry.name}/${scopeEntry.name}`;
+        if (isCjsOnly(nodeModulesDir, packageName)) {
+          result.push(packageName);
+        }
+      }
+    } else if (entry.name.startsWith(".")) {
+      continue;
+    } else {
+      if (isCjsOnly(nodeModulesDir, entry.name)) {
+        result.push(entry.name);
+      }
+    }
+  }
+
+  return result;
+}
+
+function isCjsOnly(nodeModulesDir: string, packageName: string): boolean {
+  if (SSR_BUNDLE_ALLOWLIST.has(packageName)) return false;
+
+  const pkgJsonPath = path.join(nodeModulesDir, packageName, "package.json");
   try {
     const pkg = JSON.parse(fs.readFileSync(pkgJsonPath, "utf-8"));
-    // If type is "module", it's ESM — keep bundled
     if (pkg.type === "module") return false;
-    // If it has an ESM entry via "module" or "exports" with import condition,
-    // keep it bundled so Vite can resolve the ESM version
     if (pkg.module) return false;
     if (pkg.exports) {
       const exportsStr = JSON.stringify(pkg.exports);
       if (exportsStr.includes('"import"')) return false;
     }
-    // CJS-only package — externalize it
+    // Must have a main entry (otherwise it's not a real package)
+    if (!pkg.main && !pkg.exports) return false;
     return true;
   } catch {
     return false;
@@ -136,6 +167,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
   });
 
   let isDev = false;
+  let resolvedRoot = process.cwd();
 
   const plugins: Plugin[] = [
     {
@@ -143,6 +175,16 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
       sharedDuringBuild: true,
       config(config, env) {
         isDev = env.command === "serve";
+        resolvedRoot = config.root ? path.resolve(config.root) : process.cwd();
+
+        // Scan node_modules for CJS-only packages to externalize
+        // in the SSR build.
+        const cjsPackages = findCjsOnlyPackages(resolvedRoot);
+        const cjsExternalList = cjsPackages.map((pkg) =>
+          new RegExp(
+            `^${pkg.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(\\/.*)?$`,
+          )
+        );
 
         return {
           esbuild: {
@@ -215,28 +257,12 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
                     : null) ??
                   "_fresh/server",
                 rollupOptions: {
-                  // Externalize CJS-only npm packages in the SSR build.
-                  // These will be loaded at runtime by Deno's Node compat
-                  // layer, avoiding the CJS-to-ESM transform that can cause
-                  // TDZ errors when Rollup reorders bundled declarations.
-                  external(id) {
-                    // Never externalize virtual modules, relative paths,
-                    // absolute paths, or Node builtins (Vite handles those)
-                    if (
-                      id.startsWith("\0") || id.startsWith(".") ||
-                      id.startsWith("/") || isBuiltin(id)
-                    ) {
-                      return false;
-                    }
-                    // Never externalize fresh internals or jsr: specifiers
-                    if (
-                      id.startsWith("fresh") || id.startsWith("@fresh/") ||
-                      id.startsWith("jsr:")
-                    ) {
-                      return false;
-                    }
-                    return isCjsOnlyPackage(id, config.root ?? process.cwd());
-                  },
+                  // Externalize CJS-only npm packages so they're
+                  // loaded at runtime by Deno's Node compat layer.
+                  // This avoids the CJS-to-ESM transform that can
+                  // cause TDZ errors when Rollup reorders bundled
+                  // declarations.
+                  external: cjsExternalList,
                   onwarn(warning, handler) {
                     // Ignore "use client"; warnings
                     if (warning.code === "MODULE_LEVEL_DIRECTIVE") {
