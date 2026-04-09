@@ -221,6 +221,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
                 filePath: path.join(clientOutDir, chunk.file),
                 pathname: chunk.file,
                 hash: null,
+                immutable: true,
               });
 
               if (chunk.css !== undefined) {
@@ -233,6 +234,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
                     filePath: path.join(clientOutDir, id),
                     hash: null,
                     pathname,
+                    immutable: true,
                   });
 
                   if (chunk.name === clientEntryName) {

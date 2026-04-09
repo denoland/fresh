@@ -131,6 +131,7 @@ if (import.meta.hot) import.meta.hot.accept();`;
                 filePath: path.join(serverOutDir, id),
                 hash: null,
                 pathname: getAssetPath(id),
+                immutable: true,
               });
             }
           }
@@ -143,6 +144,7 @@ if (import.meta.hot) import.meta.hot.accept();`;
                 filePath: path.join(serverOutDir, id),
                 hash: null,
                 pathname: getAssetPath(id),
+                immutable: true,
               });
             }
           }

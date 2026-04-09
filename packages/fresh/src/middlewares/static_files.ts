@@ -89,7 +89,8 @@ export function staticFiles<T>(): Middleware<T> {
         (BUILD_ID === cacheKey ||
           url.pathname.startsWith(
             `${ctx.config.basePath}/_fresh/js/${BUILD_ID}/`,
-          ))
+          ) ||
+          file.immutable)
       ) {
         span.setAttribute("fresh.cache", "immutable");
         headers.append("Cache-Control", "public, max-age=31536000, immutable");

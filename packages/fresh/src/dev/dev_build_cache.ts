@@ -425,6 +425,7 @@ export interface PendingStaticFile {
   pathname: string;
   filePath: string;
   hash: string | null;
+  immutable?: boolean;
 }
 
 export async function writeCompiledEntry(outDir: string) {
@@ -548,7 +549,13 @@ export async function prepareStaticFile(
   item: PendingStaticFile,
   outDir: string,
 ): Promise<
-  { name: string; hash: string; filePath: string; contentType: string }
+  {
+    name: string;
+    hash: string;
+    filePath: string;
+    contentType: string;
+    immutable?: boolean;
+  }
 > {
   const file = await Deno.open(item.filePath);
   const hash = item.hash ? item.hash : await hashContent(file.readable);
@@ -563,6 +570,7 @@ export async function prepareStaticFile(
         : item.filePath,
     ),
     contentType: getContentType(item.filePath),
+    immutable: item.immutable,
   };
 }
 

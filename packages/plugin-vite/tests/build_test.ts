@@ -606,3 +606,53 @@ integrationTest(
     );
   },
 );
+
+integrationTest(
+  "vite build - asset cache headers on CSS and JS",
+  async () => {
+    await launchProd(
+      { cwd: viteResult.tmp },
+      async (address) => {
+        // Fetch a page with islands to get CSS and JS asset URLs
+        const res = await fetch(`${address}/tests/island_hooks`);
+        const html = await res.text();
+
+        // CSS link tags should get immutable cache headers
+        const cssMatches = html.matchAll(
+          /href="(\/assets\/[^"]*\.css[^"]*)"/g,
+        );
+        for (const match of cssMatches) {
+          const href = match[1];
+          const cssRes = await fetch(`${address}${href}`);
+          await cssRes.body?.cancel();
+          expect(cssRes.status).toEqual(200);
+          expect(cssRes.headers.get("Cache-Control")).toEqual(
+            "public, max-age=31536000, immutable",
+          );
+        }
+
+        // JS module imports should get immutable cache headers
+        const scriptMatch = html.match(
+          /<script[^>]*type="module"[^>]*>([\s\S]*?)<\/script>/,
+        );
+        expect(scriptMatch).not.toBeNull();
+        const scriptContent = scriptMatch![1];
+
+        const importMatches = scriptContent.matchAll(
+          /from "([^"]+)"/g,
+        );
+        for (const match of importMatches) {
+          const url = match[1];
+          if (url.startsWith("/assets/") || url.includes("/assets/")) {
+            const jsRes = await fetch(`${address}${url}`);
+            await jsRes.body?.cancel();
+            expect(jsRes.status).toEqual(200);
+            expect(jsRes.headers.get("Cache-Control")).toEqual(
+              "public, max-age=31536000, immutable",
+            );
+          }
+        }
+      },
+    );
+  },
+);
