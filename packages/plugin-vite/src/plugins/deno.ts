@@ -9,17 +9,13 @@ import {
 import * as path from "@std/path";
 import * as babel from "@babel/core";
 import { httpAbsolute } from "./patches/http_absolute.ts";
-import { JS_REG, JSX_REG } from "../utils.ts";
+import { JSX_REG } from "../utils.ts";
 import { builtinModules } from "node:module";
 
 // @ts-ignore Workaround for https://github.com/denoland/deno/issues/30850
 const { default: babelReact } = await import("@babel/preset-react");
 
 const BUILTINS = new Set(builtinModules);
-
-interface DenoState {
-  type: RequestedModuleType;
-}
 
 export function deno(): Plugin {
   let ssrLoader: Loader;
@@ -83,6 +79,18 @@ export function deno(): Plugin {
       if (id.startsWith("/") && importer && /^https?:\/\//g.test(importer)) {
         const url = new URL(importer);
         id = `${url.origin}${id}`;
+      }
+
+      // Apply resolve.alias before Deno resolution so that
+      // react -> preact/compat works even in externalized packages.
+      const aliases = this.environment?.config?.resolve?.alias;
+      if (Array.isArray(aliases)) {
+        for (const alias of aliases) {
+          if (typeof alias.find === "string" && alias.find === id) {
+            id = alias.replacement;
+            break;
+          }
+        }
       }
 
       // We still want to allow other plugins to participate in
@@ -155,14 +163,13 @@ export function deno(): Plugin {
           resolved = path.fromFileUrl(resolved);
         }
 
-        return {
-          id: resolved,
-          meta: {
-            deno: {
-              type,
-            },
-          },
-        };
+        // For file:// resolved modules (npm packages in node_modules,
+        // local files), let Vite handle loading natively. This allows
+        // Vite to externalize CJS packages in SSR mode (Node.js handles
+        // them with native require()) and avoids needing a custom CJS
+        // transform. Only \0deno:: virtual modules (jsr:, non-default
+        // types) need Fresh's custom load hook.
+        return { id: resolved };
       } catch {
         // ignore
       }
@@ -198,48 +205,6 @@ export function deno(): Plugin {
         };
       }
 
-      if (id.startsWith("\0")) {
-        id = id.slice(1);
-      }
-
-      const meta = this.getModuleInfo(id)?.meta.deno as
-        | DenoState
-        | undefined
-        | null;
-
-      if (meta === null || meta === undefined) return;
-
-      // Skip for non-js files like `.css`
-      if (
-        meta.type === RequestedModuleType.Default &&
-        !JS_REG.test(id)
-      ) {
-        return;
-      }
-
-      const url = path.toFileUrl(id);
-
-      const result = await loader.load(url.href, meta.type);
-      if (result.kind === "external") {
-        return null;
-      }
-
-      const code = new TextDecoder().decode(result.code);
-
-      const maybeJsx = babelTransform({
-        ssr: this.environment.config.consumer === "server",
-        media: result.mediaType,
-        id,
-        code,
-        isDev,
-      });
-      if (maybeJsx) {
-        return maybeJsx;
-      }
-
-      return {
-        code,
-      };
     },
     transform: {
       filter: {

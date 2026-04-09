@@ -1,6 +1,5 @@
 import type { Plugin } from "vite";
 import * as babel from "@babel/core";
-import { cjsPlugin } from "./patches/commonjs.ts";
 import { jsxComments } from "./patches/jsx_comment.ts";
 import { removePolyfills } from "./patches/remove_polyfills.ts";
 import { JS_REG, JSX_REG } from "../utils.ts";
@@ -40,7 +39,6 @@ export function patches(): Plugin {
 
         const plugins: babel.PluginItem[] = [
           codeEvalPlugin(this.environment.config.consumer, env),
-          cjsPlugin,
           removePolyfills,
           jsxComments,
         ];

@@ -140,15 +140,6 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
               "react-dom": "preact/compat",
               react: "preact/compat",
             },
-            // Disallow externals, because it leads to duplicate
-            // modules with `preact` vs `npm:preact@*` in the server
-            // environment.
-            noExternal: true,
-          },
-          optimizeDeps: {
-            // Optimize deps somehow leads to duplicate modules or them
-            // being placed in the wrong chunks...
-            noDiscovery: true,
           },
 
           publicDir: pathWithRoot(fConfig.staticDir[0], config.root),
@@ -209,14 +200,6 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
                     if (
                       warning.code === "MISSING_EXPORT" &&
                       warning.id?.startsWith("\0fresh-route::")
-                    ) {
-                      return;
-                    }
-
-                    // Ignore commonjs optional exports
-                    if (
-                      warning.code === "MISSING_EXPORT" &&
-                      warning.message.includes("__require")
                     ) {
                       return;
                     }
