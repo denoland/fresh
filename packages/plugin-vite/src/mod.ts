@@ -112,6 +112,13 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
 
         return {
           define: envDefine,
+          ssr: {
+            // Bundle all deps in SSR so that resolve.alias
+            // (react -> preact/compat) is applied consistently.
+            // CJS packages are handled by the deno plugin's load
+            // hook which wraps them in an ESM-compatible shim.
+            noExternal: true,
+          },
           server: {
             watch: {
               // Ignore temp files, editor swap files, and Vite timestamp
@@ -179,13 +186,6 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
               },
             },
             ssr: {
-              resolve: {
-                // Packages that depend on React compat aliases must not
-                // be externalized — Node.js require() wouldn't apply
-                // the react->preact/compat alias and would load the
-                // real React or get CJS/ESM interop issues.
-                noExternal: [/^@radix-ui/],
-              },
               build: {
                 manifest: true,
                 emitAssets: true,

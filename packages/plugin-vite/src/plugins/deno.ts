@@ -184,6 +184,47 @@ export function deno(): Plugin {
         ? ssrLoader
         : browserLoader;
 
+      // In dev mode, non-external CJS files go through Vite's SSR
+      // module runner which evaluates them as ESM. Wrap CJS files
+      // with an ESM shim that provides module/exports/require. In
+      // build mode, Rollup's @rollup/plugin-commonjs handles CJS.
+      if (
+        isDev &&
+        !id.startsWith("\0") &&
+        id.includes("node_modules") &&
+        /\.(c?js|cjs)$/.test(id)
+      ) {
+        try {
+          const code = await Deno.readTextFile(id);
+          // Quick heuristic: if file has CJS patterns and no ESM
+          if (
+            !code.includes("export ") &&
+            !code.includes("import ") &&
+            (code.includes("module.exports") ||
+              code.includes("exports.") ||
+              code.includes("require("))
+          ) {
+            const wrapped = `
+import { createRequire as __fresh_createRequire } from "node:module";
+import { fileURLToPath as __fresh_fileURLToPath } from "node:url";
+import { dirname as __fresh_dirname } from "node:path";
+var __filename = __fresh_fileURLToPath(import.meta.url);
+var __dirname = __fresh_dirname(__filename);
+var require = __fresh_createRequire(import.meta.url);
+var module = { exports: {} };
+var exports = module.exports;
+
+${code}
+
+export default module.exports;
+`;
+            return { code: wrapped };
+          }
+        } catch {
+          // Fall through to default loading
+        }
+      }
+
       if (isDenoSpecifier(id)) {
         const { type, specifier } = parseDenoSpecifier(id);
 
