@@ -3,6 +3,7 @@ import { ASSET_CACHE_BUST_KEY } from "../constants.ts";
 import { BUILD_ID } from "@fresh/build-id";
 import { tracer } from "../otel.ts";
 import { getBuildCache } from "../context.ts";
+import { systemPathToUrlEncoded } from "../dev/dev_build_cache.ts";
 
 /**
  * Fresh middleware to serve static files from the `static/` directory.
@@ -23,6 +24,12 @@ export function staticFiles<T>(): Middleware<T> {
       pathname = pathname !== config.basePath
         ? pathname.slice(config.basePath.length)
         : "/";
+    }
+
+    try {
+      pathname = systemPathToUrlEncoded(decodeURIComponent(pathname));
+    } catch {
+      return await ctx.next();
     }
 
     // Fast path bail out
