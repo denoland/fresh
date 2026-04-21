@@ -13,4 +13,5 @@ that you may like in your Fresh project.
 - [Sharing state between islands](./examples/sharing-state-between-islands)
 - [Active links](./examples/active-links)
 - [Session management](./examples/session-management)
+- [WebSockets](./examples/websockets)
 - [Common Patterns](./examples/common-patterns)

@@ -175,29 +175,8 @@ export const handler = define.handlers({
 
 ## WebSockets
 
-Fresh runs on Deno, so you can upgrade HTTP connections to WebSockets directly:
-
-```ts routes/api/ws.ts
-import { define } from "@/utils.ts";
-
-export const handler = define.handlers({
-  GET(ctx) {
-    const { socket, response } = Deno.upgradeWebSocket(ctx.req);
-
-    socket.onopen = () => {
-      console.log("Client connected");
-    };
-    socket.onmessage = (event) => {
-      socket.send(`Echo: ${event.data}`);
-    };
-    socket.onclose = () => {
-      console.log("Client disconnected");
-    };
-
-    return response;
-  },
-});
-```
+Fresh provides first-class WebSocket support via `ctx.upgrade()`. See the full
+[WebSocket guide](/docs/examples/websockets) for all options.
 
 ## Subdomain routing
 
