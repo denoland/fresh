@@ -11,6 +11,7 @@ import { jsxTemplate } from "preact/jsx-runtime";
 import { SpanStatusCode } from "@opentelemetry/api";
 import type { ResolvedFreshConfig } from "./config.ts";
 import type { BuildCache } from "./build_cache.ts";
+import { HttpError } from "./error.ts";
 import type { LayoutConfig } from "./types.ts";
 import {
   FreshScripts,
@@ -30,6 +31,43 @@ import {
 import { renderToString } from "preact-render-to-string";
 
 const ENCODER = new TextEncoder();
+
+/**
+ * Event handlers for a WebSocket connection upgraded via
+ * {@linkcode Context.upgrade}.
+ */
+export interface WebSocketHandlers {
+  /** Called when the WebSocket connection is established. */
+  open?(socket: WebSocket): void;
+  /** Called when a message is received. */
+  message?(socket: WebSocket, event: MessageEvent): void;
+  /** Called when the connection is closed. */
+  close?(socket: WebSocket, code: number, reason: string): void;
+  /** Called when an error occurs. */
+  error?(socket: WebSocket, event: Event | ErrorEvent): void;
+}
+
+/**
+ * Options forwarded to `Deno.upgradeWebSocket()`.
+ */
+export interface WebSocketUpgradeOptions {
+  /** Automatically close the connection if no ping is received
+   * within this many seconds. Default: 120. */
+  idleTimeout?: number;
+  /** The WebSocket sub-protocol to negotiate. */
+  protocol?: string;
+}
+
+function isWebSocketHandlers(
+  value: unknown,
+): value is WebSocketHandlers {
+  if (typeof value !== "object" || value === null) return false;
+  const v = value as Record<string, unknown>;
+  return typeof v.open === "function" ||
+    typeof v.message === "function" ||
+    typeof v.close === "function" ||
+    typeof v.error === "function";
+}
 
 export interface Island {
   file: string;
@@ -488,6 +526,85 @@ export class Context<State> {
       );
 
     return new Response(body, init);
+  }
+
+  /**
+   * Upgrade the request to a WebSocket connection.
+   *
+   * **Bare mode** — returns the socket and the upgrade response.
+   * Wire events yourself and return `response` from your handler:
+   *
+   * ```ts
+   * app.get("/ws", (ctx) => {
+   *   const { socket, response } = ctx.upgrade();
+   *   socket.onmessage = (e) => socket.send(e.data);
+   *   return response;
+   * });
+   * ```
+   *
+   * **Managed mode** — pass handlers and receive the response directly:
+   *
+   * ```ts
+   * app.get("/ws", (ctx) =>
+   *   ctx.upgrade({
+   *     message(socket, event) {
+   *       socket.send(event.data);
+   *     },
+   *   })
+   * );
+   * ```
+   */
+  upgrade(
+    options?: WebSocketUpgradeOptions,
+  ): { socket: WebSocket; response: Response };
+  upgrade(
+    handlers: WebSocketHandlers,
+    options?: WebSocketUpgradeOptions,
+  ): Response;
+  upgrade(
+    handlersOrOptions?: WebSocketHandlers | WebSocketUpgradeOptions,
+    maybeOptions?: WebSocketUpgradeOptions,
+  ): { socket: WebSocket; response: Response } | Response {
+    let handlers: WebSocketHandlers | undefined;
+    let options: WebSocketUpgradeOptions | undefined;
+
+    if (isWebSocketHandlers(handlersOrOptions)) {
+      handlers = handlersOrOptions;
+      options = maybeOptions;
+    } else {
+      options = handlersOrOptions;
+    }
+
+    if (this.req.headers.get("upgrade") !== "websocket") {
+      throw new HttpError(400, "Expected a WebSocket upgrade request");
+    }
+
+    const { socket, response } = Deno.upgradeWebSocket(this.req, options);
+
+    if (handlers === undefined) {
+      return { socket, response };
+    }
+
+    if (handlers.open) {
+      socket.addEventListener("open", () => handlers.open!(socket));
+    }
+    if (handlers.message) {
+      socket.addEventListener(
+        "message",
+        (ev) => handlers.message!(socket, ev),
+      );
+    }
+    if (handlers.close) {
+      socket.addEventListener(
+        "close",
+        (ev) => handlers.close!(socket, ev.code, ev.reason),
+      );
+    }
+    if (handlers.error) {
+      socket.addEventListener("error", (ev) => handlers.error!(socket, ev));
+    }
+
+    return response;
   }
 }
 
