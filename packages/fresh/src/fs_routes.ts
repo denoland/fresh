@@ -246,7 +246,6 @@ export function sortRoutePaths(a: string, b: string) {
       const scoreB = getRoutePathScore(charB, b, bIdx);
       if (scoreA === scoreB) {
         if (charA !== charB) {
-          // TODO: Do we need localeSort here or is this good enough?
           return charA < charB ? -1 : 1;
         }
         continue;
@@ -256,7 +255,6 @@ export function sortRoutePaths(a: string, b: string) {
     }
 
     if (charA !== charB) {
-      // TODO: Do we need localeSort here or is this good enough?
       return charA < charB ? -1 : 1;
     }
 
