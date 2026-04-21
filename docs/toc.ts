@@ -107,6 +107,7 @@ const toc: RawTableOfContents = {
           ],
           ["active-links", "Active links", "link:latest"],
           ["session-management", "Session management", "link:latest"],
+          ["websockets", "WebSockets", "link:latest"],
           ["common-patterns", "Common Patterns", "link:latest"],
         ],
       },
