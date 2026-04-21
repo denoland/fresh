@@ -90,9 +90,7 @@ export function deno(): Plugin {
         for (const alias of list) {
           const find = alias.find;
           if (typeof find === "string" ? find === id : find?.test?.(id)) {
-            id = typeof alias.replacement === "string"
-              ? alias.replacement
-              : id;
+            id = typeof alias.replacement === "string" ? alias.replacement : id;
             break;
           }
         }
@@ -204,8 +202,7 @@ export function deno(): Plugin {
               code.includes("exports.") ||
               code.includes("require("))
           ) {
-            const isServer =
-              this.environment.config.consumer === "server";
+            const isServer = this.environment.config.consumer === "server";
 
             if (isServer) {
               // SSR: use Node.js createRequire for full CJS compat
@@ -284,7 +281,6 @@ export default module.exports;
           code,
         };
       }
-
     },
     transform: {
       filter: {

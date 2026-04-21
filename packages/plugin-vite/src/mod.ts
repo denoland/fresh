@@ -242,7 +242,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
           },
         };
       },
-      async configResolved(vConfig) {
+      configResolved(vConfig) {
         // Run update check in background
         updateCheck(UPDATE_INTERVAL).catch(() => {});
 
