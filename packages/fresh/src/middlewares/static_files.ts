@@ -3,7 +3,14 @@ import { ASSET_CACHE_BUST_KEY } from "../constants.ts";
 import { BUILD_ID } from "@fresh/build-id";
 import { tracer } from "../otel.ts";
 import { getBuildCache } from "../context.ts";
-import { systemPathToUrlEncoded } from "../dev/dev_build_cache.ts";
+
+/** Decode and re-encode each path segment so that characters like commas
+ *  are percent-encoded consistently with how `prepareStaticFile` stores
+ *  entries in the build cache. */
+function normalizePathname(pathname: string): string {
+  return "/" +
+    pathname.split("/").filter(Boolean).map(encodeURIComponent).join("/");
+}
 
 /**
  * Fresh middleware to serve static files from the `static/` directory.
@@ -27,8 +34,9 @@ export function staticFiles<T>(): Middleware<T> {
     }
 
     try {
-      pathname = systemPathToUrlEncoded(decodeURIComponent(pathname));
-    } catch {
+      pathname = normalizePathname(decodeURIComponent(pathname));
+    } catch (_e: unknown) {
+      if (!(_e instanceof URIError)) throw _e;
       return await ctx.next();
     }
 
