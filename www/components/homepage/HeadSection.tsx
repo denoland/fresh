@@ -34,8 +34,8 @@ export function HeadSection() {
             aria-hidden="true"
             xmlns="http://www.w3.org/2000/svg"
             class="icon icon-tabler icon-tabler-file-code text-fresh"
-            width="4rem"
-            height="4rem"
+            width="2.5rem"
+            height="2.5rem"
             viewBox="0 0 24 24"
             stroke-width="1.5"
             stroke="currentColor"
@@ -52,12 +52,16 @@ export function HeadSection() {
           </svg>
           <SectionHeading>
             Full control of{" "}
-            <span dangerouslySetInnerHTML={{ __html: "&lt;head&gt;" }} />
+            <span
+              // deno-lint-ignore react-no-danger
+              dangerouslySetInnerHTML={{ __html: "&lt;head&gt;" }}
+            />
           </SectionHeading>
           <p>
             Use the{" "}
             <code
               class="bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono"
+              // deno-lint-ignore react-no-danger
               dangerouslySetInnerHTML={{ __html: "&lt;Head&gt;" }}
             />{" "}
             component from any page or island to set titles, meta tags,
@@ -65,7 +69,10 @@ export function HeadSection() {
             needed.
           </p>
           <FancyLink href="/docs/advanced/head" class="mt-2">
-            <span dangerouslySetInnerHTML={{ __html: "Learn about &lt;Head&gt;" }} />
+            <span
+              // deno-lint-ignore react-no-danger
+              dangerouslySetInnerHTML={{ __html: "Learn about &lt;Head&gt;" }}
+            />
           </FancyLink>
         </div>
         <div class="flex flex-col gap-4">

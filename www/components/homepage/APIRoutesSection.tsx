@@ -27,14 +27,19 @@ export const handlers = define.handlers({
 export function APIRoutesSection() {
   return (
     <PageSection>
-      <SideBySide mdColSplit="3/2" lgColSplit="3/2" reverseOnDesktop class="!items-start">
+      <SideBySide
+        mdColSplit="3/2"
+        lgColSplit="3/2"
+        reverseOnDesktop
+        class="!items-start"
+      >
         <div class="flex flex-col gap-4 md:sticky md:top-4">
           <svg
             aria-hidden="true"
             xmlns="http://www.w3.org/2000/svg"
             class="icon icon-tabler icon-tabler-api text-fresh"
-            width="4rem"
-            height="4rem"
+            width="2.5rem"
+            height="2.5rem"
             viewBox="0 0 24 24"
             stroke-width="1.5"
             stroke="currentColor"

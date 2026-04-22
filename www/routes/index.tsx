@@ -9,7 +9,6 @@ import { IslandsSection } from "../components/homepage/IslandsSection.tsx";
 import { PartialsSection } from "../components/homepage/PartialsSection.tsx";
 import { RenderingSection } from "../components/homepage/RenderingSection.tsx";
 import { FormsSection } from "../components/homepage/FormsSection.tsx";
-import { Simple } from "../components/homepage/Simple.tsx";
 import { SocialProof } from "../components/homepage/SocialProof.tsx";
 import { TransitionsSection } from "../components/homepage/TransitionsSection.tsx";
 import { APIRoutesSection } from "../components/homepage/APIRoutesSection.tsx";
@@ -61,7 +60,9 @@ export default define.page<typeof handler>(function MainPage() {
       </div>
       <div class="flex flex-col -mt-20 relative">
         <Hero />
-        <Simple />
+        <h2 class="text-3xl sm:text-4xl md:text-5xl text-gray-600 font-extrabold text-center mt-8 md:mt-12 lg:mt-16 px-4 italic">
+          Take a tour of Fresh
+        </h2>
         <RenderingSection />
         <IslandsSection />
         <FormsSection />
