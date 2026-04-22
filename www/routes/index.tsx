@@ -11,6 +11,11 @@ import { RenderingSection } from "../components/homepage/RenderingSection.tsx";
 import { FormsSection } from "../components/homepage/FormsSection.tsx";
 import { Simple } from "../components/homepage/Simple.tsx";
 import { SocialProof } from "../components/homepage/SocialProof.tsx";
+import { TransitionsSection } from "../components/homepage/TransitionsSection.tsx";
+import { APIRoutesSection } from "../components/homepage/APIRoutesSection.tsx";
+import { WebSocketSection } from "../components/homepage/WebSocketSection.tsx";
+import { HeadSection } from "../components/homepage/HeadSection.tsx";
+import { SecuritySection } from "../components/homepage/SecuritySection.tsx";
 import { DenoSection } from "../components/homepage/DenoSection.tsx";
 import { define } from "../utils/state.ts";
 
@@ -61,6 +66,11 @@ export default define.page<typeof handler>(function MainPage() {
         <IslandsSection />
         <FormsSection />
         <PartialsSection />
+        <TransitionsSection />
+        <APIRoutesSection />
+        <WebSocketSection />
+        <HeadSection />
+        <SecuritySection />
         <SocialProof />
         <DenoSection />
         <CTA />
@@ -73,11 +83,15 @@ export default define.page<typeof handler>(function MainPage() {
 function HelloBar() {
   return (
     <a
-      class="bg-gradient-to-r from-blue-200 to-yellow-200 via-green-300 text-black border-b border-green-400 p-4 text-center group"
-      href="https://deno.com/blog/fresh-and-vite"
+      class="bg-gradient-to-r from-blue-200 to-yellow-200 via-green-300 text-black border-b border-green-400 px-4 py-3 text-center group flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3"
+      href="https://deno.com/blog/fresh_v2.3"
     >
-      Fresh 2 <b>released with Vite</b>{" "}
-      <span class="group-hover:underline">→</span>
+      <span class="font-bold">Fresh 2.3 is here!</span>
+      <span class="hidden sm:inline">—</span>
+      <span class="text-sm sm:text-base">
+        WebSockets, View Transitions, Temporal API, and more{" "}
+        <span class="group-hover:underline">→</span>
+      </span>
     </a>
   );
 }

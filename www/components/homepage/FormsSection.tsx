@@ -8,7 +8,8 @@ import { ExampleArrow } from "../homepage/ExampleArrow.tsx";
 import { FancyLink } from "../FancyLink.tsx";
 import { FormSubmitDemo } from "../../islands/FormSubmitDemo.tsx";
 
-const routingCode = `import { define } from "../utils.ts";
+const routingCode = `import { createDefine } from "fresh";
+const define = createDefine();
 
 export const handler = define.handlers({
   async POST(ctx) {

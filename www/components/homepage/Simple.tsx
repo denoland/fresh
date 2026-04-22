@@ -1,26 +1,33 @@
 import { PageSection } from "../../components/PageSection.tsx";
+import { CodeBlock } from "../../components/CodeBlock.tsx";
 
 const ONE_FILE_EXAMPLE = `import { App } from "fresh";
 
 const app = new App()
-  .get("/", () => new Response("Hello, World!"));
+  .get("/", () =>
+    new Response("Hello!")
+  );
 
 app.listen();`;
 
 const ADD_JSX_EXAMPLE = `import { App } from "fresh";
 
 const app = new App()
-  .get("/", (ctx) => ctx.render(<h1>Hello!</h1>));
+  .get("/", (ctx) =>
+    ctx.render(<h1>Hello!</h1>)
+  );
 
 app.listen();`;
 
-const ADD_ISLAND_EXAMPLE = `// islands/Counter.tsx
-import { useSignal } from "@preact/signals";
+const ADD_ISLAND_EXAMPLE = `import { useSignal } from
+  "@preact/signals";
 
 export function Counter() {
   const count = useSignal(0);
   return (
-    <button onClick={() => count.value++}>
+    <button
+      onClick={() => count.value++}
+    >
       Count: {count}
     </button>
   );
@@ -40,7 +47,7 @@ export function Simple() {
         </p>
       </div>
 
-      <div class="grid md:grid-cols-3 gap-6 mt-8">
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
         <StepCard
           step="1"
           title="One file. That's it."
@@ -76,9 +83,9 @@ function StepCard(
         <h3 class="font-bold text-lg">{props.title}</h3>
       </div>
       <p class="text-gray-600 text-sm">{props.description}</p>
-      <pre class="bg-slate-800 text-green-100 rounded-md p-4 text-sm overflow-x-auto flex-1">
-        <code>{props.code}</code>
-      </pre>
+      <div class="text-sm flex-1 [&>pre]:!m-0 [&>pre]:h-full">
+        <CodeBlock code={props.code} lang="jsx" />
+      </div>
     </div>
   );
 }

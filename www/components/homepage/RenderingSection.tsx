@@ -7,9 +7,10 @@ import { DemoBox } from "../../components/homepage/DemoBox.tsx";
 import { ExampleArrow } from "../../components/homepage/ExampleArrow.tsx";
 
 const serverCode = `export default function HomePage() {
-  const time = new Date().toLocaleString();
+  const now = Temporal.Now.plainDateTimeISO()
+    .toLocaleString("en-US");
   return (
-    <p>Freshly server-rendered {time}</p>
+    <p>Freshly server-rendered {now}</p>
   );
 }`;
 
@@ -56,10 +57,8 @@ export function RenderingSection() {
           <ExampleArrow class="ml-[55%]" />{" "}
           <DemoBox>
             <p>
-              Freshly server-rendered {new Date().toLocaleString("default", {
-                dateStyle: "medium",
-                timeStyle: "medium",
-              })} UTC
+              Freshly server-rendered{" "}
+              {Temporal.Now.plainDateTimeISO().toLocaleString("en-US")}
             </p>
           </DemoBox>
         </div>
