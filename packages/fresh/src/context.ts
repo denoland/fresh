@@ -65,6 +65,11 @@ export interface WebSocketUpgradeOptions {
  * non-function fields (`idleTimeout`, `protocol`), so a plain options object
  * will never match.
  *
+ * **Edge case:** an empty object `{}` satisfies `WebSocketHandlers` at the
+ * type level (all keys are optional) but returns `false` here, so
+ * `ctx.upgrade({})` enters bare mode. This is harmless — an empty handlers
+ * object would be a no-op in managed mode anyway.
+ *
  * If `WebSocketUpgradeOptions` ever gains a function-valued field whose name
  * collides with a handler key, this guard must be updated (or replaced with a
  * branded/sentinel approach).
@@ -586,7 +591,7 @@ export class Context<State> {
       options = handlersOrOptions;
     }
 
-    if (this.req.headers.get("upgrade") !== "websocket") {
+    if (this.req.headers.get("upgrade")?.toLowerCase() !== "websocket") {
       throw new HttpError(400, "Expected a WebSocket upgrade request");
     }
 
