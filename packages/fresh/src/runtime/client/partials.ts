@@ -361,6 +361,7 @@ async function fetchPartials(
       actualUrl = nextUrl;
     }
   }
+  actualUrl.searchParams.delete(PARTIAL_SEARCH_PARAM);
 
   try {
     await applyPartials(res);
