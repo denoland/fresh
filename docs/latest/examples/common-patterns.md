@@ -176,7 +176,7 @@ export const handler = define.handlers({
 ## WebSockets
 
 Fresh provides first-class WebSocket support via `ctx.upgrade()`. See the full
-[WebSocket guide](/docs/examples/websockets) for all options.
+[WebSocket guide](/docs/advanced/websockets) for all options.
 
 ## Subdomain routing
 
