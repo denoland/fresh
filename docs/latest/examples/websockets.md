@@ -102,24 +102,30 @@ export const handlers = define.handlers({
 Both modes accept an options object to configure the underlying WebSocket:
 
 ```ts
-// Managed mode
+// Managed mode — pass handlers first, then options
 ctx.upgrade(handlers, {
   idleTimeout: 60, // close if no ping received within 60s (default: 120)
   protocol: "graphql-ws", // sub-protocol to negotiate
 });
 
-// Bare mode
-const { socket, response } = ctx.upgrade({
-  idleTimeout: 60,
-  protocol: "graphql-ws",
-});
+// Bare mode — pass options without handlers to get the raw socket back
+const { socket, response } = ctx.upgrade({ idleTimeout: 60 });
 ```
+
+> **How does Fresh tell the two calls apart?** The first argument is treated as
+> managed-mode handlers when it contains at least one function-valued handler
+> key (`open`, `message`, `close`, or `error`). A plain options object only has
+> non-function fields (`idleTimeout`, `protocol`), so it always enters bare
+> mode.
 
 The same options can be passed to `app.ws()`:
 
 ```ts
 app.ws("/ws", handlers, { idleTimeout: 60 });
 ```
+
+> `app.ws()` always uses managed mode. For bare-mode access to the raw socket,
+> use `app.get()` with `ctx.upgrade()` instead.
 
 ## Error handling
 

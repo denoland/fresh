@@ -58,6 +58,17 @@ export interface WebSocketUpgradeOptions {
   protocol?: string;
 }
 
+/**
+ * Duck-type check: treats the argument as managed-mode handlers when at least
+ * one of the handler keys (`open`, `message`, `close`, `error`) is a
+ * function.  This works because {@link WebSocketUpgradeOptions} only has
+ * non-function fields (`idleTimeout`, `protocol`), so a plain options object
+ * will never match.
+ *
+ * If `WebSocketUpgradeOptions` ever gains a function-valued field whose name
+ * collides with a handler key, this guard must be updated (or replaced with a
+ * branded/sentinel approach).
+ */
 function isWebSocketHandlers(
   value: unknown,
 ): value is WebSocketHandlers {
