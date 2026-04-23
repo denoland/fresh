@@ -77,7 +77,7 @@ function HelloBar() {
   return (
     <a
       class="bg-gradient-to-r from-blue-200 to-yellow-200 via-green-300 text-black border-b border-green-400 px-4 py-3 text-center group flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3"
-      href="https://deno.com/blog/fresh_v2.3"
+      href="https://deno.com/blog/fresh-2.3"
     >
       <span class="font-bold">Fresh 2.3 is here!</span>
       <span class="hidden sm:inline">—</span>
