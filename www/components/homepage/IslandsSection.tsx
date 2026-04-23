@@ -56,17 +56,19 @@ export function IslandsSection() {
             <path d="M15 9l-3 5.196" />
             <path d="M3 19.25a2.4 2.4 0 0 1 1 -.25a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 1 .25" />
           </svg>
-          <SectionHeading>Island-based architecture</SectionHeading>
+          <SectionHeading>Interactive where it matters</SectionHeading>
           <p>
-            Fresh ships plain HTML to the client, then hydrates with JavaScript
-            only where needed.
+            Most of your page is static HTML. Islands are the small, interactive
+            parts that get hydrated with JavaScript. You choose exactly what
+            runs on the client.
           </p>
           <p>
-            Because it's Preact, you get best-in-class performance, plus the
-            convenience of{" "}
+            Built on{" "}
+            <a href="https://preactjs.com/" class="underline">Preact</a> and
+            {" "}
             <a href="https://preactjs.com/guide/v10/signals/" class="underline">
               Signals
-            </a>.
+            </a>, so islands are tiny and reactive out of the box.
           </p>
           <FancyLink href="/docs/concepts/islands" class="mt-2">
             Learn more about islands

@@ -14,9 +14,8 @@ const define = createDefine();
 export const handler = define.handlers({
   async POST(ctx) {
     const form = await ctx.req.formData();
-
-    // Do something with the form data here,
-    // then redirect user to thank you page
+    const treat = form.get("treat");
+    await db.votes.insert({ treat });
 
     return new Response(null, {
       status: 303,
@@ -50,17 +49,11 @@ export function FormsSection() {
               <path d="M17 3h4v4h-4z" />
             </svg>
           </div>
-          <SectionHeading>
-            Forms, the right way
-          </SectionHeading>
+          <SectionHeading>Forms that just work</SectionHeading>
           <p>
-            Don't fight the browser. Fresh helps you handle form submissions and
-            other dynamic requests server-side, from any route.
-          </p>
-          <p>
-            Since Fresh is built on{" "}
-            <a href="https://deno.com" class="underline">Deno</a>, it's built on
-            web standards.
+            Handle submissions server-side with standard Request and FormData.
+            No client-side state management, no serialization headaches.
+            Progressive enhancement comes free.
           </p>
           <FancyLink href="/docs/advanced/forms" class="mt-2">
             Forms in Fresh
