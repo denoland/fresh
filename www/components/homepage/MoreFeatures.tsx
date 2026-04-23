@@ -37,7 +37,7 @@ const features = [
   {
     title: "Route Handlers",
     description:
-      "Define GET, POST, DELETE — any HTTP method as a named handler on your route, with full type safety.",
+      "Define GET, POST, DELETE, or any HTTP method as a named handler on your route, with full type safety.",
     href: "/docs/concepts/routing",
     icon: (
       <svg
@@ -70,7 +70,7 @@ const features = [
   {
     title: "WebSockets",
     description:
-      "Add real-time endpoints with app.ws() — define open, message, and close handlers in a single object.",
+      "Add real-time endpoints with app.ws(). Define open, message, and close handlers in a single object.",
     href: "/docs/advanced/websockets",
     icon: (
       <svg
@@ -102,7 +102,7 @@ const features = [
   {
     title: "<Head> Component",
     description:
-      "Set titles, meta tags, stylesheets, and scripts from any page or island — no hoisting hacks needed.",
+      "Set titles, meta tags, stylesheets, and scripts from any page or island. No hoisting hacks needed.",
     href: "/docs/advanced/head",
     icon: (
       <svg
@@ -167,7 +167,7 @@ const features = [
   {
     title: "Content Security Policy",
     description:
-      "Automatic nonce injection for inline scripts and styles — strong security defaults with zero boilerplate.",
+      "Automatic nonce injection for inline scripts and styles. Strong security defaults with zero boilerplate.",
     href: "/docs/plugins/csp",
     icon: (
       <svg
