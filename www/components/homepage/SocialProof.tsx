@@ -16,15 +16,13 @@ export function SocialProof() {
           eCommerce platform
         </p>
       </div>
-      <a
-        href="https://deno.com/blog/deco-cx-subhosting-serve-their-clients-storefronts-fast"
-        class="block mx-auto text-center"
-      >
-        <div class="mx-auto max-w-screen-md bg-gradient-to-br from-green-50 to-yellow-50 border border-green-200 rounded-lg p-12 flex items-center justify-center">
-          <span class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-green-700 tracking-tight">
-            deco.cx
-          </span>
-        </div>
+      <a href="https://deno.com/blog/deco-cx-subhosting-serve-their-clients-storefronts-fast">
+        <img
+          src="/showcase/deco.webp"
+          alt="Deco.cx screenshot"
+          class="mx-auto max-w-screen-md w-full"
+          loading="lazy"
+        />
       </a>
       <div class="flex flex-col gap-8 items-center justify-center -mt-8 md:-mt-16 lg:-mt-32">
         <DemoBox flip>
