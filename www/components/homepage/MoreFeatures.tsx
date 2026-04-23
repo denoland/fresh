@@ -197,6 +197,175 @@ const features = [
   },
 ];
 
+const extras = [
+  {
+    title: "File-based routing",
+    description:
+      "Drop a file in routes/, get a URL. Dynamic params via [id].tsx.",
+    href: "/docs/concepts/file-routing",
+    icon: (
+      <svg
+        aria-hidden="true"
+        xmlns="http://www.w3.org/2000/svg"
+        class="text-fresh"
+        width="1.25rem"
+        height="1.25rem"
+        viewBox="0 0 24 24"
+        stroke-width="1.5"
+        stroke="currentColor"
+        fill="none"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+        <path d="M14 3v4a1 1 0 0 0 1 1h4" />
+        <path d="M5 12v-7a2 2 0 0 1 2 -2h7l5 5v4" />
+        <path d="M5 18h2" />
+        <path d="M10 18h2" />
+        <path d="M15 18h2" />
+        <path d="M20 18h2" />
+      </svg>
+    ),
+  },
+  {
+    title: "Middleware",
+    description: "Chain auth, logging, or any logic before your routes run.",
+    href: "/docs/concepts/middleware",
+    icon: (
+      <svg
+        aria-hidden="true"
+        xmlns="http://www.w3.org/2000/svg"
+        class="text-fresh"
+        width="1.25rem"
+        height="1.25rem"
+        viewBox="0 0 24 24"
+        stroke-width="1.5"
+        stroke="currentColor"
+        fill="none"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+        <path d="M12 3l8 4.5v9l-8 4.5l-8 -4.5v-9l8 -4.5" />
+        <path d="M12 12l8 -4.5" />
+        <path d="M12 12v9" />
+        <path d="M12 12l-8 -4.5" />
+      </svg>
+    ),
+  },
+  {
+    title: "Zero-config TypeScript",
+    description: "Just write .tsx. No tsconfig, no build step, it just works.",
+    href: "/docs/concepts/routing",
+    icon: (
+      <svg
+        aria-hidden="true"
+        xmlns="http://www.w3.org/2000/svg"
+        class="text-fresh"
+        width="1.25rem"
+        height="1.25rem"
+        viewBox="0 0 24 24"
+        stroke-width="1.5"
+        stroke="currentColor"
+        fill="none"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+        <path d="M15 17.5c.32 .32 .754 .5 1.207 .5h.543a1.75 1.75 0 0 0 0 -3.5h-1a1.75 1.75 0 0 1 0 -3.5h.543c.453 0 .887 .18 1.207 .5" />
+        <path d="M9 12h4" />
+        <path d="M11 12v6" />
+        <path d="M21 19v-14a2 2 0 0 0 -2 -2h-14a2 2 0 0 0 -2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2 -2z" />
+      </svg>
+    ),
+  },
+  {
+    title: "Deploy anywhere",
+    description:
+      "Deno Deploy, Docker, Cloudflare Workers, or a single binary with deno compile.",
+    href: "/docs/deployment/deno-deploy",
+    icon: (
+      <svg
+        aria-hidden="true"
+        xmlns="http://www.w3.org/2000/svg"
+        class="text-fresh"
+        width="1.25rem"
+        height="1.25rem"
+        viewBox="0 0 24 24"
+        stroke-width="1.5"
+        stroke="currentColor"
+        fill="none"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+        <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" />
+        <path d="M3.6 9h16.8" />
+        <path d="M3.6 15h16.8" />
+        <path d="M11.5 3a17 17 0 0 0 0 18" />
+        <path d="M12.5 3a17 17 0 0 1 0 18" />
+      </svg>
+    ),
+  },
+  {
+    title: "Layouts",
+    description:
+      "Nested layouts that compose automatically from the file system.",
+    href: "/docs/concepts/layouts",
+    icon: (
+      <svg
+        aria-hidden="true"
+        xmlns="http://www.w3.org/2000/svg"
+        class="text-fresh"
+        width="1.25rem"
+        height="1.25rem"
+        viewBox="0 0 24 24"
+        stroke-width="1.5"
+        stroke="currentColor"
+        fill="none"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+        <path d="M4 4m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v1a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2z" />
+        <path d="M4 13m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v3a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2z" />
+        <path d="M14 4m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2z" />
+      </svg>
+    ),
+  },
+  {
+    title: "Built-in plugins",
+    description:
+      "CORS, CSRF, IP filtering, and trailing slashes out of the box.",
+    href: "/docs/plugins/cors",
+    icon: (
+      <svg
+        aria-hidden="true"
+        xmlns="http://www.w3.org/2000/svg"
+        class="text-fresh"
+        width="1.25rem"
+        height="1.25rem"
+        viewBox="0 0 24 24"
+        stroke-width="1.5"
+        stroke="currentColor"
+        fill="none"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+        <path d="M4 7l3 0" />
+        <path d="M4 11l3 0" />
+        <path d="M4 15l3 0" />
+        <path d="M4 19l3 0" />
+        <path d="M11 7l10 0" />
+        <path d="M11 11l10 0" />
+        <path d="M11 15l10 0" />
+        <path d="M11 19l10 0" />
+      </svg>
+    ),
+  },
+];
+
 export function MoreFeatures() {
   return (
     <PageSection>
@@ -219,6 +388,20 @@ export function MoreFeatures() {
                 <CodeBlock code={f.code} lang={f.lang} />
               </CodeWindow>
             </div>
+          </a>
+        ))}
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        {extras.map((e) => (
+          <a
+            href={e.href}
+            class="flex flex-col gap-2 p-4 rounded-lg border border-gray-200 hover:border-fresh transition-colors"
+          >
+            <div class="flex items-center gap-2">
+              {e.icon}
+              <h3 class="font-bold text-sm">{e.title}</h3>
+            </div>
+            <p class="text-gray-500 text-xs">{e.description}</p>
           </a>
         ))}
       </div>
