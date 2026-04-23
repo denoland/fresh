@@ -10,11 +10,7 @@ import { PartialsSection } from "../components/homepage/PartialsSection.tsx";
 import { RenderingSection } from "../components/homepage/RenderingSection.tsx";
 import { FormsSection } from "../components/homepage/FormsSection.tsx";
 import { SocialProof } from "../components/homepage/SocialProof.tsx";
-import { TransitionsSection } from "../components/homepage/TransitionsSection.tsx";
-import { APIRoutesSection } from "../components/homepage/APIRoutesSection.tsx";
-import { WebSocketSection } from "../components/homepage/WebSocketSection.tsx";
-import { HeadSection } from "../components/homepage/HeadSection.tsx";
-import { SecuritySection } from "../components/homepage/SecuritySection.tsx";
+import { MoreFeatures } from "../components/homepage/MoreFeatures.tsx";
 import { DenoSection } from "../components/homepage/DenoSection.tsx";
 import { define } from "../utils/state.ts";
 
@@ -67,11 +63,7 @@ export default define.page<typeof handler>(function MainPage() {
         <IslandsSection />
         <FormsSection />
         <PartialsSection />
-        <TransitionsSection />
-        <APIRoutesSection />
-        <WebSocketSection />
-        <HeadSection />
-        <SecuritySection />
+        <MoreFeatures />
         <SocialProof />
         <DenoSection />
         <CTA />
