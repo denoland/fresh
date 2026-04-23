@@ -1,5 +1,4 @@
 import { CodeBlock } from "../../components/CodeBlock.tsx";
-import { CodeWindow } from "../../components/CodeWindow.tsx";
 import { PageSection } from "../../components/PageSection.tsx";
 import { SectionHeading } from "../../components/homepage/SectionHeading.tsx";
 
@@ -368,43 +367,50 @@ const extras = [
 
 export function MoreFeatures() {
   return (
-    <PageSection>
-      <div class="text-center flex flex-col gap-2">
-        <SectionHeading>And there's more</SectionHeading>
-      </div>
-      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {features.map((f) => (
-          <a
-            href={f.href}
-            class="flex flex-col gap-3 p-5 rounded-lg border border-gray-200 hover:border-fresh transition-colors"
-          >
-            <div class="flex items-center gap-2">
-              {f.icon}
-              <h3 class="font-bold text-base">{f.title}</h3>
-            </div>
-            <p class="text-gray-600 text-sm">{f.description}</p>
-            <div class="text-xs [&>pre]:!m-0 [&>pre]:!p-3 flex-1">
-              <CodeWindow>
+    <div className="w-full py-8 bg-linear-to-r from-fresh-green/10 to-fresh/10">
+      <PageSection>
+        <div class="text-center flex flex-col gap-2">
+          <SectionHeading>And so much more</SectionHeading>
+        </div>
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {features.map((f) => (
+            <a
+              href={f.href}
+              class="grid grid-cols-1 grid-rows-[minmax(9.5rem,auto)_1fr] items-stretch gap-3 transition-colors bg-white rounded-lg overflow-clip hover:bg-fresh/1 border border-gray-200 hover:border-fresh"
+            >
+              <div className="p-6 space-y-3">
+                <div class="flex items-center gap-2 justify-between">
+                  <h3 class="font-bold text-lg sm:text-xl lg:text-2xl">
+                    {f.title}
+                  </h3>
+                  {f.icon}
+                </div>
+                <p class="text-gray-600 text-sm">{f.description}</p>
+              </div>
+              <div class="text-xs h-full [&>pre]:m-0! [&>pre]:rounded-none [&>pre]:h-full [&>pre]:p-6! flex-1">
                 <CodeBlock code={f.code} lang={f.lang} />
-              </CodeWindow>
-            </div>
-          </a>
-        ))}
-      </div>
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        {extras.map((e) => (
-          <a
-            href={e.href}
-            class="flex flex-col gap-2 p-4 rounded-lg border border-gray-200 hover:border-fresh transition-colors"
-          >
-            <div class="flex items-center gap-2">
-              {e.icon}
-              <h3 class="font-bold text-sm">{e.title}</h3>
-            </div>
-            <p class="text-gray-500 text-xs">{e.description}</p>
-          </a>
-        ))}
-      </div>
-    </PageSection>
+              </div>
+            </a>
+          ))}
+        </div>
+        <div class="text-center flex flex-col gap-2 mt-8">
+          <h3 class="text-lg font-bold text-gray-600">(…and even more)</h3>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+          {extras.map((e) => (
+            <a
+              href={e.href}
+              class="flex flex-col gap-2 p-4 rounded-lg border border-gray-200 hover:bg-fresh/1 transition-colors bg-white hover:border-fresh"
+            >
+              <div class="flex items-center gap-2 justify-between">
+                <h3 class="font-bold text-sm">{e.title}</h3>
+                {e.icon}
+              </div>
+              <p class="text-gray-500 text-xs">{e.description}</p>
+            </a>
+          ))}
+        </div>
+      </PageSection>
+    </div>
   );
 }
