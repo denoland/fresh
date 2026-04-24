@@ -7,13 +7,11 @@ import { FancyLink } from "../../components/FancyLink.tsx";
 
 const otelCode = `import { App } from "fresh";
 
-const app = new App({
-  // When OpenTelemetry is active, Fresh
-  // auto-injects a <meta name="traceparent">
-  // tag — connecting browser traces to
-  // server spans, zero config required
-  otel: true,
-});
+// When OpenTelemetry is active, Fresh
+// auto-injects a <meta name="traceparent">
+// tag — connecting browser traces to
+// server spans, zero config required
+const app = new App();
 
 app.listen();`;
 
@@ -54,7 +52,7 @@ export function SecuritySection() {
           </p>
           <p>
             Get full-stack observability across your entire request lifecycle
-            with a single flag.
+            with zero configuration.
           </p>
           <FancyLink href="/docs/advanced/opentelemetry" class="mt-2">
             Learn about OpenTelemetry
