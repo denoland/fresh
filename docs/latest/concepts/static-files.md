@@ -135,13 +135,21 @@ that should use their **content hash** as the cache-bust key instead of the
 build ID. The URL only changes when the file content changes — surviving deploys
 unchanged.
 
-```ts dev.ts
-import { Builder } from "fresh/dev";
+```ts vite.config.ts
+import { defineConfig } from "vite";
+import { fresh } from "@fresh/plugin-vite";
 
-const builder = new Builder({
-  contentAddressedStatic: ["**/*.wasm", "**/*.bin"],
+export default defineConfig({
+  plugins: [
+    fresh({
+      contentAddressedStatic: ["**/*.wasm", "**/*.bin"],
+    }),
+  ],
 });
 ```
+
+> [info]: If you're using the [Builder](/docs/advanced/builder) API, the same
+> option is available on the `Builder` constructor.
 
 With this config, `asset("/module.wasm")` produces a URL like
 `/module.wasm?__frsh_c=<content-hash>` instead of
