@@ -105,6 +105,11 @@ export function staticFiles<T>(): Middleware<T> {
           url.pathname.startsWith(
             `${ctx.config.basePath}/_fresh/js/${BUILD_ID}/`,
           ) ||
+          // Content-hashed chunks/assets under /_fresh/js/c/ are
+          // immutable by filename — no BUILD_ID needed.
+          url.pathname.startsWith(
+            `${ctx.config.basePath}/_fresh/js/c/`,
+          ) ||
           file.immutable)
       ) {
         span.setAttribute("fresh.cache", "immutable");

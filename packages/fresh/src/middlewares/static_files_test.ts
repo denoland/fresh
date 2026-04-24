@@ -231,6 +231,47 @@ Deno.test("static files - enables caching in production", async () => {
   );
 });
 
+Deno.test("static files - immutable caching for content-addressed chunks", async () => {
+  const buildCache = new MockBuildCache({
+    "/_fresh/js/c/chunk-abc123.js": {
+      content: "console.log('shared')",
+      hash: "abc123",
+    },
+    "/_fresh/js/c/module-def456.wasm": {
+      content: "\x00asm",
+      hash: "def456",
+    },
+  });
+  const server = serveMiddleware(
+    staticFiles(),
+    {
+      buildCache,
+      config: {
+        root: "",
+        basePath: "",
+        mode: "production",
+        trustProxy: false,
+      },
+    },
+  );
+
+  // Content-addressed chunks get immutable caching without __frsh_c
+  let res = await server.get("/_fresh/js/c/chunk-abc123.js");
+  await res.body?.cancel();
+  expect(res.status).toEqual(200);
+  expect(res.headers.get("Cache-Control")).toEqual(
+    "public, max-age=31536000, immutable",
+  );
+
+  // WASM assets also get immutable caching
+  res = await server.get("/_fresh/js/c/module-def456.wasm");
+  await res.body?.cancel();
+  expect(res.status).toEqual(200);
+  expect(res.headers.get("Cache-Control")).toEqual(
+    "public, max-age=31536000, immutable",
+  );
+});
+
 Deno.test("static files - encoded pathname", async () => {
   // Build cache stores URL-encoded paths (matching what prepareStaticFile produces)
   const fileKeys = ["C#.svg", "西安市.png", "인천.avif"];

@@ -376,9 +376,14 @@ export class Builder<State = any> {
       }
     }
 
+    const contentAddressedPrefix = "/_fresh/js/c/";
     for (let i = 0; i < output.files.length; i++) {
       const file = output.files[i];
-      const pathname = `${prefix}${file.path}`;
+      // Content-hashed chunks/assets are placed outside the BUILD_ID
+      // directory so their URLs survive across deploys unchanged.
+      const pathname = file.path.startsWith("../c/")
+        ? `${contentAddressedPrefix}${file.path.slice("../c/".length)}`
+        : `${prefix}${file.path}`;
       await buildCache.addProcessedFile(pathname, file.contents, file.hash);
     }
 
