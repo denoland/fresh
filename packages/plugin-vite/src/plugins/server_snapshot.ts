@@ -32,7 +32,6 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
   let clientOutDir = "";
   let serverOutDir = "";
   let root = "";
-  let publicDir = "";
 
   const islands = new Map<string, { name: string; chunk: string | null }>();
   const islandsByFile = new Set<string>();
@@ -56,7 +55,6 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
       configResolved(config) {
         root = config.root;
 
-        publicDir = pathWithRoot(config.publicDir, config.root);
         clientOutDir = pathWithRoot(
           config.environments.client.build.outDir,
           config.root,
@@ -221,6 +219,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
                 filePath: path.join(clientOutDir, chunk.file),
                 pathname: chunk.file,
                 hash: null,
+                immutable: true,
               });
 
               if (chunk.css !== undefined) {
@@ -233,6 +232,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
                     filePath: path.join(clientOutDir, id),
                     hash: null,
                     pathname,
+                    immutable: true,
                   });
 
                   if (chunk.name === clientEntryName) {
@@ -274,9 +274,14 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
               }
             }
 
-            if (await fsAdapter.isDirectory(publicDir)) {
+            // Walk all static directories. First directory wins for
+            // duplicate pathnames.
+            const seenStaticPaths = new Set<string>();
+            for (const dir of options.staticDir) {
+              if (!(await fsAdapter.isDirectory(dir))) continue;
+
               const entries = await fsAdapter.walk(
-                publicDir,
+                dir,
                 {
                   followSymlinks: false,
                   includeDirs: false,
@@ -286,11 +291,16 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
               );
 
               for await (const entry of entries) {
-                const relative = path.relative(publicDir, entry.path);
+                const relative = path.relative(dir, entry.path);
+                if (seenStaticPaths.has(relative)) continue;
+                seenStaticPaths.add(relative);
+
                 const filePath = path.join(clientOutDir, relative);
 
                 try {
-                  await Deno.mkdir(path.dirname(filePath), { recursive: true });
+                  await Deno.mkdir(path.dirname(filePath), {
+                    recursive: true,
+                  });
                 } catch (err) {
                   if (!(err instanceof Deno.errors.AlreadyExists)) {
                     throw err;
@@ -306,15 +316,18 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
 
                 if (path.basename(relative) === "index.html") {
                   const htmlRelative = path.relative(
-                    publicDir,
+                    dir,
                     path.dirname(entry.path),
                   );
 
-                  staticFiles.push({
-                    filePath,
-                    hash: null,
-                    pathname: htmlRelative,
-                  });
+                  if (!seenStaticPaths.has(htmlRelative)) {
+                    seenStaticPaths.add(htmlRelative);
+                    staticFiles.push({
+                      filePath,
+                      hash: null,
+                      pathname: htmlRelative,
+                    });
+                  }
                 }
               }
             }
@@ -341,7 +354,8 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
               );
 
               for await (const entry of clientFiles) {
-                const relative = path.relative(clientOutDir, entry.path);
+                const relative = path.relative(clientOutDir, entry.path)
+                  .replaceAll("\\", "/");
 
                 // Skip .vite directory and already-registered files
                 if (

@@ -336,6 +336,58 @@ integrationTest("vite build - css modules", async () => {
   );
 });
 
+// Issue: https://github.com/denoland/fresh/issues/3633
+integrationTest(
+  "vite build - css modules in _app.tsx island are injected",
+  async () => {
+    await launchProd(
+      { cwd: viteResult.tmp },
+      async (address) => {
+        await withBrowser(async (page) => {
+          await page.goto(`${address}/tests/css_modules`, {
+            waitUntil: "networkidle2",
+          });
+
+          // The AppNav island is in _app.tsx and uses a CSS module.
+          // Its styles should be injected even though the island
+          // is discovered after <head> renders.
+          const bgColor = await page
+            .locator(".app-nav")
+            .evaluate((el) =>
+              window.getComputedStyle(el as Element).backgroundColor
+            );
+          expect(bgColor).toEqual("rgb(30, 30, 30)");
+        });
+      },
+    );
+  },
+);
+
+// Issue: https://github.com/denoland/fresh/issues/3633
+integrationTest(
+  "vite build - css modules work on second page with shared island",
+  async () => {
+    await launchProd(
+      { cwd: viteResult.tmp },
+      async (address) => {
+        await withBrowser(async (page) => {
+          // Access the second page that shares the CssModules island
+          await page.goto(`${address}/tests/css_modules_page2`, {
+            waitUntil: "networkidle2",
+          });
+
+          // The shared CssModules island's CSS should work here too
+          const color = await page
+            .locator(".red > h1")
+            // deno-lint-ignore no-explicit-any
+            .evaluate((el) => window.getComputedStyle(el as any).color);
+          expect(color).toEqual("rgb(255, 0, 0)");
+        });
+      },
+    );
+  },
+);
+
 integrationTest("vite build - route css import", async () => {
   await launchProd(
     { cwd: viteResult.tmp },
@@ -602,6 +654,56 @@ integrationTest(
         const registerRes = await fetch(`${address}/registerSW.js`);
         expect(registerRes.status).toEqual(200);
         expect(registerRes.headers.get("content-type")).toMatch(/javascript/);
+      },
+    );
+  },
+);
+
+integrationTest(
+  "vite build - asset cache headers on CSS and JS",
+  async () => {
+    await launchProd(
+      { cwd: viteResult.tmp },
+      async (address) => {
+        // Fetch a page with islands to get CSS and JS asset URLs
+        const res = await fetch(`${address}/tests/island_hooks`);
+        const html = await res.text();
+
+        // CSS link tags should get immutable cache headers
+        const cssMatches = html.matchAll(
+          /href="(\/assets\/[^"]*\.css[^"]*)"/g,
+        );
+        for (const match of cssMatches) {
+          const href = match[1];
+          const cssRes = await fetch(`${address}${href}`);
+          await cssRes.body?.cancel();
+          expect(cssRes.status).toEqual(200);
+          expect(cssRes.headers.get("Cache-Control")).toEqual(
+            "public, max-age=31536000, immutable",
+          );
+        }
+
+        // JS module imports should get immutable cache headers
+        const scriptMatch = html.match(
+          /<script[^>]*type="module"[^>]*>([\s\S]*?)<\/script>/,
+        );
+        expect(scriptMatch).not.toBeNull();
+        const scriptContent = scriptMatch![1];
+
+        const importMatches = scriptContent.matchAll(
+          /from "([^"]+)"/g,
+        );
+        for (const match of importMatches) {
+          const url = match[1];
+          if (url.startsWith("/assets/") || url.includes("/assets/")) {
+            const jsRes = await fetch(`${address}${url}`);
+            await jsRes.body?.cancel();
+            expect(jsRes.status).toEqual(200);
+            expect(jsRes.headers.get("Cache-Control")).toEqual(
+              "public, max-age=31536000, immutable",
+            );
+          }
+        }
       },
     );
   },

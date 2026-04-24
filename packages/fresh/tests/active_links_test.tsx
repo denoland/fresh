@@ -84,6 +84,86 @@ Deno.test({
 });
 
 Deno.test({
+  name: "active links - query params differentiate current vs ancestor",
+  fn: async () => {
+    function TabView() {
+      return (
+        <Doc>
+          <div>
+            <a href="/tabs?sort=name">Sort by name</a>
+            <a href="/tabs?sort=price">Sort by price</a>
+            <a href="/tabs">All</a>
+          </div>
+        </Doc>
+      );
+    }
+
+    const app = testApp()
+      .get("/tabs", (ctx) => {
+        return ctx.render(<TabView />);
+      });
+
+    const server = new FakeServer(app.handler());
+
+    // When visiting /tabs?sort=name, only that link is "current"
+    let res = await server.get("/tabs?sort=name");
+    let doc = parseHtml(await res.text());
+
+    // Exact match including query params
+    assertSelector(doc, `a[href='/tabs?sort=name'][data-current]`);
+    assertSelector(doc, `a[href='/tabs?sort=name'][aria-current="page"]`);
+
+    // Different query params → ancestor, not current
+    assertNotSelector(doc, `a[href='/tabs?sort=price'][data-current]`);
+    assertSelector(doc, `a[href='/tabs?sort=price'][data-ancestor]`);
+
+    // Link without query params matches regardless
+    assertSelector(doc, `a[href='/tabs'][data-current]`);
+
+    // When visiting /tabs (no query), all links on same path are current
+    res = await server.get("/tabs");
+    doc = parseHtml(await res.text());
+    assertSelector(doc, `a[href='/tabs'][data-current]`);
+    // Links with query params → ancestor since current URL has no query
+    assertSelector(doc, `a[href='/tabs?sort=name'][data-ancestor]`);
+    assertSelector(doc, `a[href='/tabs?sort=price'][data-ancestor]`);
+  },
+});
+
+Deno.test({
+  name: "active links - respects user-set aria-current",
+  fn: async () => {
+    function View() {
+      return (
+        <Doc>
+          <div>
+            <a href="/custom_aria" aria-current="step">Step link</a>
+            <a href="/custom_aria">Auto link</a>
+          </div>
+        </Doc>
+      );
+    }
+
+    const app = testApp()
+      .get("/custom_aria", (ctx) => {
+        return ctx.render(<View />);
+      });
+
+    const server = new FakeServer(app.handler());
+    const res = await server.get("/custom_aria");
+    const doc = parseHtml(await res.text());
+
+    // User-set aria-current should be preserved, not overwritten
+    assertSelector(doc, `a[aria-current="step"]`);
+    assertNotSelector(doc, `a[aria-current="step"][data-current]`);
+
+    // The other link (no user-set aria-current) should get Fresh's attributes
+    assertSelector(doc, `a[href='/custom_aria'][data-current]`);
+    assertSelector(doc, `a[href='/custom_aria'][aria-current="page"]`);
+  },
+});
+
+Deno.test({
   name: "active links - updates outside of vdom",
   fn: async () => {
     function PartialPage() {

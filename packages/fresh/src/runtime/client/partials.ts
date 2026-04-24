@@ -278,6 +278,14 @@ document.addEventListener("submit", async (e) => {
     // this check, every form inside f-client-nav would be intercepted
     // because el.action is always non-empty (defaults to the current URL).
     if (hasExplicitPartial && rawPartialUrl !== "") {
+      // deno-lint-ignore no-explicit-any
+      const indicator = ((e.submitter as any)?._freshIndicator ??
+        // deno-lint-ignore no-explicit-any
+        (el as any)._freshIndicator) as { value: boolean } | undefined;
+      if (indicator !== undefined) {
+        indicator.value = true;
+      }
+
       e.preventDefault();
 
       const partialUrl = new URL(rawPartialUrl, location.href);
@@ -295,16 +303,30 @@ document.addEventListener("submit", async (e) => {
         init = { body: new FormData(el, e.submitter), method: lowerMethod };
       }
 
-      await withViewTransition(async () => {
-        await fetchPartials(actionUrl, partialUrl, true, init);
-      });
+      try {
+        await withViewTransition(async () => {
+          await fetchPartials(actionUrl, partialUrl, true, init);
+        });
+      } finally {
+        if (indicator !== undefined) {
+          indicator.value = false;
+        }
+      }
     }
   }
 });
 
 function updateLinks(url: URL) {
   document.querySelectorAll("a").forEach((link) => {
-    const match = matchesUrl(url.pathname, link.href);
+    // Don't override aria-current if it was explicitly set by the user
+    // (detected by absence of data-current/data-ancestor attributes which
+    // Fresh always sets alongside aria-current)
+    const hasFreshAria = link.hasAttribute(DATA_CURRENT) ||
+      link.hasAttribute(DATA_ANCESTOR);
+    const hasUserAria = !hasFreshAria && link.hasAttribute("aria-current");
+    if (hasUserAria) return;
+
+    const match = matchesUrl(url.pathname, link.href, url.search);
 
     if (match === UrlMatchKind.Current) {
       link.setAttribute(DATA_CURRENT, "true");

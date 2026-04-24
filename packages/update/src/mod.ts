@@ -29,14 +29,6 @@ console.log(colors.bgRgb8(
 ));
 // deno-lint-ignore no-console
 console.log();
-// deno-lint-ignore no-console
-console.log(
-  colors.italic(
-    "Note: Breaking changes may require additional manual updates.",
-  ),
-);
-// deno-lint-ignore no-console
-console.log();
 
 let unresolvedDirectory = Deno.args[0];
 if (flags._.length !== 1) {

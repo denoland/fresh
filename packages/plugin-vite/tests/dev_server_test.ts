@@ -235,6 +235,53 @@ integrationTest("vite dev - css modules", async () => {
   });
 });
 
+// Issue: https://github.com/denoland/fresh/issues/3633
+integrationTest(
+  "vite dev - css modules in _app.tsx island are injected",
+  async () => {
+    await withBrowser(async (page) => {
+      await page.goto(`${demoServer.address()}/tests/css_modules`, {
+        waitUntil: "networkidle2",
+      });
+
+      await waitFor(async () => {
+        const bgColor = await page
+          .locator(".app-nav")
+          // deno-lint-ignore no-explicit-any
+          .evaluate((el) => window.getComputedStyle(el as any).backgroundColor);
+        expect(bgColor).toEqual("rgb(30, 30, 30)");
+        return true;
+      });
+    });
+  },
+);
+
+// Issue: https://github.com/denoland/fresh/issues/3633
+integrationTest(
+  "vite dev - css modules work on second page with shared island",
+  async () => {
+    await withBrowser(async (page) => {
+      // First visit a different page, then visit page2 that shares
+      // the CssModules island. In dev mode, the CSS must still work.
+      await page.goto(`${demoServer.address()}/`, {
+        waitUntil: "networkidle2",
+      });
+      await page.goto(`${demoServer.address()}/tests/css_modules_page2`, {
+        waitUntil: "networkidle2",
+      });
+
+      await waitFor(async () => {
+        const color = await page
+          .locator(".red > h1")
+          // deno-lint-ignore no-explicit-any
+          .evaluate((el) => window.getComputedStyle(el as any).color);
+        expect(color).toEqual("rgb(255, 0, 0)");
+        return true;
+      });
+    });
+  },
+);
+
 integrationTest("vite dev - route css import", async () => {
   await withBrowser(async (page) => {
     await page.goto(`${demoServer.address()}/tests/css`, {

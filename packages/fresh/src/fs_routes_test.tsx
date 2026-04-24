@@ -1315,6 +1315,8 @@ Deno.test("fsRoutes - sortRoutePaths with groups", () => {
 
   routes = [
     "/_app",
+    "/app",
+    "/app/_middleware",
     "/(authed)/_middleware",
     "/(authed)/_layout",
     "/_error",
@@ -1325,24 +1327,69 @@ Deno.test("fsRoutes - sortRoutePaths with groups", () => {
     "/(authed)/(account)/account",
     "/(authed)/api/slug",
     "/hooks/github",
+    "/(authed)/[org]/__foo",
     "/(authed)/[org]/_middleware",
     "/(authed)/[org]/index",
   ];
+  routes.sort(() => Math.random() > 0.5 ? -1 : 1);
   routes.sort(sortRoutePaths);
   sorted = [
     "/_app",
     "/_error",
-    "/login",
+    "/app/_middleware",
+    "/app",
     "/auth/login",
     "/auth/logout",
     "/hooks/github",
+    "/login",
     "/(authed)/_middleware",
     "/(authed)/_layout",
     "/(authed)/index",
     "/(authed)/api/slug",
     "/(authed)/(account)/account",
     "/(authed)/[org]/_middleware",
+    "/(authed)/[org]/__foo",
     "/(authed)/[org]/index",
+  ];
+  expect(routes).toEqual(sorted);
+
+  routes = [
+    "/_app.js",
+    "/app.tsx",
+    "/app/_middleware.tsx",
+    "/(authed)/_middleware.tsx",
+    "/(authed)/_layout.jsx",
+    "/_error.tsx",
+    "/(authed)/index.js",
+    "/login.js",
+    "/auth/logout.tsx",
+    "/auth/login.ts",
+    "/(authed)/(account)/account.tsx",
+    "/(authed)/api/slug.js",
+    "/hooks/github.js",
+    "/(authed)/[org]/__foo.js",
+    "/(authed)/[org]/_middleware.tsx",
+    "/(authed)/[org]/index.ts",
+  ];
+  routes.sort(() => Math.random() > 0.5 ? -1 : 1);
+  routes.sort(sortRoutePaths);
+  sorted = [
+    "/_app.js",
+    "/_error.tsx",
+    "/app/_middleware.tsx",
+    "/app.tsx",
+    "/auth/login.ts",
+    "/auth/logout.tsx",
+    "/hooks/github.js",
+    "/login.js",
+    "/(authed)/_middleware.tsx",
+    "/(authed)/_layout.jsx",
+    "/(authed)/index.js",
+    "/(authed)/api/slug.js",
+    "/(authed)/(account)/account.tsx",
+    "/(authed)/[org]/_middleware.tsx",
+    "/(authed)/[org]/__foo.js",
+    "/(authed)/[org]/index.ts",
   ];
   expect(routes).toEqual(sorted);
 });

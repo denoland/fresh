@@ -3,7 +3,11 @@ import { trace } from "@opentelemetry/api";
 import { DENO_DEPLOYMENT_ID } from "@fresh/build-id";
 import * as colors from "@std/fmt/colors";
 import type { MaybeLazyMiddleware, Middleware } from "./middlewares/mod.ts";
-import { Context } from "./context.ts";
+import {
+  Context,
+  type WebSocketHandlers,
+  type WebSocketUpgradeOptions,
+} from "./context.ts";
 import { mergePath, type Method, UrlPatternRouter } from "./router.ts";
 import type { FreshConfig, ResolvedFreshConfig } from "./config.ts";
 import type { BuildCache } from "./build_cache.ts";
@@ -190,6 +194,7 @@ export class App<State> {
       root: ".",
       basePath: config.basePath ?? "",
       mode: config.mode ?? "production",
+      trustProxy: config.trustProxy ?? false,
     };
   }
 
@@ -301,6 +306,24 @@ export class App<State> {
   }
 
   /**
+   * Register a WebSocket endpoint at the specified path.
+   *
+   * ```ts
+   * app.ws("/chat", {
+   *   open(socket) { console.log("connected"); },
+   *   message(socket, event) { socket.send(event.data); },
+   * });
+   * ```
+   */
+  ws(
+    path: string,
+    handlers: WebSocketHandlers,
+    options?: WebSocketUpgradeOptions,
+  ): this {
+    return this.get(path, (ctx) => ctx.upgrade(handlers, options));
+  }
+
+  /**
    * Add middlewares for all HTTP verbs at the specified path.
    */
   all(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
@@ -392,6 +415,8 @@ export class App<State> {
       this.#onError,
     );
 
+    const trustProxy = this.config.trustProxy;
+
     return async (
       req: Request,
       conn: Deno.ServeHandlerInfo = DEFAULT_CONN_INFO,
@@ -399,6 +424,18 @@ export class App<State> {
       const url = new URL(req.url);
       // Prevent open redirect attacks
       url.pathname = url.pathname.replace(/\/+/g, "/");
+
+      // Apply X-Forwarded-* headers when behind a reverse proxy
+      if (trustProxy) {
+        const proto = req.headers.get("x-forwarded-proto");
+        if (proto) {
+          url.protocol = proto + ":";
+        }
+        const host = req.headers.get("x-forwarded-host");
+        if (host) {
+          url.host = host;
+        }
+      }
 
       const method = req.method.toUpperCase() as Method;
       const matched = router.match(method, url);

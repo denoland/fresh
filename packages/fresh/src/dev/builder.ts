@@ -57,13 +57,15 @@ export interface BuildOptions {
    */
   outDir?: string;
   /**
-   * The directory to serve static files from.
+   * The directory (or directories) to serve static files from.
    *
-   * This can be an absolute path, a file URL or a relative path.
+   * Each entry can be an absolute path, a file URL or a relative path.
    * Relative paths are resolved against the `root` option.
+   * When multiple directories are specified, they are searched in order
+   * and the first match wins.
    * @default "static"
    */
-  staticDir?: string;
+  staticDir?: string | string[];
   /**
    * The directory which contains islands.
    *
@@ -103,11 +105,15 @@ export interface BuildOptions {
 /**
  * The final resolved Builder configuration.
  */
-export type ResolvedBuildConfig = Required<Omit<BuildOptions, "sourceMap">> & {
-  mode: "development" | "production";
-  buildId: string;
-  sourceMap?: FreshBundleOptions["sourceMap"];
-};
+export type ResolvedBuildConfig =
+  & Required<Omit<BuildOptions, "sourceMap" | "staticDir">>
+  & {
+    /** Always normalized to an array of absolute paths. */
+    staticDir: string[];
+    mode: "development" | "production";
+    buildId: string;
+    sourceMap?: FreshBundleOptions["sourceMap"];
+  };
 
 // deno-lint-ignore no-explicit-any
 export class Builder<State = any> {
@@ -122,7 +128,10 @@ export class Builder<State = any> {
     const root = parseDirPath(options?.root ?? ".", Deno.cwd());
     const serverEntry = parseDirPath(options?.serverEntry ?? "main.ts", root);
     const outDir = parseDirPath(options?.outDir ?? "_fresh", root);
-    const staticDir = parseDirPath(options?.staticDir ?? "static", root);
+    const rawStaticDir = options?.staticDir ?? "static";
+    const staticDir =
+      (Array.isArray(rawStaticDir) ? rawStaticDir : [rawStaticDir])
+        .map((d) => parseDirPath(d, root));
     const islandDir = parseDirPath(options?.islandDir ?? "islands", root);
     const routeDir = parseDirPath(options?.routeDir ?? "routes", root);
 

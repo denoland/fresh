@@ -100,6 +100,7 @@ Deno.test("static files - etag in production", async () => {
         root: "",
         basePath: "",
         mode: "production",
+        trustProxy: false,
       },
     },
   );
@@ -134,6 +135,7 @@ Deno.test("static files - no etag in development", async () => {
         root: "",
         basePath: "",
         mode: "development",
+        trustProxy: false,
       },
     },
   );
@@ -191,6 +193,7 @@ Deno.test("static files - disables caching in development", async () => {
         root: "",
         basePath: "",
         mode: "development",
+        trustProxy: false,
       },
     },
   );
@@ -215,6 +218,7 @@ Deno.test("static files - enables caching in production", async () => {
         root: "",
         basePath: "",
         mode: "production",
+        trustProxy: false,
       },
     },
   );
@@ -291,4 +295,30 @@ Deno.test("static files - fallthrough", async () => {
   text = await res.text();
   expect(text).toEqual("it works");
   expect(called).toEqual(["before", "after"]);
+});
+
+Deno.test("static files - comma in pathname", async () => {
+  const key = systemPathToUrlEncoded("foo,bar.css");
+
+  const buildCache = new MockBuildCache({
+    [key]: {
+      content: "body {}",
+      hash: null,
+    },
+  });
+
+  const server = serveMiddleware(
+    staticFiles(),
+    { buildCache },
+  );
+
+  // Browser/request path usually keeps the comma unencoded
+  let res = await server.get("/foo,bar.css");
+  await res.body?.cancel();
+  expect(res.status).toEqual(200);
+
+  // Encoded form should also resolve
+  res = await server.get("/foo%2Cbar.css");
+  await res.body?.cancel();
+  expect(res.status).toEqual(200);
 });

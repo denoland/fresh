@@ -83,7 +83,9 @@ export function registerStaticFile(prepared) {
   snapshot.staticFiles.set(prepared.name, {
     name: prepared.name,
     contentType: prepared.contentType,
-    filePath: prepared.filePath
+    filePath: prepared.filePath,
+    hash: prepared.hash ?? null,
+    immutable: prepared.immutable,
   });
 }
 `;
@@ -131,6 +133,7 @@ if (import.meta.hot) import.meta.hot.accept();`;
                 filePath: path.join(serverOutDir, id),
                 hash: null,
                 pathname: getAssetPath(id),
+                immutable: true,
               });
             }
           }
@@ -143,6 +146,7 @@ if (import.meta.hot) import.meta.hot.accept();`;
                 filePath: path.join(serverOutDir, id),
                 hash: null,
                 pathname: getAssetPath(id),
+                immutable: true,
               });
             }
           }

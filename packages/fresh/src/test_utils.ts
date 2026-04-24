@@ -67,6 +67,7 @@ const DEFAULT_CONFIG: ResolvedFreshConfig = {
   root: "",
   mode: "production",
   basePath: "",
+  trustProxy: false,
 };
 
 export function serveMiddleware<T>(

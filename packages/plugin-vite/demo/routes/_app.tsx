@@ -1,4 +1,5 @@
 import type { PageProps } from "fresh";
+import { AppNav } from "../islands/AppNav.tsx";
 
 export default function App({ Component }: PageProps) {
   return (
@@ -9,6 +10,7 @@ export default function App({ Component }: PageProps) {
         <meta name="custom" content="foo" />
       </head>
       <body>
+        <AppNav />
         <Component />
       </body>
     </html>

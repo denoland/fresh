@@ -11,6 +11,7 @@ export interface FileSnapshot {
   filePath: string;
   hash: string | null;
   contentType: string;
+  immutable?: boolean;
 }
 
 export interface BuildSnapshot<State> {
@@ -28,6 +29,7 @@ export interface StaticFile {
   contentType: string;
   readable: ReadableStream<Uint8Array> | Uint8Array;
   close(): void;
+  immutable?: boolean;
 }
 
 // deno-lint-ignore no-explicit-any
@@ -87,6 +89,7 @@ export class ProdBuildCache<State> implements BuildCache<State> {
       size: stat.size,
       readable: file.readable,
       close: () => file.close(),
+      immutable: info.immutable,
     };
   }
 }
