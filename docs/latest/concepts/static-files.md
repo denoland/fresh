@@ -132,8 +132,8 @@ every deploy is wasteful.
 
 The `contentAddressedStatic` option lets you specify glob patterns for files
 that should use their **content hash** as the cache-bust key instead of the
-build ID. The URL only changes when the file content changes — surviving
-deploys unchanged.
+build ID. The URL only changes when the file content changes — surviving deploys
+unchanged.
 
 ```ts dev.ts
 import { Builder } from "fresh/dev";
