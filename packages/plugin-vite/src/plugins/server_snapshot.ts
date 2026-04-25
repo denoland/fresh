@@ -403,7 +403,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
       },
       transform: {
         filter: {
-          id: /\.(css|less|sass|scss)(\?.*)?$/,
+          id: CSS_LANG_REG,
         },
         handler(_code, id) {
           if (server) {
