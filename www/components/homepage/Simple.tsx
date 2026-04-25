@@ -1,30 +1,39 @@
 import { PageSection } from "../../components/PageSection.tsx";
+import { CodeBlock } from "../../components/CodeBlock.tsx";
+import { CodeWindow } from "../../components/CodeWindow.tsx";
 
-const ONE_FILE_EXAMPLE = `import { App } from "fresh";
+const TRADITIONAL = `// package.json
+// tsconfig.json
+// next.config.js
+// postcss.config.js
+// tailwind.config.js
+// .eslintrc.json
+// app/layout.tsx
+// app/page.tsx
 
-const app = new App()
-  .get("/", () => new Response("Hello, World!"));
+// app/api/hello/route.ts
+import { NextResponse } from "next/server";
 
-app.listen();`;
-
-const ADD_JSX_EXAMPLE = `import { App } from "fresh";
-
-const app = new App()
-  .get("/", (ctx) => ctx.render(<h1>Hello!</h1>));
-
-app.listen();`;
-
-const ADD_ISLAND_EXAMPLE = `// islands/Counter.tsx
-import { useSignal } from "@preact/signals";
-
-export function Counter() {
-  const count = useSignal(0);
-  return (
-    <button onClick={() => count.value++}>
-      Count: {count}
-    </button>
-  );
+export async function GET() {
+  return NextResponse.json({
+    message: "Hello!",
+  });
 }`;
+
+const FRESH_EXAMPLE = `// main.ts — that's it.
+import { App } from "fresh";
+
+const app = new App()
+  .get("/", (ctx) =>
+    ctx.render(<h1>Hello!</h1>)
+  )
+  .get("/api/hello", () =>
+    Response.json({
+      message: "Hello!",
+    })
+  );
+
+app.listen();`;
 
 export function Simple() {
   return (
@@ -35,50 +44,29 @@ export function Simple() {
           The framework so simple, you already know it.
         </h2>
         <p class="text-xl text-balance max-w-prose mx-auto">
-          Fresh is designed to be easy to use by building on the best well-known
-          tools, conventions, and web standards.
+          No config files, no build step, no node_modules. Just one file and you
+          have a server with routing, JSX, and islands.
         </p>
       </div>
 
-      <div class="grid md:grid-cols-3 gap-6 mt-8">
-        <StepCard
-          step="1"
-          title="One file. That's it."
-          description="No config files, no build step, no node_modules. Just one file and you have a server."
-          code={ONE_FILE_EXAMPLE}
-        />
-        <StepCard
-          step="2"
-          title="Add JSX"
-          description="Render HTML with JSX. Server-side by default, fast by design."
-          code={ADD_JSX_EXAMPLE}
-        />
-        <StepCard
-          step="3"
-          title="Sprinkle interactivity"
-          description="Add islands for client-side JS only where you need it. Zero JS shipped by default."
-          code={ADD_ISLAND_EXAMPLE}
-        />
+      <div class="grid md:grid-cols-2 gap-6 mt-8 items-start">
+        <div class="flex flex-col gap-3">
+          <h3 class="font-bold text-lg text-gray-400 text-center">
+            The traditional way
+          </h3>
+          <CodeWindow name="8 config files + app code">
+            <CodeBlock code={TRADITIONAL} lang="js" />
+          </CodeWindow>
+        </div>
+        <div class="flex flex-col gap-3">
+          <h3 class="font-bold text-lg text-green-700 text-center">
+            The Fresh way
+          </h3>
+          <CodeWindow name="main.ts">
+            <CodeBlock code={FRESH_EXAMPLE} lang="jsx" />
+          </CodeWindow>
+        </div>
       </div>
     </PageSection>
-  );
-}
-
-function StepCard(
-  props: { step: string; title: string; description: string; code: string },
-) {
-  return (
-    <div class="flex flex-col gap-3">
-      <div class="flex items-center gap-2">
-        <span class="bg-green-200 text-green-800 text-sm font-bold rounded-full w-7 h-7 flex items-center justify-center">
-          {props.step}
-        </span>
-        <h3 class="font-bold text-lg">{props.title}</h3>
-      </div>
-      <p class="text-gray-600 text-sm">{props.description}</p>
-      <pre class="bg-slate-800 text-green-100 rounded-md p-4 text-sm overflow-x-auto flex-1">
-        <code>{props.code}</code>
-      </pre>
-    </div>
   );
 }

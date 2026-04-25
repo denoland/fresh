@@ -5,7 +5,7 @@ export function CodeBlock(
 ) {
   return (
     <pre
-      class="rounded-lg text-base leading-relaxed bg-slate-800 text-white p-4 sm:p-6 md:p-4 lg:p-6 2xl:p-8 overflow-x-auto"
+      class="rounded-lg text-sm leading-relaxed bg-slate-800 text-white p-3 sm:p-4 overflow-x-auto"
       data-language={lang}
       // deno-lint-ignore react-no-danger
     ><code dangerouslySetInnerHTML={{ __html: Prism.highlight(code, Prism.languages[lang], lang)}} /></pre>

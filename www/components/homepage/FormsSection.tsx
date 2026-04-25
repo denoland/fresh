@@ -8,14 +8,14 @@ import { ExampleArrow } from "../homepage/ExampleArrow.tsx";
 import { FancyLink } from "../FancyLink.tsx";
 import { FormSubmitDemo } from "../../islands/FormSubmitDemo.tsx";
 
-const routingCode = `import { define } from "../utils.ts";
+const routingCode = `import { createDefine } from "fresh";
+const define = createDefine();
 
 export const handler = define.handlers({
   async POST(ctx) {
     const form = await ctx.req.formData();
-
-    // Do something with the form data here,
-    // then redirect user to thank you page
+    const treat = form.get("treat");
+    await db.votes.insert({ treat });
 
     return new Response(null, {
       status: 303,
@@ -34,8 +34,8 @@ export function FormsSection() {
               aria-hidden="true"
               xmlns="http://www.w3.org/2000/svg"
               class="icon icon-tabler icon-tabler-route-square-2 text-fresh"
-              width="4rem"
-              height="4rem"
+              width="2.5rem"
+              height="2.5rem"
               viewBox="0 0 24 24"
               stroke-width="1.5"
               stroke="currentColor"
@@ -49,17 +49,11 @@ export function FormsSection() {
               <path d="M17 3h4v4h-4z" />
             </svg>
           </div>
-          <SectionHeading>
-            Forms, the right way
-          </SectionHeading>
+          <SectionHeading>Forms that just work</SectionHeading>
           <p>
-            Don't fight the browser. Fresh helps you handle form submissions and
-            other dynamic requests server-side, from any route.
-          </p>
-          <p>
-            Since Fresh is built on{" "}
-            <a href="https://deno.com" class="underline">Deno</a>, it's built on
-            web standards.
+            Handle submissions server-side with standard Request and FormData.
+            No client-side state management, no serialization headaches.
+            Progressive enhancement comes free.
           </p>
           <FancyLink href="/docs/advanced/forms" class="mt-2">
             Forms in Fresh

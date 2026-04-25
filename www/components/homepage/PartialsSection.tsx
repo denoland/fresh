@@ -45,8 +45,8 @@ export function PartialsSection() {
             aria-hidden="true"
             xmlns="http://www.w3.org/2000/svg"
             class="icon icon-tabler icon-tabler-arrows-transfer-down text-fresh"
-            width="4rem"
-            height="4rem"
+            width="2.5rem"
+            height="2.5rem"
             viewBox="0 0 24 24"
             stroke-width="1.5"
             stroke="currentColor"
@@ -66,9 +66,10 @@ export function PartialsSection() {
 
           <SectionHeading>Stream HTML straight from the server</SectionHeading>
           <p>
-            Fresh Partials let you fetch HTML and slot it directly into the
-            page, without a full page reload - perfect for interactive elements
-            and dynamic apps.
+            Swap chunks of HTML from the server straight into the page. No full
+            reload, no client-side routing library. Click a link or submit a
+            form and Fresh streams just the part that changed. Perfect for
+            interactive elements and dynamic apps.
           </p>
           <FancyLink href="/docs/advanced/partials" class="mt-4">
             Learn more about Partials

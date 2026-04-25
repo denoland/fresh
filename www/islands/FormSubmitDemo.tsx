@@ -4,7 +4,10 @@ export function FormSubmitDemo() {
       <fieldset class="mb-4">
         <legend class="mb-2 font-bold">What's your favorite treat?</legend>
 
-        <label for="lemon-meringue-pie" class="flex gap-2 items-center">
+        <label
+          for="lemon-meringue-pie"
+          class="flex gap-2 items-center cursor-pointer"
+        >
           <input
             type="radio"
             value="lemon-meringue-pie"
@@ -14,7 +17,10 @@ export function FormSubmitDemo() {
           />
           Lemon meringue pie
         </label>
-        <label for="lemon-shortbread-cookies" class="flex gap-2 items-center">
+        <label
+          for="lemon-shortbread-cookies"
+          class="flex gap-2 items-center cursor-pointer"
+        >
           <input
             type="radio"
             value="lemon-shortbread-cookies"
@@ -23,7 +29,10 @@ export function FormSubmitDemo() {
           />
           Lemon shortbread cookies
         </label>
-        <label for="lemon-sherbet" class="flex gap-2 items-center">
+        <label
+          for="lemon-sherbet"
+          class="flex gap-2 items-center cursor-pointer"
+        >
           <input
             type="radio"
             value="lemon-sherbet"
@@ -32,7 +41,7 @@ export function FormSubmitDemo() {
           />
           Lemon sherbet
         </label>
-        <label for="lemon-bars" class="flex gap-2 items-center">
+        <label for="lemon-bars" class="flex gap-2 items-center cursor-pointer">
           <input
             type="radio"
             value="lemon-bars"
@@ -46,7 +55,7 @@ export function FormSubmitDemo() {
       <button
         type="submit"
         value="Submit"
-        class="pt-2 pb-1 px-3 rounded-sm border-current border-[1.5px] font-semibold"
+        class="pt-2 pb-1 px-3 rounded-sm border-current border-[1.5px] font-semibold cursor-pointer"
       >
         Submit
       </button>

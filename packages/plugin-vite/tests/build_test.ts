@@ -336,6 +336,58 @@ integrationTest("vite build - css modules", async () => {
   );
 });
 
+// Issue: https://github.com/denoland/fresh/issues/3633
+integrationTest(
+  "vite build - css modules in _app.tsx island are injected",
+  async () => {
+    await launchProd(
+      { cwd: viteResult.tmp },
+      async (address) => {
+        await withBrowser(async (page) => {
+          await page.goto(`${address}/tests/css_modules`, {
+            waitUntil: "networkidle2",
+          });
+
+          // The AppNav island is in _app.tsx and uses a CSS module.
+          // Its styles should be injected even though the island
+          // is discovered after <head> renders.
+          const bgColor = await page
+            .locator(".app-nav")
+            .evaluate((el) =>
+              window.getComputedStyle(el as Element).backgroundColor
+            );
+          expect(bgColor).toEqual("rgb(30, 30, 30)");
+        });
+      },
+    );
+  },
+);
+
+// Issue: https://github.com/denoland/fresh/issues/3633
+integrationTest(
+  "vite build - css modules work on second page with shared island",
+  async () => {
+    await launchProd(
+      { cwd: viteResult.tmp },
+      async (address) => {
+        await withBrowser(async (page) => {
+          // Access the second page that shares the CssModules island
+          await page.goto(`${address}/tests/css_modules_page2`, {
+            waitUntil: "networkidle2",
+          });
+
+          // The shared CssModules island's CSS should work here too
+          const color = await page
+            .locator(".red > h1")
+            // deno-lint-ignore no-explicit-any
+            .evaluate((el) => window.getComputedStyle(el as any).color);
+          expect(color).toEqual("rgb(255, 0, 0)");
+        });
+      },
+    );
+  },
+);
+
 integrationTest("vite build - route css import", async () => {
   await launchProd(
     { cwd: viteResult.tmp },

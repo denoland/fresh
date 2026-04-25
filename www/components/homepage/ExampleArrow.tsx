@@ -13,7 +13,7 @@ export function ExampleArrow(
       xmlns="http://www.w3.org/2000/svg"
       xml:space="preserve"
       style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;"
-      class={`w-12 -my-8 relative z-10 mx-auto ${props?.class ?? ""}`}
+      class={`w-8 -my-6 relative z-10 mx-auto ${props?.class ?? ""}`}
     >
       <path
         d="M50.704,18c46.89,80.967 38.288,189.344 5.941,254.255"

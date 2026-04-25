@@ -3,7 +3,11 @@ import { trace } from "@opentelemetry/api";
 import { DENO_DEPLOYMENT_ID } from "@fresh/build-id";
 import * as colors from "@std/fmt/colors";
 import type { MaybeLazyMiddleware, Middleware } from "./middlewares/mod.ts";
-import { Context } from "./context.ts";
+import {
+  Context,
+  type WebSocketHandlers,
+  type WebSocketUpgradeOptions,
+} from "./context.ts";
 import { mergePath, type Method, UrlPatternRouter } from "./router.ts";
 import type { FreshConfig, ResolvedFreshConfig } from "./config.ts";
 import type { BuildCache } from "./build_cache.ts";
@@ -299,6 +303,24 @@ export class App<State> {
   head(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
     this.#commands.push(newHandlerCmd("HEAD", path, middlewares, true));
     return this;
+  }
+
+  /**
+   * Register a WebSocket endpoint at the specified path.
+   *
+   * ```ts
+   * app.ws("/chat", {
+   *   open(socket) { console.log("connected"); },
+   *   message(socket, event) { socket.send(event.data); },
+   * });
+   * ```
+   */
+  ws(
+    path: string,
+    handlers: WebSocketHandlers,
+    options?: WebSocketUpgradeOptions,
+  ): this {
+    return this.get(path, (ctx) => ctx.upgrade(handlers, options));
   }
 
   /**

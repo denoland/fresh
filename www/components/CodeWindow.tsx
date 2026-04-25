@@ -14,7 +14,7 @@ export function CodeWindow(props: CodeWindowProps) {
       style={props.style}
     >
       <div class="flex items-stretch justify-start">
-        <div class="p-4 flex items-center">
+        <div class="p-3 flex items-center">
           <svg
             aria-hidden="true"
             width="41"
@@ -28,7 +28,7 @@ export function CodeWindow(props: CodeWindowProps) {
             <ellipse cx="35.9134" cy="5" rx="4.99155" ry="5" fill="#26C940" />
           </svg>
         </div>
-        <div class="p-4 w-full leading-none text-slate-400 text-base font-mono">
+        <div class="p-3 w-full leading-none text-slate-400 text-sm font-mono">
           {props.name ?? ""}
         </div>
       </div>

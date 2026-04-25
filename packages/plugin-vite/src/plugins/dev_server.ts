@@ -128,10 +128,22 @@ export function devServer(freshConfig: ResolvedFreshViteConfig): Plugin[] {
               url.pathname !== "/__inspect" &&
               res.headers.get("Content-Type")?.includes("text/html")
             ) {
+              const clientEnv = server.environments.client;
               const collected = await collectCss(
                 "fresh:client-entry",
-                server.environments.client,
+                clientEnv,
               );
+
+              // Also collect CSS from island modules. In dev mode,
+              // island css is [] so RemainingHead can't inject them.
+              // Walk all loaded modules that look like island entries
+              // to pick up their CSS module imports.
+              for (const mod of clientEnv.moduleGraph.idToModuleMap.values()) {
+                if (mod.id?.includes("fresh-island::")) {
+                  const islandCss = await collectCss(mod.id, clientEnv);
+                  collected.push(...islandCss);
+                }
+              }
 
               let html = await res.text();
 

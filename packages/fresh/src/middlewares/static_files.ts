@@ -4,6 +4,14 @@ import { BUILD_ID } from "@fresh/build-id";
 import { tracer } from "../otel.ts";
 import { getBuildCache } from "../context.ts";
 
+/** Decode and re-encode each path segment so that characters like commas
+ *  are percent-encoded consistently with how `prepareStaticFile` stores
+ *  entries in the build cache. */
+function normalizePathname(pathname: string): string {
+  return "/" +
+    pathname.split("/").filter(Boolean).map(encodeURIComponent).join("/");
+}
+
 /**
  * Fresh middleware to serve static files from the `static/` directory.
  * ```ts
@@ -23,6 +31,13 @@ export function staticFiles<T>(): Middleware<T> {
       pathname = pathname !== config.basePath
         ? pathname.slice(config.basePath.length)
         : "/";
+    }
+
+    try {
+      pathname = normalizePathname(decodeURIComponent(pathname));
+    } catch (_e: unknown) {
+      if (!(_e instanceof URIError)) throw _e;
+      return await ctx.next();
     }
 
     // Fast path bail out
