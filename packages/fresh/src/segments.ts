@@ -153,9 +153,7 @@ export async function renderRoute<State>(
   route: Route<State>,
   status = 200,
 ): Promise<Response> {
-  if (route.css !== undefined) {
-    setAdditionalStyles(ctx, route.css);
-  }
+  setAdditionalStyles(ctx, route.css);
 
   const internals = getInternals(ctx);
   if (route.config?.skipAppWrapper) {

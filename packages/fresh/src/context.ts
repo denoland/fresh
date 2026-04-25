@@ -192,7 +192,7 @@ export class Context<State> {
       ctx: Context<T>,
       css: string[] | null | undefined,
     ) => {
-      if (css === null || css === undefined || css.length === 0) return;
+      if (css == null) return;
 
       if (ctx.#additionalStyles === null) {
         ctx.#additionalStyles = css.slice();
@@ -305,9 +305,7 @@ export class Context<State> {
       props.Component = () => child;
 
       const def = defs[i];
-      if (def.css !== null) {
-        setAdditionalStyles(this, def.css);
-      }
+      setAdditionalStyles(this, def.css);
 
       const result = await renderRouteComponent(this, def, () => child);
       if (result instanceof Response) {
@@ -323,9 +321,7 @@ export class Context<State> {
 
     let hasApp = true;
 
-    if (appDef !== null && appDef.css !== null) {
-      setAdditionalStyles(this, appDef.css);
-    }
+    setAdditionalStyles(this, appDef?.css);
 
     if (appDef !== null && isAsyncAnyComponent(appDef.component)) {
       props.Component = () => appChild;
