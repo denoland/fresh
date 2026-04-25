@@ -526,7 +526,7 @@ export default ${JSON.stringify(route.css)}
           const manifest = JSON.parse(asset.source as string) as Manifest;
 
           for (const info of Object.values(manifest)) {
-            // Utility-file(_app/_layout/_error)'s CSS Modules can be hoisted into
+            // Utility-file(_app/_layout/_error)'s CSS can be hoisted into
             // shared chunks like "server-entry", not just route chunks.
             // Replace placeholders in any emitted JS chunk that contains one.
             if (!/\.(?:c|m)?js$/.test(info.file)) continue;
@@ -611,15 +611,22 @@ async function collectRouteCss(
     if (seen.has(current)) continue;
     seen.add(current);
 
+    // Modules may be registered under either their public id or Vite's
+    // internal "\0" id, depending on when they entered the graph.
     let mod = env.moduleGraph.getModuleById(current) ??
       env.moduleGraph.getModuleById(`\0${current}`);
 
-    if (mod === undefined || mod.transformResult === null) {
+    if (mod?.transformResult == null) {
+      // Dev transforms are lazy. Force Vite to load the module before we
+      // inspect its imports for CSS dependencies.
       await env.fetchModule(current);
       mod = env.moduleGraph.getModuleById(current) ??
         env.moduleGraph.getModuleById(`\0${current}`);
     }
 
+    // Some ids still won't resolve into the SSR graph (for example, if Vite
+    // does not materialize the module after fetch). Skip those and keep
+    // collecting CSS from the remaining graph.
     if (mod === undefined) continue;
 
     if (mod.id !== null && CSS_LANG_REG.test(mod.id)) {
@@ -627,6 +634,8 @@ async function collectRouteCss(
       continue;
     }
 
+    // Layout/app/error utility files can reach CSS through nested component
+    // imports, so walk the full SSR import graph for this route module.
     mod.importedModules.forEach((imported) => {
       if (imported.id !== null) {
         queue.push(imported.id);
