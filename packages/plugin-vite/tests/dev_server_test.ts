@@ -282,6 +282,26 @@ integrationTest(
   },
 );
 
+integrationTest(
+  "vite dev - css modules in _layout.tsx non-island component are injected",
+  async () => {
+    await withBrowser(async (page) => {
+      await page.goto(`${demoServer.address()}/tests/non_island_css_modules`, {
+        waitUntil: "networkidle2",
+      });
+
+      await waitFor(async () => {
+        const color = await page
+          .locator(".green > h1")
+          // deno-lint-ignore no-explicit-any
+          .evaluate((el) => window.getComputedStyle(el as any).color);
+        expect(color).toEqual("rgb(0, 128, 0)");
+        return true;
+      });
+    });
+  },
+);
+
 integrationTest("vite dev - route css import", async () => {
   await withBrowser(async (page) => {
     await page.goto(`${demoServer.address()}/tests/css`, {

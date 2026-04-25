@@ -388,6 +388,28 @@ integrationTest(
   },
 );
 
+integrationTest(
+  "vite build - css modules in _layout.tsx non-island component are injected",
+  async () => {
+    await launchProd(
+      { cwd: viteResult.tmp },
+      async (address) => {
+        await withBrowser(async (page) => {
+          await page.goto(`${address}/tests/non_island_css_modules`, {
+            waitUntil: "networkidle2",
+          });
+
+          const color = await page
+            .locator(".green > h1")
+            // deno-lint-ignore no-explicit-any
+            .evaluate((el) => window.getComputedStyle(el as any).color);
+          expect(color).toEqual("rgb(0, 128, 0)");
+        });
+      },
+    );
+  },
+);
+
 integrationTest("vite build - route css import", async () => {
   await launchProd(
     { cwd: viteResult.tmp },
