@@ -118,6 +118,16 @@ import OtherIsland from "../islands/other-island.tsx";
 </div>;
 ```
 
+## Styling islands
+
+Islands can import CSS files just like any other module. CSS Modules
+(`*.module.css`) are the recommended approach for scoped styles. Fresh
+automatically collects CSS from each island's module graph and injects it as
+`<link>` tags during server rendering, so styles are available before hydration.
+
+See [Styling](/docs/concepts/styling) for details on CSS Modules, global
+stylesheets, and other approaches.
+
 ## Client-only islands
 
 Some libraries (e.g. Monaco Editor, certain charting libraries) reference
