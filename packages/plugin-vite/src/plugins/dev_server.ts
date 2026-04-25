@@ -163,7 +163,7 @@ export function devServer(freshConfig: ResolvedFreshViteConfig): Plugin[] {
 
               let html = await res.text();
 
-              const styles = Array.from(new Set(collected)).join("\n");
+              const styles = collected.join("\n");
               html = html.replace("</head>", styles + "</head>");
 
               const newRes = new Response(html, {
