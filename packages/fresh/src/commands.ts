@@ -1,4 +1,3 @@
-import { setAdditionalStyles } from "./context.ts";
 import { HttpError } from "./error.ts";
 import { isHandlerByMethod, type PageResponse } from "./handlers.ts";
 import {
@@ -74,11 +73,13 @@ export function newErrorCmd<State>(
 export interface AppCommand<State> {
   type: CommandType.App;
   component: RouteComponent<State>;
+  css?: string[];
 }
 export function newAppCmd<State>(
   component: RouteComponent<State>,
+  css?: string[],
 ): AppCommand<State> {
-  return { type: CommandType.App, component };
+  return { type: CommandType.App, component, css };
 }
 
 export interface LayoutCommand<State> {
@@ -86,6 +87,7 @@ export interface LayoutCommand<State> {
   pattern: string;
   component: RouteComponent<State>;
   config?: LayoutConfig;
+  css?: string[];
   includeLastSegment: boolean;
 }
 export function newLayoutCmd<State>(
@@ -93,12 +95,14 @@ export function newLayoutCmd<State>(
   component: RouteComponent<State>,
   config: LayoutConfig | undefined,
   includeLastSegment: boolean,
+  css?: string[],
 ): LayoutCommand<State> {
   return {
     type: CommandType.Layout,
     pattern,
     component,
     config,
+    css,
     includeLastSegment,
   };
 }
@@ -253,7 +257,7 @@ function applyCommandsInner<State>(
         break;
       }
       case CommandType.App: {
-        root.app = cmd.component;
+        root.app = { component: cmd.component, css: cmd.css ?? null };
         break;
       }
       case CommandType.Layout: {
@@ -265,6 +269,7 @@ function applyCommandsInner<State>(
         segment.layout = {
           component: cmd.component,
           config: cmd.config ?? null,
+          css: cmd.css ?? null,
         };
         break;
       }
@@ -288,10 +293,6 @@ function applyCommandsInner<State>(
           fns.push(async (ctx) => {
             if (def === undefined) {
               def = await route();
-            }
-
-            if (def.css !== undefined) {
-              setAdditionalStyles(ctx, def.css);
             }
 
             return renderRoute(ctx, def);

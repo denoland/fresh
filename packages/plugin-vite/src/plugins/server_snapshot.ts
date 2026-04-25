@@ -23,6 +23,8 @@ import {
 import * as path from "@std/path";
 import { getBuildId } from "./build_id.ts";
 
+const CSS_LANG_REG = /\.(css|less|sass|scss)(\?.*)?$/;
+
 export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
   const modName = "fresh:server-snapshot";
 
@@ -491,7 +493,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
         filter: {
           id: /^\0fresh-route-css::/,
         },
-        handler(id) {
+        async handler(id) {
           const name = id.slice("\0fresh-route-css::".length);
 
           const route = routes.get(name);
@@ -500,6 +502,10 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
           if (!isDev) {
             return `export default ["__FRESH_CSS_PLACEHOLDER__"];`;
           }
+
+          route.css = server === undefined
+            ? route.css
+            : await collectRouteCss(server, route.filePath);
 
           const imports = route.css.map((css) => `import "${css}";`).join("\n");
           return `${imports}
@@ -520,19 +526,20 @@ export default ${JSON.stringify(route.css)}
           const manifest = JSON.parse(asset.source as string) as Manifest;
 
           for (const info of Object.values(manifest)) {
-            if (info.name?.startsWith("_fresh-route___")) {
-              const filePath = path.join(serverOutDir, info.file);
-              const content = await Deno.readTextFile(filePath);
+            if (!/\.(?:c|m)?js$/.test(info.file)) continue;
 
-              const replaced = content.replace(
-                `["__FRESH_CSS_PLACEHOLDER__"]`,
-                info.css
-                  ? JSON.stringify(info.css.map((css) => `/${css}`))
-                  : "null",
-              );
+            const filePath = path.join(serverOutDir, info.file);
+            const content = await Deno.readTextFile(filePath);
+            if (!content.includes(`["__FRESH_CSS_PLACEHOLDER__"]`)) continue;
 
-              await Deno.writeTextFile(filePath, replaced);
-            }
+            const replaced = content.replace(
+              `["__FRESH_CSS_PLACEHOLDER__"]`,
+              info.css
+                ? JSON.stringify(info.css.map((css) => `/${css}`))
+                : "null",
+            );
+
+            await Deno.writeTextFile(filePath, replaced);
           }
         }
       },
@@ -585,6 +592,46 @@ export default mod.default;
       },
     },
   ];
+}
+
+async function collectRouteCss(
+  server: ViteDevServer,
+  id: string,
+): Promise<string[]> {
+  const env = server.environments.ssr;
+  const out = new Set<string>();
+  const seen = new Set<string>();
+  const queue = [id];
+
+  let current: string | undefined;
+  while ((current = queue.pop()) !== undefined) {
+    if (seen.has(current)) continue;
+    seen.add(current);
+
+    let mod = env.moduleGraph.getModuleById(current) ??
+      env.moduleGraph.getModuleById(`\0${current}`);
+
+    if (mod === undefined || mod.transformResult === null) {
+      await env.fetchModule(current);
+      mod = env.moduleGraph.getModuleById(current) ??
+        env.moduleGraph.getModuleById(`\0${current}`);
+    }
+
+    if (mod === undefined) continue;
+
+    if (mod.id !== null && CSS_LANG_REG.test(mod.id)) {
+      out.add(mod.url);
+      continue;
+    }
+
+    mod.importedModules.forEach((imported) => {
+      if (imported.id !== null) {
+        queue.push(imported.id);
+      }
+    });
+  }
+
+  return Array.from(out);
 }
 
 function walkUp(
