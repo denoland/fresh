@@ -526,6 +526,9 @@ export default ${JSON.stringify(route.css)}
           const manifest = JSON.parse(asset.source as string) as Manifest;
 
           for (const info of Object.values(manifest)) {
+            // Utility-file(_app/_layout/_error)'s CSS Modules can be hoisted into
+            // shared chunks like "server-entry", not just route chunks.
+            // Replace placeholders in any emitted JS chunk that contains one.
             if (!/\.(?:c|m)?js$/.test(info.file)) continue;
 
             const filePath = path.join(serverOutDir, info.file);
