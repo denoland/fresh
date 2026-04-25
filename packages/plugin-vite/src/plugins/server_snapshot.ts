@@ -408,7 +408,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
         handler(_code, id) {
           if (server) {
             const ssrGraph = server.environments.ssr.moduleGraph;
-            const mod = ssrGraph.getModuleById(id);
+            const mod = getSsrModule(server.environments.ssr, id);
             if (mod === undefined) return;
 
             const snapshot = ssrGraph.getModuleById("\0fresh:server-snapshot");
@@ -424,10 +424,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
                 if (name !== undefined) {
                   const route = routes.get(name);
                   if (route !== undefined) {
-                    const mod = ssrGraph.getModuleById(id);
-                    if (mod !== undefined) {
-                      route.css.push(mod.url);
-                    }
+                    route.css.push(mod.url);
 
                     const routeMod = ssrGraph.getModuleById(
                       `\0fresh-route-css::${name}`,
@@ -611,17 +608,14 @@ async function collectRouteCss(
     if (seen.has(current)) continue;
     seen.add(current);
 
-    // Modules may be registered under either their public id or Vite's
-    // internal "\0" id, depending on when they entered the graph.
-    let mod = env.moduleGraph.getModuleById(current) ??
-      env.moduleGraph.getModuleById(`\0${current}`);
-
+    let mod = getSsrModule(env, current);
     if (mod?.transformResult == null) {
       // Dev transforms are lazy. Force Vite to load the module before we
       // inspect its imports for CSS dependencies.
-      await env.fetchModule(current);
-      mod = env.moduleGraph.getModuleById(current) ??
-        env.moduleGraph.getModuleById(`\0${current}`);
+      await env.fetchModule(
+        path.isAbsolute(current) ? path.toFileUrl(current).href : current,
+      );
+      mod = getSsrModule(env, current);
     }
 
     // Some ids still won't resolve into the SSR graph (for example, if Vite
@@ -644,6 +638,28 @@ async function collectRouteCss(
   }
 
   return Array.from(out);
+}
+
+function getSsrModule(
+  env: ViteDevServer["environments"]["ssr"],
+  id: string,
+): EnvironmentModuleNode | undefined {
+  // Real files are keyed by file path in Vite's module graph, while Fresh's
+  // virtual route modules are addressed by their module ids.
+  if (path.isAbsolute(id)) {
+    const mods = env.moduleGraph.getModulesByFile(path.normalize(id));
+    if (mods === undefined) return undefined;
+
+    for (const mod of mods) {
+      if (mod.transformResult !== null) return mod;
+    }
+
+    return mods.values().next().value;
+  }
+
+  const mod = env.moduleGraph.getModuleById(id) ??
+    env.moduleGraph.getModuleById(`\0${id}`);
+  return mod;
 }
 
 function walkUp(
