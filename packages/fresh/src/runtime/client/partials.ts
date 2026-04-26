@@ -83,26 +83,35 @@ if (!history.state) {
   history.replaceState(state, document.title);
 }
 
-function maybeUpdateHistory(nextUrl: URL) {
+function saveScrollPosition() {
+  const state: FreshHistoryState = {
+    fClientNav: true,
+    index,
+    scrollX: globalThis.scrollX,
+    scrollY: globalThis.scrollY,
+  };
+  history.replaceState(state, "", location.href);
+}
+
+function maybePushHistory(nextUrl: URL) {
   // Only add history entry when URL is new. Still apply
   // the partials because sometimes users click a link to
   // "refresh" the current page.
   if (nextUrl.href !== globalThis.location.href) {
+    index++;
     const state: FreshHistoryState = {
       fClientNav: true,
       index,
-      scrollX: globalThis.scrollX,
-      scrollY: globalThis.scrollY,
+      scrollX: 0,
+      scrollY: 0,
     };
-
-    // Store current scroll position
-    history.replaceState({ ...state }, "", location.href);
-
-    // Now store the new position
-    index++;
-    state.scrollX = 0;
-    state.scrollY = 0;
     history.pushState(state, "", nextUrl.href);
+  }
+}
+
+function maybeReplaceHistory(nextUrl: URL) {
+  if (nextUrl.href !== globalThis.location.href) {
+    history.replaceState(history.state, "", nextUrl.href);
   }
 }
 
@@ -154,15 +163,20 @@ document.addEventListener("click", async (e) => {
 
       const nextUrl = new URL(el.href);
       try {
-        maybeUpdateHistory(nextUrl);
+        saveScrollPosition();
+        maybePushHistory(nextUrl);
 
         const partialUrl = new URL(
           partial ? partial : nextUrl.href,
           location.href,
         );
+        let finalUrl = nextUrl;
         await withViewTransition(async () => {
-          await fetchPartials(nextUrl, partialUrl, true);
-          updateLinks(nextUrl);
+          finalUrl = await fetchPartials(nextUrl, partialUrl);
+          if (finalUrl.href !== nextUrl.href) {
+            maybeReplaceHistory(finalUrl);
+          }
+          updateLinks(finalUrl);
         });
         scrollTo({ left: 0, top: 0, behavior: "instant" });
       } finally {
@@ -185,7 +199,7 @@ document.addEventListener("click", async (e) => {
         partial,
         location.href,
       );
-      await fetchPartials(partialUrl, partialUrl, false);
+      await fetchPartials(partialUrl, partialUrl);
     }
   }
 });
@@ -223,8 +237,11 @@ addEventListener("popstate", async (e) => {
   const url = new URL(location.href, location.origin);
   try {
     await withViewTransition(async () => {
-      await fetchPartials(url, url, true);
-      updateLinks(url);
+      const finalUrl = await fetchPartials(url, url);
+      if (finalUrl.href !== url.href) {
+        maybeReplaceHistory(finalUrl);
+      }
+      updateLinks(finalUrl);
     });
     scrollTo({
       left: state.scrollX ?? 0,
@@ -304,8 +321,10 @@ document.addEventListener("submit", async (e) => {
       }
 
       try {
+        saveScrollPosition();
         await withViewTransition(async () => {
-          await fetchPartials(actionUrl, partialUrl, true, init);
+          const finalUrl = await fetchPartials(actionUrl, partialUrl, init);
+          maybePushHistory(finalUrl);
         });
       } finally {
         if (indicator !== undefined) {
@@ -347,9 +366,8 @@ function updateLinks(url: URL) {
 async function fetchPartials(
   actualUrl: URL,
   partialUrl: URL,
-  shouldNavigate: boolean,
   init: RequestInit = {},
-) {
+): Promise<URL> {
   init.redirect = "follow";
   partialUrl = new URL(partialUrl);
   partialUrl.searchParams.set(PARTIAL_SEARCH_PARAM, "true");
@@ -361,6 +379,7 @@ async function fetchPartials(
       actualUrl = nextUrl;
     }
   }
+  actualUrl.searchParams.delete(PARTIAL_SEARCH_PARAM);
 
   try {
     await applyPartials(res);
@@ -369,14 +388,12 @@ async function fetchPartials(
     // to a full page navigation instead of silently failing.
     if (err instanceof NoPartialsError && res.redirected) {
       location.href = actualUrl.href;
-      return;
+      return actualUrl;
     }
     throw err;
   }
 
-  if (shouldNavigate) {
-    maybeUpdateHistory(actualUrl);
-  }
+  return actualUrl;
 }
 
 interface PartialReviveCtx {
