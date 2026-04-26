@@ -503,6 +503,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
             return `export default ["__FRESH_CSS_PLACEHOLDER__"];`;
           }
 
+          // Re-collected on every load for HMR correctness.
           route.css = server === undefined
             ? route.css
             : await collectRouteCss(server, route.filePath);
