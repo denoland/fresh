@@ -201,6 +201,7 @@ export class Context<State> {
 
       for (let i = 0; i < css.length; i++) {
         const href = css[i];
+        // FIXME: consider to use `Set` instead of `css: string[]` for entire codebase
         if (!ctx.#additionalStyles.includes(href)) {
           ctx.#additionalStyles.push(href);
         }
