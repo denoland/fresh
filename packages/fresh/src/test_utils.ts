@@ -7,6 +7,7 @@ import { DEFAULT_CONN_INFO } from "./app.ts";
 import type { Command } from "./commands.ts";
 import { fsItemsToCommands, type FsRouteFile } from "./fs_routes.ts";
 import * as path from "@std/path";
+import { toPosix } from "./dev/dev_build_cache.ts";
 
 const STUB = {} as unknown as Deno.ServeHandlerInfo;
 
@@ -123,7 +124,10 @@ export function createFakeFs(files: Record<string, unknown>): FsAdapter {
     },
     // deno-lint-ignore require-await
     async isDirectory(dir) {
-      return Object.keys(files).some((file) => file.startsWith(dir + "/"));
+      return Object.keys(files).some((file) =>
+        // normalize path to posix before comparing
+        toPosix(file).startsWith(dir + "/")
+      );
     },
     async mkdirp(_dir: string) {
     },

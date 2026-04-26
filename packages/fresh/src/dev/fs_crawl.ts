@@ -1,6 +1,6 @@
 import { type FsAdapter, fsAdapter } from "../fs.ts";
 import type { WalkEntry } from "@std/fs/walk";
-import type { FsRouteFileNoMod } from "./dev_build_cache.ts";
+import { type FsRouteFileNoMod, toPosix } from "./dev_build_cache.ts";
 import * as path from "@std/path";
 import { pathToPattern } from "../router.ts";
 import { CommandType } from "../commands.ts";
@@ -86,7 +86,7 @@ export async function crawlRouteDir<State>(
 
     files.push({
       id,
-      filePath: entry.path,
+      filePath: toPosix(entry.path),
       type,
       pattern,
       routePattern,
