@@ -129,7 +129,6 @@ export function devServer(freshConfig: ResolvedFreshViteConfig): Plugin[] {
               res.headers.get("Content-Type")?.includes("text/html")
             ) {
               const clientEnv = server.environments.client;
-              const ssrEnv = server.environments.ssr;
               const collected = await collectCss(
                 "fresh:client-entry",
                 clientEnv,
@@ -143,21 +142,6 @@ export function devServer(freshConfig: ResolvedFreshViteConfig): Plugin[] {
                 if (mod.id?.includes("fresh-island::")) {
                   const islandCss = await collectCss(mod.id, clientEnv);
                   collected.push(...islandCss);
-                }
-              }
-
-              // Route/app/layout/error CSS lives behind fresh-route-css virtual
-              // modules that are first discovered in the SSR graph.
-              for (const mod of ssrEnv.moduleGraph.idToModuleMap.values()) {
-                if (mod.id?.includes("fresh-route-css::")) {
-                  let id = mod.id;
-                  if (id.startsWith("\0fresh-route-css::")) {
-                    id = `/@id/fresh-route-css::${
-                      id.slice("\0fresh-route-css::".length)
-                    }.module.css`;
-                  }
-                  const routeCss = await collectCss(id, clientEnv);
-                  collected.push(...routeCss);
                 }
               }
 
