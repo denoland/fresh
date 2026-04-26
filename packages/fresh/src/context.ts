@@ -321,7 +321,9 @@ export class Context<State> {
 
     let hasApp = true;
 
-    setAdditionalStyles(this, appDef?.css);
+    if (appDef !== null) {
+      setAdditionalStyles(this, appDef.css);
+    }
 
     if (appDef !== null && isAsyncAnyComponent(appDef.component)) {
       props.Component = () => appChild;
