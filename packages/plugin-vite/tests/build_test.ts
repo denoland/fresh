@@ -464,6 +464,19 @@ integrationTest("vite build - route css import", async () => {
   );
 });
 
+integrationTest(
+  "vite build - __FRESH_CSS_PLACEHOLDER__ has been replaced",
+  async () => {
+    await using res = await buildVite(DEMO_DIR, { base: "/my-app/" });
+
+    const serverEntryJs = await Deno.readTextFile(
+      path.join(res.tmp, "_fresh", "server", "server-entry.mjs"),
+    );
+
+    expect(serverEntryJs).not.toContain("__FRESH_CSS_PLACEHOLDER__");
+  },
+);
+
 integrationTest("vite build - remote island", async () => {
   const fixture = path.join(FIXTURE_DIR, "remote_island");
   await using res = await buildVite(fixture);

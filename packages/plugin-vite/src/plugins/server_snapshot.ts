@@ -532,7 +532,8 @@ export default ${JSON.stringify(route.css)}
             const content = await Deno.readTextFile(filePath);
             if (!content.includes(`["__FRESH_CSS_PLACEHOLDER__"]`)) continue;
 
-            const replaced = content.replace(
+            // Replace all placeholders in the file with the CSS
+            const replaced = content.replaceAll(
               `["__FRESH_CSS_PLACEHOLDER__"]`,
               info.css
                 ? JSON.stringify(info.css.map((css) => `/${css}`))
