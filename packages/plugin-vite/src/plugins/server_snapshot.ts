@@ -493,7 +493,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
         filter: {
           id: /^\0fresh-route-css::/,
         },
-        async handler(id) {
+        handler(id) {
           const name = id.slice("\0fresh-route-css::".length);
 
           const route = routes.get(name);
@@ -502,11 +502,6 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
           if (!isDev) {
             return `export default ["__FRESH_CSS_PLACEHOLDER__"];`;
           }
-
-          // Re-collected on every load for HMR correctness.
-          route.css = server === undefined
-            ? route.css
-            : await collectRouteCss(server, route.filePath);
 
           const imports = route.css.map((css) => `import "${css}";`).join("\n");
           return `${imports}
@@ -597,55 +592,6 @@ export default mod.default;
       },
     },
   ];
-}
-
-async function collectRouteCss(
-  server: ViteDevServer,
-  id: string,
-): Promise<string[]> {
-  const env = server.environments.ssr;
-  const out = new Set<string>();
-  const seen = new Set<string>();
-  const queue = [id];
-
-  let current: string | undefined;
-  while ((current = queue.pop()) !== undefined) {
-    if (seen.has(current)) continue;
-    seen.add(current);
-
-    // Modules may be registered under either their public id or Vite's
-    // internal "\0" id, depending on when they entered the graph.
-    let mod = env.moduleGraph.getModuleById(current) ??
-      env.moduleGraph.getModuleById(`\0${current}`);
-
-    if (mod?.transformResult == null) {
-      // Dev transforms are lazy. Force Vite to load the module before we
-      // inspect its imports for CSS dependencies.
-      await env.fetchModule(current);
-      mod = env.moduleGraph.getModuleById(current) ??
-        env.moduleGraph.getModuleById(`\0${current}`);
-    }
-
-    // Some ids still won't resolve into the SSR graph (for example, if Vite
-    // does not materialize the module after fetch). Skip those and keep
-    // collecting CSS from the remaining graph.
-    if (mod === undefined) continue;
-
-    if (mod.id !== null && CSS_LANG_REG.test(mod.id)) {
-      out.add(mod.url);
-      continue;
-    }
-
-    // Layout/app/error utility files can reach CSS through nested component
-    // imports, so walk the full SSR import graph for this route module.
-    mod.importedModules.forEach((imported) => {
-      if (imported.id !== null) {
-        queue.push(imported.id);
-      }
-    });
-  }
-
-  return Array.from(out);
 }
 
 function walkUp(
