@@ -13,6 +13,7 @@ import {
   pathToSpec,
   type PendingStaticFile,
   specToName,
+  toPosix,
   UniqueNamer,
 } from "fresh/internal-dev";
 import {
@@ -390,7 +391,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
               if (def) {
                 return `fresh-island::${def.name}`;
               }
-              const routeDef = routeFileToName.get(file);
+              const routeDef = routeFileToName.get(toPosix(file));
               if (routeDef !== undefined) {
                 return `fresh-route::${routeDef}`;
               }

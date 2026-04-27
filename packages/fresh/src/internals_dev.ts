@@ -7,6 +7,7 @@ export {
   type IslandModChunk,
   type PendingStaticFile,
   prepareStaticFile,
+  toPosix,
   writeCompiledEntry,
 } from "./dev/dev_build_cache.ts";
 export { specToName } from "./dev/builder.ts";
