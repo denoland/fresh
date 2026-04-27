@@ -23,6 +23,37 @@ export function deno(): Plugin {
 
   let isDev = false;
 
+  // Cache for package.json "type" field lookups. Per Node.js semantics,
+  // .js files in node_modules are CJS unless the nearest package.json
+  // has "type": "module".
+  const pkgTypeCache = new Map<string, boolean>();
+  async function isEsmPackage(filePath: string): Promise<boolean> {
+    let dir = path.dirname(filePath);
+    while (true) {
+      const cached = pkgTypeCache.get(dir);
+      if (cached !== undefined) return cached;
+
+      try {
+        const text = await Deno.readTextFile(path.join(dir, "package.json"));
+        const isEsm = JSON.parse(text).type === "module";
+        pkgTypeCache.set(dir, isEsm);
+        return isEsm;
+      } catch {
+        const parent = path.dirname(dir);
+        if (parent === dir) break;
+        dir = parent;
+      }
+    }
+    return false;
+  }
+
+  // Detect actual ESM export/import statements at the statement level.
+  // More robust than code.includes("export ") which matches comments
+  // and strings (e.g. "// Remove export in next version" would trick it).
+  // Handles both formatted and minified ESM (e.g. "import{" with no space).
+  const ESM_STMT_RE =
+    /(?:^|[\n;])\s*(?:export\s*[{*]|export\s+(?:default|const|let|var|function|class|async)\b|import\s*[{*"']|import\s+[a-zA-Z_$])/;
+
   return {
     name: "deno",
     sharedDuringBuild: true,
@@ -186,27 +217,34 @@ export function deno(): Plugin {
       // - SSR: module runner evaluates as ESM, needs module/exports/require
       // - Client: browser evaluates as ESM, needs module/exports
       // In build mode, Rollup's @rollup/plugin-commonjs handles CJS.
+      //
+      // CJS detection uses Node.js semantics (package.json "type" field)
+      // instead of content heuristics, which can be fooled by comments
+      // or strings containing "export"/"import".
       if (
         isDev &&
         !id.startsWith("\0") &&
         id.includes("node_modules") &&
         /\.(c?js|cjs)$/.test(id)
       ) {
-        try {
-          const code = await Deno.readTextFile(id);
-          // Quick heuristic: if file has CJS patterns and no ESM
-          if (
-            !code.includes("export ") &&
-            !code.includes("import ") &&
-            (code.includes("module.exports") ||
-              code.includes("exports.") ||
-              code.includes("require("))
-          ) {
-            const isServer = this.environment.config.consumer === "server";
+        // .cjs is always CJS. For .js files, check the nearest
+        // package.json "type" field first (Node.js semantics), then
+        // fall back to content-based detection for dual CJS/ESM
+        // packages that ship ESM in .js without "type": "module".
+        if (id.endsWith(".cjs") || !(await isEsmPackage(id))) {
+          try {
+            const code = await Deno.readTextFile(id);
 
-            if (isServer) {
-              // SSR: use Node.js createRequire for full CJS compat
-              const wrapped = `
+            // Skip if the file contains actual ESM syntax. Some packages
+            // (e.g. @opentelemetry/api) ship both CJS and ESM as .js
+            // without "type": "module" in package.json.
+            if (!ESM_STMT_RE.test(code)) {
+              const isServer =
+                this.environment.config.consumer === "server";
+
+              if (isServer) {
+                // SSR: use Node.js createRequire for full CJS compat
+                const wrapped = `
 import { createRequire as __cjs_createRequire } from "node:module";
 import { fileURLToPath as __cjs_fileURLToPath } from "node:url";
 import { dirname as __cjs_dirname } from "node:path";
@@ -220,26 +258,26 @@ ${code}
 
 export default module.exports;
 `;
-              return { code: wrapped };
-            }
+                return { code: wrapped };
+              }
 
-            // Client: convert require() calls to ESM imports so
-            // browsers can load them. Hoist static require() calls
-            // to import statements at the top.
-            const imports: string[] = [];
-            let idx = 0;
-            const transformed = code.replace(
-              /\brequire\(["']([^"']+)["']\)/g,
-              (_match: string, spec: string) => {
-                const varName = `__cjs_import_${idx++}`;
-                imports.push(
-                  `import ${varName} from ${JSON.stringify(spec)};`,
-                );
-                return `(${varName}.default ?? ${varName})`;
-              },
-            );
+              // Client: convert require() calls to ESM imports so
+              // browsers can load them. Hoist static require() calls
+              // to import statements at the top.
+              const imports: string[] = [];
+              let idx = 0;
+              const transformed = code.replace(
+                /\brequire\(["']([^"']+)["']\)/g,
+                (_match: string, spec: string) => {
+                  const varName = `__cjs_import_${idx++}`;
+                  imports.push(
+                    `import ${varName} from ${JSON.stringify(spec)};`,
+                  );
+                  return `(${varName}.default ?? ${varName})`;
+                },
+              );
 
-            const wrapped = `${imports.join("\n")}
+              const wrapped = `${imports.join("\n")}
 var module = { exports: {} };
 var exports = module.exports;
 var __filename = "";
@@ -249,10 +287,11 @@ ${transformed}
 
 export default module.exports;
 `;
-            return { code: wrapped };
+              return { code: wrapped };
+            }
+          } catch {
+            // Fall through to default loading
           }
-        } catch {
-          // Fall through to default loading
         }
       }
 
