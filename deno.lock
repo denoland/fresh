@@ -6111,17 +6111,6 @@
           "npm:vite@^7.1.4"
         ]
       }
-    },
-    "links": {
-      "npm:@deno/vite-plugin@2.0.2": {
-        "dependencies": [
-          "npm:@jsr/deno__loader@0.5",
-          "npm:@jsr/std__jsonc@1"
-        ],
-        "peerDependencies": [
-          "npm:vite@5 || 6 || 7 || 8"
-        ]
-      }
     }
   }
 }
