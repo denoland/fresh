@@ -15,14 +15,14 @@ jobs:
         env:
           TITLE: ${{ github.event.pull_request.title }}
         run: |
-          if ! echo "$TITLE" | grep -qP '^(chore|ci|docs|feat|fix|refactor|test):'; then
-            echo "::error::PR title must start with chore:, ci:, docs:, feat:, fix:, refactor: or test:"
+          if ! echo "$TITLE" | grep -qP '^(chore|ci|docs|feat|fix|perf|refactor|test):'; then
+            echo "::error::PR title must start with chore:, ci:, docs:, feat:, fix:, perf:, refactor: or test:"
             exit 1
           fi
 
   test:
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     strategy:
       fail-fast: false
@@ -39,7 +39,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Deno
         uses: denoland/setup-deno@v2

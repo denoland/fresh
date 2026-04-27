@@ -11,6 +11,7 @@ export interface FileSnapshot {
   filePath: string;
   hash: string | null;
   contentType: string;
+  immutable?: boolean;
 }
 
 export interface BuildSnapshot<State> {
@@ -28,6 +29,7 @@ export interface StaticFile {
   contentType: string;
   readable: ReadableStream<Uint8Array> | Uint8Array;
   close(): void;
+  immutable?: boolean;
 }
 
 // deno-lint-ignore no-explicit-any
@@ -35,6 +37,8 @@ export interface BuildCache<State = any> {
   root: string;
   islandRegistry: ServerIslandRegistry;
   clientEntry: string;
+  /** Pathname for the HMR-only chunk (development only). Undefined in production. */
+  hmrClientEntry?: string;
   features: {
     errorOverlay: boolean;
   };
@@ -85,6 +89,7 @@ export class ProdBuildCache<State> implements BuildCache<State> {
       size: stat.size,
       readable: file.readable,
       close: () => file.close(),
+      immutable: info.immutable,
     };
   }
 }

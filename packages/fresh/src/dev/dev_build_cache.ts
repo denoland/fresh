@@ -17,6 +17,13 @@ import { contentType as getStdContentType } from "@std/media-types/content-type"
 
 const WINDOWS_SEPARATOR = pathWin32.SEPARATOR;
 
+/** Normalize a path to use forward slashes so that generated files
+ *  are portable across operating systems (e.g. build on Windows,
+ *  deploy on Linux). */
+function toPosix(p: string): string {
+  return p.replaceAll(WINDOWS_SEPARATOR, "/");
+}
+
 export interface MemoryFile {
   hash: string | null;
   contentType: string;
@@ -63,6 +70,7 @@ export class MemoryBuildCache<State> implements DevBuildCache<State> {
   root: string;
   islandRegistry: ServerIslandRegistry = new Map();
   clientEntry: string;
+  hmrClientEntry: string | undefined = undefined;
   features = { errorOverlay: false };
 
   constructor(
@@ -122,50 +130,53 @@ export class MemoryBuildCache<State> implements DevBuildCache<State> {
       }
     }
 
-    let entry = pathname.startsWith("/") ? pathname.slice(1) : pathname;
-    entry = path.join(this.#config.staticDir, entry);
-    const relative = path.relative(this.#config.staticDir, entry);
-    if (relative.startsWith("..")) {
-      throw new Error(
-        `Processed file resolved outside of static dir ${entry}`,
+    const stripped = pathname.startsWith("/") ? pathname.slice(1) : pathname;
+
+    for (const staticDir of this.#config.staticDir) {
+      const entry = path.join(staticDir, stripped);
+      const relative = path.relative(staticDir, entry);
+      if (relative.startsWith("..")) {
+        throw new Error(
+          `Processed file resolved outside of static dir ${entry}`,
+        );
+      }
+
+      // Might be a file that we still need to process
+      const transformed = await this.#transformer.process(
+        entry,
+        "development",
+        this.#config.target,
       );
-    }
 
-    // Might be a file that we still need to process
-    const transformed = await this.#transformer.process(
-      entry,
-      "development",
-      this.#config.target,
-    );
+      if (transformed !== null) {
+        for (let i = 0; i < transformed.length; i++) {
+          const file = transformed[i];
+          const rel = path.relative(staticDir, file.path);
+          if (rel.startsWith("..")) {
+            throw new Error(
+              `Processed file resolved outside of static dir ${file.path}`,
+            );
+          }
+          const filePathname = new URL(rel, "http://localhost").pathname;
 
-    if (transformed !== null) {
-      for (let i = 0; i < transformed.length; i++) {
-        const file = transformed[i];
-        const relative = path.relative(this.#config.staticDir, file.path);
-        if (relative.startsWith("..")) {
-          throw new Error(
-            `Processed file resolved outside of static dir ${file.path}`,
-          );
+          this.addProcessedFile(filePathname, file.content, null);
         }
-        const pathname = new URL(relative, "http://localhost").pathname;
-
-        this.addProcessedFile(pathname, file.content, null);
-      }
-      if (this.#processedFiles.has(pathname)) {
-        return this.readFile(pathname);
-      }
-    } else {
-      try {
-        const filePath = path.join(this.#config.staticDir, pathname);
-        const relative = path.relative(this.#config.staticDir, filePath);
-        if (!relative.startsWith("..") && (await Deno.stat(filePath)).isFile) {
-          const pathname = new URL(relative, "http://localhost").pathname;
-          this.addUnprocessedFile(pathname, this.#config.staticDir);
+        if (this.#processedFiles.has(pathname)) {
           return this.readFile(pathname);
         }
-      } catch (err) {
-        if (!(err instanceof Deno.errors.NotFound)) {
-          throw err;
+      } else {
+        try {
+          const filePath = path.join(staticDir, pathname);
+          const rel = path.relative(staticDir, filePath);
+          if (!rel.startsWith("..") && (await Deno.stat(filePath)).isFile) {
+            const filePathname = new URL(rel, "http://localhost").pathname;
+            this.addUnprocessedFile(filePathname, staticDir);
+            return this.readFile(filePathname);
+          }
+        } catch (err) {
+          if (!(err instanceof Deno.errors.NotFound)) {
+            throw err;
+          }
         }
       }
     }
@@ -236,6 +247,7 @@ export class DiskBuildCache<State> implements DevBuildCache<State> {
   root: string;
   islandRegistry: ServerIslandRegistry = new Map();
   clientEntry: string = "";
+  hmrClientEntry: string | undefined = undefined;
   features = { errorOverlay: false };
 
   constructor(
@@ -294,9 +306,13 @@ export class DiskBuildCache<State> implements DevBuildCache<State> {
   }
 
   async flush(): Promise<void> {
-    const { staticDir, outDir, target, root } = this.#config;
+    const { staticDir: staticDirs, outDir, target, root } = this.#config;
 
-    if (await fsAdapter.isDirectory(staticDir)) {
+    const seen = new Set<string>();
+
+    for (const staticDir of staticDirs) {
+      if (!(await fsAdapter.isDirectory(staticDir))) continue;
+
       const entries = fsAdapter.walk(staticDir, {
         includeDirs: false,
         includeFiles: true,
@@ -323,12 +339,18 @@ export class DiskBuildCache<State> implements DevBuildCache<State> {
             const file = result[i];
             assertInDir(file.path, staticDir);
             const pathname = `/${path.relative(staticDir, file.path)}`;
-            await this.addProcessedFile(pathname, file.content, null);
+            if (!seen.has(pathname)) {
+              seen.add(pathname);
+              await this.addProcessedFile(pathname, file.content, null);
+            }
           }
         } else {
           const relative = path.relative(staticDir, entry.path);
           const pathname = `/${relative}`;
-          this.addUnprocessedFile(pathname, staticDir);
+          if (!seen.has(pathname)) {
+            seen.add(pathname);
+            this.addUnprocessedFile(pathname, staticDir);
+          }
         }
       }
     }
@@ -376,7 +398,7 @@ export class DiskBuildCache<State> implements DevBuildCache<State> {
     await Deno.writeTextFile(
       path.join(outDir, "server.js"),
       generateServerEntry({
-        root: appPath,
+        root: toPosix(appPath),
         serverEntry: pathToSpec(outDir, this.#config.serverEntry),
         snapshotSpecifier: "./snapshot.js",
       }),
@@ -416,6 +438,7 @@ export interface PendingStaticFile {
   pathname: string;
   filePath: string;
   hash: string | null;
+  immutable?: boolean;
 }
 
 export async function writeCompiledEntry(outDir: string) {
@@ -539,7 +562,13 @@ export async function prepareStaticFile(
   item: PendingStaticFile,
   outDir: string,
 ): Promise<
-  { name: string; hash: string; filePath: string; contentType: string }
+  {
+    name: string;
+    hash: string;
+    filePath: string;
+    contentType: string;
+    immutable?: boolean;
+  }
 > {
   const file = await Deno.open(item.filePath);
   const hash = item.hash ? item.hash : await hashContent(file.readable);
@@ -548,10 +577,13 @@ export async function prepareStaticFile(
   return {
     name: encodedPathname,
     hash,
-    filePath: path.isAbsolute(item.filePath)
-      ? path.relative(outDir, item.filePath)
-      : item.filePath,
+    filePath: toPosix(
+      path.isAbsolute(item.filePath)
+        ? path.relative(outDir, item.filePath)
+        : item.filePath,
+    ),
     contentType: getContentType(item.filePath),
+    immutable: item.immutable,
   };
 }
 
@@ -562,22 +594,24 @@ export function generateServerEntry(
     snapshotSpecifier: string;
   },
 ): string {
-  let rootPath = `path.join(import.meta.dirname, ${
-    JSON.stringify(options.root)
-  })`;
-  if (path.isAbsolute(options.root)) {
+  const root = toPosix(options.root);
+  const serverEntry = toPosix(options.serverEntry);
+  const snapshotSpecifier = toPosix(options.snapshotSpecifier);
+
+  let rootPath = `path.join(import.meta.dirname, ${JSON.stringify(root)})`;
+  if (path.isAbsolute(root)) {
     // deno-lint-ignore no-console
     console.warn(
-      `WARN: using absolute root path in snapshot: "${options.root}"`,
+      `WARN: using absolute root path in snapshot: "${root}"`,
     );
 
-    rootPath = JSON.stringify(options.root);
+    rootPath = JSON.stringify(root);
   }
 
   return `${EDIT_WARNING}
 import { setBuildCache, ProdBuildCache, path } from "fresh/internal";
-import * as snapshot from "${options.snapshotSpecifier}";
-import { app } from "${options.serverEntry}";
+import * as snapshot from "${snapshotSpecifier}";
+import { app } from "${serverEntry}";
 
 const root = ${rootPath};
 setBuildCache(app, new ProdBuildCache(root, snapshot), "production");

@@ -1,4 +1,9 @@
-import { App, type ListenOptions, setBuildCache } from "../app.ts";
+import {
+  App,
+  createOnListen,
+  type ListenOptions,
+  setBuildCache,
+} from "../app.ts";
 import { fsAdapter } from "../fs.ts";
 import * as path from "@std/path";
 import * as colors from "@std/fmt/colors";
@@ -52,13 +57,15 @@ export interface BuildOptions {
    */
   outDir?: string;
   /**
-   * The directory to serve static files from.
+   * The directory (or directories) to serve static files from.
    *
-   * This can be an absolute path, a file URL or a relative path.
+   * Each entry can be an absolute path, a file URL or a relative path.
    * Relative paths are resolved against the `root` option.
+   * When multiple directories are specified, they are searched in order
+   * and the first match wins.
    * @default "static"
    */
-  staticDir?: string;
+  staticDir?: string | string[];
   /**
    * The directory which contains islands.
    *
@@ -98,11 +105,15 @@ export interface BuildOptions {
 /**
  * The final resolved Builder configuration.
  */
-export type ResolvedBuildConfig = Required<Omit<BuildOptions, "sourceMap">> & {
-  mode: "development" | "production";
-  buildId: string;
-  sourceMap?: FreshBundleOptions["sourceMap"];
-};
+export type ResolvedBuildConfig =
+  & Required<Omit<BuildOptions, "sourceMap" | "staticDir">>
+  & {
+    /** Always normalized to an array of absolute paths. */
+    staticDir: string[];
+    mode: "development" | "production";
+    buildId: string;
+    sourceMap?: FreshBundleOptions["sourceMap"];
+  };
 
 // deno-lint-ignore no-explicit-any
 export class Builder<State = any> {
@@ -117,7 +128,10 @@ export class Builder<State = any> {
     const root = parseDirPath(options?.root ?? ".", Deno.cwd());
     const serverEntry = parseDirPath(options?.serverEntry ?? "main.ts", root);
     const outDir = parseDirPath(options?.outDir ?? "_fresh", root);
-    const staticDir = parseDirPath(options?.staticDir ?? "static", root);
+    const rawStaticDir = options?.staticDir ?? "static";
+    const staticDir =
+      (Array.isArray(rawStaticDir) ? rawStaticDir : [rawStaticDir])
+        .map((d) => parseDirPath(d, root));
     const islandDir = parseDirPath(options?.islandDir ?? "islands", root);
     const routeDir = parseDirPath(options?.routeDir ?? "routes", root);
 
@@ -181,7 +195,11 @@ export class Builder<State = any> {
 
     const appHandler = app.handler();
 
-    const devApp = new App<State>(app.config)
+    // Store original basePath for display purposes
+    const originalBasePath = app.config.basePath;
+
+    const devConfig = { ...app.config, basePath: "" };
+    const devApp = new App<State>(devConfig)
       .use(liveReload())
       .use(devErrorOverlay())
       .use(automaticWorkspaceFolders(this.config.root))
@@ -200,7 +218,11 @@ export class Builder<State = any> {
     // Boot in parallel to spin up the server quicker. We'll hold
     // requests until the required assets are processed.
     await Promise.all([
-      devApp.listen(options),
+      devApp.listen({
+        ...options,
+        onListen: options.onListen ??
+          createOnListen(originalBasePath, options),
+      }),
       this.#build(buildCache, true),
     ]);
     return;
@@ -301,6 +323,13 @@ export class Builder<State = any> {
       "fresh-runtime": new URL(runtimePath, import.meta.url).href,
     };
 
+    if (dev) {
+      entryPoints["fresh-hmr"] = new URL(
+        "../runtime/client/dev_hmr.ts",
+        import.meta.url,
+      ).href;
+    }
+
     const namer = new UniqueNamer();
     for (const spec of this.#islandSpecifiers) {
       const specName = specToName(spec);
@@ -338,6 +367,13 @@ export class Builder<State = any> {
 
       const pathname = `${prefix}${chunkName}`;
       buildCache.islandModNameToChunk.get(name)!.browser = pathname;
+    }
+
+    if (dev) {
+      const hmrChunkName = output.entryToChunk.get("fresh-hmr");
+      if (hmrChunkName !== undefined) {
+        buildCache.hmrClientEntry = `${prefix}${hmrChunkName}`;
+      }
     }
 
     for (let i = 0; i < output.files.length; i++) {

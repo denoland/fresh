@@ -1,6 +1,6 @@
 {
   "name": "@fresh/core",
-  "version": "2.2.2",
+  "version": "2.3.0",
   "license": "MIT",
   "exports": {
     ".": "./src/mod.ts",
@@ -21,12 +21,13 @@
     "@std/http": "jsr:@std/http@^1.0.21",
     "@std/jsonc": "jsr:@std/jsonc@^1.0.2",
     "@std/media-types": "jsr:@std/media-types@^1.1.0",
+    "@std/net": "jsr:@std/net@^1.0.6",
     "@std/path": "jsr:@std/path@^1.1.2",
     "@std/semver": "jsr:@std/semver@^1.0.6",
     "@std/uuid": "jsr:@std/uuid@^1.0.9",
     "@types/node": "npm:@types/node@^24.2.1",
     "esbuild-wasm": "npm:esbuild-wasm@^0.25.11",
-    "preact": "npm:preact@^10.28.3",
+    "preact": "npm:preact@^10.29.1",
     "preact-render-to-string": "npm:preact-render-to-string@^6.6.3"
   }
 }

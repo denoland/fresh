@@ -83,7 +83,9 @@ export function registerStaticFile(prepared) {
   snapshot.staticFiles.set(prepared.name, {
     name: prepared.name,
     contentType: prepared.contentType,
-    filePath: prepared.filePath
+    filePath: prepared.filePath,
+    hash: prepared.hash ?? null,
+    immutable: prepared.immutable,
   });
 }
 `;
@@ -103,6 +105,16 @@ if (import.meta.hot) import.meta.hot.accept();`;
       },
     },
     async writeBundle(_options, bundle) {
+      // Find server entry filename directly from bundle chunks.
+      // This is more reliable than the manifest when rollupOptions
+      // override output.entryFileNames.
+      for (const chunk of Object.values(bundle)) {
+        if (chunk.type === "chunk" && chunk.isEntry) {
+          serverEntryFilename = chunk.fileName;
+          break;
+        }
+      }
+
       const manifest = bundle[".vite/manifest.json"];
 
       const staticFiles: PendingStaticFile[] = [];
@@ -113,10 +125,6 @@ if (import.meta.hot) import.meta.hot.accept();`;
         const json = JSON.parse(manifest.source) as Manifest;
 
         for (const item of Object.values(json)) {
-          if (item.isEntry) {
-            serverEntryFilename = item.file;
-          }
-
           if (item.assets) {
             for (let i = 0; i < item.assets.length; i++) {
               const id = item.assets[i];
@@ -125,6 +133,7 @@ if (import.meta.hot) import.meta.hot.accept();`;
                 filePath: path.join(serverOutDir, id),
                 hash: null,
                 pathname: getAssetPath(id),
+                immutable: true,
               });
             }
           }
@@ -137,6 +146,7 @@ if (import.meta.hot) import.meta.hot.accept();`;
                 filePath: path.join(serverOutDir, id),
                 hash: null,
                 pathname: getAssetPath(id),
+                immutable: true,
               });
             }
           }

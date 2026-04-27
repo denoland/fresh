@@ -246,8 +246,7 @@ export function sortRoutePaths(a: string, b: string) {
       const scoreB = getRoutePathScore(charB, b, bIdx);
       if (scoreA === scoreB) {
         if (charA !== charB) {
-          // TODO: Do we need localeSort here or is this good enough?
-          return charA < charB ? 0 : 1;
+          return charA < charB ? -1 : 1;
         }
         continue;
       }
@@ -256,8 +255,7 @@ export function sortRoutePaths(a: string, b: string) {
     }
 
     if (charA !== charB) {
-      // TODO: Do we need localeSort here or is this good enough?
-      return charA < charB ? 0 : 1;
+      return charA < charB ? -1 : 1;
     }
 
     // If we're at the end of A or B, then we assume that the longer
@@ -292,8 +290,9 @@ function getRoutePathScore(char: string, s: string, i: number): number {
   }
 
   if (
-    i + 4 === s.length - 1 && char === "i" && s[i + 1] === "n" &&
-    s[i + 2] === "d" && s[i + 3] === "e" && s[i + 4] === "x"
+    char === "i" && s[i + 1] === "n" &&
+    s[i + 2] === "d" && s[i + 3] === "e" && s[i + 4] === "x" &&
+    (i + 4 === s.length - 1 || s[i + 5] === ".")
   ) {
     return 3;
   }
@@ -310,8 +309,11 @@ export function validateFsMod<State>(
   mod: FreshFsMod<State>;
 } {
   if (!isFreshFile<State>(mod, commandType)) {
+    const hint = commandType === CommandType.Middleware
+      ? `Middleware files must have a default export (function or array of functions).\n\n  Example:\n    export default define.middleware(async (ctx) => {\n      return await ctx.next();\n    });`
+      : `Route files must export a default component, a "handler" or "handlers" export, or a "config" export.\n\n  Example:\n    export const handler = define.handlers({ GET(ctx) { ... } });\n    export default define.page((props) => <h1>Hello</h1>);`;
     throw new Error(
-      `Expected a route, middleware, layout or error template, but couldn't find relevant exports in: ${filePath}`,
+      `Could not find relevant exports in: ${filePath}\n\n${hint}`,
     );
   }
 

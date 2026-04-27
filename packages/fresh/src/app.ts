@@ -2,12 +2,12 @@ import { trace } from "@opentelemetry/api";
 
 import { DENO_DEPLOYMENT_ID } from "@fresh/build-id";
 import * as colors from "@std/fmt/colors";
+import type { MaybeLazyMiddleware, Middleware } from "./middlewares/mod.ts";
 import {
-  type MaybeLazyMiddleware,
-  type Middleware,
-  runMiddlewares,
-} from "./middlewares/mod.ts";
-import { Context } from "./context.ts";
+  Context,
+  type WebSocketHandlers,
+  type WebSocketUpgradeOptions,
+} from "./context.ts";
 import { mergePath, type Method, UrlPatternRouter } from "./router.ts";
 import type { FreshConfig, ResolvedFreshConfig } from "./config.ts";
 import type { BuildCache } from "./build_cache.ts";
@@ -72,7 +72,7 @@ export type ListenOptions =
   & {
     remoteAddress?: string;
   };
-function createOnListen(
+export function createOnListen(
   basePath: string,
   options: ListenOptions,
 ): (localAddr: Deno.NetAddr) => void {
@@ -194,6 +194,7 @@ export class App<State> {
       root: ".",
       basePath: config.basePath ?? "",
       mode: config.mode ?? "production",
+      trustProxy: config.trustProxy ?? false,
     };
   }
 
@@ -257,7 +258,7 @@ export class App<State> {
     route: MaybeLazy<Route<State>>,
     config?: RouteConfig,
   ): this {
-    this.#commands.push(newRouteCmd(path, route, config, false));
+    this.#commands.push(newRouteCmd(path, route, config, true));
     return this;
   }
 
@@ -265,50 +266,68 @@ export class App<State> {
    * Add middlewares for GET requests at the specified path.
    */
   get(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
-    this.#commands.push(newHandlerCmd("GET", path, middlewares, false));
+    this.#commands.push(newHandlerCmd("GET", path, middlewares, true));
     return this;
   }
   /**
    * Add middlewares for POST requests at the specified path.
    */
   post(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
-    this.#commands.push(newHandlerCmd("POST", path, middlewares, false));
+    this.#commands.push(newHandlerCmd("POST", path, middlewares, true));
     return this;
   }
   /**
    * Add middlewares for PATCH requests at the specified path.
    */
   patch(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
-    this.#commands.push(newHandlerCmd("PATCH", path, middlewares, false));
+    this.#commands.push(newHandlerCmd("PATCH", path, middlewares, true));
     return this;
   }
   /**
    * Add middlewares for PUT requests at the specified path.
    */
   put(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
-    this.#commands.push(newHandlerCmd("PUT", path, middlewares, false));
+    this.#commands.push(newHandlerCmd("PUT", path, middlewares, true));
     return this;
   }
   /**
    * Add middlewares for DELETE requests at the specified path.
    */
   delete(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
-    this.#commands.push(newHandlerCmd("DELETE", path, middlewares, false));
+    this.#commands.push(newHandlerCmd("DELETE", path, middlewares, true));
     return this;
   }
   /**
    * Add middlewares for HEAD requests at the specified path.
    */
   head(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
-    this.#commands.push(newHandlerCmd("HEAD", path, middlewares, false));
+    this.#commands.push(newHandlerCmd("HEAD", path, middlewares, true));
     return this;
+  }
+
+  /**
+   * Register a WebSocket endpoint at the specified path.
+   *
+   * ```ts
+   * app.ws("/chat", {
+   *   open(socket) { console.log("connected"); },
+   *   message(socket, event) { socket.send(event.data); },
+   * });
+   * ```
+   */
+  ws(
+    path: string,
+    handlers: WebSocketHandlers,
+    options?: WebSocketUpgradeOptions,
+  ): this {
+    return this.get(path, (ctx) => ctx.upgrade(handlers, options));
   }
 
   /**
    * Add middlewares for all HTTP verbs at the specified path.
    */
   all(path: string, ...middlewares: MaybeLazy<Middleware<State>>[]): this {
-    this.#commands.push(newHandlerCmd("ALL", path, middlewares, false));
+    this.#commands.push(newHandlerCmd("ALL", path, middlewares, true));
     return this;
   }
 
@@ -387,13 +406,16 @@ export class App<State> {
       }
     }
 
-    const router = new UrlPatternRouter<MaybeLazyMiddleware<State>>();
+    const router = new UrlPatternRouter<Middleware<State>>();
 
-    const { rootMiddlewares } = applyCommands(
+    const { rootHandler } = applyCommands(
       router,
       this.#commands,
       this.config.basePath,
+      this.#onError,
     );
+
+    const trustProxy = this.config.trustProxy;
 
     return async (
       req: Request,
@@ -403,9 +425,21 @@ export class App<State> {
       // Prevent open redirect attacks
       url.pathname = url.pathname.replace(/\/+/g, "/");
 
+      // Apply X-Forwarded-* headers when behind a reverse proxy
+      if (trustProxy) {
+        const proto = req.headers.get("x-forwarded-proto");
+        if (proto) {
+          url.protocol = proto + ":";
+        }
+        const host = req.headers.get("x-forwarded-host");
+        if (host) {
+          url.host = host;
+        }
+      }
+
       const method = req.method.toUpperCase() as Method;
       const matched = router.match(method, url);
-      let { params, pattern, handlers, methodMatch } = matched;
+      let { params, pattern, item: handler, methodMatch } = matched;
 
       const span = trace.getActiveSpan();
       if (span && pattern) {
@@ -416,7 +450,7 @@ export class App<State> {
       let next: () => Promise<Response>;
 
       if (pattern === null || !methodMatch) {
-        handlers = rootMiddlewares;
+        handler = rootHandler;
       }
 
       if (matched.pattern !== null && !methodMatch) {
@@ -442,9 +476,7 @@ export class App<State> {
       );
 
       try {
-        if (handlers.length === 0) return await next();
-
-        const result = await runMiddlewares(handlers, ctx, this.#onError);
+        const result = await (handler !== null ? handler(ctx) : next());
         if (!(result instanceof Response)) {
           throw new Error(
             `Expected a "Response" instance to be returned, but got: ${result}`,

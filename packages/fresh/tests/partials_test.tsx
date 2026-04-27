@@ -15,6 +15,7 @@ import {
 } from "./test_utils.tsx";
 import { SelfCounter } from "./fixtures_islands/SelfCounter.tsx";
 import { expect } from "@std/expect";
+import { assertSpyCalls, spy } from "@std/testing/mock";
 import { PartialInIsland } from "./fixtures_islands/PartialInIsland.tsx";
 import { FakeServer } from "../src/test_utils.ts";
 import { JsonIsland } from "./fixtures_islands/JsonIsland.tsx";
@@ -1858,6 +1859,49 @@ Deno.test({
 });
 
 Deno.test({
+  name: "partials - form without action inside f-client-nav not intercepted",
+  fn: async () => {
+    const app = testApp()
+      .post("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <p class="submitted">form submitted normally</p>
+          </Doc>,
+        );
+      })
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav>
+              <form method="post">
+                <input name="name" value="foo" />
+                <Partial name="foo">
+                  <p class="init">init</p>
+                </Partial>
+                <button type="submit" class="update">
+                  update
+                </button>
+              </form>
+            </div>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".init").wait();
+
+      // Form should do a full page navigation, not a partial update
+      await Promise.all([
+        page.waitForNavigation(),
+        page.locator(".update").click(),
+      ]);
+      await page.locator(".submitted").wait();
+    });
+  },
+});
+
+Deno.test({
   name: "partials - submit form redirect",
   fn: async () => {
     const app = testApp()
@@ -2772,6 +2816,775 @@ Deno.test({
       // should exit early/avoid reload due to custom user history entries
       await page.evaluate(() => window.history.go(-1));
       await page.locator(".dynamic-content").wait();
+    });
+  },
+});
+
+Deno.test({
+  name: "partials - warns when append/prepend missing key",
+  fn: async () => {
+    const app = testApp()
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <Partial name="no-key-append" mode="append">
+              <p>content</p>
+            </Partial>
+            <Partial name="no-key-prepend" mode="prepend">
+              <p>content</p>
+            </Partial>
+          </Doc>,
+        );
+      });
+
+    const warnSpy = spy(console, "warn");
+    try {
+      const server = new FakeServer(app.handler());
+      await server.get("/");
+      assertSpyCalls(warnSpy, 2);
+      expect(String(warnSpy.calls[0].args[0])).toContain("no-key-append");
+      expect(String(warnSpy.calls[0].args[0])).toContain("append");
+      expect(String(warnSpy.calls[1].args[0])).toContain("no-key-prepend");
+      expect(String(warnSpy.calls[1].args[0])).toContain("prepend");
+    } finally {
+      warnSpy.restore();
+    }
+  },
+});
+
+Deno.test({
+  name: "partials - no warning when append/prepend has key",
+  fn: async () => {
+    const app = testApp()
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <Partial name="keyed-append" mode="append" key="a">
+              <p>content</p>
+            </Partial>
+            <Partial name="keyed-prepend" mode="prepend" key="b">
+              <p>content</p>
+            </Partial>
+          </Doc>,
+        );
+      });
+
+    const warnSpy = spy(console, "warn");
+    try {
+      const server = new FakeServer(app.handler());
+      await server.get("/");
+      assertSpyCalls(warnSpy, 0);
+    } finally {
+      warnSpy.restore();
+    }
+  },
+});
+
+Deno.test({
+  name: "partials - no warning for replace mode without key",
+  fn: async () => {
+    const app = testApp()
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <Partial name="replace-no-key" mode="replace">
+              <p>content</p>
+            </Partial>
+            <Partial name="default-no-key">
+              <p>content</p>
+            </Partial>
+          </Doc>,
+        );
+      });
+
+    const warnSpy = spy(console, "warn");
+    try {
+      const server = new FakeServer(app.handler());
+      await server.get("/");
+      assertSpyCalls(warnSpy, 0);
+    } finally {
+      warnSpy.restore();
+    }
+  },
+});
+
+Deno.test({
+  name: "partials - appends data scripts to head",
+  fn: async () => {
+    const app = testApp()
+      .get("/partial", (ctx) => {
+        return ctx.render(
+          <html>
+            <head>
+              {charset}
+              {favicon}
+              <title>Updated</title>
+              <script
+                type="application/ld+json"
+                // deno-lint-ignore react-no-danger
+                dangerouslySetInnerHTML={{
+                  __html: JSON.stringify({
+                    "@type": "Article",
+                    name: "Updated",
+                  }),
+                }}
+              />
+            </head>
+            <body f-client-nav>
+              <Partial name="body">
+                <p class="updated">updated</p>
+              </Partial>
+            </body>
+          </html>,
+        );
+      })
+      .get("/", (ctx) => {
+        return ctx.render(
+          <html>
+            <head>
+              {charset}
+              {favicon}
+              <title>Init</title>
+            </head>
+            <body f-client-nav>
+              <Partial name="body">
+                <p class="init">init</p>
+              </Partial>
+              <button type="button" class="update" f-partial="/partial">
+                update
+              </button>
+            </body>
+          </html>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".init").wait();
+
+      await page.locator(".update").click();
+      await page.locator(".updated").wait();
+
+      const count = await page.evaluate(
+        () =>
+          document.head.querySelectorAll('script[type="application/ld+json"]')
+            .length,
+      );
+      expect(count).toEqual(1);
+
+      const content = await page.evaluate(
+        () =>
+          document.head.querySelector('script[type="application/ld+json"]')
+            ?.textContent,
+      );
+      expect(JSON.parse(content!)).toEqual({
+        "@type": "Article",
+        name: "Updated",
+      });
+    });
+  },
+});
+
+Deno.test({
+  name: "partials - does not duplicate data scripts on repeat navigation",
+  fn: async () => {
+    const app = testApp()
+      .get("/partial", (ctx) => {
+        return ctx.render(
+          <html>
+            <head>
+              {charset}
+              {favicon}
+              <title>Updated</title>
+              <script
+                type="application/ld+json"
+                // deno-lint-ignore react-no-danger
+                dangerouslySetInnerHTML={{
+                  __html: JSON.stringify({
+                    "@type": "Article",
+                    name: "Same",
+                  }),
+                }}
+              />
+            </head>
+            <body f-client-nav>
+              <Partial name="body">
+                <p class="updated">updated</p>
+              </Partial>
+            </body>
+          </html>,
+        );
+      })
+      .get("/", (ctx) => {
+        return ctx.render(
+          <html>
+            <head>
+              {charset}
+              {favicon}
+              <title>Init</title>
+            </head>
+            <body f-client-nav>
+              <Partial name="body">
+                <p class="init">init</p>
+              </Partial>
+              <button type="button" class="update" f-partial="/partial">
+                update
+              </button>
+            </body>
+          </html>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".init").wait();
+
+      // Click twice to trigger two partial navigations
+      await page.locator(".update").click();
+      await page.locator(".updated").wait();
+      await page.locator(".update").click();
+      await page.locator(".updated").wait();
+
+      const count = await page.evaluate(
+        () =>
+          document.head.querySelectorAll('script[type="application/ld+json"]')
+            .length,
+      );
+      // Should still be 1, not 2
+      expect(count).toEqual(1);
+    });
+  },
+});
+// View Transitions tests
+
+Deno.test({
+  name: "partials - view transitions enabled with f-view-transition",
+  fn: async () => {
+    const app = testApp()
+      .get("/partial", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <Partial name="foo">
+              <p class="done">updated</p>
+            </Partial>
+          </Doc>,
+        );
+      })
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav f-view-transition>
+              <a href="/partial" class="update">update</a>
+              <Partial name="foo">
+                <p class="init">init</p>
+              </Partial>
+            </div>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".init").wait();
+
+      // Track whether startViewTransition was called
+      await page.evaluate(() => {
+        // deno-lint-ignore no-explicit-any
+        (window as any).__vtCalled = false;
+        // deno-lint-ignore no-explicit-any
+        (document as any).startViewTransition = (fn: () => void) => {
+          // deno-lint-ignore no-explicit-any
+          (window as any).__vtCalled = true;
+          fn();
+          return { finished: Promise.resolve() };
+        };
+      });
+
+      await page.locator(".update").click();
+      await waitForText(page, ".done", "updated");
+
+      const vtCalled = await page.evaluate(
+        // deno-lint-ignore no-explicit-any
+        () => (window as any).__vtCalled,
+      );
+      expect(vtCalled).toBe(true);
+    });
+  },
+});
+
+Deno.test({
+  name: "partials - view transitions not called without f-view-transition",
+  fn: async () => {
+    const app = testApp()
+      .get("/partial", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <Partial name="foo">
+              <p class="done">updated</p>
+            </Partial>
+          </Doc>,
+        );
+      })
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav>
+              <a href="/partial" class="update">update</a>
+              <Partial name="foo">
+                <p class="init">init</p>
+              </Partial>
+            </div>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".init").wait();
+
+      // Install spy - should NOT be called
+      await page.evaluate(() => {
+        // deno-lint-ignore no-explicit-any
+        (window as any).__vtCalled = false;
+        // deno-lint-ignore no-explicit-any
+        (document as any).startViewTransition = (fn: () => void) => {
+          // deno-lint-ignore no-explicit-any
+          (window as any).__vtCalled = true;
+          fn();
+          return { finished: Promise.resolve() };
+        };
+      });
+
+      await page.locator(".update").click();
+      await waitForText(page, ".done", "updated");
+
+      const vtCalled = await page.evaluate(
+        // deno-lint-ignore no-explicit-any
+        () => (window as any).__vtCalled,
+      );
+      expect(vtCalled).toBe(false);
+    });
+  },
+});
+
+Deno.test({
+  name: "partials - view transitions disabled with f-view-transition=false",
+  fn: async () => {
+    const app = testApp()
+      .get("/partial", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <Partial name="foo">
+              <p class="done">updated</p>
+            </Partial>
+          </Doc>,
+        );
+      })
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav f-view-transition="false">
+              <a href="/partial" class="update">update</a>
+              <Partial name="foo">
+                <p class="init">init</p>
+              </Partial>
+            </div>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".init").wait();
+
+      await page.evaluate(() => {
+        // deno-lint-ignore no-explicit-any
+        (window as any).__vtCalled = false;
+        // deno-lint-ignore no-explicit-any
+        (document as any).startViewTransition = (fn: () => void) => {
+          // deno-lint-ignore no-explicit-any
+          (window as any).__vtCalled = true;
+          fn();
+          return { finished: Promise.resolve() };
+        };
+      });
+
+      await page.locator(".update").click();
+      await waitForText(page, ".done", "updated");
+
+      const vtCalled = await page.evaluate(
+        // deno-lint-ignore no-explicit-any
+        () => (window as any).__vtCalled,
+      );
+      expect(vtCalled).toBe(false);
+    });
+  },
+});
+
+Deno.test({
+  name: "partials - view transitions work with popstate navigation",
+  fn: async () => {
+    const app = testApp()
+      .get("/page2", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <Partial name="foo">
+              <p class="page2">page 2</p>
+            </Partial>
+          </Doc>,
+        );
+      })
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav f-view-transition>
+              <a href="/page2" class="nav">go to page 2</a>
+              <Partial name="foo">
+                <p class="page1">page 1</p>
+              </Partial>
+            </div>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".page1").wait();
+
+      // Install spy that counts calls
+      await page.evaluate(() => {
+        // deno-lint-ignore no-explicit-any
+        (window as any).__vtCount = 0;
+        // deno-lint-ignore no-explicit-any
+        (document as any).startViewTransition = (fn: () => void) => {
+          // deno-lint-ignore no-explicit-any
+          (window as any).__vtCount++;
+          fn();
+          return { finished: Promise.resolve() };
+        };
+      });
+
+      // Navigate forward
+      await page.locator(".nav").click();
+      await waitForText(page, ".page2", "page 2");
+
+      // Navigate back
+      await page.evaluate(() => window.history.go(-1));
+      await page.locator(".page1").wait();
+
+      // Both navigations should have used view transitions
+      const vtCount = await page.evaluate(
+        // deno-lint-ignore no-explicit-any
+        () => (window as any).__vtCount,
+      );
+      expect(vtCount).toBe(2);
+    });
+  },
+});
+
+Deno.test({
+  name: "partials - submit form indicator on button",
+  fn: async () => {
+    const app = testApp()
+      .get("/partial", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <Partial name="foo">
+              <p class="done">done</p>
+            </Partial>
+          </Doc>,
+        );
+      })
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav>
+              <form action="/partial">
+                <Partial name="foo">
+                  <p class="init">init</p>
+                </Partial>
+                <button type="submit" class="update">
+                  update
+                </button>
+              </form>
+            </div>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".init").wait();
+
+      // Attach a tracking indicator to the submit button
+      await page.evaluate(() => {
+        const btn = document.querySelector(".update")!;
+        const indicator = { _wasTrue: false, _value: false };
+        Object.defineProperty(indicator, "value", {
+          get() {
+            return this._value;
+          },
+          set(v: boolean) {
+            this._value = v;
+            if (v) this._wasTrue = true;
+          },
+        });
+        // deno-lint-ignore no-explicit-any
+        (btn as any)._freshIndicator = indicator;
+        // deno-lint-ignore no-explicit-any
+        (window as any).__indicator = indicator;
+      });
+
+      await page.locator(".update").click();
+      await page.locator(".done").wait();
+
+      const result = await page.evaluate(() => {
+        // deno-lint-ignore no-explicit-any
+        const ind = (window as any).__indicator;
+        return { wasTrue: ind._wasTrue, currentValue: ind.value };
+      });
+      expect(result.wasTrue).toBe(true);
+      expect(result.currentValue).toBe(false);
+    });
+  },
+});
+
+Deno.test({
+  name: "partials - submit form indicator on form element",
+  fn: async () => {
+    const app = testApp()
+      .get("/partial", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <Partial name="foo">
+              <p class="done">done</p>
+            </Partial>
+          </Doc>,
+        );
+      })
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav>
+              <form action="/partial" class="myform">
+                <Partial name="foo">
+                  <p class="init">init</p>
+                </Partial>
+                <button type="submit" class="update">
+                  update
+                </button>
+              </form>
+            </div>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".init").wait();
+
+      // Attach indicator to the form element (not the button)
+      await page.evaluate(() => {
+        const form = document.querySelector(".myform")!;
+        const indicator = { _wasTrue: false, _value: false };
+        Object.defineProperty(indicator, "value", {
+          get() {
+            return this._value;
+          },
+          set(v: boolean) {
+            this._value = v;
+            if (v) this._wasTrue = true;
+          },
+        });
+        // deno-lint-ignore no-explicit-any
+        (form as any)._freshIndicator = indicator;
+        // deno-lint-ignore no-explicit-any
+        (window as any).__indicator = indicator;
+      });
+
+      await page.locator(".update").click();
+      await page.locator(".done").wait();
+
+      const result = await page.evaluate(() => {
+        // deno-lint-ignore no-explicit-any
+        const ind = (window as any).__indicator;
+        return { wasTrue: ind._wasTrue, currentValue: ind.value };
+      });
+      expect(result.wasTrue).toBe(true);
+      expect(result.currentValue).toBe(false);
+    });
+  },
+});
+
+Deno.test({
+  name: "partials - submit form indicator prefers submitter over form",
+  fn: async () => {
+    const app = testApp()
+      .get("/partial", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <Partial name="foo">
+              <p class="done">done</p>
+            </Partial>
+          </Doc>,
+        );
+      })
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav>
+              <form action="/partial" class="myform">
+                <Partial name="foo">
+                  <p class="init">init</p>
+                </Partial>
+                <button type="submit" class="update">
+                  update
+                </button>
+              </form>
+            </div>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".init").wait();
+
+      // Attach indicators to both form and button
+      await page.evaluate(() => {
+        function makeIndicator(name: string) {
+          const indicator = { _wasTrue: false, _value: false };
+          Object.defineProperty(indicator, "value", {
+            get() {
+              return this._value;
+            },
+            set(v: boolean) {
+              this._value = v;
+              if (v) this._wasTrue = true;
+            },
+          });
+          // deno-lint-ignore no-explicit-any
+          (window as any)[name] = indicator;
+          return indicator;
+        }
+
+        const btn = document.querySelector(".update")!;
+        const form = document.querySelector(".myform")!;
+        // deno-lint-ignore no-explicit-any
+        (btn as any)._freshIndicator = makeIndicator("__btnIndicator");
+        // deno-lint-ignore no-explicit-any
+        (form as any)._freshIndicator = makeIndicator("__formIndicator");
+      });
+
+      await page.locator(".update").click();
+      await page.locator(".done").wait();
+
+      const result = await page.evaluate(() => {
+        // deno-lint-ignore no-explicit-any
+        const w = window as any;
+        return {
+          btnWasTrue: w.__btnIndicator._wasTrue,
+          btnCurrent: w.__btnIndicator.value,
+          formWasTrue: w.__formIndicator._wasTrue,
+          formCurrent: w.__formIndicator.value,
+        };
+      });
+      // Submitter indicator should have been toggled
+      expect(result.btnWasTrue).toBe(true);
+      expect(result.btnCurrent).toBe(false);
+      // Form indicator should NOT have been used
+      expect(result.formWasTrue).toBe(false);
+      expect(result.formCurrent).toBe(false);
+    });
+  },
+});
+
+Deno.test({
+  name: "partials - redirect does not create back-button trap",
+  fn: async () => {
+    const app = testApp()
+      .get("/target", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <Partial name="foo">
+              <h1 class="done">target page</h1>
+            </Partial>
+          </Doc>,
+        );
+      })
+      .get("/redirect", (ctx) => ctx.redirect("/target"))
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav>
+              <a href="/redirect" class="nav">go</a>
+              <Partial name="foo">
+                <h1 class="init">home</h1>
+              </Partial>
+            </div>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".init").wait();
+
+      // Click link that redirects
+      await page.locator(".nav").click();
+      await page.locator(".done").wait();
+
+      // Should show the redirect target URL, not the intermediate
+      await page.waitForFunction(() => {
+        return window.location.pathname === "/target";
+      });
+
+      // Going back should return to home, not to /redirect
+      await page.evaluate(() => window.history.go(-1));
+      await page.locator(".init").wait();
+      await page.waitForFunction(() => {
+        return window.location.pathname === "/";
+      });
+    });
+  },
+});
+
+Deno.test({
+  name: "partials - redirect does not leak ?fresh-partial in URL",
+  fn: async () => {
+    const app = testApp()
+      .get("/target", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <Partial name="foo">
+              <h1 class="done">target page</h1>
+            </Partial>
+          </Doc>,
+        );
+      })
+      .get("/redirect", (ctx) => ctx.redirect("/target"))
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav>
+              <a href="/redirect" class="nav">go</a>
+              <Partial name="foo">
+                <h1 class="init">home</h1>
+              </Partial>
+            </div>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".init").wait();
+
+      await page.locator(".nav").click();
+      await page.locator(".done").wait();
+
+      const url = await page.evaluate(() => window.location.href);
+      expect(url).not.toContain("fresh-partial");
     });
   },
 });

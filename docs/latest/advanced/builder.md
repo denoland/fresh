@@ -40,8 +40,10 @@ const builder = new Builder({
   // Where to write generated files when doing a production build.
   // (default: `<root>/_fresh/`)
   outDir?: string;
-  // Path to static file directory. (Default: `<root>/static/`)
-  staticDir?: string;
+  // Path to static file directory, or an array of directories.
+  // When multiple directories are specified they are searched in order
+  // and the first match wins. (Default: `<root>/static/`)
+  staticDir?: string | string[];
   // Path to island directory. (Default: `<root>/islands`)
   islandDir?: string;
   // Path to routes directory. (Default: `<root>/routes`)
@@ -93,8 +95,23 @@ builder.onTransformStaticFile({
 });
 ```
 
-> [info]: Only static files in `static/` or the value you set `staticDir` to
-> will be processed. The builder won't process anything else.
+> [info]: Only static files in `static/` or the directories you set `staticDir`
+> to will be processed. The builder won't process anything else.
+
+### Multiple static directories
+
+You can pass an array to `staticDir` to serve files from multiple directories.
+When the same filename exists in more than one directory, the first directory in
+the array takes precedence.
+
+```ts dev.ts
+const builder = new Builder({
+  staticDir: ["static", "generated"],
+});
+```
+
+This is useful when you have a build step that generates assets into a separate
+directory and you want to keep them apart from hand-authored static files.
 
 ## Testing
 
@@ -171,7 +188,7 @@ For more information on how to use tailwindcss, check out
 You can customize the tailwind plugin via the following options:
 
 ```ts dev.ts
-tailwind(builder, app, {
+tailwind(builder, {
   // Exclude certain files from processing
   exclude: ["/admin/**", "*.temp.css"],
   // Force optimization (defaults to production mode)
@@ -183,7 +200,7 @@ tailwind(builder, app, {
 
 ### Tailwindcss v3
 
-If can't update to the current version of tailwindcss we have a dedicated
+If you can't update to the current version of tailwindcss we have a dedicated
 `@fresh/plugin-tailwindcss-v3` plugin that uses tailwindcss v3. That way you can
 decided on your own when it's best to update to v4.
 

@@ -156,7 +156,7 @@ shops for example.
 export default function AddToCartPartial() {
   return (
     <>
-      <Partial name="cart-items" mode="append">
+      <Partial name="cart-items" mode="append" key={newItem.id}>
         {/* Render the new cart item here */}
       </Partial>
       <Partial name="total-price">
@@ -187,7 +187,7 @@ export default function LogView() {
   const lines = getNewLogLines();
 
   return (
-    <Partial name="logs-list" mode="append">
+    <Partial name="logs-list" mode="append" key={lines[0]}>
       {lines.map((line) => {
         return <li key={line}>{line}</li>;
       })}
@@ -196,8 +196,77 @@ export default function LogView() {
 }
 ```
 
-> [info]: When picking the `prepend` or `append` mode, make sure to add keys to
-> the elements.
+> [warn]: When using `prepend` or `append` mode, you **must** add a `key` prop
+> to the `<Partial>` component. Without it, Preact cannot distinguish new
+> children from existing ones, leading to subtle rendering bugs. Fresh will log
+> a warning if it detects a missing key on an append/prepend partial.
+
+## View Transitions
+
+Partial updates can be animated using the browser's
+[View Transitions API](/docs/advanced/view-transitions). Add `f-view-transition`
+alongside `f-client-nav` to enable smooth animated transitions between pages
+with zero JavaScript animation code.
+
+## Loading indicators
+
+When a partial request is in flight, you may want to show a loading spinner or
+disable a button. Fresh supports this through the `_freshIndicator` property.
+
+Attach an object with a `value` property to any element that triggers a partial
+navigation. Fresh will set `value` to `true` when the request starts and back to
+`false` when it completes (or fails).
+
+```tsx
+import { useSignal } from "@preact/signals";
+
+function NavLink() {
+  const loading = useSignal(false);
+
+  return (
+    <a
+      href="/next-page"
+      f-partial="/partials/next-page"
+      ref={(el) => {
+        if (el) el._freshIndicator = loading;
+      }}
+    >
+      {loading.value ? "Loading..." : "Go"}
+    </a>
+  );
+}
+```
+
+This works for links, forms, and submit buttons. For form submissions, Fresh
+checks the submitter element (e.g. the clicked button) first, then falls back to
+the form element itself. This lets you show per-button indicators when a form
+has multiple submit buttons.
+
+```tsx
+import { useSignal } from "@preact/signals";
+
+function MyForm() {
+  const saving = useSignal(false);
+
+  return (
+    <form action="/save" f-partial="/partials/save">
+      {/* indicator is on the button, not the form */}
+      <button
+        type="submit"
+        ref={(el) => {
+          if (el) el._freshIndicator = saving;
+        }}
+      >
+        {saving.value ? "Saving..." : "Save"}
+      </button>
+    </form>
+  );
+}
+```
+
+> [info]: Any object with a mutable `value` property works — Preact signals are
+> the most convenient choice because they automatically re-render the component
+> when the value changes.
 
 ## Bypassing or disabling Partials
 

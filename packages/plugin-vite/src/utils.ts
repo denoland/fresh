@@ -46,6 +46,12 @@ export interface FreshViteConfig {
   /** Path to routes directory. Default: `./routes` */
   routeDir?: string;
   /**
+   * The directory (or directories) to serve static files from.
+   * When multiple directories are specified, they are searched in order
+   * and the first match wins. Default: `"static"`
+   */
+  staticDir?: string | string[];
+  /**
    * Ignore file paths matching any of the provided regexes when
    * crawling the islands and routes directories.
    */
@@ -67,6 +73,10 @@ export interface FreshViteConfig {
 
 export type ResolvedFreshViteConfig =
   & Required<
-    Omit<FreshViteConfig, "islandSpecifiers">
+    Omit<FreshViteConfig, "islandSpecifiers" | "staticDir">
   >
-  & { islandSpecifiers: Map<string, string>; namer: UniqueNamer };
+  & {
+    staticDir: string[];
+    islandSpecifiers: Map<string, string>;
+    namer: UniqueNamer;
+  };

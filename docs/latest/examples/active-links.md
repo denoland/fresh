@@ -10,9 +10,26 @@ current page within a set of pages.
 
 - `aria-current="page"` - Added to links with an exact path match, enhancing
   accessibility by indicating the current page to assistive technologies.
+- `aria-current="true"` - Added to ancestor links (e.g. `/docs` when the current
+  page is `/docs/intro`).
 
 As we aim to improve accessibility, we encourage the use of aria-current for
 styling current links where applicable.
+
+### Query parameters
+
+When a link's `href` includes query parameters, Fresh considers them during
+matching. A link to `/products?sort=name` will only receive
+`aria-current="page"` when the current URL also has `?sort=name`. If the query
+parameters differ, the link is treated as an ancestor instead. Links without
+query parameters in their `href` match regardless of the current URL's query
+string.
+
+### Preserving custom `aria-current`
+
+If you set `aria-current` on an `<a>` element yourself, Fresh will leave it
+untouched. This is useful when integrating with component libraries (e.g.
+daisyUI tabs) that manage their own active state.
 
 ## Styling with CSS
 

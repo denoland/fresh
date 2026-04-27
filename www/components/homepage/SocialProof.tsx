@@ -19,8 +19,8 @@ export function SocialProof() {
       <a href="https://deno.com/blog/deco-cx-subhosting-serve-their-clients-storefronts-fast">
         <img
           src="/showcase/deco.webp"
-          alt="Deco CX"
-          class="mx-auto"
+          alt="Deco.cx screenshot"
+          class="mx-auto max-w-screen-md w-full"
           loading="lazy"
         />
       </a>

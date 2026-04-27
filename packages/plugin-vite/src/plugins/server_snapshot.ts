@@ -32,7 +32,6 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
   let clientOutDir = "";
   let serverOutDir = "";
   let root = "";
-  let publicDir = "";
 
   const islands = new Map<string, { name: string; chunk: string | null }>();
   const islandsByFile = new Set<string>();
@@ -56,7 +55,6 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
       configResolved(config) {
         root = config.root;
 
-        publicDir = pathWithRoot(config.publicDir, config.root);
         clientOutDir = pathWithRoot(
           config.environments.client.build.outDir,
           config.root,
@@ -221,6 +219,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
                 filePath: path.join(clientOutDir, chunk.file),
                 pathname: chunk.file,
                 hash: null,
+                immutable: true,
               });
 
               if (chunk.css !== undefined) {
@@ -233,6 +232,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
                     filePath: path.join(clientOutDir, id),
                     hash: null,
                     pathname,
+                    immutable: true,
                   });
 
                   if (chunk.name === clientEntryName) {
@@ -274,9 +274,14 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
               }
             }
 
-            if (await fsAdapter.isDirectory(publicDir)) {
+            // Walk all static directories. First directory wins for
+            // duplicate pathnames.
+            const seenStaticPaths = new Set<string>();
+            for (const dir of options.staticDir) {
+              if (!(await fsAdapter.isDirectory(dir))) continue;
+
               const entries = await fsAdapter.walk(
-                publicDir,
+                dir,
                 {
                   followSymlinks: false,
                   includeDirs: false,
@@ -286,11 +291,16 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
               );
 
               for await (const entry of entries) {
-                const relative = path.relative(publicDir, entry.path);
+                const relative = path.relative(dir, entry.path);
+                if (seenStaticPaths.has(relative)) continue;
+                seenStaticPaths.add(relative);
+
                 const filePath = path.join(clientOutDir, relative);
 
                 try {
-                  await Deno.mkdir(path.dirname(filePath), { recursive: true });
+                  await Deno.mkdir(path.dirname(filePath), {
+                    recursive: true,
+                  });
                 } catch (err) {
                   if (!(err instanceof Deno.errors.AlreadyExists)) {
                     throw err;
@@ -306,16 +316,61 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
 
                 if (path.basename(relative) === "index.html") {
                   const htmlRelative = path.relative(
-                    publicDir,
+                    dir,
                     path.dirname(entry.path),
                   );
 
-                  staticFiles.push({
-                    filePath,
-                    hash: null,
-                    pathname: htmlRelative,
-                  });
+                  if (!seenStaticPaths.has(htmlRelative)) {
+                    seenStaticPaths.add(htmlRelative);
+                    staticFiles.push({
+                      filePath,
+                      hash: null,
+                      pathname: htmlRelative,
+                    });
+                  }
                 }
+              }
+            }
+
+            // Scan client output directory for any additional files generated
+            // by Vite plugins (e.g., vite-plugin-pwa generates sw.js,
+            // manifest.webmanifest) that aren't in the Vite manifest or
+            // public directory.
+            if (await fsAdapter.isDirectory(clientOutDir)) {
+              // Normalize registered pathnames (strip leading /) for comparison
+              const registeredPaths = new Set(
+                staticFiles.map((f) =>
+                  f.pathname.startsWith("/") ? f.pathname.slice(1) : f.pathname
+                ),
+              );
+
+              const clientFiles = await fsAdapter.walk(
+                clientOutDir,
+                {
+                  followSymlinks: false,
+                  includeDirs: false,
+                  includeFiles: true,
+                },
+              );
+
+              for await (const entry of clientFiles) {
+                const relative = path.relative(clientOutDir, entry.path)
+                  .replaceAll("\\", "/");
+
+                // Skip .vite directory and already-registered files
+                if (
+                  relative.startsWith(".vite/") ||
+                  relative === ".vite" ||
+                  registeredPaths.has(relative)
+                ) {
+                  continue;
+                }
+
+                staticFiles.push({
+                  filePath: entry.path,
+                  hash: null,
+                  pathname: relative,
+                });
               }
             }
           }
@@ -395,7 +450,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
         filter: {
           id: /^fresh-island::.*/,
         },
-        handler(id) {
+        async handler(id) {
           let name = id.slice("fresh-island::".length);
 
           if (JS_REG.test(name)) {
@@ -403,7 +458,12 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
           }
 
           const spec = islandSpecByName.get(name);
-          if (spec !== undefined) return spec;
+          if (spec !== undefined) {
+            // Re-resolve through the plugin pipeline so deno-specifiers
+            // (jsr:, https:) are handled correctly.
+            const resolved = await this.resolve(spec);
+            return resolved ?? spec;
+          }
         },
       },
     },

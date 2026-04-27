@@ -2,6 +2,8 @@ import { parseArgs } from "@std/cli/parse-args";
 import { initProject } from "./init.ts";
 import { InitError } from "./init.ts";
 
+// Note: "deno run -Ar jsr:@fresh/init" is the recommended way to create a new project.
+
 const flags = parseArgs(Deno.args, {
   boolean: ["force", "tailwind", "vscode", "docker", "help", "builder"],
   default: {

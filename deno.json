@@ -48,6 +48,7 @@
     "@std/collections": "jsr:@std/collections@^1.1.2",
     "@std/dotenv": "jsr:@std/dotenv@^0.225.5",
     "@std/http": "jsr:@std/http@^1.0.15",
+    "@std/net": "jsr:@std/net@^1.0.6",
     "@std/uuid": "jsr:@std/uuid@^1.0.7",
     "@supabase/postgrest-js": "npm:@supabase/postgrest-js@^1.21.4",
     "@types/mime-db": "npm:@types/mime-db@^1.43.6",
@@ -73,7 +74,7 @@
     "@std/semver": "jsr:@std/semver@1",
     "@std/streams": "jsr:@std/streams@1",
 
-    "@astral/astral": "jsr:@astral/astral@^0.5.5",
+    "@astral/astral": "jsr:@astral/astral@^0.5.6",
     "@marvinh-test/fresh-island": "jsr:@marvinh-test/fresh-island@^0.0.3",
     "linkedom": "npm:linkedom@^0.18.10",
     "@std/async": "jsr:@std/async@^1.0.13",
