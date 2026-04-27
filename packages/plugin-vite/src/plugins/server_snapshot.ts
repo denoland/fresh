@@ -161,7 +161,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
             const route = result.routes[i];
             const name = routeNamer.getUniqueName(route.id);
 
-            routeFileToName.set(route.filePath, name);
+            routeFileToName.set(toPosix(route.filePath), name);
             routes.set(name, route);
           }
 
@@ -391,7 +391,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
               if (def) {
                 return `fresh-island::${def.name}`;
               }
-              const routeDef = routeFileToName.get(toPosix(file));
+              const routeDef = routeFileToName.get(file);
               if (routeDef !== undefined) {
                 return `fresh-route::${routeDef}`;
               }
