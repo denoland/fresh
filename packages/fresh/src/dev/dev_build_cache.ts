@@ -20,7 +20,7 @@ const WINDOWS_SEPARATOR = pathWin32.SEPARATOR;
 /** Normalize a path to use forward slashes so that generated files
  *  are portable across operating systems (e.g. build on Windows,
  *  deploy on Linux). */
-function toPosix(p: string): string {
+export function toPosix(p: string): string {
   return p.replaceAll(WINDOWS_SEPARATOR, "/");
 }
 

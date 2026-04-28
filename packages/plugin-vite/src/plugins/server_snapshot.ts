@@ -13,6 +13,7 @@ import {
   pathToSpec,
   type PendingStaticFile,
   specToName,
+  toPosix,
   UniqueNamer,
 } from "fresh/internal-dev";
 import {
@@ -22,6 +23,8 @@ import {
 } from "../utils.ts";
 import * as path from "@std/path";
 import { getBuildId } from "./build_id.ts";
+
+const CSS_LANG_REG = /\.(css|less|sass|scss)(\?.*)?$/;
 
 export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
   const modName = "fresh:server-snapshot";
@@ -158,7 +161,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
             const route = result.routes[i];
             const name = routeNamer.getUniqueName(route.id);
 
-            routeFileToName.set(route.filePath, name);
+            routeFileToName.set(toPosix(route.filePath), name);
             routes.set(name, route);
           }
 
@@ -401,7 +404,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
       },
       transform: {
         filter: {
-          id: /\.(css|less|sass|scss)(\?.*)?$/,
+          id: CSS_LANG_REG,
         },
         handler(_code, id) {
           if (server) {
@@ -416,7 +419,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
             let item: EnvironmentModuleNode | undefined;
             while ((item = queue.pop()) !== undefined) {
               if (item.file !== null) {
-                const normalized = path.normalize(item.file);
+                const normalized = toPosix(path.normalize(item.file));
                 const name = routeFileToName.get(normalized);
 
                 if (name !== undefined) {
@@ -520,19 +523,24 @@ export default ${JSON.stringify(route.css)}
           const manifest = JSON.parse(asset.source as string) as Manifest;
 
           for (const info of Object.values(manifest)) {
-            if (info.name?.startsWith("_fresh-route___")) {
-              const filePath = path.join(serverOutDir, info.file);
-              const content = await Deno.readTextFile(filePath);
+            // Utility-file(_app/_layout/_error)'s CSS can be hoisted into
+            // shared chunks like "server-entry", not just route chunks.
+            // Replace placeholders in any emitted JS chunk that contains one.
+            if (!/\.(?:c|m)?js$/.test(info.file)) continue;
 
-              const replaced = content.replace(
-                `["__FRESH_CSS_PLACEHOLDER__"]`,
-                info.css
-                  ? JSON.stringify(info.css.map((css) => `/${css}`))
-                  : "null",
-              );
+            const filePath = path.join(serverOutDir, info.file);
+            const content = await Deno.readTextFile(filePath);
+            if (!content.includes(`["__FRESH_CSS_PLACEHOLDER__"]`)) continue;
 
-              await Deno.writeTextFile(filePath, replaced);
-            }
+            // Replace all placeholders in the file with the CSS
+            const replaced = content.replaceAll(
+              `["__FRESH_CSS_PLACEHOLDER__"]`,
+              info.css
+                ? JSON.stringify(info.css.map((css) => `/${css}`))
+                : "null",
+            );
+
+            await Deno.writeTextFile(filePath, replaced);
           }
         }
       },

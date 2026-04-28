@@ -388,6 +388,60 @@ integrationTest(
   },
 );
 
+integrationTest(
+  "vite build - css modules in _app/_layout/_error non-island component are injected",
+  async () => {
+    const fixture = path.join(FIXTURE_DIR, "non_island_css_modules");
+    await using res = await buildVite(fixture);
+
+    await launchProd(
+      { cwd: res.tmp },
+      async (address) => {
+        await withBrowser(async (page) => {
+          {
+            // check _app/_layout
+            await page.goto(`${address}`, {
+              waitUntil: "networkidle2",
+            });
+
+            const _app = await page
+              .locator<HTMLHeadingElement>(".green > h1")
+              .evaluate((el) => window.getComputedStyle(el).color);
+            expect(_app).toEqual("rgb(0, 128, 0)");
+
+            const _layout = await page
+              .locator<HTMLHeadingElement>(".red > h1")
+              .evaluate((el) => window.getComputedStyle(el).color);
+            expect(_layout).toEqual("rgb(255, 0, 0)");
+          }
+
+          {
+            // check _app/_layout/_error
+            await page.goto(`${address}/non_existent`, {
+              waitUntil: "networkidle2",
+            });
+
+            const _app = await page
+              .locator<HTMLHeadingElement>(".green > h1")
+              .evaluate((el) => window.getComputedStyle(el).color);
+            expect(_app).toEqual("rgb(0, 128, 0)");
+
+            const _layout = await page
+              .locator<HTMLHeadingElement>(".red > h1")
+              .evaluate((el) => window.getComputedStyle(el).color);
+            expect(_layout).toEqual("rgb(255, 0, 0)");
+
+            const _error = await page
+              .locator<HTMLHeadingElement>(".blue > h1")
+              .evaluate((el) => window.getComputedStyle(el).color);
+            expect(_error).toEqual("rgb(0, 0, 255)");
+          }
+        });
+      },
+    );
+  },
+);
+
 integrationTest("vite build - route css import", async () => {
   await launchProd(
     { cwd: viteResult.tmp },
@@ -409,6 +463,19 @@ integrationTest("vite build - route css import", async () => {
     },
   );
 });
+
+integrationTest(
+  "vite build - __FRESH_CSS_PLACEHOLDER__ has been replaced",
+  async () => {
+    await using res = await buildVite(DEMO_DIR, { base: "/my-app/" });
+
+    const serverEntryJs = await Deno.readTextFile(
+      path.join(res.tmp, "_fresh", "server", "server-entry.mjs"),
+    );
+
+    expect(serverEntryJs).not.toContain("__FRESH_CSS_PLACEHOLDER__");
+  },
+);
 
 integrationTest("vite build - remote island", async () => {
   const fixture = path.join(FIXTURE_DIR, "remote_island");

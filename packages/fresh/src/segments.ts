@@ -2,7 +2,7 @@ import type { AnyComponent } from "preact";
 import type { MaybeLazyMiddleware, Middleware } from "./middlewares/mod.ts";
 import { type Method, patternToSegments } from "./router.ts";
 import type { LayoutConfig, Route } from "./types.ts";
-import { type Context, getInternals } from "./context.ts";
+import { type Context, getInternals, setAdditionalStyles } from "./context.ts";
 import { recordSpanError, tracer } from "./otel.ts";
 import { type HandlerFn, isHandlerByMethod } from "./handlers.ts";
 import {
@@ -22,10 +22,14 @@ export interface Segment<State> {
   layout: {
     component: RouteComponent<State>;
     config: LayoutConfig | null;
+    css: string[] | null;
   } | null;
   errorRoute: Route<State> | null;
   notFound: Middleware<State> | null;
-  app: RouteComponent<State> | null;
+  app: {
+    component: RouteComponent<State>;
+    css: string[] | null;
+  } | null;
   children: Map<string, Segment<State>>;
   parent: Segment<State> | null;
 }
@@ -105,7 +109,11 @@ export function segmentToMiddlewares<State>(
           internals.app = null;
         }
 
-        const def = { props: null, component: layout.component };
+        const def = {
+          props: null,
+          component: layout.component,
+          css: layout.css,
+        };
         if (layout.config?.skipInheritedLayouts) {
           internals.layouts = [def];
         } else {
@@ -145,6 +153,8 @@ export async function renderRoute<State>(
   route: Route<State>,
   status = 200,
 ): Promise<Response> {
+  setAdditionalStyles(ctx, route.css);
+
   const internals = getInternals(ctx);
   if (route.config?.skipAppWrapper) {
     internals.app = null;

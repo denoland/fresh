@@ -106,7 +106,9 @@ export function fsItemsToCommands<State>(
         }
         if (!mod.default) continue;
 
-        commands.push(newLayoutCmd(pattern, mod.default, mod.config, true));
+        commands.push(
+          newLayoutCmd(pattern, mod.default, mod.config, true, mod.css),
+        );
         continue;
       }
       case CommandType.Error: {
@@ -116,6 +118,7 @@ export function fsItemsToCommands<State>(
           {
             component: mod.default ?? undefined,
             config: mod.config ?? undefined,
+            css: mod.css,
             // deno-lint-ignore no-explicit-any
             handler: (handlers as any) ?? undefined,
           },
@@ -128,6 +131,7 @@ export function fsItemsToCommands<State>(
         commands.push(newNotFoundCmd({
           config: mod.config,
           component: mod.default,
+          css: mod.css,
           // deno-lint-ignore no-explicit-any
           handler: handlers as any ?? undefined,
         }));
@@ -137,7 +141,7 @@ export function fsItemsToCommands<State>(
         const { mod } = validateFsMod<State>(filePath, rawMod, type);
         if (mod.default === undefined) continue;
 
-        commands.push(newAppCmd(mod.default));
+        commands.push(newAppCmd(mod.default, mod.css));
         continue;
       }
       case CommandType.Route: {

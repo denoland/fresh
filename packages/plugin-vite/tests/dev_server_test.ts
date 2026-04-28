@@ -282,6 +282,55 @@ integrationTest(
   },
 );
 
+integrationTest(
+  "vite dev - css modules in _app/_layout/_error non-island component are injected",
+  async () => {
+    const fixture = path.join(FIXTURE_DIR, "non_island_css_modules");
+    await launchDevServer(fixture, async (address) => {
+      await withBrowser(async (page) => {
+        {
+          // check _app/_layout
+          await page.goto(`${address}`, {
+            waitUntil: "networkidle2",
+          });
+
+          const _app = await page
+            .locator<HTMLHeadingElement>(".green > h1")
+            .evaluate((el) => window.getComputedStyle(el).color);
+          expect(_app).toEqual("rgb(0, 128, 0)");
+
+          const _layout = await page
+            .locator<HTMLHeadingElement>(".red > h1")
+            .evaluate((el) => window.getComputedStyle(el).color);
+          expect(_layout).toEqual("rgb(255, 0, 0)");
+        }
+
+        {
+          // check _app/_layout/_error
+          await page.goto(`${address}/non_existent`, {
+            waitUntil: "networkidle2",
+          });
+
+          const _app = await page
+            .locator<HTMLHeadingElement>(".green > h1")
+            .evaluate((el) => window.getComputedStyle(el).color);
+          expect(_app).toEqual("rgb(0, 128, 0)");
+
+          const _layout = await page
+            .locator<HTMLHeadingElement>(".red > h1")
+            .evaluate((el) => window.getComputedStyle(el).color);
+          expect(_layout).toEqual("rgb(255, 0, 0)");
+
+          const _error = await page
+            .locator<HTMLHeadingElement>(".blue > h1")
+            .evaluate((el) => window.getComputedStyle(el).color);
+          expect(_error).toEqual("rgb(0, 0, 255)");
+        }
+      });
+    });
+  },
+);
+
 integrationTest("vite dev - route css import", async () => {
   await withBrowser(async (page) => {
     await page.goto(`${demoServer.address()}/tests/css`, {

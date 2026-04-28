@@ -98,8 +98,11 @@ export type ServerIslandRegistry = Map<ComponentType, Island>;
 export const internals: unique symbol = Symbol("fresh_internal");
 
 export interface UiTree<Data, State> {
-  app: AnyComponent<PageProps<Data, State>> | null;
-  layouts: ComponentDef<Data, State>[];
+  app: {
+    component: AnyComponent<PageProps<Data, State>>;
+    css: string[] | null;
+  } | null;
+  layouts: (ComponentDef<Data, State> & { css: string[] | null })[];
 }
 
 /**
@@ -109,7 +112,10 @@ export type FreshContext<State = unknown> = Context<State>;
 
 export let getBuildCache: <T>(ctx: Context<T>) => BuildCache<T>;
 export let getInternals: <T>(ctx: Context<T>) => UiTree<unknown, T>;
-export let setAdditionalStyles: <T>(ctx: Context<T>, css: string[]) => void;
+export let setAdditionalStyles: <T>(
+  ctx: Context<T>,
+  css: string[] | null | undefined,
+) => void;
 
 /**
  * The context passed to every middleware. It is unique for every request.
@@ -182,8 +188,25 @@ export class Context<State> {
     // deno-lint-ignore no-explicit-any
     getInternals = <T>(ctx: Context<T>) => ctx.#internal as any;
     getBuildCache = <T>(ctx: Context<T>) => ctx.#buildCache;
-    setAdditionalStyles = <T>(ctx: Context<T>, css: string[]) =>
-      ctx.#additionalStyles = css;
+    setAdditionalStyles = <T>(
+      ctx: Context<T>,
+      css: string[] | null | undefined,
+    ) => {
+      if (css == null) return;
+
+      if (ctx.#additionalStyles === null) {
+        ctx.#additionalStyles = css.slice();
+        return;
+      }
+
+      for (let i = 0; i < css.length; i++) {
+        const href = css[i];
+        // FIXME: consider to use `Set` instead of `css: string[]` for entire codebase
+        if (!ctx.#additionalStyles.includes(href)) {
+          ctx.#additionalStyles.push(href);
+        }
+      }
+    };
   }
 
   constructor(
@@ -283,6 +306,7 @@ export class Context<State> {
       props.Component = () => child;
 
       const def = defs[i];
+      setAdditionalStyles(this, def.css);
 
       const result = await renderRouteComponent(this, def, () => child);
       if (result instanceof Response) {
@@ -298,16 +322,20 @@ export class Context<State> {
 
     let hasApp = true;
 
-    if (isAsyncAnyComponent(appDef)) {
+    if (appDef !== null) {
+      setAdditionalStyles(this, appDef.css);
+    }
+
+    if (appDef !== null && isAsyncAnyComponent(appDef.component)) {
       props.Component = () => appChild;
-      const result = await renderAsyncAnyComponent(appDef, props);
+      const result = await renderAsyncAnyComponent(appDef.component, props);
       if (result instanceof Response) {
         return result;
       }
 
       appVNode = result;
     } else if (appDef !== null) {
-      appVNode = h(appDef, {
+      appVNode = h(appDef.component, {
         Component: () => appChild,
         config: this.config,
         data: null,
