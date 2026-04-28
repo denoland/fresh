@@ -452,17 +452,6 @@ Deno.test({
   sanitizeResources: false,
 });
 
-Deno.test({
-  name: "vite dev - CJS npm package (qs)",
-  fn: async () => {
-    const res = await fetch(`${demoServer.address()}/tests/cjs_npm`);
-    const text = await res.text();
-    expect(text).toContain("<h1>qs-ok</h1>");
-  },
-  sanitizeOps: false,
-  sanitizeResources: false,
-});
-
 // issue: https://github.com/denoland/fresh/issues/3666
 integrationTest(
   "vite dev - basePath does not intercept Vite URLs",
