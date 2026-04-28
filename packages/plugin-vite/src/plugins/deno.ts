@@ -239,8 +239,7 @@ export function deno(): Plugin {
             // (e.g. @opentelemetry/api) ship both CJS and ESM as .js
             // without "type": "module" in package.json.
             if (!ESM_STMT_RE.test(code)) {
-              const isServer =
-                this.environment.config.consumer === "server";
+              const isServer = this.environment.config.consumer === "server";
 
               if (isServer) {
                 // SSR: use Node.js createRequire for full CJS compat
