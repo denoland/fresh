@@ -91,6 +91,7 @@ export interface Island {
   exportName: string;
   fn: ComponentType;
   css: string[];
+  clientOnly: boolean;
 }
 
 export type ServerIslandRegistry = Map<ComponentType, Island>;
