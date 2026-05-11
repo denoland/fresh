@@ -103,7 +103,9 @@ export class IslandPreparer {
     chunkName: string,
     modName: string,
     css: string[],
+    clientOnly?: boolean,
   ) {
+    const isClientOnly = clientOnly ?? mod.clientOnly === true;
     for (const [name, value] of Object.entries(mod)) {
       if (typeof value !== "function") continue;
 
@@ -117,6 +119,7 @@ export class IslandPreparer {
         fn,
         name: uniqueName,
         css,
+        clientOnly: isClientOnly,
       });
     }
   }
