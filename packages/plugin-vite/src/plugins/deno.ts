@@ -190,12 +190,32 @@ export function deno(): Plugin {
           isDev,
         });
         if (maybeJsx !== null) {
+          if (maybeJsx.map) {
+            // Babel reads the loader's inline source map but inherits its
+            // `sources` (relative path). Rewrite to the absolute specifier
+            // with an empty `sourceRoot` so stack frames show the real URL
+            // instead of the `\0deno::…` virtual ID and don't double the cwd.
+            maybeJsx.map.sources = [specifier];
+            maybeJsx.map.sourceRoot = "";
+          }
+          // Babel emits its own inline `//# sourceMappingURL=` comment via
+          // `sourceMaps: "both"`. Rewrite that one too so V8 stack traces
+          // (which read the inline map natively) point at the specifier.
+          maybeJsx.code = rewriteInlineSourceMapSources(
+            maybeJsx.code,
+            specifier,
+          );
           return maybeJsx;
         }
 
-        return {
-          code,
-        };
+        // For non-JS media (JSON, CSS, …) the loaded code is not JavaScript,
+        // so appending a `//# sourceMappingURL=` comment would corrupt it.
+        // Those modules don't show up in JS stack traces, so leave them alone.
+        if (!isJsMediaType(result.mediaType)) {
+          return { code };
+        }
+
+        return rewriteLoadedSourceMap(code, specifier);
       }
 
       if (id.startsWith("\0")) {
@@ -365,6 +385,94 @@ function getDenoType(id: string, type: string): RequestedModuleType {
         return RequestedModuleType.Json;
       }
       return RequestedModuleType.Default;
+  }
+}
+
+// Builds a 1:1 (line-by-line, column 0) source map so that Vite/V8 can
+// rewrite stack frames from `\0deno::{type}::{specifier}` virtual IDs back
+// to the original specifier. Uses an absolute URL/path in `sources` combined
+// with an empty `sourceRoot` to avoid Vite resolving sources relative to the
+// cwd, which would produce doubled paths like
+// `packages/fresh/src/packages/fresh/src/segments.ts`.
+export function identitySourceMap(source: string, code: string) {
+  const lineCount = code.split("\n").length;
+  // VLQ "AAAA" → [genCol=0, srcIdx=0, srcLine=0, srcCol=0]
+  // ";AACA"   → newline, then deltas [0, 0, +1, 0]
+  let mappings = "AAAA";
+  for (let i = 1; i < lineCount; i++) {
+    mappings += ";AACA";
+  }
+  return {
+    version: 3,
+    sources: [source],
+    sourcesContent: [code],
+    names: [] as string[],
+    mappings,
+    sourceRoot: "",
+  };
+}
+
+const INLINE_SOURCE_MAP_RE =
+  /\n?\/\/# sourceMappingURL=data:application\/json(?:;charset=[^;]+)?;base64,([A-Za-z0-9+/=]+)\s*$/;
+
+// `ssrLoader.load()` returns code with an inline `//# sourceMappingURL=` data
+// URL whose `sources` array contains a path relative to the cwd. Without
+// fixing this up, stack traces either leak the `\0deno::…` virtual module ID
+// (when V8 falls back to the module ID) or display doubled cwd paths like
+// `packages/fresh/src/packages/fresh/src/segments.ts` (the caveat described
+// in denoland/fresh#3464).
+//
+// Rewrites the inline source map (if any) so `sources` is the absolute
+// specifier with an empty `sourceRoot`. The inline comment itself is kept in
+// place so that V8 picks it up natively for stack-trace translation. When the
+// loader did not emit a source map, an identity map is appended so the
+// virtual ID is still replaced in stack traces. The same map is also
+// returned alongside the code so Rollup (production builds) sees consistent
+// `sources` during source-map chaining.
+export function rewriteLoadedSourceMap(code: string, source: string) {
+  const match = code.match(INLINE_SOURCE_MAP_RE);
+  if (match !== null) {
+    try {
+      const parsed = JSON.parse(atob(match[1]));
+      parsed.sources = [source];
+      parsed.sourceRoot = "";
+      const start = match.index!;
+      const reencoded = btoa(JSON.stringify(parsed));
+      const newCode = code.slice(0, start) +
+        `\n//# sourceMappingURL=data:application/json;base64,${reencoded}`;
+      return { code: newCode, map: parsed };
+    } catch {
+      // fall through to identity map
+    }
+  }
+  const map = identitySourceMap(source, code);
+  const encoded = btoa(JSON.stringify(map));
+  return {
+    code:
+      `${code}\n//# sourceMappingURL=data:application/json;base64,${encoded}`,
+    map,
+  };
+}
+
+// Rewrites just the `sources` of an existing inline `//# sourceMappingURL=`
+// comment in JS code, without touching mappings or appending a new comment
+// when none exists. Used after Babel has already produced its own source
+// map and we only need to fix the specifier.
+export function rewriteInlineSourceMapSources(
+  code: string,
+  source: string,
+): string {
+  const match = code.match(INLINE_SOURCE_MAP_RE);
+  if (match === null) return code;
+  try {
+    const parsed = JSON.parse(atob(match[1]));
+    parsed.sources = [source];
+    parsed.sourceRoot = "";
+    const reencoded = btoa(JSON.stringify(parsed));
+    return code.slice(0, match.index!) +
+      `\n//# sourceMappingURL=data:application/json;base64,${reencoded}`;
+  } catch {
+    return code;
   }
 }
 
