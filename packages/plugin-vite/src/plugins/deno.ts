@@ -14,6 +14,7 @@ import { builtinModules } from "node:module";
 const { default: babelReact } = await import("@babel/preset-react");
 
 const BUILTINS = new Set(builtinModules);
+const NODE_BUILTIN_PREFIX = "\0fresh-node-builtin::";
 
 type LoaderModule = typeof import("@deno/loader");
 
@@ -65,11 +66,13 @@ export function deno(): Plugin {
       return true;
     },
     async resolveId(id, importer, options) {
-      if (BUILTINS.has(id)) {
-        // `node:` prefix is not included in builtins list.
-        if (!id.startsWith("node:")) {
-          id = `node:${id}`;
+      const builtin = id.startsWith("node:") ? id.slice("node:".length) : id;
+      if (BUILTINS.has(builtin)) {
+        id = id.startsWith("node:") ? id : `node:${id}`;
+        if (this.environment.config.consumer === "server") {
+          return NODE_BUILTIN_PREFIX + id;
         }
+        // `node:` prefix is not included in builtins list.
         return {
           id,
           external: true,
@@ -179,6 +182,10 @@ export function deno(): Plugin {
       }
     },
     async load(id) {
+      if (id.startsWith(NODE_BUILTIN_PREFIX)) {
+        return nodeBuiltinModule(id.slice(NODE_BUILTIN_PREFIX.length));
+      }
+
       const loader = this.environment.config.consumer === "server"
         ? ssrLoader
         : browserLoader;
@@ -397,6 +404,25 @@ function getDenoType(id: string, type: string): DenoRequestedModuleType {
       }
       return RequestedModuleType.Default;
   }
+}
+
+async function nodeBuiltinModule(id: string) {
+  const names = Object.keys(await import(id));
+  return [
+    `const mod = await Function("id", "return import(id)")(${
+      JSON.stringify(id)
+    });`,
+    "const requireValue = mod.default ?? mod;",
+    "export { requireValue as __require };",
+    "export default requireValue;",
+    ...names
+      .filter((name) =>
+        /^[$_\p{ID_Start}][$_\u200c\u200d\p{ID_Continue}]*$/u
+          .test(name)
+      )
+      .filter((name) => name !== "default")
+      .map((name) => `export const ${name} = mod[${JSON.stringify(name)}];`),
+  ].join("\n");
 }
 
 // Builds a 1:1 (line-by-line, column 0) source map so that Vite/V8 can
