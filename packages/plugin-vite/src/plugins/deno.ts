@@ -1,10 +1,8 @@
 import type { Plugin } from "vite";
-import {
-  type Loader,
-  MediaType,
-  RequestedModuleType,
-  ResolutionMode,
-  Workspace,
+import type {
+  Loader,
+  MediaType as DenoMediaType,
+  RequestedModuleType as DenoRequestedModuleType,
 } from "@deno/loader";
 import * as path from "@std/path";
 import * as babel from "@babel/core";
@@ -17,8 +15,15 @@ const { default: babelReact } = await import("@babel/preset-react");
 
 const BUILTINS = new Set(builtinModules);
 
+type LoaderModule = typeof import("@deno/loader");
+
+let MediaType: LoaderModule["MediaType"];
+let RequestedModuleType: LoaderModule["RequestedModuleType"];
+let ResolutionMode: LoaderModule["ResolutionMode"];
+let Workspace: LoaderModule["Workspace"];
+
 interface DenoState {
-  type: RequestedModuleType;
+  type: DenoRequestedModuleType;
 }
 
 export function deno(): Plugin {
@@ -38,6 +43,12 @@ export function deno(): Plugin {
       isDev = env.command === "serve";
     },
     async configResolved() {
+      const loaderModule = await import("@deno/loader");
+      MediaType = loaderModule.MediaType;
+      RequestedModuleType = loaderModule.RequestedModuleType;
+      ResolutionMode = loaderModule.ResolutionMode;
+      Workspace = loaderModule.Workspace;
+
       // TODO: Pass conditions
       ssrLoader = await new Workspace({
         platform: "node",
@@ -309,7 +320,7 @@ export function deno(): Plugin {
   };
 }
 
-function isJsMediaType(media: MediaType): boolean {
+function isJsMediaType(media: DenoMediaType): boolean {
   switch (media) {
     case MediaType.JavaScript:
     case MediaType.Jsx:
@@ -342,13 +353,13 @@ function isDenoSpecifier(str: unknown): str is DenoSpecifier {
   return typeof str === "string" && str.startsWith("\0deno::");
 }
 
-function toDenoSpecifier(spec: string, type: RequestedModuleType) {
+function toDenoSpecifier(spec: string, type: DenoRequestedModuleType) {
   return `\0deno::${type}::${spec}`;
 }
 
 function parseDenoSpecifier(
   spec: DenoSpecifier,
-): { type: RequestedModuleType; specifier: string } {
+): { type: DenoRequestedModuleType; specifier: string } {
   const match = spec.match(/^\0deno::([^:]+)::(.*)$/)!;
 
   let specifier = match[2];
@@ -372,7 +383,7 @@ function parseDenoSpecifier(
   return { type: +match[1], specifier };
 }
 
-function getDenoType(id: string, type: string): RequestedModuleType {
+function getDenoType(id: string, type: string): DenoRequestedModuleType {
   switch (type) {
     case "json":
       return RequestedModuleType.Json;
@@ -478,7 +489,7 @@ export function rewriteInlineSourceMapSources(
 
 function babelTransform(
   options: {
-    media: MediaType;
+    media: DenoMediaType;
     ssr: boolean;
     code: string;
     id: string;
