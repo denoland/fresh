@@ -9,11 +9,11 @@ export default function NavigationBar(props: { active: string; class?: string })
     },
     {
       name: "Blog",
-      href: "https://deno.com/blog?tag=fresh",
+      href: "/blog",
     },
   ];
   const isHome = props.active == "/";
-  const isDocs = props.active == "/docs";
+  const isDocs = props.active == "/docs" || props.active == "/blog";
   return (
     <nav class={"flex " + (props.class ?? "")} f-client-nav={false}>
       <ul class="flex items-center gap-x-2 sm:gap-4 mx-4 my-2 sm:my-6 flex-wrap lg:mx-8 2xl:mr-1">
@@ -21,6 +21,7 @@ export default function NavigationBar(props: { active: string; class?: string })
           <li key={item.name}>
             <a
               href={item.href}
+              aria-current={props.active == item.href ? "page" : undefined}
               class={`p-1 sm:p-2 ${
                 isHome ? "text-green-900" : isDocs ? "text-foreground-secondary" : "text-gray-600"
               } hover:underline aria-[current]:font-bold`}
@@ -32,7 +33,7 @@ export default function NavigationBar(props: { active: string; class?: string })
 
         <li class="flex items-center">
           <a
-            href="https://github.com/denoland/fresh"
+            href="https://github.com/freshframework/fresh"
             class="hover:text-green-600 inline-block transition"
             aria-label="GitHub"
           >

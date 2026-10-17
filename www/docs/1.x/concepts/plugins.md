@@ -60,7 +60,7 @@ The `render` hook needs to synchronously return a [`PluginRenderResult`](https:/
 
 `scripts` define JavaScript/TypeScript modules to be injected into the page. The possibly loaded modules need to be defined up front in the `Plugin#entrypoints` property. Each defined module must be a JavaScript/TypeScript module that has a default export of a function that takes one (arbitrary) argument, and returns nothing (or a promise resolving to nothing). Fresh will call this function with the state defined in the `scripts` entry. The state can be any arbitrary JSON serializable JavaScript value.
 
-For an example of a plugin that uses the `render` hook, see the first-party [Twind plugin](https://github.com/denoland/fresh/blob/1.x/plugins/twind.ts).
+For an example of a plugin that uses the `render` hook, see the first-party [Twind plugin](https://github.com/freshframework/fresh/blob/1.x/plugins/twind.ts).
 
 ### Hook: `renderAsync`
 

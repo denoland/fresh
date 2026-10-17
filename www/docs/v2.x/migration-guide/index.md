@@ -272,4 +272,4 @@ eg. `mkdir fresh2-demo && cd fresh2-demo && deno run -Ar jsr:@fresh/init`
 
 ### 2. Document
 
-If you still can't solve the migration problems. Please reach out to us by creating an issue here https://github.com/denoland/fresh/issues/new . That way we can improve this migration guide for everyone.
+If you still can't solve the migration problems. Please reach out to us by creating an issue here https://github.com/freshframework/fresh/issues/new . That way we can improve this migration guide for everyone.
