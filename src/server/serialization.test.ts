@@ -178,10 +178,9 @@ test("factory args are recursively walked through the replacer — signals insid
   const factory = tagIslandExport((s: unknown) => ({ derived: s }), "islands/utils.tsx", "wrap");
   const sig = signal(7);
   const result = { __FRESH_FROM_FACTORY: { factory, args: [sig] } };
-  // Serialize the factory result on its own. (Sharing `sig` across the
-  // factory args AND a sibling position is NOT preserved — see the next
-  // test — and would push devalue into its IIFE-dedup form, which is a
-  // different shape than what this test is asserting about.)
+  // Serialize the factory result on its own. (Sharing `sig` with a
+  // sibling position would push devalue into its IIFE-dedup form, which is
+  // a different shape than what this test is asserting about.)
   const src = ser.serialize(result);
   // The arg is itself a signal-call expression — proving the args
   // went back through the replacer rather than being inlined as a
@@ -198,10 +197,7 @@ test("factory args are recursively walked through the replacer — signals insid
 test("the SAME factory-result reference used twice survives as one instance via devalue's IIFE-bound local", () => {
   // The simpler dedup case — two references to the same factory
   // result. devalue notices the same JS object and IIFE-wraps the
-  // shared expression. (Cross-boundary sharing — same signal both
-  // inside a factory's args AND as a sibling — is NOT preserved; that
-  // would require hoisting expressions into top-level `const`
-  // bindings, which we don't.)
+  // shared expression.
   const ser = createSerializer();
   const factory = tagIslandExport(
     (n: number) => ({ doubled: n * 2 }),
@@ -212,6 +208,15 @@ test("the SAME factory-result reference used twice survives as one instance via 
   const src = ser.serialize({ a: result, b: result });
   const built = evalProgram(src, ser.imports) as { a: unknown; b: unknown };
   assert.equal(built.a, built.b);
+});
+
+test("a signal inside a factory's args AND in a sibling position survives as one shared instance", () => {
+  const ser = createSerializer();
+  const factory = tagIslandExport((s: unknown) => ({ derived: s }), "islands/utils.tsx", "wrap");
+  const sig = signal(7);
+  const src = ser.serialize({ a: { __FRESH_FROM_FACTORY: { factory, args: [sig] } }, b: sig });
+  const built = evalProgram(src, ser.imports) as { a: { __call: { args: unknown[] } }; b: unknown };
+  assert.equal(built.a.__call.args[0], built.b);
 });
 
 // ---------- aliasFor (post-hoc imports, e.g. the boot runtime) ----------
@@ -282,6 +287,140 @@ test("`navigating()` serializes as a factory call via fresh/signals (not a bare 
   const entry = ser.imports.get("fresh/signals");
   assert.ok(entry, "fresh/signals must be registered");
   assert.ok(entry.imports.has("navigating"));
+});
+
+// ---------- wire-format round-trips for built-in value types ----------
+
+/** Serialize `value` and eval the emitted expression back into a value. */
+function roundTrip<T>(value: T): T {
+  const ser = createSerializer();
+  const src = ser.serialize(value);
+  return evalProgram(src, ser.imports) as T;
+}
+
+test("`undefined`, `NaN`, `±Infinity`, and `-0` round-trip, including nested in objects and arrays", () => {
+  for (const v of [undefined, NaN, Infinity, -Infinity, -0]) {
+    assert.ok(Object.is(roundTrip(v), v), `${String(v)} must round-trip`);
+  }
+  const out = roundTrip({ u: undefined, n: NaN, arr: [Infinity, -Infinity, -0, undefined] });
+  assert.ok("u" in out, "an `undefined`-valued key must survive, not be dropped");
+  assert.equal(out.u, undefined);
+  assert.ok(Number.isNaN(out.n));
+  assert.equal(out.arr.length, 4);
+  assert.equal(out.arr[0], Infinity);
+  assert.equal(out.arr[1], -Infinity);
+  assert.ok(Object.is(out.arr[2], -0));
+  assert.ok(3 in out.arr, "an explicit `undefined` element is not a hole");
+});
+
+/** An array of `length` holes with only `entries` populated. */
+function sparse(length: number, entries: Record<number, unknown>): unknown[] {
+  const arr: unknown[] = [];
+  arr.length = length;
+  return Object.assign(arr, entries);
+}
+
+test("sparse arrays keep their holes and length", () => {
+  // Mildly sparse (devalue emits `[1,,3]`), very sparse (emitted as
+  // `Object.assign(Array(n),{…})`), and a trailing hole (needs an extra `,`).
+  const cases = [
+    sparse(3, { 0: 1, 2: 3 }),
+    sparse(1000, { 3: "a", 997: "b" }),
+    sparse(3, { 0: 1, 1: 2 }),
+  ];
+  for (const arr of cases) {
+    const out = roundTrip(arr);
+    assert.equal(out.length, arr.length);
+    for (let i = 0; i < arr.length; i++) {
+      assert.equal(i in out, i in arr, `index ${i} hole-ness must match`);
+      assert.equal(out[i], arr[i]);
+    }
+  }
+});
+
+test("`URL` and `URLSearchParams` revive as instances", () => {
+  const out = roundTrip({
+    url: new URL("https://example.com/a?b=1#c"),
+    params: new URLSearchParams("x=1&x=2&y=</script>"),
+  });
+  assert.ok(out.url instanceof URL);
+  assert.equal(out.url.href, "https://example.com/a?b=1#c");
+  assert.ok(out.params instanceof URLSearchParams);
+  assert.deepEqual(out.params.getAll("x"), ["1", "2"]);
+  assert.equal(out.params.get("y"), "</script>");
+});
+
+test("`ArrayBuffer`, `Uint8Array`, and every other typed array revive with their type and contents", () => {
+  const values = [
+    new Int8Array([-128, 0, 127]),
+    new Uint8Array([0, 1, 255]),
+    new Uint8ClampedArray([0, 128, 255]),
+    new Int16Array([-32768, 32767]),
+    new Uint16Array([0, 65535]),
+    new Float16Array([1.5, -2]),
+    new Int32Array([-1, 2 ** 31 - 1]),
+    new Uint32Array([0, 2 ** 32 - 1]),
+    new Float32Array([0.5, -Infinity]),
+    new Float64Array([Math.PI, NaN, -0]),
+    new BigInt64Array([-(2n ** 63n), 1n]),
+    new BigUint64Array([2n ** 64n - 1n]),
+  ];
+  for (const v of values) {
+    const out = roundTrip(v);
+    assert.equal(out.constructor, v.constructor);
+    assert.deepEqual(out, v);
+  }
+  // A typed array referenced twice goes through devalue's hoisted-value path,
+  // which writes its elements separately from the inline path.
+  const big = new BigInt64Array([-(2n ** 63n), 1n]);
+  const shared = roundTrip({ a: big, b: big });
+  assert.equal(shared.a, shared.b);
+  assert.deepEqual(shared.a, big);
+  const buf = roundTrip(new Uint8Array([1, 2, 3]).buffer);
+  assert.ok(buf instanceof ArrayBuffer);
+  assert.deepEqual(new Uint8Array(buf), new Uint8Array([1, 2, 3]));
+});
+
+test("typed-array subarrays keep their window, and views sharing a buffer still share it", () => {
+  const buffer = new Uint8Array([10, 20, 30, 40, 50]).buffer;
+  const out = roundTrip({
+    whole: new Uint8Array(buffer),
+    sub: new Uint8Array(buffer, 1, 3),
+  });
+  assert.deepEqual([...out.sub], [20, 30, 40]);
+  assert.equal(out.sub.byteOffset, 1);
+  assert.equal(out.whole.buffer, out.sub.buffer, "both views must share one revived buffer");
+  out.whole[2] = 99;
+  assert.equal(out.sub[1], 99);
+});
+
+test("a `DataView` revives with its bytes, and a sub-view keeps its offset", () => {
+  const buffer = new Uint8Array([1, 2, 3, 4, 5, 6]).buffer;
+  const out = roundTrip(new DataView(buffer));
+  assert.ok(out instanceof DataView);
+  assert.equal(out.getUint32(0), 0x01020304);
+  const sub = roundTrip(new DataView(buffer, 2, 3));
+  assert.equal(sub.byteOffset, 2);
+  assert.equal(sub.byteLength, 3);
+  assert.equal(sub.getUint8(0), 3);
+});
+
+test("every Temporal type revives as an instance with the same value", () => {
+  const values = [
+    Temporal.Duration.from("P1Y2M3DT4H5M6.789S"),
+    Temporal.Instant.from("2026-01-02T03:04:05.123456789Z"),
+    Temporal.PlainDate.from("2026-01-02"),
+    Temporal.PlainTime.from("03:04:05.123"),
+    Temporal.PlainDateTime.from("2026-01-02T03:04:05"),
+    Temporal.PlainMonthDay.from("--01-02"),
+    Temporal.PlainYearMonth.from("2026-01"),
+    Temporal.ZonedDateTime.from("2026-01-02T03:04:05+01:00[Europe/Berlin]"),
+  ];
+  for (const v of values) {
+    const out = roundTrip(v);
+    assert.equal(Object.getPrototypeOf(out), Object.getPrototypeOf(v));
+    assert.equal(out.toString(), v.toString());
+  }
 });
 
 // ---------- `</script>` injection safety via uneval ----------
