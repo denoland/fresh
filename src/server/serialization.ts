@@ -17,7 +17,7 @@
 //      custom-typed nodes replaced by alias / call expressions. Shared
 //      references survive because devalue's `uneval` notices when the
 //      same JS object appears in two places and hoists it into an
-//      IIFE-bound local — including across `recurse` boundaries — so
+//      IIFE-bound local — including inside replacer `js` fragments — so
 //      a signal that appears as an island prop AND inside an event-
 //      handler factory's args revives as ONE instance;
 //
@@ -43,7 +43,18 @@
 //     `<signalAlias>(<peeked-value>)`; the peeked inner value goes back
 //     through the replacer for nested signal / factory handling.
 
-import { uneval } from "../vendor/devalue/index.js";
+import { uneval, type JavaScriptFragment, type JavaScriptTag } from "devalue";
+
+/**
+ * Build a `js` fragment from template pieces that aren't known until
+ * runtime (import aliases, a variable number of factory args). `strings`
+ * is literal JS source and must be one longer than `values`, exactly like
+ * a tagged template's string array; each value is serialized by devalue.
+ */
+function source(js: JavaScriptTag, strings: string[], values: unknown[]): JavaScriptFragment {
+  const template = Object.assign([...strings], { raw: [...strings] });
+  return js(template, ...values);
+}
 
 const SIGNAL_BRAND = Symbol.for("preact-signals");
 
@@ -115,8 +126,8 @@ export interface Serializer {
    * expressions, and return the JS source to place after `const data =
    * ` and before `;`. Shared references survive — devalue's own
    * IIFE-bound-local mechanism dedupes any value reached via the same
-   * JS object identity more than once, including across `recurse`
-   * boundaries.
+   * JS object identity more than once, including inside a factory's
+   * args.
    */
   serialize(value: unknown): string;
   /**
@@ -157,38 +168,39 @@ export function createSerializer(options: SerializerOptions = {}): Serializer {
     return `_${mod.index}_${idx}`;
   }
 
-  // devalue's `uneval` invokes the replacer as `(value, recurse)` where
-  // `recurse` is a bound helper that shares the outer call's reference
-  // graph and dedup state. Recursing through it (rather than calling
-  // `uneval(...)` again) is what lets devalue notice when the same
-  // signal / factory-result / function reference appears in two places
-  // and emit a single IIFE-bound local — so reactivity is preserved
-  // across an island prop + a `{signal}` text child + an event-handler
-  // argument without us tracking sharing ourselves.
-  const replacer = (v: unknown, recurse: (value: unknown) => string): string | undefined => {
+  // devalue's `uneval` invokes the replacer as `(value, js)`. Each `js`
+  // fragment is literal JS source with "holes" that devalue serializes
+  // itself, after its reference analysis has seen them. That is what lets
+  // devalue notice when the same signal / factory-result / function
+  // reference appears in two places — including once as a top-level value
+  // and once inside a factory's args — and emit a single IIFE-bound local,
+  // so reactivity is preserved across an island prop + a `{signal}` text
+  // child + an event-handler argument without us tracking sharing ourselves.
+  const replacer = (v: unknown, js: JavaScriptTag): JavaScriptFragment | undefined => {
     // Order matters. `makeComputed` results carry BOTH the factory
     // marker AND the signal brand — the only correct round-trip path
     // is to re-invoke the factory, so FactoryFunction wins.
     if (isFromFactory(v)) {
       const { factory, args } = (v as { __FRESH_FROM_FACTORY: FactoryMarker }).__FRESH_FROM_FACTORY;
-      // The factory is itself a SerializableFunction — `recurse(factory)`
-      // re-enters the replacer, hits the `isSerializableFunction`
-      // branch below, registers the import, and returns the alias. The
-      // pre-check just gives a specific error message instead of
-      // devalue's generic "can't uneval a function".
+      // The factory is itself a SerializableFunction — as a hole it
+      // re-enters the replacer, hits the `isSerializableFunction` branch
+      // below, registers the import, and becomes the alias. The pre-check
+      // just gives a specific error message instead of devalue's generic
+      // "can't uneval a function".
       if (!isSerializableFunction(factory)) {
         throw new TypeError(
           "factory(...) wrapper isn't an island-exported function — make sure the factory itself is exported from an `islands/` module (or shipped by a `fresh/...` runtime entrypoint).",
         );
       }
-      const factorySrc = recurse(factory);
-      const argSources = args.map(recurse);
-      return `(${factorySrc})(${argSources.join(",")})`;
+      // `(<factory>)(<arg0>,<arg1>,…)`
+      const strings =
+        args.length === 0 ? ["(", ")()"] : ["(", ")(", ...args.slice(1).map(() => ","), ")"];
+      return source(js, strings, [factory, ...args]);
     }
 
     if (isSerializableFunction(v)) {
       const { specifier, export: exp } = v.__FRESH_SERIALIZABLE_FUNCTION;
-      return aliasFor(specifier, exp);
+      return source(js, [aliasFor(specifier, exp)], []);
     }
 
     if (isSignalLike(v)) {
@@ -200,9 +212,8 @@ export function createSerializer(options: SerializerOptions = {}): Serializer {
           "Cannot serialize a computed signal; wrap its factory with `makeComputed()` from `fresh/signals` or pass a plain signal instead.",
         );
       }
-      const innerSrc = recurse(v.peek());
       const signalAlias = aliasFor(SIGNAL_HELPER_SPECIFIER, SIGNAL_HELPER_EXPORT);
-      return `${signalAlias}(${innerSrc})`;
+      return source(js, [`${signalAlias}(`, ")"], [v.peek()]);
     }
 
     // A VNode prop (JSX passed to an island) — not structurally serializable
@@ -212,7 +223,7 @@ export function createSerializer(options: SerializerOptions = {}): Serializer {
       const slotIndex = options.slot(v);
       if (slotIndex !== null) {
         const slotAlias = aliasFor(SIGNAL_HELPER_SPECIFIER, SLOT_HELPER_EXPORT);
-        return `${slotAlias}(${slotIndex})`;
+        return source(js, [`${slotAlias}(${slotIndex})`], []);
       }
     }
 

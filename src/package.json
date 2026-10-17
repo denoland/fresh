@@ -86,11 +86,12 @@
     }
   },
   "scripts": {
-    "build": "GOMAXPROCS=1 tsgo -p tsconfig.json && find dist -name '*.test.*' -delete && cp -R vendor dist/vendor",
+    "build": "GOMAXPROCS=1 tsgo -p tsconfig.json && find dist -name '*.test.*' -delete",
     "prepack": "rm -rf dist && pnpm run build"
   },
   "dependencies": {
     "@prefresh/vite": "^4.0.1",
+    "devalue": "^6.0.3",
     "magic-string": "^1.4.2",
     "nitro": "^3.0.260903-beta",
     "preact-render-to-string": "^6.8.0",

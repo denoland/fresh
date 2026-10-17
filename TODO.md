@@ -55,7 +55,7 @@ Gaps surfaced by comparing against the Fresh 2 test suite. (Programmatic route r
 - [x] Partial-navigation client e2e — scroll reset on a forward swap, scroll restoration on back/forward traverse, full-page fallback when a partial fetch 500s, and native in-page hash-link scrolling (no swap/reload). All in `tests/e2e/partials.spec.ts`. Scroll reset/restore is handled entirely by the Navigation API's default `intercept({ scroll: "after-transition" })` (no fresh3 code needed) — the test drives navigation via a JS `.click()` (`clickViaJs` in `util.ts`) so Playwright's scroll-into-view doesn't reset the page to the top before the navigation fires.
 - [ ] Remaining partial client e2e: focus reset after a swap, and request-abort behaviour when one navigation supersedes another in flight.
 - [ ] Head e2e gaps: multiple islands each rendering `<Head>` (merge), reactive `<meta>` content updates post-hydration, and `<style>`/`<template>`/`<noscript>` collection into the head.
-- [ ] Serializer wire-format coverage leans on devalue at the e2e layer; explicit unit round-trips for Temporal types, `Uint8Array` / typed arrays, `URL`, sparse arrays, and `undefined` / `NaN` / `±Infinity` are missing (only partly exercised via `tests/e2e/serialization.spec.ts`).
+- [x] Serializer wire-format unit round-trips in `src/server/serialization.test.ts` — Temporal types, `ArrayBuffer` / every typed array (incl. subarrays and shared buffers), `DataView`, `URL` / `URLSearchParams`, sparse arrays, and `undefined` / `NaN` / `±Infinity` / `-0`. These run against upstream `devalue` (6.x), which replaced our vendored fork once its `js`-template replacer API landed.
 
 ### WWW
 
