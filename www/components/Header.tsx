@@ -2,7 +2,8 @@ import NavigationBar from "./NavigationBar.tsx";
 
 export default function Header(props: { title: string; active: string }) {
   const isHome = props.active == "/";
-  const isDocs = props.active == "/docs";
+  // Docs and blog pages share the sticky, themeable header.
+  const isDocs = props.active == "/docs" || props.active == "/blog";
   return (
     <header
       class={[

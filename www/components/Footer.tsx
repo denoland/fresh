@@ -3,15 +3,15 @@ import type { HTMLAttributes } from "preact";
 const LINKS = [
   {
     title: "Source",
-    href: "https://github.com/denoland/fresh",
+    href: "https://github.com/freshframework/fresh",
   },
   {
     title: "License",
-    href: "https://github.com/denoland/fresh/blob/main/LICENSE",
+    href: "https://github.com/freshframework/fresh/blob/main/LICENSE",
   },
   {
     title: "Code of Conduct",
-    href: "https://github.com/denoland/fresh/blob/main/.github/CODE_OF_CONDUCT.md",
+    href: "https://github.com/freshframework/fresh/blob/main/.github/CODE_OF_CONDUCT.md",
   },
 ];
 

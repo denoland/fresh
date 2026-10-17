@@ -20,7 +20,7 @@ Fresh is organized as a monorepo with multiple packages:
 Prerequisites: [Deno](https://deno.com/) (latest version) and Git.
 
 ```sh Terminal
-git clone https://github.com/denoland/fresh.git
+git clone https://github.com/freshframework/fresh.git
 cd fresh
 deno task ok
 ```

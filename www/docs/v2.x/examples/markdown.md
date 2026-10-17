@@ -40,7 +40,7 @@ export default define.page(async () => {
 });
 ```
 
-For a more elaborate markdown system with Fresh, take a look at the [source code](https://github.com/denoland/fresh/tree/main/www) for this documentation website.
+For a more elaborate markdown system with Fresh, take a look at the [source code](https://github.com/freshframework/fresh/tree/main/www) for this documentation website.
 
 ## Other libraries
 
